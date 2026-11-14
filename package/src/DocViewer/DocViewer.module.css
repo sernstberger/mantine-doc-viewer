@@ -1,0 +1,337 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--doc-viewer-radius);
+  background-color: var(--mantine-color-body);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-height: 44px;
+  padding-inline: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
+
+  :where([data-doc-type='image']) > & {
+    min-height: 240px;
+  }
+}
+
+.imageStage {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: -2px;
+  }
+
+  &[data-pannable] {
+    cursor: grab;
+  }
+
+  &[data-panning] {
+    cursor: grabbing;
+    user-select: none;
+  }
+}
+
+/* Padding on both sides must add up to IMAGE_GUTTER in views/image-fit.ts */
+.imageCanvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  height: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.imageFrame {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  max-width: none;
+  visibility: hidden;
+  transform-origin: center;
+  user-select: none;
+
+  &[data-loaded] {
+    visibility: visible;
+  }
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-sm);
+  height: 100%;
+  min-height: 160px;
+  padding: var(--mantine-spacing-xl);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-sm);
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  flex-shrink: 0;
+}
+
+.pageIndicator {
+  min-width: 56px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.zoomLevel {
+  min-width: 48px;
+  padding: 2px 4px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+}
+
+/* Horizontal padding must match PAGES_GUTTER in pdf/zoom.ts */
+.pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+  width: max-content;
+  min-width: 100%;
+  padding: var(--mantine-spacing-md) 16px;
+}
+
+.page {
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+
+  position: relative;
+  flex-shrink: 0;
+  background-color: white;
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 6px var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.searchInput {
+  flex: 1;
+  max-width: 320px;
+}
+
+.searchCount {
+  min-width: 72px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Selectable text over the canvas, adapted from pdfjs-dist/web/pdf_viewer.css (Apache-2.0) */
+.textLayer {
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  z-index: 0;
+  opacity: 1;
+  line-height: 1;
+  text-align: initial;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+
+  & :is(span, br) {
+    position: absolute;
+    color: transparent;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    user-select: text;
+  }
+
+  & > :not(:global(.markedContent)),
+  & :global(.markedContent) span:not(:global(.markedContent)) {
+    --font-height: 0;
+    --scale-x: 1;
+    --rotate: 0deg;
+
+    z-index: 1;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+  }
+
+  & :global(.markedContent) {
+    display: contents;
+  }
+
+  & ::selection {
+    color: transparent;
+    background: color-mix(in srgb, AccentColor, transparent 50%);
+  }
+
+  & br::selection {
+    background: transparent;
+  }
+
+  & :global(.endOfContent) {
+    position: absolute;
+    inset: 100% 0 0;
+    z-index: 0;
+    display: block;
+    cursor: default;
+    user-select: none;
+  }
+
+  &:global(.selecting) :global(.endOfContent) {
+    top: 0;
+  }
+}
+
+/* Search matches, painted with the CSS Custom Highlight API, see pdf/highlights.ts */
+::highlight(mantine-doc-viewer-match) {
+  color: transparent;
+  background-color: rgb(250 176 5 / 40%);
+}
+
+::highlight(mantine-doc-viewer-active-match) {
+  color: transparent;
+  background-color: rgb(253 126 20 / 65%);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+
+  & > .body {
+    min-width: 0;
+  }
+}
+
+.thumbnails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  flex-shrink: 0;
+  width: 152px;
+  padding: var(--mantine-spacing-sm) 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: none;
+  color: var(--mantine-color-dimmed);
+  font: inherit;
+  cursor: pointer;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+  }
+
+  &[data-active] {
+    color: var(--mantine-color-text);
+    background-color: var(--mantine-primary-color-light);
+  }
+}
+
+/* Width must match THUMBNAIL_WIDTH in pdf/PdfThumbnails.tsx */
+.thumbnailImage {
+  display: block;
+  width: 112px;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  background-color: white;
+
+  [data-active] > & {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: 0 0 0 1px var(--mantine-primary-color-filled);
+  }
+}
+
+.thumbnailLabel {
+  font-size: var(--mantine-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}

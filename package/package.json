@@ -1,0 +1,44 @@
+{
+  "name": "mantine-doc-viewer",
+  "version": "0.0.0",
+  "description": "Document viewer for Mantine: PDF, images, text, code and markdown",
+  "homepage": "https://sernstberger.github.io/mantine-doc-viewer/",
+  "packageManager": "yarn@4.0.1",
+  "license": "MIT",
+  "author": "Steve Ernstberger",
+  "keywords": [
+    "mantine",
+    "react",
+    "pdf",
+    "pdf-viewer",
+    "document-viewer",
+    "image-viewer",
+    "file-preview"
+  ],
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./styles.layer.css": "./dist/styles.layer.css"
+  },
+  "repository": "https://github.com/sernstberger/mantine-doc-viewer.git",
+  "peerDependencies": {
+    "@mantine/core": ">=7.0.0",
+    "@mantine/hooks": ">=7.0.0",
+    "pdfjs-dist": ">=6.0.0",
+    "react": "^18.x || ^19.x",
+    "react-dom": "^18.x || ^19.x"
+  },
+  "bugs": "https://github.com/sernstberger/mantine-doc-viewer/issues"
+}

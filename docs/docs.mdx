@@ -1,0 +1,100 @@
+import { InstallScript } from './components/InstallScript/InstallScript';
+import * as demos from './demos';
+
+## Installation
+
+<InstallScript packages="mantine-doc-viewer pdfjs-dist" />
+
+After installation, import package styles at the root of your application:
+
+```tsx
+import '@mantine/core/styles.css';
+import 'mantine-doc-viewer/styles.css';
+```
+
+## Usage
+
+`DocViewer` works out the document type from `mimeType`, `fileName` or the `src` extension.
+PDF and image files are supported today; markdown, code and text previews are in progress.
+
+<Demo data={demos.usage} />
+
+Give `DocViewer` a height with the `h` prop or from its parent: documents are scrolled and fitted
+inside the viewer, they do not make it grow.
+
+## Images
+
+Images open fitted to the viewer, never enlarged past their natural size. Zoom with the toolbar,
+with `Ctrl` or `Cmd` and the mouse wheel, or with a trackpad pinch – zoom keeps the point under the
+pointer in place. Drag with the mouse to move around a zoomed image.
+
+| Key | Action |
+| --- | --- |
+| `+` or `=` | Zoom in |
+| `-` | Zoom out |
+| `0` | Fit to view |
+| `r` | Rotate 90° clockwise |
+
+Keyboard shortcuts work while the image has focus.
+
+## PDF files
+
+PDF files are rendered with [pdf.js](https://mozilla.github.io/pdf.js/). It is loaded only when a PDF is
+opened, so apps that never display PDFs do not download it. Pages are drawn as they scroll into view.
+
+<Demo data={demos.pdf} />
+
+## Page thumbnails
+
+The sidebar button in the toolbar shows a thumbnail for every page. Thumbnails are drawn as they
+scroll into view, the current page is highlighted and clicking a thumbnail scrolls to its page.
+Set `defaultThumbnailsOpened` to show them when the PDF opens.
+
+```tsx
+<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
+```
+
+## Text selection and search
+
+Text in PDF pages can be selected and copied. Open search with the search button or with
+`Ctrl + F` / `Cmd + F` while the document has focus. `Enter` and `Shift + Enter` move between
+matches, `Escape` closes search.
+
+Matches are highlighted with the [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API).
+To change the colors, style the highlights in your global styles:
+
+```css
+::highlight(mantine-doc-viewer-match) {
+  background-color: rgb(250 176 5 / 40%);
+}
+
+::highlight(mantine-doc-viewer-active-match) {
+  background-color: rgb(253 126 20 / 65%);
+}
+```
+
+## pdf.js worker
+
+pdf.js parses documents in a web worker. Set `pdfWorkerSrc` to the url of the worker file from the
+`pdfjs-dist` version installed in your app:
+
+```tsx
+// Vite
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+// Next.js, webpack 5 and other bundlers that support new URL()
+const pdfWorkerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+```
+
+To set it once for the whole app, use theme default props:
+
+```tsx
+import { createTheme } from '@mantine/core';
+import { DocViewer } from 'mantine-doc-viewer';
+
+const theme = createTheme({
+  components: {
+    DocViewer: DocViewer.extend({ defaultProps: { pdfWorkerSrc } }),
+  },
+});
+```
