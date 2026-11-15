@@ -24,6 +24,27 @@ describe('DocViewer toolbar', () => {
     expect(buttons[buttons.length - 1]).toHaveFocus();
   });
 
+  it('keeps one tab stop when a button is disabled', async () => {
+    // At the smallest zoom, Zoom out is disabled; Mantine's Toolbar skips it but would leave its tab stop
+    render(<DocViewer src="/files/photo.png" defaultZoom={0.1} />);
+    const image = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
+    Object.defineProperty(image, 'naturalWidth', { value: 800 });
+    Object.defineProperty(image, 'naturalHeight', { value: 400 });
+    fireEvent.load(image);
+    const toolbar = screen.getByRole('toolbar', { name: 'Document toolbar' });
+    const zoomOut = screen.getByRole('button', { name: 'Zoom out' });
+
+    expect(zoomOut).toHaveAttribute('aria-disabled', 'true');
+    expect(zoomOut.tabIndex).toBe(-1);
+    await waitFor(() =>
+      expect(
+        Array.from(toolbar.querySelectorAll<HTMLElement>('[data-toolbar-toggle]')).filter(
+          (button) => button.tabIndex === 0
+        )
+      ).toHaveLength(1)
+    );
+  });
+
   it('labels the toolbar with the viewer labels', () => {
     render(<DocViewer src="/files/photo.png" labels={{ toolbar: 'Barre' }} />);
     expect(screen.getByRole('toolbar', { name: 'Barre' })).toBeInTheDocument();

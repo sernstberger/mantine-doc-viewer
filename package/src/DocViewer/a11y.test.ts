@@ -16,8 +16,10 @@ describe('a11y helpers', () => {
     const disabled = softDisabled(true, onClick);
     disabled.onClick();
     expect(disabled['aria-disabled']).toBe(true);
+    expect(disabled.tabIndex).toBe(-1);
     expect(onClick).not.toHaveBeenCalled();
 
+    expect(softDisabled(false, onClick).tabIndex).toBeUndefined();
     softDisabled(false, onClick).onClick();
     expect(onClick).toHaveBeenCalled();
   });

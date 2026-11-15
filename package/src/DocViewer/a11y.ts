@@ -1,11 +1,14 @@
 /**
  * Disabled look without the `disabled` attribute: a button that becomes disabled while
- * focused, such as Next page on the last page, keeps focus instead of dropping it to the page
+ * focused, such as Next page on the last page, keeps focus instead of dropping it to the page.
+ * It is not a tab stop of its own: Mantine's Toolbar skips `data-disabled` buttons and leaves
+ * their tab index alone, so without -1 the toolbar would get a second tab stop
  */
 export function softDisabled(disabled: boolean, onClick: () => void) {
   return {
     'aria-disabled': disabled || undefined,
     'data-disabled': disabled || undefined,
+    tabIndex: disabled ? -1 : undefined,
     onClick: () => !disabled && onClick(),
   };
 }
