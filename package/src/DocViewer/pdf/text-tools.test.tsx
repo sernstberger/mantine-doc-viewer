@@ -121,6 +121,27 @@ describe('goToPage with a point', () => {
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 3000 - 12 }));
   });
 
+  it('jumps without scrolling smoothly when asked to', async () => {
+    const { scrollTo, controller } = await setup();
+    act(() => controller.current!.goToPage(3, { behavior: 'instant' }));
+    expect(scrollTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ top: 3000 - 12, behavior: 'instant' })
+    );
+  });
+
+  it('gives the canvas a page is drawn on, for apps that copy it', async () => {
+    const { controller } = await setup();
+
+    await waitFor(() =>
+      expect(controller.current!.getPageCanvas(2)).toBeInstanceOf(HTMLCanvasElement)
+    );
+    expect(controller.current!.getPageCanvas(2)!.closest('[data-page-number]')).toHaveAttribute(
+      'data-page-number',
+      '2'
+    );
+    expect(controller.current!.getPageCanvas(9)).toBeNull();
+  });
+
   it('follows the zoom and the rotation of the page', async () => {
     const { scrollTo, controller } = await setup();
 

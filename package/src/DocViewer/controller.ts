@@ -77,6 +77,13 @@ export interface DocViewerController {
    */
   getBytes: () => Promise<Uint8Array | null>;
 
+  /**
+   * The canvas a PDF page is drawn on, or null while it is not drawn (pages far from the view are
+   * not drawn yet, or let go). For apps that copy the page, for example to animate a page turn;
+   * read it, do not draw on it. The viewer redraws or replaces it when the zoom changes
+   */
+  getPageCanvas: (page: number) => HTMLCanvasElement | null;
+
   /** Opens the browser print dialog for the document */
   print: () => Promise<void>;
 
@@ -115,6 +122,12 @@ export interface DocViewerGoToPageOptions {
    * rotated use the point on their left edge
    */
   top?: number;
+
+  /**
+   * `'instant'` jumps straight there, for an app that animates the turn itself. By default the
+   * view scrolls smoothly to near pages, unless the reader prefers reduced motion
+   */
+  behavior?: 'smooth' | 'instant';
 }
 
 /** What `highlight` marks: the first place a text is found, or boxes on a page */
@@ -247,6 +260,7 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       },
       download: call('download'),
       getBytes: async () => (await implementation.current.getBytes?.()) ?? null,
+      getPageCanvas: (page) => implementation.current.getPageCanvas?.(page) ?? null,
       getOutline: async () => (await implementation.current.getOutline?.()) ?? [],
       toggleFullscreen: async () => {
         await implementation.current.toggleFullscreen?.();

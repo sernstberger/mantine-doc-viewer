@@ -117,9 +117,9 @@ export function useCurrentPage(
   const scrollToPage = useCallback(
     /**
      * `offset` is the distance from the top of the page to scroll to, in px, or a function of the
-     * page's height in px that gives it
+     * page's height in px that gives it. `instant` jumps there without scrolling smoothly
      */
-    (page: number, offset: number | ((pageHeight: number) => number) = 0) => {
+    (page: number, offset: number | ((pageHeight: number) => number) = 0, instant = false) => {
       const node = pages.current.get(page);
       setCurrentPage(page);
 
@@ -160,7 +160,7 @@ export function useCurrentPage(
       const far =
         Math.abs(top - view.scrollTop) > view.clientHeight * LONG_JUMP_SCREENS ||
         Math.abs(left - view.scrollLeft) > view.clientWidth * LONG_JUMP_SCREENS;
-      const behavior = far ? 'auto' : getScrollBehavior();
+      const behavior: ScrollBehavior = instant ? 'instant' : far ? 'auto' : getScrollBehavior();
       scroller.scrollTo({ top, left, behavior });
       // A row of pages is scrolled sideways inside the viewer, even when the window scrolls
       viewport && horizontal && scrollRoot.scrollTo({ left: pageLeft, behavior });

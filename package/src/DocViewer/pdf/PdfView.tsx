@@ -213,12 +213,18 @@ export function PdfView() {
   useKeepScroll(scrollRoot, !!(ready && scrollRoot && pagesNode), context.src, context.keepView);
 
   /** Moves to a page, and reads it out unless something else already does (the thumbnails) */
-  const goToPage = (page: number, withAnnouncement = true, top?: number) => {
+  const goToPage = (
+    page: number,
+    withAnnouncement = true,
+    top?: number,
+    behavior?: 'smooth' | 'instant'
+  ) => {
     scrollToPage(
       page,
       top === undefined
         ? undefined
-        : (pageHeight) => getPointOffset(Math.max(top, 0), scale, rotation, pageHeight)
+        : (pageHeight) => getPointOffset(Math.max(top, 0), scale, rotation, pageHeight),
+      behavior === 'instant'
     );
     withAnnouncement && announce(labels.pageOf(page, numPages));
   };
@@ -265,7 +271,8 @@ export function PdfView() {
   };
 
   useRegisterController(controller, {
-    goToPage: (page, options) => ready && goToPage(clampPage(page, numPages), true, options?.top),
+    goToPage: (page, options) =>
+      ready && goToPage(clampPage(page, numPages), true, options?.top, options?.behavior),
     goToSpread: (spread) => {
       const pages = spreads[clampPage(spread, spreads.length) - 1];
       pages && goToPage(pages[0]);
@@ -291,6 +298,9 @@ export function PdfView() {
       ready && presentation.toggle();
     },
     getBytes: async () => (document ? document.getData() : null),
+    // Only a page element carries data-rendered, once its canvas holds the drawn page
+    getPageCanvas: (page) =>
+      scrollRoot?.querySelector(`[data-page-number="${page}"][data-rendered] canvas`) ?? null,
     setMarkupTool: markup.setTool,
     saveMarkup: () => saveMarkup(),
     print,
