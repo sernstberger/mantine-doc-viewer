@@ -155,3 +155,11 @@ export const PresentationIcon = (props: IconProps) => (
     <path d="M12 16v4M8 20h8M10 8l4 2-4 2z" />
   </Icon>
 );
+
+export const EditPagesIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3" y="3" width="7" height="9" rx="1" />
+    <rect x="14" y="3" width="7" height="9" rx="1" />
+    <path d="M3 17h18M3 21h12" />
+  </Icon>
+);

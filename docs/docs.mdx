@@ -151,6 +151,32 @@ not support it, such as iPhone Safari.
 The viewer asks for the password of a protected PDF, and says when it is wrong. To pass a
 password you already have, use `pdfOptions={{ password }}`.
 
+## Editing pages
+
+Set `withPageEditing` to add an edit pages button to the PDF toolbar. It shows the pages as a grid
+where readers can:
+
+- select pages with a click, Shift or Ctrl click, Space, or Ctrl/Cmd+A
+- reorder them by dragging, with the move earlier and move later buttons, or Alt and the arrow keys
+- delete them with the delete button or the Delete key (a PDF always keeps at least one page)
+- extract the selected pages as a new PDF
+
+Done shows the edited document in the viewer; Save does the same and also hands the new PDF to
+`onSave`. The original file is never changed. Without `onSave`, saved and extracted PDFs are
+downloaded.
+
+```tsx
+<DocViewer
+  src="/contract.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  withPageEditing
+  onSave={async (bytes, { reason, pages }) => {
+    // reason is 'save' for the edited document and 'extract' for selected pages
+    await upload(new Blob([bytes], { type: 'application/pdf' }), { reason, pages });
+  }}
+/>
+```
+
 ## Events and controller
 
 ```tsx

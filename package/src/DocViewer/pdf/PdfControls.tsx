@@ -10,6 +10,7 @@ import {
   ChevronUpIcon,
   FitWidthIcon,
   InfoIcon,
+  EditPagesIcon,
   OutlineIcon,
   PresentationIcon,
   PanelPositionIcon,
@@ -58,6 +59,7 @@ export interface PdfControlsProps {
   onLayerChange: (id: string, visible: boolean) => void;
 
   onPresent: () => void;
+  onEditPages: () => void;
 
   searchOpened: boolean;
   searchToggleRef: React.Ref<HTMLButtonElement>;
@@ -66,7 +68,7 @@ export interface PdfControlsProps {
 
 /** Toolbar buttons for PDFs: thumbnails, paging, zoom, rotation, layout, outline and search */
 export function PdfControls(props: PdfControlsProps) {
-  const { getStyles, labels, size } = useDocViewerContext();
+  const { getStyles, labels, size, withPageEditing } = useDocViewerContext();
   const controlProps = useControlProps();
   const outline = usePdfOutline(props.document);
   const [outlineOpened, setOutlineOpened] = useState(false);
@@ -245,6 +247,14 @@ export function PdfControls(props: PdfControlsProps) {
           <PresentationIcon />
         </ActionIcon>
       </DocViewerTooltip>
+
+      {withPageEditing && (
+        <DocViewerTooltip label={labels.editPages}>
+          <ActionIcon {...controlProps()} aria-label={labels.editPages} onClick={props.onEditPages}>
+            <EditPagesIcon />
+          </ActionIcon>
+        </DocViewerTooltip>
+      )}
 
       <DocViewerTooltip label={labels.search}>
         <ActionIcon

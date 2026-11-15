@@ -43,6 +43,10 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     documentInfo: 'Document info popover: properties, attachments and layers',
     properties: 'List of document properties',
     presentationControls: 'Page count and exit button shown during a presentation',
+    editor: 'PDF page editor',
+    editorBar: 'Buttons above the pages in the page editor',
+    editorPages: 'Grid of pages in the page editor, a listbox',
+    editorPage: 'One page in the page editor',
   },
 
   vars: {
@@ -91,6 +95,11 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
       value: 'single | two-page | two-page-cover | horizontal | wrapped | presentation',
     },
     { modifier: 'data-presenting', selector: 'main', condition: 'A presentation is running' },
+    {
+      modifier: 'data-selected',
+      selector: 'editorPage',
+      condition: 'Page is selected in the page editor',
+    },
     { modifier: 'data-fullscreen', selector: 'root', condition: 'Viewer is full screen' },
     {
       modifier: 'data-doc-type',

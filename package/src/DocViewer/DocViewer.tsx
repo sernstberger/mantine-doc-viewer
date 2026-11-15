@@ -83,7 +83,11 @@ export type DocViewerStylesNames =
   | 'password'
   | 'documentInfo'
   | 'properties'
-  | 'presentationControls';
+  | 'presentationControls'
+  | 'editor'
+  | 'editorBar'
+  | 'editorPages'
+  | 'editorPage';
 
 export type DocViewerPageLayout =
   | 'single'
@@ -204,6 +208,18 @@ export interface DocViewerProps
 
   /** Zoom when a PDF or image opens: a scale where 1 is 100%, or `'fit'`, `'fit'` by default */
   defaultZoom?: DocViewerZoom;
+
+  /** Determines whether readers can reorder, remove and extract PDF pages, `false` by default. Edits make a new document; the original file is not changed */
+  withPageEditing?: boolean;
+
+  /**
+   * Called with the bytes of a PDF made by page editing: the edited document (`reason: 'save'`)
+   * or the extracted pages (`reason: 'extract'`). Without it the PDF is downloaded
+   */
+  onSave?: (
+    bytes: Uint8Array,
+    info: { reason: 'save' | 'extract'; pages: number[] }
+  ) => void | Promise<void>;
 
   /** Determines whether the toolbar has a print button, `true` by default */
   withPrint?: boolean;
@@ -341,6 +357,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withPrint,
     withDownload,
     withFullscreen,
+    withPageEditing,
+    onSave,
     onDocumentLoad,
     onDocumentError,
     onPageChange,
@@ -433,6 +451,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withPrint,
         withDownload,
         withFullscreen,
+        withPageEditing,
+        onSave,
         fullscreen: fullscreen.fullscreen,
         toggleFullscreen: fullscreen.toggle,
       }}

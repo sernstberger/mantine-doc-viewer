@@ -63,6 +63,7 @@ function mockPdf({
     ),
     getPageIndex: jest.fn(() => Promise.resolve(1)),
     getData: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70]))),
+    extractPages: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70, 45]))),
     getMetadata: jest.fn(() =>
       Promise.resolve({
         info: {
@@ -863,5 +864,124 @@ describe('DocViewer PDF', () => {
     act(() => controller.current!.togglePresentation());
     await userEvent.click(screen.getByRole('button', { name: 'Exit presentation' }));
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
+  });
+
+  describe('page editing', () => {
+    const openEditor = async (props: Partial<React.ComponentProps<typeof DocViewer>> = {}) => {
+      mockPdf();
+      const onSave = jest.fn();
+      render(
+        <DocViewer
+          src="/files/report.pdf"
+          pdfWorkerSrc="/worker.mjs"
+          withPageEditing
+          onSave={onSave}
+          {...props}
+        />
+      );
+      await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
+      const listbox = screen.getByRole('listbox', { name: 'Pages' });
+      const order = () =>
+        within(listbox)
+          .getAllByRole('option')
+          .map((option) => option.getAttribute('data-page'));
+      return { onSave, listbox, order };
+    };
+
+    it('is off unless withPageEditing is set', async () => {
+      mockPdf();
+      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+      expect(screen.queryByRole('button', { name: 'Edit pages' })).not.toBeInTheDocument();
+    });
+
+    it('reorders with buttons and saves a new document', async () => {
+      const { onSave, order } = await openEditor();
+      await userEvent.click(screen.getByRole('option', { name: 'Page 3, position 3 of 3' }));
+      expect(screen.getByText('1 selected')).toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: 'Move earlier' }));
+      expect(order()).toEqual(['1', '3', '2']);
+      expect(screen.getByText(/Page 3 moved to position 2/)).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() =>
+        expect(onSave).toHaveBeenCalledWith(expect.any(Uint8Array), {
+          reason: 'save',
+          pages: [1, 3, 2],
+        })
+      );
+      // Back to the viewer, now showing the edited document
+      expect(await screen.findAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
+      expect(getDocument).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: expect.any(Uint8Array) })
+      );
+    });
+
+    it('moves, selects and removes pages with the keyboard', async () => {
+      const { order } = await openEditor();
+      const first = screen.getByRole('option', { name: 'Page 1, position 1 of 3' });
+      first.focus();
+      await userEvent.keyboard('{Alt>}{ArrowRight}{/Alt}');
+      expect(order()).toEqual(['2', '1', '3']);
+
+      await userEvent.keyboard('{End}{ }');
+      expect(screen.getByRole('option', { name: 'Page 3, position 3 of 3' })).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      await userEvent.keyboard('{Delete}');
+      expect(order()).toEqual(['2', '1']);
+      expect(screen.getByText(/1 page removed/)).toBeInTheDocument();
+
+      await userEvent.keyboard('{Control>}a{/Control}');
+      expect(screen.getByText('2 selected')).toBeInTheDocument();
+      // Never removes every page
+      await userEvent.keyboard('{Delete}');
+      expect(order()).toEqual(['2', '1']);
+    });
+
+    it('extracts the selected pages without changing the document', async () => {
+      const { onSave } = await openEditor();
+      await userEvent.click(screen.getByRole('option', { name: 'Page 2, position 2 of 3' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Extract selected' }));
+      await waitFor(() =>
+        expect(onSave).toHaveBeenCalledWith(expect.any(Uint8Array), {
+          reason: 'extract',
+          pages: [2],
+        })
+      );
+      expect(screen.getByRole('listbox', { name: 'Pages' })).toBeInTheDocument();
+    });
+
+    it('resets and cancels without saving', async () => {
+      const { onSave, order } = await openEditor();
+      await userEvent.click(screen.getByRole('option', { name: 'Page 2, position 2 of 3' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Move later' }));
+      expect(order()).toEqual(['1', '3', '2']);
+      await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      expect(order()).toEqual(['1', '2', '3']);
+
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(await screen.findAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
+      expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('downloads when there is no onSave', async () => {
+      URL.createObjectURL = jest.fn(() => 'blob:edited');
+      URL.revokeObjectURL = jest.fn();
+      await openEditor({ onSave: undefined });
+      await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+    });
+
+    it('drags a page to a new place', async () => {
+      const { order } = await openEditor();
+      const third = screen.getByRole('option', { name: 'Page 3, position 3 of 3' });
+      const first = screen.getByRole('option', { name: 'Page 1, position 1 of 3' });
+      fireEvent.dragStart(third, { dataTransfer: { effectAllowed: '' } });
+      fireEvent.dragOver(first);
+      fireEvent.drop(first);
+      expect(order()).toEqual(['3', '1', '2']);
+    });
   });
 });

@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useState } from 'react';
+import { saveBytes } from '../files';
 import { formatFileSize } from '../text/use-text-document';
 
 export interface PdfProperty {
@@ -169,10 +170,5 @@ export async function downloadAttachment(document: PDFDocumentProxy, attachment:
     return;
   }
 
-  const url = URL.createObjectURL(new Blob([content as BlobPart]));
-  const link = window.document.createElement('a');
-  link.href = url;
-  link.download = attachment.filename;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  saveBytes(content, attachment.filename);
 }

@@ -32,6 +32,9 @@ export interface DocViewerController {
   /** Starts a PDF presentation (full screen, one page at a time), or ends it */
   togglePresentation: () => void;
 
+  /** Opens the PDF page editor (needs `withPageEditing`) */
+  editPages: () => void;
+
   /** Opens the browser print dialog for the document */
   print: () => Promise<void>;
 
@@ -87,6 +90,7 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       closeSearch: call('closeSearch'),
       toggleThumbnails: call('toggleThumbnails'),
       togglePresentation: call('togglePresentation'),
+      editPages: call('editPages'),
       print: async () => {
         await implementation.current.print?.();
       },

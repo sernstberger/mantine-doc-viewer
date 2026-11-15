@@ -290,3 +290,25 @@ export function CustomRenderer() {
     </div>
   );
 }
+
+export function PageEditing() {
+  const [saved, setSaved] = useState('Nothing saved yet');
+
+  return (
+    <Stack p={40} gap="sm">
+      <MantineText size="sm" data-testid="saved">
+        {saved}
+      </MantineText>
+      <DocViewer
+        src="/sample.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        withPageEditing
+        defaultThumbnailsOpened
+        onSave={(bytes, { reason, pages }) =>
+          setSaved(`${reason}: ${bytes.length} bytes, pages ${pages.join(', ')}`)
+        }
+        h={600}
+      />
+    </Stack>
+  );
+}

@@ -46,6 +46,13 @@ export interface DocViewerContextValue {
   withPrint: boolean | undefined;
   withDownload: boolean | undefined;
   withFullscreen: boolean | undefined;
+  withPageEditing: boolean | undefined;
+  onSave:
+    | ((
+        bytes: Uint8Array,
+        info: { reason: 'save' | 'extract'; pages: number[] }
+      ) => void | Promise<void>)
+    | undefined;
   fullscreen: boolean;
   toggleFullscreen: () => Promise<void>;
 }

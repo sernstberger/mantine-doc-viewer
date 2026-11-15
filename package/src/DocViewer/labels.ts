@@ -10,6 +10,19 @@ export interface DocViewerLabels {
   downloadFile: string;
   print: string;
   presentation: string;
+  editPages: string;
+  moveEarlier: string;
+  moveLater: string;
+  deletePages: string;
+  extractPages: string;
+  resetPages: string;
+  cancel: string;
+  done: string;
+  savePages: string;
+  selectedCount: (count: number) => string;
+  editorPage: (page: number, position: number, total: number) => string;
+  pageMoved: (page: number, position: number) => string;
+  pagesRemoved: (count: number) => string;
   exitPresentation: string;
   fullscreen: string;
   exitFullscreen: string;
@@ -112,6 +125,19 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   downloadFile: 'Download file',
   print: 'Print',
   presentation: 'Presentation',
+  editPages: 'Edit pages',
+  moveEarlier: 'Move earlier',
+  moveLater: 'Move later',
+  deletePages: 'Delete',
+  extractPages: 'Extract selected',
+  resetPages: 'Reset',
+  cancel: 'Cancel',
+  done: 'Done',
+  savePages: 'Save',
+  selectedCount: (count) => `${count} selected`,
+  editorPage: (page, position, total) => `Page ${page}, position ${position} of ${total}`,
+  pageMoved: (page, position) => `Page ${page} moved to position ${position}`,
+  pagesRemoved: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
   exitPresentation: 'Exit presentation',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',

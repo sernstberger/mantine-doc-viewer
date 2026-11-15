@@ -31,7 +31,9 @@ export const DEFAULT_PDF_LOAD_OPTIONS: PdfLoadOptions = {
 export function usePdfDocument(
   src: string,
   workerSrc: string | undefined,
-  options?: PdfLoadOptions
+  options?: PdfLoadOptions,
+  /** Bytes to open instead of `src`, such as a document with edited pages */
+  data?: Uint8Array | null
 ): PdfDocumentState {
   const [state, setState] = useState<PdfDocumentState>({ status: 'loading' });
 
@@ -53,7 +55,8 @@ export function usePdfDocument(
         const task = pdfjs.getDocument({
           ...DEFAULT_PDF_LOAD_OPTIONS,
           ...optionsRef.current,
-          url: src,
+          // pdf.js takes ownership of the buffer it is given, so it gets a copy
+          ...(data ? { data: data.slice() } : { url: src }),
         });
         destroy = () => task.destroy();
 
@@ -90,7 +93,7 @@ export function usePdfDocument(
       cancelled = true;
       destroy?.().catch(() => {});
     };
-  }, [src, workerSrc]);
+  }, [src, workerSrc, data]);
 
   return state;
 }

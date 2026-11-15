@@ -17,7 +17,10 @@ import {
   nextRotation,
 } from './geometry';
 import { getRegionProps } from '../a11y';
+import { saveBytes } from '../files';
+import { getEditedFileName } from './page-edits';
 import { PdfControls } from './PdfControls';
+import { PdfPageEditor, PdfSaveReason } from './PdfPageEditor';
 import { PdfPage } from './PdfPage';
 import { PdfSearchBar } from './PdfSearchBar';
 import { PdfStatus } from './PdfStatus';
@@ -55,7 +58,10 @@ export function PdfView() {
   const context = useDocViewerContext();
   const { getStyles, labels, controller, events, defaultPageLayout } = context;
   const title = useDocumentTitle();
-  const state = usePdfDocument(context.src, context.pdfWorkerSrc, context.pdfOptions);
+  // Page editing makes a new document, which the viewer then shows instead of `src`
+  const [editing, setEditing] = useState(false);
+  const [editedData, setEditedData] = useState<Uint8Array | null>(null);
+  const state = usePdfDocument(context.src, context.pdfWorkerSrc, context.pdfOptions, editedData);
   const ready = state.status === 'ready' ? state : null;
   const document = ready?.document ?? null;
   const numPages = document?.numPages ?? 0;
@@ -154,6 +160,9 @@ export function PdfView() {
     openSearch: (query) => ready && search.open(query),
     closeSearch: () => search.opened && search.close(),
     toggleThumbnails: (opened) => setThumbnailsOpened((current) => opened ?? !current),
+    editPages: () => {
+      context.withPageEditing && ready && setEditing(true);
+    },
     togglePresentation: () => {
       ready && presentation.toggle();
     },
@@ -193,6 +202,22 @@ export function PdfView() {
     return undefined;
   }, [presenting, scale, scrollToPage]);
 
+  const savePdf = async (bytes: Uint8Array, reason: PdfSaveReason, pages: number[]) => {
+    if (context.onSave) {
+      await context.onSave(bytes, { reason, pages });
+    } else {
+      const suffix = reason === 'extract' ? 'pages' : 'edited';
+      saveBytes(bytes, getEditedFileName(context.fileName, suffix), 'application/pdf');
+    }
+  };
+
+  // An edited document starts at its first page
+  useEffect(() => {
+    editedData && ready && scrollToPage(1);
+    // Only when a new edited document is ready
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editedData, ready?.document]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const target = presenting ? getPresentationTarget(event.key, currentPage, numPages) : null;
     if (target !== null) {
@@ -228,6 +253,23 @@ export function PdfView() {
     />
   );
 
+  if (editing && ready) {
+    return (
+      <>
+        <DocViewerToolbar />
+        <PdfPageEditor
+          document={ready.document}
+          onCancel={() => setEditing(false)}
+          onSave={savePdf}
+          onDone={(bytes) => {
+            setEditing(false);
+            bytes && setEditedData(bytes);
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       {!presenting && (
@@ -253,6 +295,7 @@ export function PdfView() {
               searchToggleRef={search.toggleRef}
               onToggleSearch={() => (search.opened ? search.close() : search.open())}
               onPresent={presentation.start}
+              onEditPages={() => setEditing(true)}
             />
           )}
         </DocViewerToolbar>
