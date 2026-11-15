@@ -21,7 +21,12 @@ import {
   useStyles,
 } from '@mantine/core';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import { useCallbackRef, useFullscreenElement, useMergedRef } from '@mantine/hooks';
+import {
+  useCallbackRef,
+  useFullscreenElement,
+  useIsomorphicEffect,
+  useMergedRef,
+} from '@mantine/hooks';
 import React, { useMemo } from 'react';
 import {
   DocViewerController,
@@ -432,6 +437,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withFullscreen,
     withPageEditing,
     onSave,
+    onDocumentLoadStart,
     onDocumentLoad,
     onDocumentError,
     onPageChange,
@@ -484,6 +490,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   });
 
   // Stable, so views can call them from effects without re-running them
+  const handleDocumentLoadStart = useCallbackRef(onDocumentLoadStart);
   const handleDocumentLoad = useCallbackRef(onDocumentLoad);
   const handleDocumentError = useCallbackRef(onDocumentError);
   const handlePageChange = useCallbackRef(onPageChange);
@@ -491,14 +498,27 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handleLinkClick = useCallbackRef(onLinkClick);
   const events = useMemo(
     () => ({
+      onDocumentLoadStart: handleDocumentLoadStart,
       onDocumentLoad: handleDocumentLoad,
       onDocumentError: handleDocumentError,
       onPageChange: handlePageChange,
       onZoomChange: handleZoomChange,
       onLinkClick: handleLinkClick,
     }),
-    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+    [
+      handleDocumentLoadStart,
+      handleDocumentLoad,
+      handleDocumentError,
+      handlePageChange,
+      handleZoomChange,
+      handleLinkClick,
+    ]
   );
+
+  // A layout effect, so the start is reported before any view reports that it loaded
+  useIsomorphicEffect(() => {
+    handleDocumentLoadStart({ type: resolvedType, src });
+  }, [resolvedType, src, handleDocumentLoadStart]);
 
   return (
     <DocViewerProvider

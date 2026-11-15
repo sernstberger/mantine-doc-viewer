@@ -597,9 +597,9 @@ export function Locker() {
             toolbarControls={TOOLBAR_CONTROLS}
             tooltipProps={TOOLTIP_PROPS}
             classNames={VIEWER_CLASSES}
+            onDocumentLoadStart={() => setLoad(null)}
             onDocumentLoad={(info) => setLoad({ id: selected.id, info })}
             onDocumentError={(error) => setLoad({ id: selected.id, error: error.message })}
-            // MISSING: a `onDocumentLoadStart` event (or `loading` state): the status resets by comparing ids
           />
         </div>
 

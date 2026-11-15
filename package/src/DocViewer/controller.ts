@@ -70,7 +70,15 @@ export interface DocViewerLoadInfo {
   height?: number;
 }
 
+/** What `onDocumentLoadStart` reports */
+export interface DocViewerLoadStartInfo {
+  type: DocType;
+  src: string;
+}
+
 export interface DocViewerEvents {
+  /** Called when a document starts loading: on first render, and again when `src` changes. Use it to reset the app's own loading state */
+  onDocumentLoadStart?: (info: DocViewerLoadStartInfo) => void;
   onDocumentLoad?: (info: DocViewerLoadInfo) => void;
   onDocumentError?: (error: Error) => void;
   onPageChange?: (page: number) => void;
