@@ -27,7 +27,6 @@ function Demo() {
 
       <DocViewer.Root src="/sample.pdf" store={store} h={460}>
         <DocViewer.Toolbar>
-          <DocViewer.Title />
           <DocViewer.OutlineButton />
           <DocViewer.InfoButton />
           <DocViewer.SearchButton />
@@ -59,7 +58,6 @@ function Demo() {
 
       <DocViewer.Root src={asset('sample.pdf')} store={store} h={460}>
         <DocViewer.Toolbar>
-          <DocViewer.Title />
           <DocViewer.OutlineButton />
           <DocViewer.InfoButton />
           <DocViewer.SearchButton />
