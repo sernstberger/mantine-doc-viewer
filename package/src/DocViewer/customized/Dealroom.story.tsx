@@ -1,4 +1,5 @@
-import { Avatar, Button, Menu, Textarea } from '@mantine/core';
+import { Avatar, Button, Drawer, Menu, Textarea } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { DocViewerController } from '../controller';
@@ -215,6 +216,11 @@ export function Dealroom() {
     page: number;
     rects: DocViewerPageRect[];
   } | null>(null);
+  // Wide: three columns. Medium (from 768px): the deal rail moves into a drawer. Phone: so do the comments.
+  const wide = useMediaQuery('(min-width: 70em)', true, { getInitialValueInEffect: false });
+  const phone = useMediaQuery('(max-width: 47.99375em)', false, { getInitialValueInEffect: false });
+  const [railOpen, setRailOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; tone: 'ok' | 'risk' } | null>(null);
 
   useEffect(() => {
@@ -240,11 +246,17 @@ export function Dealroom() {
   // A pin on the page opens its comment in the thread rail
   const openThread = (thread: Thread) => {
     setTab('open');
-    window.requestAnimationFrame(() => {
-      const card = document.getElementById(`dealroom-thread-${thread.id}`);
-      card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      card?.focus({ preventScroll: true });
-    });
+    if (phone) {
+      setCommentsOpen(true);
+    }
+    window.setTimeout(
+      () => {
+        const card = document.getElementById(`dealroom-thread-${thread.id}`);
+        card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        card?.focus({ preventScroll: true });
+      },
+      phone ? 300 : 16
+    );
   };
 
   // Marks what the comment is about, the quoted text or the clause of a risk, else shows its pin
@@ -333,6 +345,262 @@ export function Dealroom() {
     setToast({ text: 'Comment added', tone: 'ok' });
   };
 
+  const railPanel = (
+    <aside className={classes.rail} data-in-drawer={!wide || undefined} aria-label="Deal summary">
+      <div>
+        <h2 className={classes.customer}>Brightline Freight</h2>
+        <p className={classes.customerNote}>New business, Memphis, Tennessee</p>
+      </div>
+
+      <dl className={classes.facts}>
+        <div>
+          <dt>Stage</dt>
+          <dd>Contract review</dd>
+        </div>
+        <div>
+          <dt>Closes</dt>
+          <dd>30 Nov 2026</dd>
+        </div>
+      </dl>
+
+      <div className={classes.money}>
+        <span className={classes.label}>Annual recurring revenue</span>
+        <span className={classes.arr}>{money(ARR)}</span>
+        <span className={classes.list}>
+          <s>{money(LIST_ARR)}</s> list price
+        </span>
+      </div>
+
+      <dl className={classes.terms}>
+        <div>
+          <dt>Contract value</dt>
+          <dd>{money(ARR * (TERM_MONTHS / 12))}</dd>
+        </div>
+        <div>
+          <dt>Term</dt>
+          <dd>{TERM_MONTHS} months</dd>
+        </div>
+        <div>
+          <dt>Users</dt>
+          <dd>140</dd>
+        </div>
+        <div>
+          <dt>Payment terms</dt>
+          <dd data-risk={openRisks.some((thread) => thread.id === 'terms') || undefined}>
+            Net 60
+            <span className={classes.policy}>policy is net 30</span>
+          </dd>
+        </div>
+      </dl>
+
+      <section className={classes.discount} aria-label="Discount approval">
+        <div className={classes.discountHead}>
+          <span className={classes.label}>Discount</span>
+          <span className={classes.discountValue}>{Math.round(DISCOUNT * 100)}%</span>
+        </div>
+        <div
+          className={classes.gauge}
+          data-approved={discountApproved || undefined}
+          role="img"
+          aria-label={`Discount ${DISCOUNT * 100}%, the rep limit is ${REP_LIMIT * 100}%`}
+        >
+          <span className={classes.gaugeBase} style={{ width: `${(REP_LIMIT / 0.3) * 100}%` }} />
+          <span
+            className={classes.gaugeOver}
+            style={{
+              left: `${(REP_LIMIT / 0.3) * 100}%`,
+              width: `${((DISCOUNT - REP_LIMIT) / 0.3) * 100}%`,
+            }}
+          />
+          <span className={classes.gaugeLimit} style={{ left: `${(REP_LIMIT / 0.3) * 100}%` }}>
+            <span className={classes.gaugeLimitLabel}>Rep limit 20%</span>
+          </span>
+        </div>
+        <p className={classes.discountState} data-approved={discountApproved || undefined}>
+          {discountApproved
+            ? 'Approved by Maya Chen on a 36-month commitment.'
+            : `${money(LIST_ARR - ARR)} off list a year. Needs deal desk approval.`}
+        </p>
+        {!discountApproved && (
+          <Button
+            size="xs"
+            radius={8}
+            variant="default"
+            className={classes.railButton}
+            onClick={approveDiscount}
+          >
+            Approve discount
+          </Button>
+        )}
+      </section>
+
+      <section aria-label="Open risks">
+        <h3 className={classes.railHeading}>Open risks</h3>
+        {openRisks.length === 0 ? (
+          <p className={classes.quiet}>No open risks.</p>
+        ) : (
+          <ul className={classes.risks}>
+            {openRisks.map((thread) => (
+              <li key={thread.id}>
+                <Icon name="flag" />
+                <div>
+                  <span>{thread.risk?.label}</span>
+                  <button type="button" className={classes.link} onClick={() => showClause(thread)}>
+                    Show in agreement, page {thread.page}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-label="Deal team" className={classes.team}>
+        <h3 className={classes.railHeading}>Deal team</h3>
+        <ul>
+          {[TOMAS, MAYA, PRIYA, DANIEL].map((person) => (
+            <li key={person.name}>
+              <Initials person={person} size={26} />
+              <span>
+                {person.name}
+                <small>{person.role}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </aside>
+  );
+
+  const threadsPanel = (
+    <aside className={classes.threads} data-in-drawer={phone || undefined} aria-label="Comments">
+      <div className={classes.threadsHead}>
+        <h2>Comments</h2>
+        <div className={classes.tabs} role="group" aria-label="Show">
+          <button type="button" aria-pressed={tab === 'open'} onClick={() => setTab('open')}>
+            Open <span>{openThreads.length}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={tab === 'resolved'}
+            onClick={() => setTab('resolved')}
+          >
+            Resolved <span>{threads.length - openThreads.length}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className={classes.threadList}>
+        {visible.length === 0 && (
+          <p className={classes.empty}>
+            {tab === 'open' ? 'Nothing left to resolve.' : 'No resolved comments yet.'}
+          </p>
+        )}
+        {visible.map((thread) => (
+          <article
+            key={thread.id}
+            id={`dealroom-thread-${thread.id}`}
+            tabIndex={-1}
+            className={classes.thread}
+            data-current={current?.title === thread.section || undefined}
+            data-resolved={thread.resolved || undefined}
+          >
+            <button type="button" className={classes.anchor} onClick={() => showClause(thread)}>
+              {thread.section}, page {thread.page}
+            </button>
+            {thread.risk && !thread.resolved && (
+              <span className={classes.riskTag}>
+                <Icon name="flag" />
+                {thread.risk.label}
+              </span>
+            )}
+            {thread.quote && <blockquote className={classes.quote}>{thread.quote.text}</blockquote>}
+            {[
+              { id: thread.id, author: thread.author, time: thread.time, text: thread.text },
+              ...thread.replies,
+            ].map((message) => (
+              <div key={message.id} className={classes.message}>
+                <Initials person={message.author} />
+                <div>
+                  <div className={classes.byline}>
+                    <strong>{message.author.name}</strong>
+                    <span>{message.time}</span>
+                  </div>
+                  <p>{message.text}</p>
+                </div>
+              </div>
+            ))}
+            <div className={classes.threadActions}>
+              <button
+                type="button"
+                className={classes.link}
+                onClick={() => setResolved(thread.id, !thread.resolved)}
+              >
+                {thread.resolved ? 'Reopen' : 'Resolve'}
+              </button>
+              {thread.risk && !thread.resolved && (
+                <button type="button" className={classes.link} onClick={() => showClause(thread)}>
+                  Show clause
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <form
+        className={classes.composer}
+        onSubmit={(event) => {
+          event.preventDefault();
+          addComment();
+        }}
+      >
+        {quote && (
+          <div className={classes.quoting}>
+            <blockquote>{quote.text}</blockquote>
+            <button
+              type="button"
+              className={classes.quotingClear}
+              aria-label="Comment on the page instead"
+              onClick={() => setQuote(null)}
+            >
+              &times;
+            </button>
+          </div>
+        )}
+        <Textarea
+          value={draft}
+          onChange={(event) => setDraft(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              addComment();
+            }
+          }}
+          placeholder={
+            quote
+              ? 'Comment on the selected text'
+              : current
+                ? `Comment on ${current.title}`
+                : 'Add a comment'
+          }
+          aria-label="Comment"
+          autosize
+          minRows={2}
+          maxRows={5}
+          radius={8}
+          classNames={{ input: classes.composerInput }}
+        />
+        <div className={classes.composerFoot}>
+          <span>{quote ? `Page ${quote.page}` : current ? `Page ${page}` : ''}</span>
+          <Button type="submit" size="xs" radius={8} color="#5b4cdb" disabled={!draft.trim()}>
+            Comment
+          </Button>
+        </div>
+      </form>
+    </aside>
+  );
+
   return (
     <div className={classes.app}>
       <header className={classes.header}>
@@ -341,7 +609,7 @@ export function Dealroom() {
             <rect width="22" height="22" rx="6" fill="var(--dr-violet-solid)" />
             <path d="M7.5 5.5h4a5.5 5.5 0 010 11h-4z" fill="#fff" />
           </svg>
-          Dealroom
+          <span>Dealroom</span>
         </div>
         <nav className={classes.crumbs} aria-label="Breadcrumb">
           <span>Deals</span>
@@ -351,9 +619,24 @@ export function Dealroom() {
           <strong>Master services agreement</strong>
         </nav>
         <div className={classes.headerEnd}>
+          {!wide && (
+            <Button
+              size={phone ? 'xs' : 'sm'}
+              radius={8}
+              variant="default"
+              onClick={() => setRailOpen(true)}
+            >
+              Deal
+            </Button>
+          )}
+          {phone && (
+            <Button size="xs" radius={8} variant="default" onClick={() => setCommentsOpen(true)}>
+              Comments ({openThreads.length})
+            </Button>
+          )}
           <Button.Group>
             <Button
-              size="sm"
+              size={phone ? 'xs' : 'sm'}
               radius={8}
               color="#5b4cdb"
               className={classes.approve}
@@ -366,7 +649,7 @@ export function Dealroom() {
             <Menu position="bottom-end" withinPortal={false} width={200} radius={8}>
               <Menu.Target>
                 <Button
-                  size="sm"
+                  size={phone ? 'xs' : 'sm'}
                   radius={8}
                   color="#5b4cdb"
                   className={classes.approveMenu}
@@ -411,137 +694,7 @@ export function Dealroom() {
       </header>
 
       <div className={classes.shell}>
-        <aside className={classes.rail} aria-label="Deal summary">
-          <div>
-            <h2 className={classes.customer}>Brightline Freight</h2>
-            <p className={classes.customerNote}>New business, Memphis, Tennessee</p>
-          </div>
-
-          <dl className={classes.facts}>
-            <div>
-              <dt>Stage</dt>
-              <dd>Contract review</dd>
-            </div>
-            <div>
-              <dt>Closes</dt>
-              <dd>30 Nov 2026</dd>
-            </div>
-          </dl>
-
-          <div className={classes.money}>
-            <span className={classes.label}>Annual recurring revenue</span>
-            <span className={classes.arr}>{money(ARR)}</span>
-            <span className={classes.list}>
-              <s>{money(LIST_ARR)}</s> list price
-            </span>
-          </div>
-
-          <dl className={classes.terms}>
-            <div>
-              <dt>Contract value</dt>
-              <dd>{money(ARR * (TERM_MONTHS / 12))}</dd>
-            </div>
-            <div>
-              <dt>Term</dt>
-              <dd>{TERM_MONTHS} months</dd>
-            </div>
-            <div>
-              <dt>Users</dt>
-              <dd>140</dd>
-            </div>
-            <div>
-              <dt>Payment terms</dt>
-              <dd data-risk={openRisks.some((thread) => thread.id === 'terms') || undefined}>
-                Net 60
-                <span className={classes.policy}>policy is net 30</span>
-              </dd>
-            </div>
-          </dl>
-
-          <section className={classes.discount} aria-label="Discount approval">
-            <div className={classes.discountHead}>
-              <span className={classes.label}>Discount</span>
-              <span className={classes.discountValue}>{Math.round(DISCOUNT * 100)}%</span>
-            </div>
-            <div
-              className={classes.gauge}
-              data-approved={discountApproved || undefined}
-              role="img"
-              aria-label={`Discount ${DISCOUNT * 100}%, the rep limit is ${REP_LIMIT * 100}%`}
-            >
-              <span
-                className={classes.gaugeBase}
-                style={{ width: `${(REP_LIMIT / 0.3) * 100}%` }}
-              />
-              <span
-                className={classes.gaugeOver}
-                style={{
-                  left: `${(REP_LIMIT / 0.3) * 100}%`,
-                  width: `${((DISCOUNT - REP_LIMIT) / 0.3) * 100}%`,
-                }}
-              />
-              <span className={classes.gaugeLimit} style={{ left: `${(REP_LIMIT / 0.3) * 100}%` }}>
-                <span className={classes.gaugeLimitLabel}>Rep limit 20%</span>
-              </span>
-            </div>
-            <p className={classes.discountState} data-approved={discountApproved || undefined}>
-              {discountApproved
-                ? 'Approved by Maya Chen on a 36-month commitment.'
-                : `${money(LIST_ARR - ARR)} off list a year. Needs deal desk approval.`}
-            </p>
-            {!discountApproved && (
-              <Button
-                size="xs"
-                radius={8}
-                variant="default"
-                className={classes.railButton}
-                onClick={approveDiscount}
-              >
-                Approve discount
-              </Button>
-            )}
-          </section>
-
-          <section aria-label="Open risks">
-            <h3 className={classes.railHeading}>Open risks</h3>
-            {openRisks.length === 0 ? (
-              <p className={classes.quiet}>No open risks.</p>
-            ) : (
-              <ul className={classes.risks}>
-                {openRisks.map((thread) => (
-                  <li key={thread.id}>
-                    <Icon name="flag" />
-                    <div>
-                      <span>{thread.risk?.label}</span>
-                      <button
-                        type="button"
-                        className={classes.link}
-                        onClick={() => showClause(thread)}
-                      >
-                        Show in agreement, page {thread.page}
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section aria-label="Deal team" className={classes.team}>
-            <h3 className={classes.railHeading}>Deal team</h3>
-            <ul>
-              {[TOMAS, MAYA, PRIYA, DANIEL].map((person) => (
-                <li key={person.name}>
-                  <Initials person={person} size={26} />
-                  <span>
-                    {person.name}
-                    <small>{person.role}</small>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </aside>
+        {wide && railPanel}
 
         <main className={classes.main}>
           <nav className={classes.sections} aria-label="Agreement sections">
@@ -663,139 +816,42 @@ export function Dealroom() {
           />
         </main>
 
-        <aside className={classes.threads} aria-label="Comments">
-          <div className={classes.threadsHead}>
-            <h2>Comments</h2>
-            <div className={classes.tabs} role="group" aria-label="Show">
-              <button type="button" aria-pressed={tab === 'open'} onClick={() => setTab('open')}>
-                Open <span>{openThreads.length}</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={tab === 'resolved'}
-                onClick={() => setTab('resolved')}
-              >
-                Resolved <span>{threads.length - openThreads.length}</span>
-              </button>
-            </div>
-          </div>
-
-          <div className={classes.threadList}>
-            {visible.length === 0 && (
-              <p className={classes.empty}>
-                {tab === 'open' ? 'Nothing left to resolve.' : 'No resolved comments yet.'}
-              </p>
-            )}
-            {visible.map((thread) => (
-              <article
-                key={thread.id}
-                id={`dealroom-thread-${thread.id}`}
-                tabIndex={-1}
-                className={classes.thread}
-                data-current={current?.title === thread.section || undefined}
-                data-resolved={thread.resolved || undefined}
-              >
-                <button type="button" className={classes.anchor} onClick={() => showClause(thread)}>
-                  {thread.section}, page {thread.page}
-                </button>
-                {thread.risk && !thread.resolved && (
-                  <span className={classes.riskTag}>
-                    <Icon name="flag" />
-                    {thread.risk.label}
-                  </span>
-                )}
-                {thread.quote && (
-                  <blockquote className={classes.quote}>{thread.quote.text}</blockquote>
-                )}
-                {[
-                  { id: thread.id, author: thread.author, time: thread.time, text: thread.text },
-                  ...thread.replies,
-                ].map((message) => (
-                  <div key={message.id} className={classes.message}>
-                    <Initials person={message.author} />
-                    <div>
-                      <div className={classes.byline}>
-                        <strong>{message.author.name}</strong>
-                        <span>{message.time}</span>
-                      </div>
-                      <p>{message.text}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className={classes.threadActions}>
-                  <button
-                    type="button"
-                    className={classes.link}
-                    onClick={() => setResolved(thread.id, !thread.resolved)}
-                  >
-                    {thread.resolved ? 'Reopen' : 'Resolve'}
-                  </button>
-                  {thread.risk && !thread.resolved && (
-                    <button
-                      type="button"
-                      className={classes.link}
-                      onClick={() => showClause(thread)}
-                    >
-                      Show clause
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <form
-            className={classes.composer}
-            onSubmit={(event) => {
-              event.preventDefault();
-              addComment();
-            }}
-          >
-            {quote && (
-              <div className={classes.quoting}>
-                <blockquote>{quote.text}</blockquote>
-                <button
-                  type="button"
-                  className={classes.quotingClear}
-                  aria-label="Comment on the page instead"
-                  onClick={() => setQuote(null)}
-                >
-                  &times;
-                </button>
-              </div>
-            )}
-            <Textarea
-              value={draft}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-                  event.preventDefault();
-                  addComment();
-                }
-              }}
-              placeholder={
-                quote
-                  ? 'Comment on the selected text'
-                  : current
-                    ? `Comment on ${current.title}`
-                    : 'Add a comment'
-              }
-              aria-label="Comment"
-              autosize
-              minRows={2}
-              maxRows={5}
-              radius={8}
-              classNames={{ input: classes.composerInput }}
-            />
-            <div className={classes.composerFoot}>
-              <span>{quote ? `Page ${quote.page}` : current ? `Page ${page}` : ''}</span>
-              <Button type="submit" size="xs" radius={8} color="#5b4cdb" disabled={!draft.trim()}>
-                Comment
-              </Button>
-            </div>
-          </form>
-        </aside>
+        {!phone && threadsPanel}
       </div>
+
+      {!wide && (
+        <Drawer
+          opened={railOpen}
+          onClose={() => setRailOpen(false)}
+          withinPortal={false}
+          title="Deal summary"
+          size="min(100vw, 340px)"
+          classNames={{
+            content: classes.drawer,
+            header: classes.drawerHeader,
+            body: classes.drawerBody,
+          }}
+        >
+          {railPanel}
+        </Drawer>
+      )}
+      {phone && (
+        <Drawer
+          opened={commentsOpen}
+          onClose={() => setCommentsOpen(false)}
+          withinPortal={false}
+          position="right"
+          title="Comments"
+          size="min(100vw, 400px)"
+          classNames={{
+            content: classes.drawer,
+            header: classes.drawerHeader,
+            body: classes.drawerBody,
+          }}
+        >
+          {threadsPanel}
+        </Drawer>
+      )}
 
       {toast && (
         <div className={classes.toast} data-tone={toast.tone} role="status">
