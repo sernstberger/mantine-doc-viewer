@@ -317,7 +317,7 @@ describe('DocViewerToolbar', () => {
       <DocViewerToolbar>
         <span>child</span>
       </DocViewerToolbar>,
-      { toolbarSection: <span>section</span>, withDownload: false }
+      { toolbarSection: <span>section</span>, toolbarControls: { download: false } }
     );
     expect(screen.getByText('child')).toBeInTheDocument();
     expect(screen.getByText('section')).toBeInTheDocument();
@@ -377,11 +377,11 @@ describe('DocViewerToolbar', () => {
     open.mockRestore();
   });
 
-  it('has no print button without onPrint or when withPrint is off', () => {
+  it('has no print button without onPrint or when toolbarControls hides it', () => {
     const first = renderIn(<DocViewerToolbar />);
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
     first.unmount();
-    renderIn(<DocViewerToolbar onPrint={() => {}} />, { withPrint: false });
+    renderIn(<DocViewerToolbar onPrint={() => {}} />, { toolbarControls: { print: false } });
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
   });
 });

@@ -329,6 +329,8 @@ const RENDERERS = [csvRenderer];
 // The app has its own download, print and full screen buttons, and its own title
 // A preview pane is narrow: keep reading controls, leave layout, presentation and info to the full viewer
 const TOOLBAR_CONTROLS = {
+  print: false,
+  download: false,
   title: false,
   layout: false,
   presentation: false,
@@ -603,8 +605,6 @@ export function Locker() {
             radius={0}
             variant="plain"
             // The app has its own download, print and full screen buttons
-            withDownload={false}
-            withPrint={false}
             withFullscreen={false}
             toolbarControls={TOOLBAR_CONTROLS}
             tooltipProps={TOOLTIP_PROPS}

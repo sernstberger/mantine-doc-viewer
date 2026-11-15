@@ -155,8 +155,9 @@ PDFs with bookmarks get an outline button that lists them; choosing one scrolls 
 
 ## Print, download and full screen
 
-The toolbar has print, download and full screen buttons. Turn them off with `withPrint`,
-`withDownload` and `withFullscreen`. PDFs print with the browser's own PDF printing, images and
+The toolbar has print, download and full screen buttons. Hide them like any toolbar control,
+with `toolbarControls={{ print: false, download: false, fullscreen: false }}`. `withFullscreen={false}`
+turns off full screen buttons everywhere: the toolbar button and the `withOverlayControls` one. PDFs print with the browser's own PDF printing, images and
 text from a page with only the document on it. Full screen is not offered in browsers that do
 not support it, such as iPhone Safari.
 
@@ -453,7 +454,8 @@ should see first.
 Hide any toolbar control with `toolbarControls`: `title`, `thumbnails`, `pages`, `zoom`,
 `rotate`, `layout`, `outline`, `info`, `presentation`, `editPages`, `search`, `print`,
 `download`, `fullscreen`, `wrap` (text files) and `viewMode` (JSON and markdown). Hidden
-controls' keyboard shortcuts still work, and `controllerRef` still has their actions.
+controls' keyboard shortcuts still work, and `controllerRef` still has their actions. It is the
+one switch for which toolbar buttons show.
 
 ```tsx
 <DocViewer
@@ -484,7 +486,7 @@ the Styles API names `toolbarStart`, `subtitle` and `title`.
 phone. Mouse clicks and taps on buttons or links do nothing.
 
 `withOverlayControls` floats zoom and full screen buttons over the top right of the document, for
-a viewer without a toolbar. They follow `withFullscreen`.
+a viewer without a toolbar. `withFullscreen={false}` leaves out the full screen one.
 
 ### Embedding and dark mode
 

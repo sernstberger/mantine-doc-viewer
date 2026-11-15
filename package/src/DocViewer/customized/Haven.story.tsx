@@ -141,8 +141,8 @@ export function Haven() {
                 fullscreen: false,
                 wrap: false,
                 viewMode: false,
+                print: false,
               }}
-              withPrint={false}
               withFullscreen={false}
               classNames={{
                 root: classes.root,

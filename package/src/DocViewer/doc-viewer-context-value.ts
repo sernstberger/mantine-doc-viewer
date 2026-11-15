@@ -57,8 +57,6 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     page: props.page,
     defaultPage: props.defaultPage,
     defaultZoom: props.defaultZoom!,
-    withPrint: props.withPrint,
-    withDownload: props.withDownload,
     withFullscreen: props.withFullscreen,
     withPageEditing: props.withPageEditing,
     compactPageEditor: props.compactPageEditor,

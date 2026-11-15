@@ -610,14 +610,13 @@ describe('DocViewer PDF', () => {
       await waitFor(() => expect(document.querySelector('iframe')).toBeInTheDocument());
     });
 
-    it('hides print and download with withPrint and withDownload', async () => {
+    it('hides print and download with toolbarControls', async () => {
       mockPdf();
       render(
         <DocViewer
           src="/files/report.pdf"
           pdfWorkerSrc="/worker.mjs"
-          withPrint={false}
-          withDownload={false}
+          toolbarControls={{ print: false, download: false }}
         />
       );
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });

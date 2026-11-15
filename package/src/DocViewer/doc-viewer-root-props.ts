@@ -58,8 +58,6 @@ const OWN_PROP_NAMES = [
   'page',
   'defaultPage',
   'defaultZoom',
-  'withPrint',
-  'withDownload',
   'withFullscreen',
   'fullscreen',
   'onFullscreenChange',

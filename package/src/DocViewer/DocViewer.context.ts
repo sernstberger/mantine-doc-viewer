@@ -66,8 +66,6 @@ export interface DocViewerContextValue {
   page: number | undefined;
   defaultPage: number | undefined;
   defaultZoom: DocViewerZoom;
-  withPrint: boolean | undefined;
-  withDownload: boolean | undefined;
   withFullscreen: boolean | undefined;
   withPageEditing: boolean | undefined;
   compactPageEditor: boolean | undefined;

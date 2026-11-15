@@ -26,12 +26,12 @@ export function ToolbarHeading() {
 
 /** The print button only exists with onPrint, and is disabled (loading) while printing */
 export function PrintButton({ onPrint }: { onPrint: (() => Promise<void> | void) | undefined }) {
-  const { src, withPrint, labels } = useDocViewerContext();
+  const { src, labels } = useDocViewerContext();
   const controlProps = useControlProps();
   const show = useShowControl();
   const [printing, setPrinting] = useState(false);
 
-  if (!(withPrint && show('print') && onPrint)) {
+  if (!(show('print') && onPrint)) {
     return null;
   }
 
@@ -57,11 +57,11 @@ export function PrintButton({ onPrint }: { onPrint: (() => Promise<void> | void)
 }
 
 export function DownloadButton() {
-  const { src, fileName, withDownload, labels } = useDocViewerContext();
+  const { src, fileName, labels } = useDocViewerContext();
   const controlProps = useControlProps();
   const show = useShowControl();
 
-  if (!(withDownload && show('download'))) {
+  if (!show('download')) {
     return null;
   }
 

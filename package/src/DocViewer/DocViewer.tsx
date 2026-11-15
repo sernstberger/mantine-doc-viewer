@@ -322,20 +322,21 @@ export interface DocViewerProps
     info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
   ) => void | Promise<void>;
 
-  /** Determines whether the toolbar has a print button, `true` by default */
-  withPrint?: boolean;
-
-  /** Determines whether the toolbar has a download button, `true` by default */
-  withDownload?: boolean;
-
-  /** Determines whether the toolbar has a full screen button, `true` by default */
+  /**
+   * Determines whether readers can make the viewer full screen from its buttons, `true` by
+   * default. `false` removes both the toolbar button and the `withOverlayControls` button;
+   * `toolbarControls={{ fullscreen: false }}` removes only the toolbar button. The controller,
+   * the `fullscreen` prop and presentations still work
+   */
   withFullscreen?: boolean;
 
   /**
    * Determines whether the viewer is full screen, for a controlled state. Use with
    * `onFullscreenChange`. Browsers only allow full screen after a click or key press, so set it
    * from an event handler. When a request is refused, or the reader presses Escape,
-   * `onFullscreenChange` reports what really happened
+   * `onFullscreenChange` reports what really happened. There is no `defaultFullscreen`: a
+   * browser refuses full screen that does not come from a click or key press, so the viewer
+   * cannot open full screen on its own
    */
   fullscreen?: boolean;
 
@@ -397,7 +398,11 @@ export interface DocViewerProps
    */
   autoAdvance?: DocViewerAutoAdvance;
 
-  /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
+  /**
+   * Toolbar controls to hide, for example `{ print: false, download: false, rotate: false }`. All
+   * are shown by default. This is the one switch for toolbar buttons; the full screen button also
+   * needs `withFullscreen`
+   */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
   /** Key of `theme.colors` or any valid CSS color behind PDF pages and thumbnails, white by default */
@@ -438,8 +443,6 @@ const defaultProps: Partial<DocViewerProps> = {
   thumbnailWidth: DEFAULT_THUMBNAIL_WIDTH,
   maxCanvasPixels: MAX_CANVAS_PIXELS,
   defaultZoom: 'fit',
-  withPrint: true,
-  withDownload: true,
   withFullscreen: true,
 };
 
