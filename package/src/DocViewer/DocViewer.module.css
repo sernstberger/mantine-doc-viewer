@@ -1,5 +1,5 @@
 .root {
-  --_color: var(--doc-viewer-color, var(--_color));
+  --_color: var(--doc-viewer-color, var(--mantine-primary-color-filled));
   --_color-light: color-mix(in srgb, var(--_color) 15%, transparent);
   --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
   --_page-background: var(--doc-viewer-page-background, white);
@@ -326,28 +326,7 @@
   }
 }
 
-/* Search matches, painted with the CSS Custom Highlight API, see pdf/highlights.ts */
-::highlight(mantine-doc-viewer-match) {
-  color: transparent;
-  background-color: color-mix(
-    in srgb,
-    var(--doc-viewer-match-color, rgb(250 176 5)) 40%,
-    transparent
-  );
-}
-
-::highlight(mantine-doc-viewer-active-match) {
-  color: transparent;
-  background-color: color-mix(
-    in srgb,
-    var(--doc-viewer-active-match-color, rgb(253 126 20)) 65%,
-    transparent
-  );
-
-  /* Tells the active match apart by more than its colour */
-  text-decoration: underline 2px var(--doc-viewer-active-match-color, rgb(217 72 15));
-  text-underline-offset: 2px;
-}
+/* Search match colours are added at runtime by pdf/highlights.ts: some bundlers cannot parse ::highlight() */
 
 /* High contrast mode. The text layer keeps its own colours (forced-color-adjust: none), so search highlights stay as they are */
 @media (forced-colors: active) {

@@ -9,6 +9,38 @@ export const ACTIVE_MATCH_HIGHLIGHT = 'mantine-doc-viewer-active-match';
 
 type HighlightName = typeof MATCH_HIGHLIGHT | typeof ACTIVE_MATCH_HIGHLIGHT;
 
+/**
+ * Colours of the two highlights. Kept out of the stylesheet because some bundlers (Next.js) cannot
+ * parse ::highlight() and drop or reject it; a constructed stylesheet is never parsed by a bundler,
+ * and is allowed under a strict Content Security Policy
+ */
+export const HIGHLIGHT_CSS = `
+::highlight(${MATCH_HIGHLIGHT}) {
+  color: transparent;
+  background-color: color-mix(in srgb, var(--doc-viewer-match-color, rgb(250 176 5)) 40%, transparent);
+}
+::highlight(${ACTIVE_MATCH_HIGHLIGHT}) {
+  color: transparent;
+  background-color: color-mix(in srgb, var(--doc-viewer-active-match-color, rgb(253 126 20)) 65%, transparent);
+  text-decoration: underline 2px var(--doc-viewer-active-match-color, rgb(217 72 15));
+  text-underline-offset: 2px;
+}
+`;
+
+let stylesAdded = false;
+
+/** Adds the highlight colours to the document once, the first time a highlight is shown */
+function addHighlightStyles() {
+  if (stylesAdded || typeof CSSStyleSheet === 'undefined' || !('adoptedStyleSheets' in document)) {
+    return;
+  }
+
+  const sheet = new CSSStyleSheet();
+  sheet.replaceSync(HIGHLIGHT_CSS);
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+  stylesAdded = true;
+}
+
 function getRegistry() {
   if (typeof CSS === 'undefined' || !('highlights' in CSS) || typeof Highlight === 'undefined') {
     return null;
@@ -28,6 +60,7 @@ export function addHighlightRanges(name: HighlightName, ranges: Range[]) {
     return () => {};
   }
 
+  addHighlightStyles();
   const highlight = registry.get(name) ?? new Highlight();
   if (!registry.has(name)) {
     highlight.priority = name === ACTIVE_MATCH_HIGHLIGHT ? 1 : 0;

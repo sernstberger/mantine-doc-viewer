@@ -3,5 +3,5 @@ import { oxlint } from 'oxc-config-mantine';
 
 export default defineConfig({
   ...oxlint,
-  ignorePatterns: ['**/*.{mjs,cjs,js,d.ts,d.mts}', 'docs/out', 'package/dist'],
+  ignorePatterns: ['**/*.{mjs,cjs,js,d.ts,d.mts}', 'docs/out', 'package/dist', 'coverage'],
 });

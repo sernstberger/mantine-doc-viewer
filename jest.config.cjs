@@ -10,6 +10,8 @@ module.exports = {
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
   // Every source file is fully covered; keep it that way
+  // A summary in the terminal, and lcov for editors and CI
+  coverageReporters: ['text-summary', 'lcov'],
   coverageThreshold: {
     global: { statements: 100, branches: 100, functions: 100, lines: 100 },
   },
