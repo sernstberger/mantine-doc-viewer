@@ -1,27 +1,12 @@
 import { Button, Checkbox, TextInput, UnstyledButton } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import {
-  createPdfJsAdapter,
-  DocViewer,
-  DocViewerAdapterProvider,
-  useDocViewer,
-  type DocViewerReadingProgress,
-} from '../index';
-import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../markup';
+import { DocViewer, useDocViewer, type DocViewerReadingProgress } from '../../index';
+import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../../markup';
 import classes from './Haven.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Haven (rental agreement checkout)',
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
+  title: 'Apps/Haven',
+  parameters: { layout: 'fullscreen' },
 };
 
 const PAGES = ['Parties and dates', 'House rules', 'Cancellation and damage', 'Signatures'];
@@ -104,7 +89,7 @@ export function Haven() {
           </p>
 
           <div className={classes.frame}>
-            <DocViewer
+            <DocViewer.Root
               src="/stories/rental-agreement.pdf"
               fileName="Birch Cabin house agreement.pdf"
               store={store}
@@ -125,43 +110,6 @@ export function Haven() {
                     setToast(`Signed. Agreement saved, ${Math.round(bytes.length / 1024)} KB`),
                 }),
               ]}
-              pagesProps={{
-                gap: 'md',
-                matchColor: '#ffe3a3',
-                activeMatchColor: '#ffb4bd',
-                onReadingProgress: setProgress,
-                renderPageOverlay: ({ pageNumber, scale }) =>
-                  pageNumber === PAGES.length &&
-                  !signed && (
-                    <div
-                      className={classes.signHere}
-                      data-active={signing || undefined}
-                      data-signed={signature ? true : undefined}
-                      style={{
-                        left: SIGN_LINE.x * scale,
-                        top: (SIGN_LINE.y - 46) * scale,
-                        width: SIGN_LINE.width * scale,
-                        height: 46 * scale,
-                      }}
-                    >
-                      {!signature && <span className={classes.signFlag}>Sign here</span>}
-                    </div>
-                  ),
-              }}
-              toolbarControls={{
-                markup: false,
-                title: false,
-                thumbnails: false,
-                rotate: false,
-                layout: false,
-                outline: false,
-                info: false,
-                presentation: false,
-                fullscreen: false,
-                wrap: false,
-                viewMode: false,
-                print: false,
-              }}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -173,7 +121,41 @@ export function Haven() {
                 body: classes.body,
                 page: classes.docPage,
               }}
-            />
+            >
+              <DocViewer.Toolbar>
+                <DocViewer.PageControls />
+                <DocViewer.ZoomControls />
+                <DocViewer.SearchButton />
+                <DocViewer.DownloadButton />
+              </DocViewer.Toolbar>
+              <DocViewer.Search />
+              <DocViewer.Main>
+                <DocViewer.Pages
+                  gap="md"
+                  matchColor="#ffe3a3"
+                  activeMatchColor="#ffb4bd"
+                  onReadingProgress={setProgress}
+                  renderPageOverlay={({ pageNumber, scale }) =>
+                    pageNumber === PAGES.length &&
+                    !signed && (
+                      <div
+                        className={classes.signHere}
+                        data-active={signing || undefined}
+                        data-signed={signature ? true : undefined}
+                        style={{
+                          left: SIGN_LINE.x * scale,
+                          top: (SIGN_LINE.y - 46) * scale,
+                          width: SIGN_LINE.width * scale,
+                          height: 46 * scale,
+                        }}
+                      >
+                        {!signature && <span className={classes.signFlag}>Sign here</span>}
+                      </div>
+                    )
+                  }
+                />
+              </DocViewer.Main>
+            </DocViewer.Root>
           </div>
         </section>
 
@@ -348,3 +330,13 @@ export function Haven() {
     </div>
   );
 }
+
+Haven.storyName = 'Haven';
+Haven.parameters = {
+  docs: {
+    description: {
+      story:
+        "A guest booking a lake cabin must read the house agreement to the end and sign before paying. The viewer reports how much of each page has been seen and when the end of the last page is on screen; the booking card turns that into a reading meter and only then lets the guest sign, by hand, on the agreement's own line.",
+    },
+  },
+};

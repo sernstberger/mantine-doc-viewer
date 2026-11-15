@@ -1,23 +1,13 @@
 import { ActionIcon, Button, Drawer, Popover, TextInput, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
-import { createMarkupExtension, type DocViewerMark } from '../markup';
+import { DocViewer, useDocViewer } from '../../index';
+import { createMarkupExtension, type DocViewerMark } from '../../markup';
 import classes from './PlanRoom.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Plan room (construction plans)',
+  title: 'Apps/PlanRoom',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 type Discipline = 'G' | 'A' | 'S' | 'M' | 'E';
@@ -384,3 +374,13 @@ export function PlanRoom() {
     </div>
   );
 }
+
+PlanRoom.storyName = 'PlanRoom';
+PlanRoom.parameters = {
+  docs: {
+    description: {
+      story:
+        'A site superintendent on a tablet, mid pour, needs the framing sheet fast and big. The index on the left is the app; the viewer scrolls sideways through the sheets like a rolled-out set.',
+    },
+  },
+};

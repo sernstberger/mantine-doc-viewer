@@ -6,24 +6,13 @@ import {
   type MantineColorsTuple,
   type MantineSize,
 } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useState } from 'react';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
+import { DocViewer, useDocViewer } from '../../index';
 import classes from './Gate.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Gate (airline app)',
-  // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
+  title: 'Apps/Gate',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 // Seabright navy, so anything Mantine draws for the viewer (focus rings, pressed states) is on brand
@@ -121,11 +110,7 @@ function SunIcon() {
   );
 }
 
-/**
- * A traveller opens their e-ticket at the gate. The pass has to be big and scannable, and one
- * tap away is the receipt for the expense report.
- */
-export function Gate() {
+function GateScreen() {
   const [store, viewer] = useDocViewer();
   const size = useMatches<MantineSize>({ base: 'md', sm: 'xs' });
   const gap = useMatches<MantineSize>({ base: 'sm', sm: 'xs' });
@@ -134,7 +119,7 @@ export function Gate() {
   const view = page === 1 ? PASS : RECEIPT;
 
   return (
-    <MantineProvider theme={gateTheme} forceColorScheme="light">
+    <>
       <div className={classes.stage}>
         <div className={classes.phone}>
           <div className={classes.screen}>
@@ -207,37 +192,19 @@ export function Gate() {
               />
             </div>
 
-            <DocViewer
+            <DocViewer.Root
               src="/stories/boarding-pass.pdf"
               fileName="SB 482 boarding pass.pdf"
               store={store}
               onPageChange={setPage}
               // Phone first: big touch targets, tighter on the wider screens that show this mock-up
               size={size}
-              pagesProps={{ gap }}
-              thumbnailsProps={{ width: thumbnailWidth }}
               radius={0}
               color="#0B2545"
               defaultThumbnailsOpened
               // Always under the pass. On a wide screen the app is drawn inside a phone frame, and a
               // responsive value would follow the window rather than the phone and squeeze the pass
               defaultThumbnailsPosition="bottom"
-              // Only what fits a phone at the gate
-              toolbarControls={{
-                fullscreen: false,
-                print: false,
-                title: false,
-                thumbnails: false,
-                zoom: false,
-                rotate: false,
-                layout: false,
-                outline: false,
-                info: false,
-                presentation: false,
-                search: false,
-              }}
-              // A tap on the pass hides the toolbar so the barcode fills the phone, another brings it back
-              toolbarProps={{ toggleOnTap: true, tooltipProps: { disabled: true } }}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -253,7 +220,17 @@ export function Gate() {
                 thumbnailLabel: classes.thumbnailLabel,
               }}
               // MISSING: a way to keep the screen awake and at full brightness while the pass is shown; that is the host app's job.
-            />
+            >
+              {/* Only what fits a phone at the gate; a tap on the pass hides the toolbar so the barcode fills the phone */}
+              <DocViewer.Toolbar toggleOnTap tooltipProps={{ disabled: true }}>
+                <DocViewer.PageControls />
+                <DocViewer.DownloadButton />
+              </DocViewer.Toolbar>
+              <DocViewer.Main>
+                <DocViewer.Thumbnails width={thumbnailWidth} />
+                <DocViewer.Pages gap={gap} />
+              </DocViewer.Main>
+            </DocViewer.Root>
 
             <footer className={classes.footer}>
               <p className={classes.hint}>
@@ -265,6 +242,28 @@ export function Gate() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+/**
+ * A traveller opens their e-ticket at the gate. The pass has to be big and scannable, and one
+ * tap away is the receipt for the expense report.
+ */
+export function Gate() {
+  return (
+    <MantineProvider theme={gateTheme} forceColorScheme="light">
+      <GateScreen />
     </MantineProvider>
   );
 }
+
+Gate.storyName = 'Gate';
+Gate.parameters = {
+  docs: {
+    description: {
+      story:
+        'A traveller opens their e-ticket at the gate. The pass has to be big and scannable, and one tap away is the receipt for the expense report.',
+    },
+  },
+};

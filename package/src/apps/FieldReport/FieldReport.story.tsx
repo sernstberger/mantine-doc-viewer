@@ -1,21 +1,11 @@
 import { Anchor, Avatar, Button } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
+import { DocViewer, useDocViewer } from '../../index';
 import classes from './FieldReport.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Field Report (embedded article)',
+  title: 'Apps/FieldReport',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 const REPORT_URL = '/stories/field-report.pdf';
@@ -181,22 +171,23 @@ export function FieldReport() {
             <span className={classes.figureTitle}>More trees, cooler afternoons</span>
           </div>
           <div className={classes.plate}>
-            <DocViewer
+            <DocViewer.Root
               src={scatter}
               mimeType="image/svg+xml"
               fileName="Tree canopy and surface temperature, Calder, summer 2026.svg"
-              withToolbar={false}
               variant="plain"
               // An image has no pages to grow to, so the figure is as tall as the plot is wide
               h={496}
-              // Readers can still zoom the plot or open it full screen, without a toolbar
-              withOverlayControls
               classNames={{
                 root: classes.root,
                 body: classes.imageBody,
                 overlayControl: classes.figureControl,
               }}
-            />
+            >
+              <DocViewer.Image />
+              {/* Readers can still zoom the plot or open it full screen, without a toolbar */}
+              <DocViewer.OverlayControls />
+            </DocViewer.Root>
           </div>
           <figcaption className={classes.caption}>
             Each dot is one census tract. Tracts with more canopy ran cooler: about three degrees
@@ -278,22 +269,17 @@ export function FieldReport() {
           </div>
           <div className={classes.plate}>
             <div className={classes.well}>
-              <DocViewer
+              <DocViewer.Root
                 src={REPORT_URL}
                 fileName="Shade and the summer street.pdf"
                 store={store}
                 onPageChange={setPage}
-                withToolbar={false}
                 variant="plain"
                 radius={0}
                 size="sm"
                 color="teal"
                 pageBackground="white"
                 defaultZoom="fit"
-                pagesProps={{
-                  gap: 'lg',
-                  onReadingProgress: (progress) => setPosition(progress.position),
-                }}
                 // As tall as the report: the article scrolls, not a window inside it
                 autosize
                 classNames={{
@@ -301,7 +287,14 @@ export function FieldReport() {
                   body: classes.reportBody,
                   page: classes.reportPage,
                 }}
-              />
+              >
+                <DocViewer.Main>
+                  <DocViewer.Pages
+                    gap="lg"
+                    onReadingProgress={(progress) => setPosition(progress.position)}
+                  />
+                </DocViewer.Main>
+              </DocViewer.Root>
             </div>
           </div>
           <figcaption className={classes.caption}>
@@ -359,3 +352,13 @@ export function FieldReport() {
     </div>
   );
 }
+
+FieldReport.storyName = 'FieldReport';
+FieldReport.parameters = {
+  docs: {
+    description: {
+      story:
+        'An online research publication runs a long-form article with two figures: a chart as an image and the full policy report as a PDF, set into the text with no app chrome around it.',
+    },
+  },
+};

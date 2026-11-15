@@ -1,22 +1,12 @@
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
 import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../scripts/story-pdfs/essays/layout';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from '../index';
+import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../../scripts/story-pdfs/essays/layout';
+import { DocViewer } from '../../index';
 import classes from './Markbook.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Markbook (teacher grading)',
+  title: 'Apps/Markbook',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 type Score = 1 | 2 | 3 | 4;
@@ -356,7 +346,7 @@ export function Markbook() {
           </ActionIcon>
         </div>
 
-        <DocViewer
+        <DocViewer.Root
           // Each student handed in an essay of their own (scripts/story-pdfs/essay.ts)
           src={`/stories/essay-${student.id}.pdf`}
           // Next student opens the next essay at the same zoom and scroll position
@@ -366,17 +356,6 @@ export function Markbook() {
           color="blue"
           radius="md"
           defaultZoom="fit"
-          toolbarControls={{
-            fullscreen: false,
-            print: false,
-            download: false,
-            rotate: false,
-            layout: false,
-            presentation: false,
-            info: false,
-            outline: false,
-            thumbnails: false,
-          }}
           className={classes.viewer}
           classNames={{
             root: classes.root,
@@ -389,51 +368,61 @@ export function Markbook() {
             body: classes.body,
             page: classes.page,
           }}
-          // The red pen: each scored criterion's note is written in the margin beside its paragraph
-          pagesProps={{
-            gap: 'md',
-            matchColor: 'yellow',
-            renderPageOverlay: ({ pageNumber, scale }) =>
-              CRITERIA.map((criterion, criterionIndex) => {
-                const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
-                const note = scoredNotes[criterionIndex];
-                if (!anchor || anchor.page !== pageNumber || !note) {
-                  return null;
-                }
-                return (
-                  <div
-                    key={`${student.id}-${criterion.name}-${note}`}
-                    className={classes.penMark}
-                    style={
-                      {
-                        top: anchor.top * scale,
-                        height: (anchor.bottom - anchor.top) * scale,
-                        width: 66 * scale,
-                        '--mb-scale': scale,
-                      } as React.CSSProperties
-                    }
-                  >
-                    <p className={classes.penNote}>
-                      <VisuallyHidden>{criterion.name}: </VisuallyHidden>
-                      {note}
-                    </p>
-                    <svg
-                      className={classes.penBracket}
-                      viewBox="0 0 10 100"
-                      preserveAspectRatio="none"
-                      aria-hidden
+        >
+          <DocViewer.Toolbar leftSection={<DocViewer.Title />}>
+            <DocViewer.PageControls />
+            <DocViewer.ZoomControls />
+            <DocViewer.SearchButton />
+          </DocViewer.Toolbar>
+          <DocViewer.Search />
+          <DocViewer.Main>
+            {/* The red pen: each scored criterion's note is written in the margin beside its paragraph */}
+            <DocViewer.Pages
+              gap="md"
+              matchColor="yellow"
+              renderPageOverlay={({ pageNumber, scale }) =>
+                CRITERIA.map((criterion, criterionIndex) => {
+                  const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
+                  const note = scoredNotes[criterionIndex];
+                  if (!anchor || anchor.page !== pageNumber || !note) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={`${student.id}-${criterion.name}-${note}`}
+                      className={classes.penMark}
+                      style={
+                        {
+                          top: anchor.top * scale,
+                          height: (anchor.bottom - anchor.top) * scale,
+                          width: 66 * scale,
+                          '--mb-scale': scale,
+                        } as React.CSSProperties
+                      }
                     >
-                      <path
-                        d="M2 1 C7 2 6 6 6 12 L6.6 44 C6.8 48 8 50 9.5 50 C8 50 6.8 52 6.6 56 L6 88 C6 94 7 98 2 99"
-                        pathLength={1}
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    </svg>
-                  </div>
-                );
-              }),
-          }}
-        />
+                      <p className={classes.penNote}>
+                        <VisuallyHidden>{criterion.name}: </VisuallyHidden>
+                        {note}
+                      </p>
+                      <svg
+                        className={classes.penBracket}
+                        viewBox="0 0 10 100"
+                        preserveAspectRatio="none"
+                        aria-hidden
+                      >
+                        <path
+                          d="M2 1 C7 2 6 6 6 12 L6.6 44 C6.8 48 8 50 9.5 50 C8 50 6.8 52 6.6 56 L6 88 C6 94 7 98 2 99"
+                          pathLength={1}
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      </svg>
+                    </div>
+                  );
+                })
+              }
+            />
+          </DocViewer.Main>
+        </DocViewer.Root>
       </main>
 
       <aside className={classes.rubric} aria-label="Rubric">
@@ -503,3 +492,13 @@ export function Markbook() {
     </div>
   );
 }
+
+Markbook.storyName = 'Markbook';
+Markbook.parameters = {
+  docs: {
+    description: {
+      story:
+        'A Year 10 English teacher marks persuasive essays against a four-criteria rubric. The bold thing is the red pen: the total and the margin notes are handwritten next to calm UI.',
+    },
+  },
+};

@@ -6,26 +6,22 @@ import {
   type MantineColorsTuple,
   type MantineSize,
 } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import { createPageEditorExtension } from '../editor';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
-import { saveBytes } from '../utils/files';
+import { createPageEditorExtension, DocViewerPageEditorButton } from '../../editor';
+import { DocViewer, useDocViewer } from '../../index';
 import classes from './Scanbox.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+function saveBytes(bytes: Uint8Array, fileName: string) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/pdf' }));
+  link.download = fileName;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
+}
 
 export default {
-  title: 'DocViewer/Apps/Scanbox (phone scanner)',
-  // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
+  title: 'Apps/Scanbox',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 // Scanbox teal, so the page editor's own buttons (Save, Done) match the app
@@ -99,11 +95,7 @@ function StatusBar() {
   );
 }
 
-/**
- * A freelancer scanned five receipts on the train and needs one expense PDF: check the pages,
- * reorder or drop the ones that do not belong, then export.
- */
-export function Scanbox() {
+function ScanboxScreen() {
   const [store, viewer] = useDocViewer();
   const size = useMatches<MantineSize>({ base: 'md', sm: 'sm' });
   const gap = useMatches<MantineSize>({ base: 'lg', sm: 'md' });
@@ -123,7 +115,7 @@ export function Scanbox() {
   const fileName = `${name.trim() || 'Scan'}.pdf`;
 
   return (
-    <MantineProvider theme={scanboxTheme} forceColorScheme="light">
+    <>
       <div className={classes.stage}>
         <div className={classes.phone}>
           <div className={classes.screen}>
@@ -148,14 +140,12 @@ export function Scanbox() {
               </div>
             </header>
 
-            <DocViewer
+            <DocViewer.Root
               src="/stories/receipts.pdf"
               fileName={fileName}
               store={store}
               // Phone first: big touch targets, a tighter toolbar on wider screens
               size={size}
-              pagesProps={{ gap }}
-              thumbnailsProps={{ width: thumbnailWidth }}
               radius={0}
               color="#00A38C"
               defaultThumbnailsOpened
@@ -188,21 +178,7 @@ export function Scanbox() {
                   },
                 }),
               ]}
-              toolbarControls={{
-                fullscreen: false,
-                print: false,
-                download: false,
-                title: false,
-                thumbnails: false,
-                zoom: false,
-                layout: false,
-                outline: false,
-                info: false,
-                presentation: false,
-                search: false,
-              }}
               onDocumentLoad={(info) => setPages(info.numPages ?? 5)}
-              toolbarProps={{ tooltipProps: { disabled: true } }}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -223,7 +199,17 @@ export function Scanbox() {
                 editorPage: classes.editorPage,
               }}
               // MISSING: crop and perspective-correct a page, and filters (black and white, enhance).
-            />
+            >
+              <DocViewer.Toolbar tooltipProps={{ disabled: true }}>
+                <DocViewer.PageControls />
+                <DocViewer.RotateButton />
+                <DocViewerPageEditorButton />
+              </DocViewer.Toolbar>
+              <DocViewer.Main>
+                <DocViewer.Thumbnails width={thumbnailWidth} />
+                <DocViewer.Pages gap={gap} />
+              </DocViewer.Main>
+            </DocViewer.Root>
 
             <div className={classes.exportBar}>
               <Button
@@ -234,7 +220,7 @@ export function Scanbox() {
                   // The bytes as shown, after any deleted, moved or extracted pages
                   const bytes = await viewer.getBytes();
                   if (bytes) {
-                    saveBytes(bytes, fileName, 'application/pdf');
+                    saveBytes(bytes, fileName);
                     setToast(`Exported ${formatSize(bytes.length)}`);
                   }
                 }}
@@ -261,6 +247,28 @@ export function Scanbox() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+/**
+ * A freelancer scanned five receipts on the train and needs one expense PDF: check the pages,
+ * reorder or drop the ones that do not belong, then export.
+ */
+export function Scanbox() {
+  return (
+    <MantineProvider theme={scanboxTheme} forceColorScheme="light">
+      <ScanboxScreen />
     </MantineProvider>
   );
 }
+
+Scanbox.storyName = 'Scanbox';
+Scanbox.parameters = {
+  docs: {
+    description: {
+      story:
+        'A freelancer scanned five receipts on the train and needs one expense PDF: check the pages, reorder or drop the ones that do not belong, then export.',
+    },
+  },
+};

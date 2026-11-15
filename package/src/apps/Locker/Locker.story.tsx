@@ -1,35 +1,20 @@
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
 import {
-  createPdfJsAdapter,
-  createReactMarkdownAdapter,
   DocViewer,
-  DocViewerAdapterProvider,
   useDocViewer,
   useDocViewerContext,
   useDocViewerStore,
   useDocViewerText,
+  useDocViewerView,
   type DocViewerLoadInfo,
   type DocViewerState,
-} from '../index';
+} from '../../index';
 import classes from './Locker.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-const markdownAdapter = createReactMarkdownAdapter(() =>
-  Promise.all([import('react-markdown'), import('remark-gfm')])
-);
-
 export default {
-  title: 'DocViewer/Apps/Locker (cloud drive preview)',
+  title: 'Apps/Locker',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 /* -------------------------------------------------------------------------- */
@@ -280,16 +265,17 @@ const isNumber = (cell: string) => cell !== '' && !Number.isNaN(Number(cell));
 
 function CsvView() {
   // A custom view reports load / error itself, the built-in views do it for the built-in types only
-  const { src, events } = useDocViewerContext();
+  const { src } = useDocViewerContext();
   const state = useDocViewerText(src, 2_000_000);
+  const view = useDocViewerView();
 
   useEffect(() => {
     if (state.status === 'ready') {
-      events.onDocumentLoad({ type: 'text' });
+      view.onLoad({ type: 'text' });
     } else if (state.status === 'error') {
-      events.onDocumentError(state.error);
+      view.onError(state.error);
     }
-  }, [state, events]);
+  }, [state, view]);
 
   const rows = state.status === 'ready' ? parseCsv(state.text) : [];
   const numeric = rows[0]?.map((_, index) => rows.slice(1).every((row) => isNumber(row[index])));
@@ -660,3 +646,13 @@ export function Locker() {
     </div>
   );
 }
+
+Locker.storyName = 'Locker';
+Locker.parameters = {
+  docs: {
+    description: {
+      story:
+        "A team drive, Shared / Brand launch: pick a file, preview it beside the list, and download or print from the app's own buttons through the controller.",
+    },
+  },
+};

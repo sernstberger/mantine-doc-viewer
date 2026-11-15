@@ -1,23 +1,13 @@
 import { ActionIcon, Menu, Popover, SegmentedControl, Slider, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useHotkeys, useReducedMotion } from '@mantine/hooks';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
+import { DocViewer, useDocViewer } from '../../index';
 import classes from './Leaf.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Leaf (book reader)',
+  title: 'Apps/Leaf',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 /*
@@ -687,11 +677,10 @@ export function Leaf() {
                   )}
                 </div>
               )}
-              <DocViewer
+              <DocViewer.Root
                 src={BOOK.src}
                 fileName={BOOK.title}
                 store={store}
-                withToolbar={false}
                 variant="plain"
                 radius={0}
                 pageBackground="var(--leaf-paper)"
@@ -712,18 +701,6 @@ export function Leaf() {
                     );
                 }}
                 onPageChange={setPage}
-                pagesProps={{
-                  gap: 0,
-                  // The app turns the pages
-                  withScroll: false,
-                  // The gutter: pages darken a little towards the spine
-                  renderPageOverlay: ({ pageNumber }) => (
-                    <div
-                      className={classes.gutter}
-                      data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
-                    />
-                  ),
-                }}
                 classNames={{
                   root: classes.viewer,
                   body: classes.body,
@@ -731,7 +708,22 @@ export function Leaf() {
                   page: classes.page,
                   canvas: classes.canvas,
                 }}
-              />
+              >
+                <DocViewer.Main>
+                  <DocViewer.Pages
+                    gap={0}
+                    // The app turns the pages
+                    withScroll={false}
+                    // The gutter: pages darken a little towards the spine
+                    renderPageOverlay={({ pageNumber }) => (
+                      <div
+                        className={classes.gutter}
+                        data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
+                      />
+                    )}
+                  />
+                </DocViewer.Main>
+              </DocViewer.Root>
             </div>
           )}
         </div>
@@ -977,3 +969,13 @@ export function Leaf() {
     </div>
   );
 }
+
+Leaf.storyName = 'Leaf';
+Leaf.parameters = {
+  docs: {
+    description: {
+      story:
+        'A reader opens a novella. The page is all there is; a tap in the middle brings back the bars, taps on the edges, a swipe or the arrow keys turn the page over with a flip.',
+    },
+  },
+};

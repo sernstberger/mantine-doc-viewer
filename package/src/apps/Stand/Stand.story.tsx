@@ -1,30 +1,18 @@
 import { ActionIcon, useMatches } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
 import {
-  createPdfJsAdapter,
   DocViewer,
-  DocViewerAdapterProvider,
   useDocViewer,
   useDocViewerStore,
   type DocViewerOutlineItem,
   type DocViewerPageLayout,
-} from '../index';
-import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../markup';
+} from '../../index';
+import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../../markup';
 import classes from './Stand.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Stand (sheet music reader)',
+  title: 'Apps/Stand',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 interface Piece {
@@ -70,11 +58,7 @@ const SETLIST: Piece[] = [
   },
 ];
 
-/**
- * A pianist reads a nocturne on a tablet on the music stand: the score is the whole screen, the
- * toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.
- */
-export function Stand() {
+function StandScreen() {
   const [drawer, setDrawer] = useState<boolean | null>(null);
   // Closed on arrival: the score takes the whole screen until the setlist is asked for
   const drawerOpened = drawer ?? false;
@@ -168,7 +152,7 @@ export function Stand() {
       />
 
       <main className={classes.reader}>
-        <DocViewer
+        <DocViewer.Root
           src="/stories/nocturne.pdf"
           fileName="Lantern Hour"
           store={store}
@@ -180,23 +164,6 @@ export function Stand() {
           pageLayout={pageLayout}
           // A whole page (a phone) or spread (a tablet) fills the screen, however it is held
           defaultZoom="fit-page"
-          // A thin strip: the title, the page and full screen, nothing else on stage
-          toolbarControls={{
-            markup: false,
-            thumbnails: false,
-            zoom: false,
-            rotate: false,
-            layout: false,
-            outline: false,
-            info: false,
-            presentation: false,
-            search: false,
-            print: false,
-            download: false,
-          }}
-          // Spreads turn from the screen edges, a swipe, or a Bluetooth pedal (it sends arrow keys),
-          // and scrolling stops on whole spreads
-          pagesProps={{ gap: 'xl', withPageTurning: true, withScrollSnap: true }}
           onDocumentLoad={() => viewer.getOutline().then(setSections)}
           extensions={[
             // Pencil: soft graphite on the ivory paper, thin enough for fingering numbers
@@ -209,77 +176,6 @@ export function Stand() {
               onDocumentChange: () => setSavedNote('Saved with the piece'),
             }),
           ]}
-          toolbarProps={{
-            // The setlist toggle sits at the start of the toolbar
-            leftSection: (
-              <ActionIcon
-                className={classes.drawerToggle}
-                variant="transparent"
-                size="lg"
-                aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
-                aria-expanded={drawerOpened}
-                onClick={() => setDrawer(!drawerOpened)}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-                  <path
-                    d="M4 5.5h12M4 10h12M4 14.5h7"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </ActionIcon>
-            ),
-            rightSection: (
-              <>
-                {savedNote && (
-                  <span className={classes.savedNote} role="status">
-                    {savedNote}
-                  </span>
-                )}
-                {pencil && (
-                  <ActionIcon
-                    className={classes.control}
-                    variant="subtle"
-                    size="sm"
-                    aria-label="Undo pencil mark"
-                    disabled={pencilMarks.length === 0}
-                    onClick={() => setPencilMarks(pencilMarks.slice(0, -1))}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-                      <path
-                        d="M7.5 12L3.5 8l4-4M3.5 8h8a5 5 0 0 1 0 10H9"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </ActionIcon>
-                )}
-                <ActionIcon
-                  className={classes.control}
-                  variant="subtle"
-                  size="sm"
-                  aria-label="Pencil"
-                  aria-pressed={pencil}
-                  data-pressed={pencil || undefined}
-                  onClick={togglePencil}
-                >
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-                    <path
-                      d="M4 16l1-3.5L13.5 4a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2L7.5 15 4 16zM12 5.5l2.5 2.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </ActionIcon>
-              </>
-            ),
-            tooltipProps: { openDelay: 600, position: 'bottom' },
-          }}
           classNames={{
             root: classes.root,
             toolbar: classes.toolbar,
@@ -290,8 +186,108 @@ export function Stand() {
             pages: classes.pages,
             page: classes.page,
           }}
-        />
+        >
+          {/* A thin strip: the title, the page and full screen, nothing else on stage */}
+          <DocViewer.Toolbar
+            tooltipProps={{ openDelay: 600, position: 'bottom' }}
+            // The setlist toggle sits at the start of the toolbar
+            leftSection={
+              <>
+                <ActionIcon
+                  className={classes.drawerToggle}
+                  variant="transparent"
+                  size="lg"
+                  aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
+                  aria-expanded={drawerOpened}
+                  onClick={() => setDrawer(!drawerOpened)}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path
+                      d="M4 5.5h12M4 10h12M4 14.5h7"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </ActionIcon>
+                <DocViewer.Title />
+              </>
+            }
+          >
+            <DocViewer.PageControls />
+
+            <>
+              {savedNote && (
+                <span className={classes.savedNote} role="status">
+                  {savedNote}
+                </span>
+              )}
+              {pencil && (
+                <ActionIcon
+                  className={classes.control}
+                  variant="subtle"
+                  size="sm"
+                  aria-label="Undo pencil mark"
+                  disabled={pencilMarks.length === 0}
+                  onClick={() => setPencilMarks(pencilMarks.slice(0, -1))}
+                >
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path
+                      d="M7.5 12L3.5 8l4-4M3.5 8h8a5 5 0 0 1 0 10H9"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </ActionIcon>
+              )}
+              <ActionIcon
+                className={classes.control}
+                variant="subtle"
+                size="sm"
+                aria-label="Pencil"
+                aria-pressed={pencil}
+                data-pressed={pencil || undefined}
+                onClick={togglePencil}
+              >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path
+                    d="M4 16l1-3.5L13.5 4a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2L7.5 15 4 16zM12 5.5l2.5 2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </ActionIcon>
+            </>
+            <DocViewer.FullscreenButton />
+          </DocViewer.Toolbar>
+          <DocViewer.Main>
+            {/* Spreads turn from the screen edges, a swipe, or a Bluetooth pedal (it sends arrow keys), and scrolling stops on whole spreads */}
+            <DocViewer.Pages gap="xl" withPageTurning withScrollSnap />
+          </DocViewer.Main>
+        </DocViewer.Root>
       </main>
     </div>
   );
 }
+
+/**
+ * A pianist reads a nocturne on a tablet on the music stand: the score is the whole screen, the
+ * toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.
+ */
+export function Stand() {
+  return <StandScreen />;
+}
+
+Stand.storyName = 'Stand';
+Stand.parameters = {
+  docs: {
+    description: {
+      story:
+        'A pianist reads a nocturne on a tablet on the music stand: the score is the whole screen, the toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.',
+    },
+  },
+};
