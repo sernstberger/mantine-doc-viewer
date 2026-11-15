@@ -1,4 +1,5 @@
-import { Button, Popover, TextInput, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Button, Drawer, Popover, TextInput, UnstyledButton } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -121,9 +122,10 @@ export function PlanRoom() {
 
   // Keep the current sheet in view in the index, also when the page changes by scrolling
   const currentRow = useRef<HTMLButtonElement>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   useEffect(() => {
     currentRow.current?.scrollIntoView({ block: 'nearest' });
-  }, [page]);
+  }, [page, drawerOpen]);
 
   const currentSheet = SHEETS.find((sheet) => sheet.page === page);
   const needle = query.trim().toLowerCase();
@@ -138,13 +140,17 @@ export function PlanRoom() {
   const openSheet = (sheet: Sheet) => {
     setPage(sheet.page);
     controller.current?.goToPage(sheet.page);
+    setDrawerOpen(false);
   };
 
-  return (
-    <div className={classes.app} data-mantine-color-scheme="dark">
-      <nav className={classes.index} aria-label="Sheet index">
+  // The same index as a column on a tablet and as a drawer on a phone (same pixel as the CSS)
+  const phone = useMediaQuery('(max-width: 47.99375em)') ?? false;
+
+  const index = (
+    <>
         <header className={classes.header}>
-          <h1 className={classes.project}>Millbrook Medical Office</h1>
+          {/* Takes the drawer's initial focus, so a phone's keyboard stays down */}
+          <h1 className={classes.project} tabIndex={-1} data-autofocus>Millbrook Medical Office</h1>
           <p className={classes.issue}>Issued for construction, 12 October 2026</p>
         </header>
 
@@ -223,7 +229,32 @@ export function PlanRoom() {
           <span className={classes.synced} aria-hidden />
           {savedAt ? `Markup saved to rev C at ${savedAt}.` : 'Synced 6:12 am. Works offline.'}
         </footer>
-      </nav>
+    </>
+  );
+
+  return (
+    <div className={classes.app} data-mantine-color-scheme="dark">
+      {!phone && (
+        <nav className={classes.index} aria-label="Sheet index">
+          {index}
+        </nav>
+      )}
+      <Drawer
+        opened={phone && drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        size="min(86vw, 344px)"
+        padding={0}
+        withCloseButton={false}
+        transitionProps={{
+          onEntered: () => currentRow.current?.scrollIntoView({ block: 'center' }),
+        }}
+        classNames={{ content: `${classes.theme} ${classes.drawer}`, body: classes.drawerBody }}
+        aria-label="Sheet index"
+      >
+        <nav className={classes.index} aria-label="Sheet index">
+          {index}
+        </nav>
+      </Drawer>
 
       <main className={classes.viewer}>
         <DocViewer
@@ -287,11 +318,44 @@ export function PlanRoom() {
           }
           withPageEditing={false}
           withFullscreen={false}
-          toolbarControls={{ thumbnails: false, presentation: false, info: false, layout: false }}
+          toolbarStartSection={
+            phone ? (
+              <ActionIcon
+                variant="default"
+                size={40}
+                className={classes.indexButton}
+                aria-label="Sheets"
+                onClick={() => setDrawerOpen(true)}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path
+                    d="M3 5h14M3 10h14M3 15h14"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </ActionIcon>
+            ) : undefined
+          }
+          // One toolbar row on a phone: keep the sheet, pages, zoom and search
+          toolbarControls={{
+            thumbnails: false,
+            presentation: false,
+            info: false,
+            layout: false,
+            zoom: !phone,
+            outline: !phone,
+            rotate: !phone,
+            print: !phone,
+            download: !phone,
+          }}
           tooltipProps={{ position: 'bottom' }}
           classNames={{
             root: classes.root,
             toolbar: classes.toolbar,
+            heading: classes.heading,
+            controls: classes.controls,
             title: classes.title,
             subtitle: classes.subtitle,
             control: classes.control,
@@ -306,9 +370,13 @@ export function PlanRoom() {
           }}
           // The title is the sheet in view, not the file name
           renderToolbarTitle={() =>
-            currentSheet ? `${currentSheet.number} ${currentSheet.title}` : 'Plan set'
+            currentSheet
+              ? phone
+                ? currentSheet.number
+                : `${currentSheet.number} ${currentSheet.title}`
+              : 'Plan set'
           }
-          toolbarSubtitle="Plan set, rev C"
+          toolbarSubtitle={phone ? undefined : 'Plan set, rev C'}
           // MISSING: a measure tool that uses the sheet's scale, and a way to calibrate it.
           // MISSING: overlaying two revisions of a sheet to see what changed.
         />
