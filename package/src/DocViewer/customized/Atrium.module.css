@@ -32,7 +32,11 @@
   display: flex;
   align-items: center;
   gap: 40px;
-  min-height: 112px;
+  /* A fixed height that fits the longest room name on two lines, so the viewer below is the same
+     height on every spread and the fit-page zoom does not jump */
+  box-sizing: border-box;
+  height: 136px;
+  overflow: hidden;
   padding: 16px 32px 16px 24px;
   border-bottom: 2px solid var(--atrium-line);
   background: var(--atrium-panel);
