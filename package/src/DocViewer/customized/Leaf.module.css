@@ -3,10 +3,27 @@
  * sage for white, toasted for sepia, near black at night) and the bars are only words and thin
  * lines in the margins, gone after the first turn. The one bold moment is the page turn itself.
  *
+ * In a landscape view the book lies open: two pages meeting at a soft fold, the page block at the
+ * outer edges as thick as the pages still to read (right) and already read (left), one shadow
+ * under the whole book.
+ *
  * On a phone (below Mantine's sm, 48em) the room is the paper, so the page fills the screen.
  */
 
 .app {
+  /* The fold, as seen from each side of the spine: a crease, then a long soft falloff */
+  --leaf-fold-left: linear-gradient(
+    to left,
+    var(--leaf-fold),
+    var(--leaf-fold-soft) 2.5%,
+    transparent 13%
+  );
+  --leaf-fold-right: linear-gradient(
+    to right,
+    var(--leaf-fold),
+    var(--leaf-fold-soft) 2.5%,
+    transparent 13%
+  );
   --leaf-room: #e2e6e0;
   --leaf-paper: #fdfdfb;
   --leaf-ink: #252a26;
@@ -19,6 +36,12 @@
   --leaf-blend: multiply;
   --leaf-canvas-filter: none;
   --leaf-fade: 220ms;
+
+  /* The fold at the spine, the stacked page edges and the inside of the cover */
+  --leaf-fold: rgb(0 0 0 / 0.2);
+  --leaf-fold-soft: rgb(0 0 0 / 0.045);
+  --leaf-edge-line: rgb(37 42 38 / 0.2);
+  --leaf-cover: #e9ebe4;
 
   position: relative;
   height: 100vh;
@@ -40,6 +63,10 @@
     --leaf-panel: #f8efdd;
     --leaf-well: rgb(62 49 33 / 0.08);
     --leaf-shadow: rgb(74 52 24 / 0.38);
+    --leaf-fold: rgb(60 38 12 / 0.24);
+    --leaf-fold-soft: rgb(60 38 12 / 0.06);
+    --leaf-edge-line: rgb(62 49 33 / 0.26);
+    --leaf-cover: #e6d5b4;
   }
 
   /* Night: the page is inverted and laid on dark paper; screen keeps the paper's own tone */
@@ -53,6 +80,10 @@
     --leaf-panel: #222528;
     --leaf-well: rgb(220 216 208 / 0.07);
     --leaf-shadow: rgb(0 0 0 / 0.7);
+    --leaf-fold: rgb(0 0 0 / 0.55);
+    --leaf-fold-soft: rgb(0 0 0 / 0.14);
+    --leaf-edge-line: rgb(220 216 208 / 0.16);
+    --leaf-cover: #161819;
     --leaf-blend: screen;
     --leaf-canvas-filter: invert(1) hue-rotate(180deg) brightness(0.8);
   }
@@ -68,6 +99,18 @@
     min-height: 0;
     background: var(--leaf-paper);
   }
+
+  /* A phone on its side is shorter than the usual floor: the app takes exactly the screen */
+  @media (max-height: 30em) {
+    height: 100dvh;
+    min-height: 0;
+  }
+}
+
+/* One focus ring for every control: thin, in the accent, following the control's own shape */
+.app :is(button, a, input, [tabindex], [role='slider']):focus-visible {
+  outline: 1.5px solid var(--leaf-accent);
+  outline-offset: 2px;
 }
 
 /* ---------------------------------- the page ---------------------------------- */
@@ -86,6 +129,11 @@
 
   @mixin smaller-than 48em {
     inset: calc(48px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
+  }
+
+  /* A phone on its side: every pixel of height goes to the page, the bars fade over it */
+  @media (max-height: 30em) {
+    inset: 36px 24px 44px;
   }
 }
 
@@ -113,6 +161,106 @@
   height: 100%;
 }
 
+/*
+ * Under an open book: its shadow, the page block at both outer edges and the inside of a cover.
+ * The pages sit PAGE_INSET from the top with the spine in the middle, so everything is placed
+ * from there. It stays in sight while a flip plays over it
+ */
+.binding {
+  position: absolute;
+  inset: 0;
+  visibility: visible;
+  pointer-events: none;
+
+  /* One shadow under the whole book, page block included */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: calc(50% - var(--leaf-page-w) - var(--leaf-edge-left));
+    width: calc(var(--leaf-page-w) * 2 + var(--leaf-edge-left) + var(--leaf-edge-right));
+    height: var(--leaf-page-h);
+    border-radius: 2px;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.08),
+      0 26px 44px -24px var(--leaf-shadow),
+      0 8px 20px -12px var(--leaf-shadow);
+  }
+
+  .app[data-turning='jump'] & {
+    visibility: hidden;
+  }
+}
+
+/*
+ * The page block: fine lines of stacked paper, each layer a touch shorter than the one above it,
+ * so the outer side tapers. The width follows how much of the book lies on that side
+ */
+.edge {
+  position: absolute;
+  top: 12px;
+  height: var(--leaf-page-h);
+  background: repeating-linear-gradient(
+    to right,
+    var(--leaf-paper) 0 1px,
+    var(--leaf-edge-line) 1px 1.6px,
+    var(--leaf-paper) 1.6px 2.2px
+  );
+  transition: width 360ms ease;
+
+  &[data-side='left'] {
+    /* A pixel under the page, so no seam shows */
+    right: calc(50% + var(--leaf-page-w) - 1px);
+    width: calc(var(--leaf-edge-left) + 1px);
+    clip-path: polygon(0 3px, 100% 0, 100% 100%, 0 calc(100% - 3px));
+    box-shadow: inset 3px 0 3px -2px var(--leaf-edge-line);
+  }
+
+  &[data-side='right'] {
+    left: calc(50% + var(--leaf-page-w) - 1px);
+    width: calc(var(--leaf-edge-right) + 1px);
+    clip-path: polygon(0 0, 100% 3px, 100% calc(100% - 3px), 0 100%);
+    box-shadow: inset -3px 0 3px -2px var(--leaf-edge-line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* The inside of the cover, opposite the title page and the last page: plain board, no text */
+.cover {
+  background-color: var(--leaf-cover);
+
+  /* In the overlay, over the paper a face has */
+  &.face {
+    background-color: var(--leaf-cover);
+  }
+
+  .binding > & {
+    position: absolute;
+    top: 12px;
+    width: var(--leaf-page-w);
+    height: var(--leaf-page-h);
+  }
+
+  &[data-side='left'] {
+    background-image: var(--leaf-fold-left);
+
+    .binding > & {
+      right: 50%;
+    }
+  }
+
+  &[data-side='right'] {
+    background-image: var(--leaf-fold-right);
+
+    .binding > & {
+      left: 50%;
+    }
+  }
+}
+
 /* The app turns the pages (withScroll={false}) and reads swipes itself */
 .app .body {
   touch-action: none;
@@ -132,6 +280,11 @@
     0 1px 2px rgb(0 0 0 / 0.06),
     0 22px 46px -22px var(--leaf-shadow);
 
+  /* An open book casts one shadow, drawn by the binding under it */
+  .app[data-spread] & {
+    box-shadow: none;
+  }
+
   @mixin smaller-than 48em {
     box-shadow: none;
   }
@@ -146,18 +299,18 @@
   mix-blend-mode: var(--leaf-blend);
 }
 
-/* The spine: pages darken a little towards the binding */
+/* The spine: pages curve down into the fold and darken a little towards it */
 .gutter {
   position: absolute;
   inset: 0;
   pointer-events: none;
 
   &[data-side='left'] {
-    background: linear-gradient(to left, rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.02) 3%, transparent 9%);
+    background: var(--leaf-fold-left);
   }
 
   &[data-side='right'] {
-    background: linear-gradient(to right, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.02) 3%, transparent 9%);
+    background: var(--leaf-fold-right);
   }
 
   &[data-side='single'] {
@@ -187,6 +340,11 @@
     0 1px 2px rgb(0 0 0 / 0.06),
     0 22px 46px -22px var(--leaf-shadow);
 
+  /* An open book's shadow stays on the desk under the flip */
+  .app[data-spread] & {
+    box-shadow: none;
+  }
+
   /* The same spine shading as the pages in the viewer */
   &::after {
     content: '';
@@ -195,11 +353,11 @@
   }
 
   &[data-side='left']::after {
-    background: linear-gradient(to left, rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.02) 3%, transparent 9%);
+    background: var(--leaf-fold-left);
   }
 
   &[data-side='right']::after {
-    background: linear-gradient(to right, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.02) 3%, transparent 9%);
+    background: var(--leaf-fold-right);
   }
 
   &[data-side='single']::after {
@@ -224,7 +382,11 @@
   /* WebKit still wants the prefix to hide the face turned away */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  box-shadow: 0 0 24px -6px var(--leaf-shadow);
+
+  &,
+  .app[data-spread] & {
+    box-shadow: 0 0 24px -6px var(--leaf-shadow);
+  }
 }
 
 .front {
@@ -277,6 +439,8 @@
 
 /* ----------------------------------- taps ----------------------------------- */
 
+/* Pointer only: keyboards turn with the arrow keys or the buttons in the bottom bar */
+
 .zones {
   position: absolute;
   inset: 0;
@@ -295,12 +459,6 @@
 
   &:disabled {
     cursor: default;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--leaf-accent);
-    outline-offset: -6px;
-    border-radius: 12px;
   }
 }
 
@@ -361,11 +519,6 @@
   &:hover {
     color: var(--leaf-ink);
   }
-
-  &:focus-visible {
-    outline: 2px solid var(--leaf-accent);
-    outline-offset: 0;
-  }
 }
 
 .libraryLabel {
@@ -419,11 +572,6 @@
   &[aria-expanded='true'] {
     color: var(--leaf-accent);
   }
-
-  &:focus-visible {
-    outline: 2px solid var(--leaf-accent);
-    outline-offset: 0;
-  }
 }
 
 .aa {
@@ -447,6 +595,13 @@
   @mixin smaller-than 48em {
     padding-bottom: calc(14px + env(safe-area-inset-bottom));
   }
+
+  /* A phone on its side: the bar lies over the page, on a card of the room's colour */
+  @media (max-height: 30em) {
+    padding: 10px 16px calc(8px + env(safe-area-inset-bottom));
+    border-radius: 14px 14px 0 0;
+    background-color: color-mix(in srgb, var(--leaf-room) 94%, transparent);
+  }
 }
 
 .progress {
@@ -467,6 +622,32 @@
 .brand {
   display: inline-flex;
   color: var(--leaf-accent);
+}
+
+/* Previous and next for keyboards and screen readers, either side of the page count */
+.pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-inline-start: -6px;
+  white-space: nowrap;
+}
+
+.pagerButton {
+  color: var(--leaf-muted);
+
+  &:hover {
+    color: var(--leaf-ink);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--leaf-muted);
+    opacity: 0.35;
+  }
 }
 
 /* ---------------------------------- controls ---------------------------------- */
