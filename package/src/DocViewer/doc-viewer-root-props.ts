@@ -1,3 +1,4 @@
+import type { BoxProps, ElementProps } from '@mantine/core';
 import type { DocViewerProps } from './DocViewer';
 
 /** Every prop DocViewer reads itself, so none of them reaches the root element */
@@ -8,6 +9,7 @@ const OWN_PROP_NAMES = [
   'styles',
   'unstyled',
   'vars',
+  'attributes',
   'src',
   'type',
   'mimeType',
@@ -92,6 +94,19 @@ const OWN_PROP_NAMES = [
   'mod',
   'ref',
 ] as const satisfies readonly (keyof DocViewerProps | 'ref')[];
+
+/**
+ * DocViewer's own props missing from the list above. Must stay `never`: a new prop left out of
+ * the list would otherwise land on the root div as an HTML attribute.
+ */
+type MissingOwnProps = Exclude<
+  keyof DocViewerProps,
+  // variant goes on to Box on purpose: Mantine renders it as data-variant
+  keyof BoxProps | keyof ElementProps<'div'> | 'variant' | (typeof OWN_PROP_NAMES)[number]
+>;
+// Fails to compile, naming the missing prop, when MissingOwnProps is not never
+const ownPropsListed: [MissingOwnProps] extends [never] ? true : MissingOwnProps = true;
+void ownPropsListed;
 
 const OWN_PROPS = new Set<string>(OWN_PROP_NAMES);
 

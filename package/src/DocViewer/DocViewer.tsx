@@ -506,7 +506,7 @@ function renderView(file: DocViewerFile, renderers: DocViewerRenderer[] | undefi
 
 export const DocViewer = factory<DocViewerFactory>((_props) => {
   const props = useProps('DocViewer', defaultProps, _props);
-  const { className, style, classNames, styles, unstyled, vars, mod, height } = props;
+  const { className, style, classNames, styles, unstyled, vars, attributes, mod, height } = props;
   const resolved = useResolvedProps(props);
 
   const getStyles = useStyles<DocViewerFactory>({
@@ -526,6 +526,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     unstyled,
     vars,
     varsResolver,
+    attributes,
   });
 
   const session = useDocViewerSession(props);

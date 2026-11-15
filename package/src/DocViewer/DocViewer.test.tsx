@@ -133,6 +133,22 @@ describe('DocViewer', () => {
         'my-control'
       );
     });
+
+    it('puts the attributes prop on inner elements, not on the root as an HTML attribute', () => {
+      const { container } = render(
+        <DocViewer
+          src="/files/archive.zip"
+          attributes={{ root: { 'data-app': 'locker' }, control: { 'data-testid': 'control' } }}
+        />
+      );
+      const root = container.querySelector('.mantine-DocViewer-root');
+      expect(root).toHaveAttribute('data-app', 'locker');
+      expect(root).not.toHaveAttribute('attributes');
+      expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute(
+        'data-testid',
+        'control'
+      );
+    });
   });
 
   describe('customisation', () => {
