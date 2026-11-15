@@ -1,11 +1,8 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
-import React, { createRef } from 'react';
-import {
-  type DocViewerController,
-  DocViewer,
-  type DocViewerProps,
-} from '../../../test-utils/render-legacy';
+import React from 'react';
+import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
+import { createDocViewer } from '../doc-viewer.store';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
@@ -32,22 +29,19 @@ const pages = () => screen.findAllByRole('group', { name: /^Page \d of 5$/ });
 const body = () => screen.getByRole('region');
 const indicator = (page: number) => `${page} / 5`;
 
-function renderViewer(props: Partial<DocViewerProps> = {}) {
-  const controller = createRef<DocViewerController>();
+function renderViewer(props: Partial<TestDocViewerProps> = {}) {
+  const [store, controller] = createDocViewer();
   const onPageChange = jest.fn();
-  const onSpreadChange = jest.fn();
   const view = render(
-    <DocViewer
+    <TestDocViewer
       src="/files/book.pdf"
-      pdfWorkerSrc="/worker.mjs"
       defaultPageLayout="two-page-cover"
-      controllerRef={controller}
+      store={store}
       onPageChange={onPageChange}
-      onSpreadChange={onSpreadChange}
       {...props}
     />
   );
-  return { ...view, controller, onPageChange, onSpreadChange };
+  return { ...view, store, controller, onPageChange };
 }
 
 describe('spreads', () => {
@@ -57,50 +51,50 @@ describe('spreads', () => {
   });
 
   it('goes to spreads and turns them through the controller', async () => {
-    const { controller, onSpreadChange } = renderViewer();
+    const { controller, store } = renderViewer();
     // Nothing to go to while the document loads
-    act(() => controller.current!.goToSpread(2));
+    act(() => controller.goToSpread(2));
     await pages();
-    expect(onSpreadChange).toHaveBeenLastCalledWith(1, [1]);
+    expect(store.getState().spread).toEqual({ index: 1, pages: [1] });
 
-    act(() => controller.current!.goToSpread(2));
+    act(() => controller.goToSpread(2));
     expect(screen.getByText(indicator(2))).toBeInTheDocument();
-    expect(onSpreadChange).toHaveBeenLastCalledWith(2, [2, 3]);
+    expect(store.getState().spread).toEqual({ index: 2, pages: [2, 3] });
 
-    act(() => controller.current!.nextSpread());
+    act(() => controller.nextSpread());
     expect(screen.getByText(indicator(4))).toBeInTheDocument();
-    expect(onSpreadChange).toHaveBeenLastCalledWith(3, [4, 5]);
+    expect(store.getState().spread).toEqual({ index: 3, pages: [4, 5] });
 
     // The last spread has no next one
-    act(() => controller.current!.nextSpread());
+    act(() => controller.nextSpread());
     expect(screen.getByText(indicator(4))).toBeInTheDocument();
 
-    act(() => controller.current!.previousSpread());
+    act(() => controller.previousSpread());
     expect(screen.getByText(indicator(2))).toBeInTheDocument();
-    act(() => controller.current!.goToSpread(40));
+    act(() => controller.goToSpread(40));
     expect(screen.getByText(indicator(4))).toBeInTheDocument();
   });
 
   it('reports the spread again when the layout pairs pages differently', async () => {
-    const { controller, onSpreadChange } = renderViewer();
+    const { controller, store } = renderViewer();
     await pages();
 
-    act(() => controller.current!.setPageLayout('two-page'));
-    expect(onSpreadChange).toHaveBeenLastCalledWith(1, [1, 2]);
-    act(() => controller.current!.setPageLayout('single'));
-    expect(onSpreadChange).toHaveBeenLastCalledWith(1, [1]);
-    act(() => controller.current!.nextSpread());
+    act(() => controller.setPageLayout('two-page'));
+    expect(store.getState().spread).toEqual({ index: 1, pages: [1, 2] });
+    act(() => controller.setPageLayout('single'));
+    expect(store.getState().spread).toEqual({ index: 1, pages: [1] });
+    act(() => controller.nextSpread());
     expect(screen.getByText(indicator(2))).toBeInTheDocument();
   });
 
   it('snaps scrolling to pages, sideways in the horizontal layout', async () => {
-    const { controller } = renderViewer({ withScrollSnap: true });
+    const { controller } = renderViewer({ pagesProps: { withScrollSnap: true } });
     await pages();
 
     expect(body()).toHaveAttribute('data-scroll-snap', 'y');
-    act(() => controller.current!.setPageLayout('horizontal'));
+    act(() => controller.setPageLayout('horizontal'));
     expect(body()).toHaveAttribute('data-scroll-snap', 'x');
-    act(() => controller.current!.togglePresentation());
+    act(() => controller.togglePresentation());
     expect(body()).not.toHaveAttribute('data-scroll-snap');
   });
 
@@ -123,7 +117,7 @@ describe('withPageTurning', () => {
 
   describe('keys', () => {
     it('turns with the arrow and page keys from anywhere on the page', async () => {
-      renderViewer({ withPageTurning: true });
+      renderViewer({ pagesProps: { withPageTurning: true } });
       // Nothing turns while the document loads
       fireEvent.keyDown(document.body, { key: 'ArrowRight' });
       await pages();
@@ -144,7 +138,7 @@ describe('withPageTurning', () => {
     });
 
     it('leaves keys alone when keys are turned off', async () => {
-      renderViewer({ withPageTurning: { keys: false } });
+      renderViewer({ pagesProps: { withPageTurning: { keys: false } } });
       await pages();
 
       fireEvent.keyDown(document.body, { key: 'ArrowRight' });
@@ -152,10 +146,10 @@ describe('withPageTurning', () => {
     });
 
     it('lets a presentation handle the keys itself', async () => {
-      const { controller } = renderViewer({ withPageTurning: true });
+      const { controller } = renderViewer({ pagesProps: { withPageTurning: true } });
       await pages();
 
-      act(() => controller.current!.togglePresentation());
+      act(() => controller.togglePresentation());
       fireEvent.keyDown(document.body, { key: 'ArrowRight' });
       expect(screen.getByText('1 / 5')).toBeInTheDocument();
     });
@@ -171,7 +165,7 @@ describe('withPageTurning', () => {
       } as DOMRect);
 
     it('turns back from the left edge and forward from the right edge', async () => {
-      renderViewer({ withPageTurning: true });
+      renderViewer({ pagesProps: { withPageTurning: true } });
       await pages();
       atEdges();
 
@@ -185,8 +179,10 @@ describe('withPageTurning', () => {
 
     it('leaves clicks on controls in pages and on selected text alone', async () => {
       renderViewer({
-        withPageTurning: true,
-        renderPageOverlay: ({ pageNumber }) => <button type="button">Pin {pageNumber}</button>,
+        pagesProps: {
+          withPageTurning: true,
+          renderPageOverlay: ({ pageNumber }) => <button type="button">Pin {pageNumber}</button>,
+        },
       });
       await pages();
       atEdges();
@@ -203,13 +199,13 @@ describe('withPageTurning', () => {
     });
 
     it('does nothing while loading or when tap zones are turned off', async () => {
-      const { unmount } = renderViewer({ withPageTurning: true });
+      const { unmount } = renderViewer({ pagesProps: { withPageTurning: true } });
       fireEvent.click(document.querySelector('.mantine-DocViewer-body')!, { clientX: 900 });
       await pages();
       expect(screen.getByText(indicator(1))).toBeInTheDocument();
       unmount();
 
-      renderViewer({ withPageTurning: { tapZones: false } });
+      renderViewer({ pagesProps: { withPageTurning: { tapZones: false } } });
       await pages();
       atEdges();
       fireEvent.click(body(), { clientX: 900 });
@@ -237,7 +233,7 @@ describe('withPageTurning', () => {
     };
 
     it('turns forward for a swipe to the left and back for a swipe to the right', async () => {
-      renderViewer({ withPageTurning: true, defaultZoom: 'fit-page' });
+      renderViewer({ pagesProps: { withPageTurning: true }, defaultZoom: 'fit-page' });
       await pages();
       await waitFor(() => expect(body()).toHaveAttribute('data-swipe'));
 
@@ -252,7 +248,7 @@ describe('withPageTurning', () => {
     });
 
     it('ignores short swipes, interrupted swipes and mouse drags', async () => {
-      renderViewer({ withPageTurning: true, defaultZoom: 'fit-page' });
+      renderViewer({ pagesProps: { withPageTurning: true }, defaultZoom: 'fit-page' });
       await pages();
       await waitFor(() => expect(body()).toHaveAttribute('data-swipe'));
 
@@ -263,9 +259,12 @@ describe('withPageTurning', () => {
     });
 
     it('scrolls instead when pages do not fit across the view', async () => {
-      const { controller } = renderViewer({ withPageTurning: true, defaultZoom: 'fit-page' });
+      const { controller } = renderViewer({
+        pagesProps: { withPageTurning: true },
+        defaultZoom: 'fit-page',
+      });
       await pages();
-      act(() => controller.current!.setPageLayout('horizontal'));
+      act(() => controller.setPageLayout('horizontal'));
       await waitFor(() => expect(body()).not.toHaveAttribute('data-swipe'));
 
       swipe(body(), 400);
@@ -273,7 +272,7 @@ describe('withPageTurning', () => {
     });
 
     it('does not take swipes when swipe is turned off', async () => {
-      renderViewer({ withPageTurning: { swipe: false }, defaultZoom: 'fit-page' });
+      renderViewer({ pagesProps: { withPageTurning: { swipe: false } }, defaultZoom: 'fit-page' });
       await pages();
 
       expect(body()).not.toHaveAttribute('data-swipe');
@@ -284,69 +283,45 @@ describe('withPageTurning', () => {
 });
 
 describe('page layout', () => {
-  const { matchMedia } = window;
-
   beforeEach(() => {
     getDocument.mockReset();
     mockPdf({ numPages: 5 });
   });
 
-  afterEach(() => {
-    window.matchMedia = matchMedia;
-  });
-
-  /** Makes min-width queries up to the given width in em match, as Mantine's useMatches asks */
-  function viewport(em: number) {
-    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
-      matches: Number(/min-width: ([\d.]+)em/.exec(query)?.[1] ?? Infinity) <= em,
-      media: query,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    }));
-  }
-
   const layoutOf = () => body().querySelector('[data-layout]')?.getAttribute('data-layout');
 
-  it('takes a responsive default, until the reader picks a layout', async () => {
-    viewport(30);
+  it('takes a default layout, until the reader picks a layout', async () => {
     const onPageLayoutChange = jest.fn();
-    const { controller } = renderViewer({
-      defaultPageLayout: { base: 'single', sm: 'two-page-cover' },
-      onPageLayoutChange,
-    });
+    const { controller } = renderViewer({ defaultPageLayout: 'single', onPageLayoutChange });
     await pages();
     expect(layoutOf()).toBe('single');
 
-    act(() => controller.current!.setPageLayout('wrapped'));
+    act(() => controller.setPageLayout('wrapped'));
     expect(layoutOf()).toBe('wrapped');
     expect(onPageLayoutChange).toHaveBeenLastCalledWith('wrapped');
   });
 
-  it('uses the larger breakpoint on wide screens', async () => {
-    viewport(64);
-    renderViewer({ defaultPageLayout: { base: 'single', sm: 'two-page-cover' } });
-    await pages();
-    expect(layoutOf()).toBe('two-page-cover');
-  });
-
   it('follows a controlled layout and reports what the reader picks', async () => {
     const onPageLayoutChange = jest.fn();
-    const { controller, rerender } = renderViewer({ pageLayout: 'single', onPageLayoutChange });
+    const { controller, store, rerender } = renderViewer({
+      pageLayout: 'single',
+      onPageLayoutChange,
+    });
     await pages();
 
-    act(() => controller.current!.setPageLayout('two-page'));
+    act(() => controller.setPageLayout('two-page'));
     expect(onPageLayoutChange).toHaveBeenLastCalledWith('two-page');
     // Controlled: nothing changes until the app passes the new layout
     expect(layoutOf()).toBe('single');
     // Picking the layout that is shown reports nothing
     onPageLayoutChange.mockClear();
-    act(() => controller.current!.setPageLayout('single'));
+    act(() => controller.setPageLayout('single'));
     expect(onPageLayoutChange).not.toHaveBeenCalled();
 
     rerender(
-      <DocViewer
+      <TestDocViewer
         src="/files/book.pdf"
-        pdfWorkerSrc="/worker.mjs"
+        store={store}
         pageLayout="two-page"
         onPageLayoutChange={onPageLayoutChange}
       />
@@ -359,10 +334,10 @@ describe('page layout', () => {
     const scrollTo = jest.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {});
     const { controller } = renderViewer({ defaultPageLayout: 'single' });
     await pages();
-    act(() => controller.current!.goToPage(3));
+    act(() => controller.goToPage(3));
     scrollTo.mockClear();
 
-    act(() => controller.current!.setPageLayout('two-page'));
+    act(() => controller.setPageLayout('two-page'));
     expect(screen.getByText(indicator(3))).toBeInTheDocument();
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'instant' }));
     scrollTo.mockRestore();
@@ -376,11 +351,11 @@ describe('withScroll', () => {
   });
 
   it('stops reader scrolling, and the controller still moves the view', async () => {
-    const { controller } = renderViewer({ withScroll: false });
+    const { controller } = renderViewer({ pagesProps: { withScroll: false } });
     await pages();
     expect(body()).toHaveAttribute('data-no-scroll');
 
-    act(() => controller.current!.goToPage(4));
+    act(() => controller.goToPage(4));
     expect(screen.getByText(indicator(4))).toBeInTheDocument();
   });
 

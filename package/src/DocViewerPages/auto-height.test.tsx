@@ -4,7 +4,7 @@ import { buildPageText } from '../utils/search';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../test-utils/intersection-observer';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 import { computeScale } from '../utils/geometry';
 import { useCurrentPage } from '../hooks/pdf/use-current-page';
 import {
@@ -24,18 +24,16 @@ function pageNode(rect: DOMRect, offsetLeft = 0) {
   return node;
 }
 
-describe('height="auto" props', () => {
+describe('autosize props', () => {
   it('marks the root, which grows with its content', () => {
-    const { container } = render(<DocViewer src="/files/archive.zip" height="auto" />);
+    const { container } = render(<TestDocViewer src="/files/archive.zip" autosize />);
     const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
     expect(root).toHaveAttribute('data-auto-height');
   });
 
-  it('takes a fixed height through h, with or without the height prop', () => {
-    const { container, rerender } = render(<DocViewer src="/files/archive.zip" height={320} />);
+  it('takes a fixed height through h, without autosize', () => {
+    const { container } = render(<TestDocViewer src="/files/archive.zip" h={320} />);
     const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
-    expect(root).not.toHaveAttribute('data-auto-height');
-    rerender(<DocViewer src="/files/archive.zip" height={320} h={200} />);
     expect(root).not.toHaveAttribute('data-auto-height');
   });
 });
@@ -145,25 +143,18 @@ describe('scrollRangeIntoView in the window', () => {
   });
 });
 
-describe('PDF viewer with height="auto"', () => {
+describe('PDF viewer with autosize', () => {
   beforeEach(() => getDocument.mockReset());
 
   it('shows every page and follows the window instead of its own scroll area', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" height="auto" />);
+    render(<TestDocViewer src="/files/report.pdf" autosize />);
     expect(await screen.findByRole('group', { name: 'Page 3 of 3' })).toBeInTheDocument();
   });
 
   it('fits wrapped pages to the width', async () => {
     mockPdf();
-    render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        height="auto"
-        defaultPageLayout="wrapped"
-      />
-    );
+    render(<TestDocViewer src="/files/report.pdf" autosize defaultPageLayout="wrapped" />);
     expect(await screen.findByRole('group', { name: 'Page 1 of 3' })).toBeInTheDocument();
   });
 });

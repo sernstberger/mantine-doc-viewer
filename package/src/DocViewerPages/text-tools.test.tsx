@@ -1,8 +1,9 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import React from 'react';
+import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
+import { createDocViewer } from '../doc-viewer.store';
 import { getPageRects, getPointOffset } from '../utils/page-points';
 import { ACTIVE_MATCH_HIGHLIGHT } from '../utils/highlights';
 
@@ -97,15 +98,8 @@ describe('goToPage with a point', () => {
     mockPdf();
     layout(restore);
     const scrollTo = jest.spyOn(Element.prototype, 'scrollTo');
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        controllerRef={controller}
-      />
-    );
+    const [store, controller] = createDocViewer();
+    render(<TestDocViewer src="/files/report.pdf" defaultZoom={1} store={store} />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     return { scrollTo, controller };
   }
@@ -113,19 +107,19 @@ describe('goToPage with a point', () => {
   it('scrolls to the point, in page points from the top of the page', async () => {
     const { scrollTo, controller } = await setup();
 
-    act(() => controller.current!.goToPage(2, { top: 100 }));
+    act(() => controller.goToPage(2, { top: 100 }));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 2000 - 12 + 100 }));
 
-    act(() => controller.current!.goToPage(2));
+    act(() => controller.goToPage(2));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 2000 - 12 }));
 
-    act(() => controller.current!.goToPage(3, { top: -40 }));
+    act(() => controller.goToPage(3, { top: -40 }));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 3000 - 12 }));
   });
 
   it('jumps without scrolling smoothly when asked to', async () => {
     const { scrollTo, controller } = await setup();
-    act(() => controller.current!.goToPage(3, { behavior: 'instant' }));
+    act(() => controller.goToPage(3, { behavior: 'instant' }));
     expect(scrollTo).toHaveBeenLastCalledWith(
       expect.objectContaining({ top: 3000 - 12, behavior: 'instant' })
     );
@@ -134,26 +128,24 @@ describe('goToPage with a point', () => {
   it('gives the canvas a page is drawn on, for apps that copy it', async () => {
     const { controller } = await setup();
 
-    await waitFor(() =>
-      expect(controller.current!.getPageCanvas(2)).toBeInstanceOf(HTMLCanvasElement)
-    );
-    expect(controller.current!.getPageCanvas(2)!.closest('[data-page-number]')).toHaveAttribute(
+    await waitFor(() => expect(controller.getPageCanvas(2)).toBeInstanceOf(HTMLCanvasElement));
+    expect(controller.getPageCanvas(2)!.closest('[data-page-number]')).toHaveAttribute(
       'data-page-number',
       '2'
     );
-    expect(controller.current!.getPageCanvas(9)).toBeNull();
+    expect(controller.getPageCanvas(9)).toBeNull();
   });
 
   it('follows the zoom and the rotation of the page', async () => {
     const { scrollTo, controller } = await setup();
 
-    act(() => controller.current!.setZoom(2));
-    act(() => controller.current!.goToPage(2, { top: 100 }));
+    act(() => controller.setZoom(2));
+    act(() => controller.goToPage(2, { top: 100 }));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 2000 - 12 + 200 }));
 
-    act(() => controller.current!.rotate());
-    act(() => controller.current!.rotate());
-    act(() => controller.current!.goToPage(2, { top: 100 }));
+    act(() => controller.rotate());
+    act(() => controller.rotate());
+    act(() => controller.goToPage(2, { top: 100 }));
     expect(scrollTo).toHaveBeenLastCalledWith(
       expect.objectContaining({ top: 2000 - 12 + 792 - 200 })
     );
@@ -186,19 +178,13 @@ describe('highlight', () => {
     jest.restoreAllMocks();
   });
 
-  async function setup(props: Partial<React.ComponentProps<typeof DocViewer>> = {}) {
+  async function setup(props: Partial<TestDocViewerProps> = {}) {
     mockPdf();
     layout(restore);
     const scrollTo = jest.spyOn(Element.prototype, 'scrollTo');
-    const controller = createRef<DocViewerController>();
+    const [store, controller] = createDocViewer();
     const utils = render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        controllerRef={controller}
-        {...props}
-      />
+      <TestDocViewer src="/files/report.pdf" defaultZoom={1} store={store} {...props} />
     );
     await screen.findByText('Next quarter outlook');
     const marked = () =>
@@ -211,7 +197,7 @@ describe('highlight', () => {
   it('highlights the first place a text is found, ignoring case, and scrolls to it', async () => {
     const { controller, marked, scrollTo } = await setup();
 
-    act(() => controller.current!.highlight({ text: 'costs' }));
+    act(() => controller.highlight({ text: 'costs' }));
     await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
     // First to the page, then to the text itself
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 2000 - 12 }));
@@ -221,7 +207,7 @@ describe('highlight', () => {
   it('paints the passage again when its page draws its text again', async () => {
     const { controller, marked } = await setup();
 
-    act(() => controller.current!.highlight({ text: 'costs' }));
+    act(() => controller.highlight({ text: 'costs' }));
     await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
     const before = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
 
@@ -235,9 +221,9 @@ describe('highlight', () => {
 
   it('scrolls the window to the text when the viewer grows with its pages', async () => {
     const windowScrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
-    const { controller, marked } = await setup({ height: 'auto' });
+    const { controller, marked } = await setup({ autosize: true });
 
-    act(() => controller.current!.highlight({ text: 'costs' }));
+    act(() => controller.highlight({ text: 'costs' }));
     await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
     // Once to the page, once to the text in it
     await waitFor(() => expect(windowScrollTo.mock.calls.length).toBeGreaterThan(1));
@@ -246,24 +232,24 @@ describe('highlight', () => {
   it('can be limited to a page and to matching case', async () => {
     const { controller, marked } = await setup();
 
-    act(() => controller.current!.highlight({ text: 'quarter' }));
+    act(() => controller.highlight({ text: 'quarter' }));
     await waitFor(() => expect(marked()).toEqual(['Quarter@Quarterly report']));
 
-    act(() => controller.current!.highlight({ text: 'quarter', page: 3 }));
+    act(() => controller.highlight({ text: 'quarter', page: 3 }));
     await waitFor(() => expect(marked()).toEqual(['quarter@Next quarter outlook']));
 
-    act(() => controller.current!.highlight({ text: 'quarter', matchCase: true }));
+    act(() => controller.highlight({ text: 'quarter', matchCase: true }));
     await waitFor(() => expect(marked()).toEqual(['quarter@Revenue grew this quarter.']));
   });
 
   it('marks nothing when the text is not there', async () => {
     const { controller, marked } = await setup();
 
-    act(() => controller.current!.highlight({ text: 'invoice' }));
+    act(() => controller.highlight({ text: 'invoice' }));
     await act(async () => {});
     expect(marked()).toEqual([]);
 
-    act(() => controller.current!.highlight({ text: 'costs', page: 1 }));
+    act(() => controller.highlight({ text: 'costs', page: 1 }));
     await act(async () => {});
     expect(marked()).toEqual([]);
   });
@@ -271,9 +257,9 @@ describe('highlight', () => {
   it('removes the highlight with clearHighlight', async () => {
     const { controller, marked } = await setup();
 
-    act(() => controller.current!.highlight({ text: 'costs' }));
+    act(() => controller.highlight({ text: 'costs' }));
     await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
-    act(() => controller.current!.clearHighlight());
+    act(() => controller.clearHighlight());
     expect(marked()).toEqual([]);
   });
 
@@ -281,7 +267,7 @@ describe('highlight', () => {
     const { controller, scrollTo, container } = await setup();
 
     act(() =>
-      controller.current!.highlight({
+      controller.highlight({
         page: 2,
         rects: [
           { x: 72, y: 300, width: 200, height: 14 },
@@ -301,25 +287,23 @@ describe('highlight', () => {
     // The first box is left a margin below the top of the view
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 2000 - 12 + 252 }));
 
-    act(() => controller.current!.setZoom(2));
+    act(() => controller.setZoom(2));
     await waitFor(() =>
       expect(container.querySelector('.mantine-DocViewer-highlight')).toHaveStyle({ left: '144px' })
     );
 
-    act(() => controller.current!.clearHighlight());
+    act(() => controller.clearHighlight());
     expect(container.querySelector('.mantine-DocViewer-highlight')).toBeNull();
   });
 
   it('marks boxes near the top of a page without scrolling above it, and no boxes at all', async () => {
     const { controller, scrollTo, container } = await setup();
 
-    act(() =>
-      controller.current!.highlight({ page: 1, rects: [{ x: 10, y: 20, width: 30, height: 10 }] })
-    );
+    act(() => controller.highlight({ page: 1, rects: [{ x: 10, y: 20, width: 30, height: 10 }] }));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ top: 1000 - 12 }));
 
     scrollTo.mockClear();
-    act(() => controller.current!.highlight({ page: 1, rects: [] }));
+    act(() => controller.highlight({ page: 1, rects: [] }));
     expect(scrollTo).not.toHaveBeenCalled();
     expect(container.querySelectorAll('.mantine-DocViewer-highlight')).toHaveLength(0);
   });
@@ -337,11 +321,10 @@ describe('onTextSelect', () => {
     mockPdf();
     const onTextSelect = jest.fn();
     const utils = render(
-      <DocViewer
+      <TestDocViewer
         src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
         defaultZoom={1}
-        onTextSelect={onTextSelect}
+        pagesProps={{ onTextSelect: (text, { page, rects }) => onTextSelect(text, page, rects) }}
       />
     );
     const page = await screen.findByRole('group', { name: 'Page 1 of 3' });

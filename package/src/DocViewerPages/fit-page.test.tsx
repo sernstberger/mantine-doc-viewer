@@ -1,7 +1,8 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
-import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import React, { useEffect } from 'react';
+import { TestDocViewer } from '../../../test-utils/viewer';
+import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import { toPdfZoom } from '../utils/pdf-zoom';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
@@ -15,6 +16,19 @@ describe('toPdfZoom', () => {
   });
 });
 
+function ControlledViewer({
+  onActions,
+  ...props
+}: React.ComponentProps<typeof TestDocViewer> & {
+  onActions: (actions: DocViewerActions) => void;
+}) {
+  const [store, actions] = useDocViewer();
+  useEffect(() => {
+    onActions(actions);
+  }, [actions, onActions]);
+  return <TestDocViewer store={store} {...props} />;
+}
+
 describe('fit-page zoom', () => {
   beforeEach(() => getDocument.mockReset());
 
@@ -22,9 +36,8 @@ describe('fit-page zoom', () => {
     mockPdf();
     const onZoomChange = jest.fn();
     render(
-      <DocViewer
+      <TestDocViewer
         src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
         defaultZoom="fit-page"
         defaultPageLayout="two-page"
         onZoomChange={onZoomChange}
@@ -42,32 +55,31 @@ describe('fit-page zoom', () => {
 
   it('fits the page through the controller, and back to a scale', async () => {
     mockPdf();
-    const controller = createRef<DocViewerController>();
+    let actions!: DocViewerActions;
     const onZoomChange = jest.fn();
     render(
-      <DocViewer
+      <ControlledViewer
         src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
         defaultZoom={2}
-        controllerRef={controller}
+        onActions={(value) => (actions = value)}
         onZoomChange={onZoomChange}
       />
     );
 
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
-    act(() => controller.current!.setZoom('fit-page'));
+    act(() => actions.setZoom('fit-page'));
     expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: 1 });
   });
 
   it('fits a whole image for fit-page', async () => {
-    const controller = createRef<DocViewerController>();
+    let actions!: DocViewerActions;
     const onZoomChange = jest.fn();
     render(
-      <DocViewer
+      <ControlledViewer
         src="/files/photo.png"
         defaultZoom="fit-page"
-        controllerRef={controller}
+        onActions={(value) => (actions = value)}
         onZoomChange={onZoomChange}
       />
     );
@@ -79,9 +91,9 @@ describe('fit-page zoom', () => {
     await waitFor(() =>
       expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: expect.any(Number) })
     );
-    act(() => controller.current!.setZoom(2));
+    act(() => actions.setZoom(2));
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
-    act(() => controller.current!.setZoom('fit-page'));
+    act(() => actions.setZoom('fit-page'));
     expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: expect.any(Number) });
   });
 });

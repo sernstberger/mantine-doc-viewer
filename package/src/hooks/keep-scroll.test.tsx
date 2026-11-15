@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 import { useKeepScroll } from './keep-scroll';
 
 function scrollTo(node: HTMLElement, top: number, left = 0) {
@@ -73,14 +73,14 @@ describe('keepView', () => {
   beforeEach(() => getDocument.mockReset());
 
   it('keeps zoom, rotation and the image element when an image swaps', async () => {
-    const { rerender } = render(<DocViewer src="/a.png" keepView defaultZoom={1} />);
+    const { rerender } = render(<TestDocViewer src="/a.png" keepView defaultZoom={1} />);
     const image = loadImage();
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
 
     rerender(
       <>
-        <DocViewer src="/b.png" keepView defaultZoom={1} />
+        <TestDocViewer src="/b.png" keepView defaultZoom={1} />
       </>
     );
     expect(screen.getByRole('img', { hidden: true })).toBe(image);
@@ -89,13 +89,13 @@ describe('keepView', () => {
   });
 
   it('tries a new image after the last one failed', () => {
-    const { rerender } = render(<DocViewer src="/a.png" keepView />);
+    const { rerender } = render(<TestDocViewer src="/a.png" keepView />);
     fireEvent.error(screen.getByRole('img', { hidden: true }));
     expect(screen.getByText('This image could not be loaded')).toBeInTheDocument();
 
     rerender(
       <>
-        <DocViewer src="/b.png" keepView />
+        <TestDocViewer src="/b.png" keepView />
       </>
     );
     expect(screen.queryByText('This image could not be loaded')).not.toBeInTheDocument();
@@ -103,12 +103,12 @@ describe('keepView', () => {
   });
 
   it('starts afresh without keepView', async () => {
-    const { rerender } = render(<DocViewer src="/a.png" defaultZoom={1} />);
+    const { rerender } = render(<TestDocViewer src="/a.png" defaultZoom={1} />);
     const image = loadImage();
 
     rerender(
       <>
-        <DocViewer src="/b.png" defaultZoom={1} />
+        <TestDocViewer src="/b.png" defaultZoom={1} />
       </>
     );
     expect(screen.getByRole('img', { hidden: true })).not.toBe(image);
@@ -116,7 +116,7 @@ describe('keepView', () => {
 
   it('keeps line wrapping and scroll when text swaps', async () => {
     mockFetch('first file');
-    const { rerender } = render(<DocViewer src="/a.txt" keepView />);
+    const { rerender } = render(<TestDocViewer src="/a.txt" keepView />);
     const text = await screen.findByText('first file');
     await userEvent.click(screen.getByRole('button', { name: 'Wrap lines' }));
     const body = text.parentElement as HTMLElement;
@@ -125,7 +125,7 @@ describe('keepView', () => {
     mockFetch('second file');
     rerender(
       <>
-        <DocViewer src="/b.txt" keepView />
+        <TestDocViewer src="/b.txt" keepView />
       </>
     );
     scrollTo(body, 0);
@@ -136,8 +136,8 @@ describe('keepView', () => {
 
   it('keeps zoom and scroll when a PDF swaps, and forgets edits of the old one', async () => {
     mockPdf();
-    const props = { pdfWorkerSrc: '/w.mjs', keepView: true } as const;
-    const { rerender } = render(<DocViewer src="/a.pdf" {...props} />);
+    const props = { keepView: true } as const;
+    const { rerender } = render(<TestDocViewer src="/a.pdf" {...props} />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     const zoom = screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
@@ -146,7 +146,7 @@ describe('keepView', () => {
 
     rerender(
       <>
-        <DocViewer src="/b.pdf" {...props} />
+        <TestDocViewer src="/b.pdf" {...props} />
       </>
     );
     scrollTo(body, 0);

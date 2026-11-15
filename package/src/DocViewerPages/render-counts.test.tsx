@@ -2,10 +2,12 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import type { DocViewerMark } from '../DocViewerMarkup/utils/markup';
 import { createDocViewer } from '../doc-viewer.store';
+import { createMarkupExtension } from '../DocViewerMarkup/markup-extension';
+import { createPageEditorExtension } from '../DocViewerPageEditor/page-editor-extension';
 import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
 import { DocViewerPages } from './DocViewerPages';
 import { LoadedPdfRoot } from '../../../test-utils/pdf-parts';
@@ -49,12 +51,7 @@ describe('page renders', () => {
     );
     const renderPageOverlay = countPageRenders();
     const { container } = render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        renderPageOverlay={renderPageOverlay}
-      />
+      <TestDocViewer src="/files/report.pdf" defaultZoom={1} pagesProps={{ renderPageOverlay }} />
     );
     await allTextLayersRendered(container);
     await act(async () => {});
@@ -75,14 +72,12 @@ describe('page renders', () => {
           <button type="button" onClick={() => setCount(count + 1)}>
             Render {count}
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
-            renderPageOverlay={renderPageOverlay}
+            pagesProps={{ renderPageOverlay }}
             // Written inline, so a new object on every render of the app
             labels={{ searchLabel: 'Find' }}
-            pdfOptions={undefined}
           />
         </>
       );
@@ -107,15 +102,16 @@ describe('page renders', () => {
           <button type="button" onClick={() => setMark('B')}>
             Change
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
-            renderPageOverlay={({ pageNumber }) => (
-              <span>
-                {mark}
-                {pageNumber}
-              </span>
-            )}
+            pagesProps={{
+              renderPageOverlay: ({ pageNumber }) => (
+                <span>
+                  {mark}
+                  {pageNumber}
+                </span>
+              ),
+            }}
           />
         </>
       );
@@ -139,9 +135,8 @@ describe('page renders', () => {
           <button type="button" onClick={() => setWord('Page')}>
             Rename
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
             labels={{ linkToPageLabel: (page) => `${word} ${page}` }}
           />
@@ -179,13 +174,12 @@ describe('page renders on a page turn and a new mark', () => {
           <button type="button" onClick={() => setPage(page + 2)}>
             Turn
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
             page={page}
             onPageChange={setPage}
-            renderPageOverlay={renderPageOverlay}
+            pagesProps={{ renderPageOverlay }}
           />
         </>
       );
@@ -222,13 +216,11 @@ describe('page renders on a page turn and a new mark', () => {
           <button type="button" onClick={add}>
             Mark
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
-            markup={marks}
-            onMarkupChange={setMarks}
-            renderPageOverlay={renderPageOverlay}
+            extensions={[createMarkupExtension({ value: marks, onChange: setMarks })]}
+            pagesProps={{ renderPageOverlay }}
           />
         </>
       );
@@ -256,12 +248,11 @@ describe('thumbnail and page tile renders', () => {
           <button type="button" onClick={() => setPage(3)}>
             Turn
           </button>
-          <DocViewer
+          <TestDocViewer
             src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
             defaultThumbnailsOpened
-            withPageEditing
+            extensions={[createPageEditorExtension()]}
             page={page}
             onPageChange={setPage}
             labels={countingLabels}

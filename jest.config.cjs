@@ -30,7 +30,6 @@ module.exports = {
   setupFilesAfterEnv: ['./jsdom.mocks.cjs', './jest-console.cjs'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '/legacy-engines$': '<rootDir>/test-utils/legacy-engines.mock.ts',
     '/import-pdf-lib$': '<rootDir>/test-utils/import-pdf-lib.mock.ts',
     '/import-views$': '<rootDir>/test-utils/import-views.mock.ts',
     '^pdfjs-dist$': '<rootDir>/test-utils/pdfjs-dist.mock.ts',

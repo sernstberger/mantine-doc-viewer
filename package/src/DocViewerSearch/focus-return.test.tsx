@@ -1,25 +1,17 @@
 import { render, screen } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
-
+import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import { TestDocViewer } from '../../../test-utils/viewer';
 
 function renderViewer() {
-  const controller = createRef<DocViewerController>();
   render(
     <>
       <input aria-label="App field" />
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        withPageEditing
-        controllerRef={controller}
-      />
+      <TestDocViewer src="/files/report.pdf" />
     </>
   );
-  return controller;
 }
 
 describe('focus across presentations', () => {

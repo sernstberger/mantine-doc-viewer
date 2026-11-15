@@ -1,12 +1,12 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { createRef, useState } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
-import type { DocViewerZoom } from '../hooks/use-controller-registry';
-import { normalizeZoom } from '../hooks/use-zoom-setting';
-
+import React, { useState } from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import { TestDocViewer } from '../../../test-utils/viewer';
+import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
+import type { DocViewerZoom } from './use-controller-registry';
+import { normalizeZoom } from './use-zoom-setting';
 
 function loadImage() {
   const image = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
@@ -22,21 +22,26 @@ function ControlledViewer({
   src,
   initial,
   next,
+  actionsRef,
   ...props
 }: {
   src: string;
   initial: DocViewerZoom;
   next: DocViewerZoom;
-  controllerRef?: React.Ref<DocViewerController>;
+  actionsRef?: { current: DocViewerActions | undefined };
   onZoomChange: (zoom: DocViewerZoom, details: { scale: number }) => void;
 }) {
   const [zoom, setZoom] = useState(initial);
+  const [store, actions] = useDocViewer();
+  if (actionsRef) {
+    actionsRef.current = actions;
+  }
   return (
     <>
       <button type="button" onClick={() => setZoom(next)}>
         Set zoom
       </button>
-      <DocViewer src={src} pdfWorkerSrc="/worker.mjs" zoom={zoom} {...props} />
+      <TestDocViewer src={src} zoom={zoom} store={store} {...props} />
     </>
   );
 }
@@ -54,19 +59,19 @@ describe('controlled zoom', () => {
   beforeEach(() => getDocument.mockReset());
 
   it('shows the zoom of an image from the zoom prop, and reports requests without applying them', async () => {
-    const controller = createRef<DocViewerController>();
+    const actionsRef: { current: DocViewerActions | undefined } = { current: undefined };
     const onZoomChange = jest.fn();
     render(
       <ControlledViewer
         src="/files/photo.png"
         initial={1.5}
         next={2}
-        controllerRef={controller}
+        actionsRef={actionsRef}
         onZoomChange={onZoomChange}
       />
     );
     // Not reported before the image is shown
-    act(() => controller.current!.setZoom(3));
+    act(() => actionsRef.current!.setZoom(3));
     expect(onZoomChange).not.toHaveBeenCalled();
 
     loadImage();
@@ -87,17 +92,18 @@ describe('controlled zoom', () => {
 
   it('follows the app through a round trip, for a PDF', async () => {
     mockPdf();
-    const controller = createRef<DocViewerController>();
+    const actionsRef: { current: DocViewerActions | undefined } = { current: undefined };
     const onZoomChange = jest.fn();
 
     function App() {
       const [zoom, setZoom] = useState<DocViewerZoom>(2);
+      const [store, actions] = useDocViewer();
+      actionsRef.current = actions;
       return (
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
           zoom={zoom}
-          controllerRef={controller}
+          store={store}
           onZoomChange={(next, details) => {
             onZoomChange(next, details);
             setZoom(next);
@@ -111,7 +117,7 @@ describe('controlled zoom', () => {
     expect(zoomLevel()).toHaveTextContent('200%');
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
 
-    act(() => controller.current!.setZoom('fit'));
+    act(() => actionsRef.current!.setZoom('fit'));
     expect(onZoomChange).toHaveBeenLastCalledWith('fit', { scale: expect.any(Number) });
     expect(screen.getByRole('button', { name: 'Fit to width' })).toHaveAttribute(
       'aria-pressed',
@@ -131,22 +137,22 @@ describe('controlled zoom', () => {
   });
 
   it('reports a request again when the app refused it', async () => {
-    const controller = createRef<DocViewerController>();
+    const actionsRef: { current: DocViewerActions | undefined } = { current: undefined };
     const onZoomChange = jest.fn();
     render(
       <ControlledViewer
         src="/files/photo.png"
         initial={1.5}
         next={2}
-        controllerRef={controller}
+        actionsRef={actionsRef}
         onZoomChange={onZoomChange}
       />
     );
     loadImage();
     onZoomChange.mockClear();
 
-    act(() => controller.current!.setZoom(2));
-    act(() => controller.current!.setZoom(2));
+    act(() => actionsRef.current!.setZoom(2));
+    act(() => actionsRef.current!.setZoom(2));
     expect(onZoomChange).toHaveBeenCalledTimes(2);
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
     expect(zoomLevel()).toHaveTextContent('150%');

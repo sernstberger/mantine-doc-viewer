@@ -3,10 +3,10 @@ import { waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 
-const renderPdf = (props: Partial<React.ComponentProps<typeof DocViewer>> = {}) =>
-  render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" {...props} />);
+const renderPdf = (props: Partial<React.ComponentProps<typeof TestDocViewer>> = {}) =>
+  render(<TestDocViewer src="/files/report.pdf" {...props} />);
 
 describe('screen reader details', () => {
   beforeEach(() => getDocument.mockReset());
@@ -15,8 +15,8 @@ describe('screen reader details', () => {
     mockPdf();
     render(
       <>
-        <DocViewer src="/files/a.pdf" pdfWorkerSrc="/worker.mjs" />
-        <DocViewer src="/files/b.pdf" pdfWorkerSrc="/worker.mjs" />
+        <TestDocViewer src="/files/a.pdf" />
+        <TestDocViewer src="/files/b.pdf" />
       </>
     );
     const buttons = await screen.findAllByRole('button', { name: 'Document info' });

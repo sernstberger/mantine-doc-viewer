@@ -3,20 +3,12 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { EditorViewer } from '../../../test-utils/page-editor';
 import { focusThumbnail, getFocusedThumbnailViewer } from './thumbnail-focus';
 
 async function openThumbnails() {
   mockPdf();
-  render(
-    <DocViewer
-      src="/files/report.pdf"
-      pdfWorkerSrc="/worker.mjs"
-      defaultThumbnailsOpened
-      withPageEditing
-      onSave={jest.fn()}
-    />
-  );
+  render(<EditorViewer defaultThumbnailsOpened editor={{ onDocumentChange: jest.fn() }} />);
   const listbox = await screen.findByRole('listbox', { name: 'Pages' });
   await waitFor(() => expect(within(listbox).getAllByRole('option')).toHaveLength(3));
   return listbox;
