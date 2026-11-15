@@ -1,3 +1,4 @@
+import { clamp } from '@mantine/hooks';
 import type { PdfRotation } from './render-page';
 
 /** A box on a PDF page in px at 100% (PDF points), from the page's top-left as `renderPageOverlay` places content */
@@ -26,7 +27,7 @@ export function getPointOffset(
     270: pageHeight,
   };
 
-  return Math.min(Math.max(offsets[rotation], 0), pageHeight);
+  return clamp(offsets[rotation], 0, pageHeight);
 }
 
 interface ClientBox {

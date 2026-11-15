@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useToggle } from '@mantine/hooks';
+import { useRef } from 'react';
 
 /** Movement in px that turns a tap into a scroll or a drag */
 const TAP_SLOP = 10;
@@ -15,7 +16,7 @@ const INTERACTIVE =
  * and taps on buttons, links or the toolbar do nothing
  */
 export function useTapToggle(enabled: boolean | undefined) {
-  const [hidden, setHidden] = useState(false);
+  const [hidden, toggleHidden] = useToggle();
   const start = useRef<{ id: number; x: number; y: number; time: number } | null>(null);
 
   if (!enabled) {
@@ -41,7 +42,7 @@ export function useTapToggle(enabled: boolean | undefined) {
           event.timeStamp - tap.time < TAP_TIME &&
           !(event.target as Element).closest(INTERACTIVE)
         ) {
-          setHidden((current) => !current);
+          toggleHidden();
         }
       },
       onPointerCancel: () => {

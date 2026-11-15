@@ -1,3 +1,4 @@
+import { clamp } from '@mantine/hooks';
 import type { DocViewerPageLayout } from '../DocViewer';
 import { type PdfRotation, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -5,7 +6,7 @@ import { DEFAULT_PAGES_GUTTER, getFitWidthScale, PagesGutter, PdfZoom } from './
 
 /** A page number within the document, from 1 to `numPages` */
 export function clampPage(page: number, numPages: number) {
-  return Math.min(Math.max(Math.round(page), 1), Math.max(numPages, 1));
+  return clamp(Math.round(page), 1, Math.max(numPages, 1));
 }
 
 export function isTwoPages(layout: DocViewerPageLayout) {
