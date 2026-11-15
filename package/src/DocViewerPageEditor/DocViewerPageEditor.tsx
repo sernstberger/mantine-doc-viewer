@@ -1,0 +1,40 @@
+import React from 'react';
+import {
+  BoxProps,
+  CompoundStylesApiProps,
+  ElementProps,
+  factory,
+  Factory,
+  useProps,
+} from '@mantine/core';
+import { useDocViewerContext } from '../doc-viewer.context';
+import classes from '../DocViewer.module.css';
+
+export type DocViewerPageEditorStylesNames =
+  | 'editor'
+  | 'editorBar'
+  | 'editorTitle'
+  | 'editorCount'
+  | 'editorPages'
+  | 'editorPage'
+  | 'editorButton';
+
+export interface DocViewerPageEditorProps
+  extends BoxProps, CompoundStylesApiProps<DocViewerPageEditorFactory>, ElementProps<'div'> {}
+
+export type DocViewerPageEditorFactory = Factory<{
+  props: DocViewerPageEditorProps;
+  ref: HTMLDivElement;
+  stylesNames: DocViewerPageEditorStylesNames;
+  compound: true;
+}>;
+
+/** The page editor screen; `DocViewer.Main` shows it while the editor is open */
+export const DocViewerPageEditor = factory<DocViewerPageEditorFactory>((_props) => {
+  useProps('DocViewerPageEditor', null, _props);
+  useDocViewerContext();
+  return null;
+});
+
+DocViewerPageEditor.classes = classes;
+DocViewerPageEditor.displayName = 'mantine-doc-viewer/DocViewerPageEditor';

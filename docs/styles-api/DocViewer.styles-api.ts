@@ -5,7 +5,8 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
   selectors: {
     root: 'Root element',
     toolbar: 'Toolbar above the document',
-    toolbarStart: 'Content before the title, from toolbarStartSection',
+    toolbarSection:
+      'Left and right toolbar sections, from leftSection and rightSection (data-position)',
     heading: 'Title and subtitle in the toolbar',
     subtitle: 'Small text under the title, from toolbarSubtitle',
     title: 'File name in the toolbar',
@@ -83,14 +84,7 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
         'Pressed toolbar buttons, the current thumbnail and focus outlines, set by `color`',
       '--doc-viewer-font-size': 'Toolbar text size, set by `size`',
       '--doc-viewer-toolbar-height': 'Smallest toolbar height, set by `size`',
-      '--doc-viewer-page-gap': 'Space between PDF pages, set by `pageGap`',
       '--doc-viewer-page-background': 'Background of PDF pages and thumbnails, white by default',
-      '--doc-viewer-thumbnail-width':
-        'Width of thumbnails in the side rail, set by `thumbnailWidth`',
-      '--doc-viewer-match-color':
-        'Colour of PDF search matches, set by `matchColor`, theme yellow 6 by default',
-      '--doc-viewer-active-match-color':
-        'Colour of the selected PDF search match, set by `activeMatchColor`, theme orange 6 by default (underline: orange 9)',
     },
   },
 

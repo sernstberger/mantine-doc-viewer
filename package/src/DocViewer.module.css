@@ -1,0 +1,905 @@
+.root {
+  --_color: var(--doc-viewer-color, var(--mantine-primary-color-filled));
+  --_color-light: color-mix(in srgb, var(--_color) 15%, transparent);
+  --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
+  --_page-background: var(--doc-viewer-page-background, var(--mantine-color-white));
+  --_page-filter: none;
+
+  /* Own stacking context: the z-index values inside (1 to 3) never compete with the host page */
+  isolation: isolate;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: rem(200px);
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--doc-viewer-radius);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-height: var(--doc-viewer-toolbar-height, rem(44px));
+  padding-inline: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.toolbar[data-hidden] {
+  display: none;
+}
+
+.overlayControls {
+  position: absolute;
+  z-index: 3;
+  top: var(--mantine-spacing-xs);
+  inset-inline-end: var(--mantine-spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: rem(6px);
+}
+
+.toolbarSection {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.heading {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--_font-size);
+  font-weight: 500;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--_font-size) * 0.85);
+  line-height: 1.2;
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+
+  :where([data-doc-type='image']) > & {
+    min-height: rem(240px);
+  }
+
+  /* withScroll={false}: the app moves the view; programmatic scrolling still works */
+  &[data-no-scroll] {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* withScrollSnap: scrolling stops at a page, or a spread, the way goToPage leaves it */
+  &[data-scroll-snap='y'] {
+    scroll-snap-type: y mandatory;
+  }
+
+  &[data-scroll-snap='x'] {
+    scroll-snap-type: x mandatory;
+  }
+
+  &[data-scroll-snap] > .pages > .page {
+    scroll-snap-align: start;
+    /* Page pixels, like the gutters in pdf/zoom.ts: not scaled with the root font size */
+    scroll-margin: 12px;
+  }
+
+  /* withPageTurning: sideways swipes turn pages, so the browser only scrolls up and down */
+  &[data-swipe] {
+    touch-action: pan-y pinch-zoom;
+  }
+}
+
+.imageStage {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+
+  &[data-pannable] {
+    cursor: grab;
+  }
+
+  &[data-panning] {
+    cursor: grabbing;
+    user-select: none;
+  }
+}
+
+/* Padding on both sides must add up to IMAGE_GUTTER in views/image-fit.ts */
+.imageCanvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  height: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.imageFrame {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  max-width: none;
+  visibility: hidden;
+  transform-origin: center;
+  user-select: none;
+
+  &[data-loaded] {
+    visibility: visible;
+  }
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+}
+
+/* Mantine's EmptyState lays out the message; it fills the body and centres vertically */
+.empty {
+  justify-content: center;
+  height: 100%;
+  min-height: rem(160px);
+  padding: var(--mantine-spacing-xl);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--_font-size);
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding-block: rem(4px);
+
+  /* Wraps onto more lines in narrow viewers and at high zoom, instead of cutting controls off */
+  margin-inline-start: auto;
+}
+
+.pageIndicator {
+  min-width: rem(56px);
+  font-size: var(--_font-size);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.zoomLevel {
+  min-width: rem(48px);
+  padding: rem(2px) rem(4px);
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--_font-size);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+}
+
+/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback). What the layout needs is in DocViewer.behavior.module.css */
+.pages {
+  gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
+  padding: var(--mantine-spacing-md) 16px;
+
+  &[data-layout='two-page'],
+  &[data-layout='two-page-cover'],
+  &[data-layout='horizontal'] {
+    column-gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
+  }
+
+  &[data-layout='presentation'] > * {
+    box-shadow: none;
+  }
+}
+
+.page {
+  background-color: var(--_page-background);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.canvas {
+  /* pageColorScheme sets the filter on the root; none otherwise */
+  filter: var(--_page-filter);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: rem(6px) var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.searchInput {
+  flex: 1;
+  max-width: rem(320px);
+}
+
+.searchCount {
+  min-width: rem(72px);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Search match colours are added at runtime by pdf/highlights.ts: some bundlers cannot parse ::highlight() */
+
+/* High contrast mode. The text layer keeps its own colours (forced-color-adjust: none), so search highlights stay as they are */
+@media (forced-colors: active) {
+  /* Pressed toggle buttons lose their background, mark them with an outline instead */
+  .toolbar [aria-pressed='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .thumbnail[data-active] {
+    outline: 2px solid Highlight;
+  }
+}
+
+.main {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+
+  &[data-thumbnails-position='top'],
+  &[data-thumbnails-position='bottom'] {
+    flex-direction: column;
+  }
+
+  & > .body {
+    min-width: 0;
+  }
+}
+
+.thumbnails {
+  /* Offset parent of the thumbnails, used to keep the active one in view */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  flex-shrink: 0;
+  width: calc(var(--doc-viewer-thumbnails-width, rem(112px)) + rem(40px));
+  padding: var(--mantine-spacing-sm) 0;
+  overflow-y: auto;
+  border-inline-end: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+
+  /* "left" and "right" are the start and end of the line: the rail swaps sides in RTL */
+  :where([data-thumbnails-position='right']) > & {
+    border-inline-end: 0;
+    border-inline-start: 1px solid var(--mantine-color-default-border);
+  }
+
+  &[data-orientation='horizontal'] {
+    flex-direction: row;
+    align-items: flex-start;
+    width: auto;
+    max-height: 40%;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    overflow: auto hidden;
+    border-inline: 0;
+    border-bottom: 1px solid var(--mantine-color-default-border);
+  }
+
+  :where([data-thumbnails-position='bottom']) > &[data-orientation='horizontal'] {
+    border-bottom: 0;
+    border-top: 1px solid var(--mantine-color-default-border);
+  }
+}
+
+.thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: rem(4px);
+  padding: rem(4px);
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: none;
+  color: var(--mantine-color-dimmed);
+  font: inherit;
+  cursor: pointer;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+
+    /* The delete button shows when the thumbnail is hovered (on touch screens: pressed) */
+    & > :where(.thumbnailDelete) {
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: 1px;
+  }
+
+  &[data-active] {
+    color: var(--mantine-color-text);
+    background-color: var(--_color-light);
+  }
+}
+
+/* The width is set from the thumbnailWidth prop, in pdf/PdfThumbnails.tsx */
+.thumbnailImage {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  background-color: var(--_page-background);
+
+  [data-active] > & {
+    border-color: var(--_color);
+    box-shadow: 0 0 0 1px var(--_color);
+  }
+}
+
+.thumbnailLabel {
+  font-size: var(--mantine-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.text {
+  margin: 0;
+  padding: var(--mantine-spacing-md);
+  min-height: 100%;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--_font-size);
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 4;
+  color: var(--mantine-color-text);
+  background-color: var(--mantine-color-body);
+  outline: none;
+
+  &[data-wrap] {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+.code {
+  min-height: 100%;
+}
+
+.markdown {
+  max-width: rem(820px);
+  min-height: 100%;
+  margin-inline: auto;
+  padding: var(--mantine-spacing-xl);
+  background-color: var(--mantine-color-body);
+
+  & img {
+    max-width: 100%;
+  }
+}
+
+.outline {
+  max-height: min(60vh, rem(420px));
+  min-width: rem(220px);
+  max-width: rem(340px);
+  overflow: auto;
+  font-size: var(--_font-size);
+}
+
+.outlineList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  & & {
+    padding-inline-start: var(--mantine-spacing-md);
+  }
+}
+
+.outlineItem {
+  display: block;
+  width: 100%;
+  padding: rem(4px) var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-text);
+  font-size: inherit;
+  text-align: start;
+  text-decoration: none;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+}
+
+.password {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  width: min(rem(320px), 100% - 2 * var(--mantine-spacing-md));
+  margin: var(--mantine-spacing-xl) auto;
+  padding: var(--mantine-spacing-lg);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-body);
+}
+
+/* Marks drawn with the markup tools. Where it sits and when it takes the pointer is in DocViewer.behavior.module.css */
+.markupLayer {
+  & [data-mark='highlight'] {
+    opacity: 0.4;
+  }
+
+  &[data-tool] {
+    cursor: crosshair;
+  }
+
+  &[data-tool='text'] {
+    cursor: text;
+  }
+
+  /* A tab stop while a tool is picked: keys move a cursor and place marks */
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+
+  & [data-markup-caret] {
+    stroke-width: 1.5px;
+  }
+
+  &:not(:focus-visible) [data-markup-caret] {
+    display: none;
+  }
+}
+
+/* Text box marks, and the box a new one is typed into: Helvetica, as the saved PDF shows it */
+.markupText {
+  position: absolute;
+  font-family: Helvetica, Arial, sans-serif;
+  white-space: pre;
+
+  /* The textarea of a box being typed: a descendant, so the class beats the input's own styles */
+  & .markupInput {
+    min-width: 8ch;
+    min-height: 0;
+    padding: 0;
+    font-family: inherit;
+    white-space: pre;
+    outline: 1px dashed currentColor;
+    outline-offset: 2px;
+  }
+}
+
+.markupBar {
+  display: flex;
+  align-items: center;
+  gap: rem(4px);
+  padding: rem(6px) var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.markupDivider {
+  align-self: stretch;
+  margin-inline: rem(4px);
+}
+
+/* Boxes marked from outside with controller.highlight, in the colours of the active search match (the layer is in DocViewer.behavior.module.css) */
+.highlight {
+  position: absolute;
+  border-radius: 2px;
+  background-color: color-mix(
+    in srgb,
+    var(--doc-viewer-active-match-color, var(--mantine-color-orange-6)) 40%,
+    transparent
+  );
+  mix-blend-mode: multiply;
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--doc-viewer-active-match-color, var(--mantine-color-orange-9)) 80%,
+      transparent
+    );
+  outline-offset: 1px;
+}
+
+/* Links in PDF pages (the layer itself is in DocViewer.behavior.module.css) */
+.linkLayer {
+  & :global(.linkAnnotation) > a {
+    border-radius: 2px;
+
+    @mixin hover {
+      background-color: color-mix(in srgb, var(--_color) 15%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--_color);
+      outline-offset: 1px;
+    }
+  }
+
+  @media (forced-colors: active) {
+    & :global(.linkAnnotation) {
+      outline: 1.5px solid LinkText;
+    }
+  }
+}
+
+.searchOption {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+
+  &[data-option='wholeWords'] {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.documentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  width: min(rem(360px), 80vw);
+  max-height: min(60vh, rem(480px));
+  overflow: auto;
+  font-size: var(--_font-size);
+}
+
+.properties {
+  /* Long values (file names, producers) wrap instead of widening the popover; inherited by the values */
+  overflow-wrap: anywhere;
+}
+
+.presentationControls {
+  position: absolute;
+  inset-block-end: var(--mantine-spacing-md);
+  inset-inline-end: var(--mantine-spacing-md);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: rem(4px);
+  padding-inline-start: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-xl);
+  background-color: alpha(var(--mantine-color-black), 0.6);
+  color: var(--mantine-color-white);
+  font-size: var(--mantine-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.editorBar {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+}
+
+.editorPages {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--mantine-spacing-md);
+  flex: 1;
+  min-height: 0;
+  padding: var(--mantine-spacing-md);
+  overflow: auto;
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
+}
+
+.editorPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: rem(4px);
+  padding: rem(6px);
+  border: 2px solid transparent;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-dimmed);
+  cursor: grab;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: 2px;
+  }
+
+  &[data-selected] {
+    border-color: var(--_color);
+    background-color: var(--_color-light);
+    color: var(--mantine-color-text);
+  }
+
+  @media (forced-colors: active) {
+    &[data-selected] {
+      border-color: Highlight;
+    }
+  }
+}
+
+/* Drag to reorder (page editor and thumbnails), with Mantine's useDrag */
+:is(.thumbnail, .editorPage) {
+  position: relative;
+  touch-action: manipulation;
+
+  /* The dragged page follows the pointer */
+  &[data-dragging] {
+    z-index: 2;
+    opacity: 0.85;
+    box-shadow: var(--mantine-shadow-md);
+    pointer-events: none;
+    cursor: grabbing;
+  }
+
+  /* Where the page will land: a bar in the gap before or after this item */
+  &[data-drop]::after {
+    content: '';
+    position: absolute;
+    border-radius: 2px;
+    background-color: var(--_color);
+    pointer-events: none;
+  }
+
+  &[data-drop='before']::after,
+  &[data-drop='after']::after {
+    top: 0;
+    bottom: 0;
+    width: rem(3px);
+  }
+
+  /* Before and after follow the reading direction: the bar is on the right of a page "before" it in RTL */
+  &[data-drop='before']::after {
+    inset-inline-start: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
+  }
+
+  &[data-drop='after']::after {
+    inset-inline-end: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
+  }
+
+  /* A vertical rail of thumbnails gets a horizontal bar instead */
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop]::after {
+    inset-inline: 0;
+    width: auto;
+    height: rem(3px);
+  }
+
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop='before']::after {
+    top: calc(var(--_drop-offset, rem(-6px)) - 1.5px);
+    bottom: auto;
+  }
+
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop='after']::after {
+    top: auto;
+    bottom: calc(var(--_drop-offset, rem(-6px)) - 1.5px);
+  }
+
+  @media (forced-colors: active) {
+    &[data-drop]::after {
+      background-color: Highlight;
+    }
+  }
+}
+
+/* Touch and pen drag from the handle; a mouse drags the whole page */
+.dragHandle {
+  position: absolute;
+  z-index: 1;
+  top: rem(6px);
+  inset-inline-end: rem(6px);
+  display: none;
+  place-items: center;
+  width: rem(32px);
+  height: rem(32px);
+  border-radius: var(--mantine-radius-sm);
+  background-color: color-mix(in srgb, var(--mantine-color-body) 85%, transparent);
+  box-shadow: var(--mantine-shadow-xs);
+  color: var(--mantine-color-text);
+  font-size: rem(18px);
+  touch-action: none;
+  cursor: grab;
+
+  /*
+   * On touch screens on the current thumbnail only (on every thumbnail they would cover the
+   * pages), and on every page of the page editor
+   */
+  @media (pointer: coarse) {
+    :where(.thumbnail[data-active], .editorPage) > & {
+      display: grid;
+    }
+  }
+}
+
+/*
+ * height="auto": the viewer is as tall as its content and the window scrolls. Full screen has a
+ * height of its own, so it scrolls inside the viewer as usual.
+ * The selectors are in :where() so that an app's own classes win without !important; they come
+ * after the plain rules, which have the same specificity.
+ */
+
+/*
+ * The body is as tall as its pages. Beside side thumbnails the main part is a row, where the
+ * body must still fill the width: shrunk to its content, fit to width would fit the pages to
+ * whatever width they had, down to the smallest zoom (Safari)
+ */
+:where(.root[data-auto-height]:not([data-fullscreen]) .main) > .body {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+:where(
+    .root[data-auto-height]:not([data-fullscreen])
+      .main:is([data-thumbnails-position='top'], [data-thumbnails-position='bottom'])
+  )
+  > .body {
+  flex: none;
+}
+
+/* Side rails stay in view while the pages scroll past */
+:where(.root[data-auto-height]:not([data-fullscreen]) .main)
+  > .thumbnails:where(:not([data-orientation='horizontal'])) {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+}
+
+:where(.root[data-auto-height]:not([data-fullscreen]) .main)
+  > .thumbnails[data-orientation='horizontal'] {
+  max-height: none;
+}
+
+/* Delete button on a sidebar thumbnail: shown on hover and focus, always on touch screens */
+.thumbnailDelete {
+  position: absolute;
+  z-index: 1;
+  top: rem(6px);
+  inset-inline-start: rem(6px);
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  :where(.thumbnail:focus-visible) > & {
+    opacity: 1;
+  }
+
+  /* On touch screens only the current thumbnail shows it; elsewhere it is not there to tap or announce */
+  @media (pointer: coarse) {
+    visibility: hidden;
+    pointer-events: none;
+
+    :where(.thumbnail[data-active]) > & {
+      visibility: visible;
+      pointer-events: auto;
+      opacity: 1;
+    }
+  }
+}
+
+/*
+ * variant="plain": just the document, for embedding in a page. The inner parts are in :where(),
+ * so an app's classNames for them win without !important
+ */
+.root[data-variant='plain'] {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: inherit;
+}
+
+:where(.root[data-variant='plain']) .toolbar {
+  border-bottom: 0;
+  background-color: transparent;
+}
+
+:where(.root[data-variant='plain']) .body {
+  background-color: transparent;
+}
+
+:where(.root[data-variant='plain']) .page {
+  box-shadow: none;
+}
+
+/* A presentation: pages centred on a dark background. Last, so it also wins over the plain body */
+:where(.main[data-presenting]) > .body {
+  /* Not a theme colour: dark-9 is a little lighter, and a presentation should be as dark as a room */
+  background-color: #111;
+  cursor: pointer;
+}
+
+/* pageColorScheme: inverted pages for dark interfaces, keeping hues */
+.root[data-page-color-scheme='dark'] {
+  /* #121212 is not a palette colour (dark-9 is #141414), kept for the same look as before */
+  --_page-background: var(--doc-viewer-page-background, #121212);
+  --_page-filter: invert(0.92) hue-rotate(180deg);
+}
+
+.root[data-page-color-scheme='auto'] {
+  @mixin dark {
+    --_page-background: var(--doc-viewer-page-background, #121212);
+    --_page-filter: invert(0.92) hue-rotate(180deg);
+  }
+}
+
+.passwordInput {
+  width: 100%;
+}
+
+.editorTitle {
+  font-weight: 600;
+}
+
+.editorCount {
+  color: var(--mantine-color-dimmed);
+}
+
+.documentHeading {
+  margin-bottom: rem(4px);
+  font-weight: 600;
+}
+
+/* The save button sits at the end of the markup bar */
+.markupSave {
+  margin-inline-start: auto;
+}
