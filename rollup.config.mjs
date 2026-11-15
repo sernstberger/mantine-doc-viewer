@@ -10,7 +10,11 @@ import { createGenerateScopedName } from 'hash-css-selector';
 const outputDir = path.join(process.cwd(), './package/dist');
 
 export default {
-  input: path.join(process.cwd(), './package/src/index.ts'),
+  input: {
+    index: path.join(process.cwd(), './package/src/index.ts'),
+    editor: path.join(process.cwd(), './package/src/editor.ts'),
+    markup: path.join(process.cwd(), './package/src/markup.ts'),
+  },
   output: [
     {
       format: 'es',
@@ -38,16 +42,10 @@ export default {
     }),
     replace({ preventAssignment: true }),
     postcss({
-      extract: true,
+      extract: 'index.css',
       modules: { generateScopedName: createGenerateScopedName('me') },
       minimize: true,
     }),
-    banner((chunk) => {
-      if (chunk.fileName !== 'index.js' && chunk.fileName !== 'index.mjs') {
-        return "'use client';\n";
-      }
-
-      return undefined;
-    }),
+    banner((chunk) => (chunk.isEntry ? undefined : "'use client';\n")),
   ],
 };

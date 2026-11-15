@@ -31,23 +31,67 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./editor": {
+      "import": {
+        "types": "./dist/types/editor.d.mts",
+        "default": "./dist/esm/editor.mjs"
+      },
+      "require": {
+        "types": "./dist/types/editor.d.ts",
+        "default": "./dist/cjs/editor.cjs"
+      }
+    },
+    "./markup": {
+      "import": {
+        "types": "./dist/types/markup.d.mts",
+        "default": "./dist/esm/markup.mjs"
+      },
+      "require": {
+        "types": "./dist/types/markup.d.ts",
+        "default": "./dist/cjs/markup.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css"
   },
+  "typesVersions": {
+    "*": {
+      "editor": [
+        "./dist/types/editor.d.ts"
+      ],
+      "markup": [
+        "./dist/types/markup.d.ts"
+      ]
+    }
+  },
   "repository": "https://github.com/sernstberger/mantine-doc-viewer.git",
   "peerDependencies": {
+    "@cantoo/pdf-lib": ">=2.11.1",
     "@mantine/code-highlight": "^9.7.0",
     "@mantine/core": "^9.7.0",
     "@mantine/hooks": "^9.7.0",
-    "pdfjs-dist": "^6.5.0",
+    "pdfjs-dist": ">=6.5.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-markdown": ">=10.1.0",
+    "remark-gfm": ">=4.0.1"
+  },
+  "peerDependenciesMeta": {
+    "@cantoo/pdf-lib": {
+      "optional": true
+    },
+    "pdfjs-dist": {
+      "optional": true
+    },
+    "react-markdown": {
+      "optional": true
+    },
+    "remark-gfm": {
+      "optional": true
+    }
   },
   "dependencies": {
-    "@cantoo/pdf-lib": "^2.11.1",
-    "html-entities": "^2.6.0",
-    "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "@mantine/store": "9.8.0"
   },
   "bugs": "https://github.com/sernstberger/mantine-doc-viewer/issues",
   "files": [
