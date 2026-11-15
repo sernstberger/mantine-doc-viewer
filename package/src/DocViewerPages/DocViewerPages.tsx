@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  getSpacing,
+  getThemeColor,
   MantineColor,
   MantineSpacing,
+  useMantineTheme,
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { usePagesRegistration } from '../hooks/pdf/use-pages-config';
+import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { MAX_CANVAS_PIXELS } from '../utils/render-page';
 import type { DocViewerPasswordInputProps, DocViewerReadingProgress } from '../doc-viewer.types';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
@@ -82,16 +88,69 @@ export type DocViewerPagesFactory = Factory<{
   compound: true;
 }>;
 
+const defaultProps = {
+  maxCanvasPixels: MAX_CANVAS_PIXELS,
+} satisfies Partial<DocViewerPagesProps>;
+
 /** The scrolling region with the pages of a PDF */
 export const DocViewerPages = factory<DocViewerPagesFactory>((_props) => {
-  useProps('DocViewerPages', null, _props);
-  useDocViewerContext();
+  const layout = use(DocViewerLayoutContext);
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    vars,
+    __vars,
+    ref,
+    gap,
+    maxCanvasPixels,
+    withScroll,
+    withScrollSnap,
+    withPageTurning,
+    renderPageOverlay,
+    matchColor,
+    activeMatchColor,
+    passwordInputProps,
+    onLinkClick,
+    onTextSelect,
+    onReadingProgress,
+    onReachEnd,
+    ...others
+  } = useProps('DocViewerPages', { ...defaultProps, ...layout.pagesProps }, _props);
+  const { getStyles, store } = useDocViewerContext();
+  const theme = useMantineTheme();
   const session = usePdfSession();
+  usePagesRegistration(
+    store,
+    { withPageTurning, withScrollSnap, withScroll },
+    { onLinkClick, onTextSelect, onReadingProgress, onReachEnd }
+  );
   if (!session) {
     return null;
   }
 
-  return <PdfPagesBody session={session} />;
+  return (
+    <PdfPagesBody
+      session={session}
+      bodyRef={ref}
+      maxCanvasPixels={maxCanvasPixels!}
+      renderPageOverlay={renderPageOverlay}
+      passwordInputProps={passwordInputProps}
+      bodyProps={{
+        ...getStyles('body', { className, style, classNames, styles }),
+        ...others,
+        __vars: {
+          ...__vars,
+          '--doc-viewer-page-gap': gap === undefined ? undefined : getSpacing(gap),
+          '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
+          '--doc-viewer-active-match-color': activeMatchColor
+            ? getThemeColor(activeMatchColor, theme)
+            : undefined,
+        },
+      }}
+    />
+  );
 });
 
 DocViewerPages.classes = classes;

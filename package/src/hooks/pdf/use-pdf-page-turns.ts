@@ -3,17 +3,19 @@ import type { DocViewerContextValue } from '../../doc-viewer.context';
 import { getBodyAttributes } from '../../utils/body-attributes';
 import { fitsAcross, resolvePageTurning } from '../../utils/spreads';
 import { usePageTurning } from './use-page-turning';
+import { usePagesContext } from './use-pages-config';
 import type { PdfReadingPosition } from './use-pdf-reading-position';
 import type { PdfLoaded, PdfViewGeometry } from './use-pdf-view-geometry';
 import { useSpreads } from './use-spreads';
 
 /** Turning pages and spreads: by swipe, by a click on an edge, by key; and the body's attributes for it */
 export function usePdfPageTurns(
-  context: DocViewerContextValue,
+  rootContext: DocViewerContextValue,
   { ready, numPages }: PdfLoaded,
   view: PdfViewGeometry,
   { currentPage, goToPage }: PdfReadingPosition
 ) {
+  const context = usePagesContext(rootContext);
   const { layout, scale, columnGap, bodyWidth } = view;
   const { turn, goToSpread, spread } = useSpreads({
     layout,

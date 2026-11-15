@@ -1,4 +1,5 @@
 import { Button, PasswordInput, Text } from '@mantine/core';
+import type { DocViewerPasswordInputProps } from '../doc-viewer.types';
 import React, { useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { LockIcon } from '../utils/icons';
@@ -6,11 +7,12 @@ import { LockIcon } from '../utils/icons';
 interface PdfPasswordProps {
   incorrect: boolean;
   onSubmit: (password: string) => void;
+  inputProps?: DocViewerPasswordInputProps;
 }
 
 /** Asks for the password of a protected PDF */
-export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
-  const { getStyles, labels, size, passwordInputProps } = useDocViewerContext();
+export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProps) {
+  const { getStyles, labels, size } = useDocViewerContext();
   const [password, setPassword] = useState('');
 
   return (
@@ -30,7 +32,7 @@ export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
         autoComplete="off"
         data-autofocus
         autoFocus
-        {...passwordInputProps}
+        {...inputProps}
         size={size.input}
         value={password}
         onChange={(event) => setPassword(event.currentTarget.value)}
