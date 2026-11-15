@@ -306,8 +306,8 @@ export function DocViewer(props: DocViewerProps) {
 
   useStoreChange(
     store,
-    (state) => state.spread,
-    (spread) => onSpreadChange?.(spread.index, spread.pages)
+    (state) => (state.status === 'ready' ? state.spread : null),
+    (spread) => spread && onSpreadChange?.(spread.index, spread.pages)
   );
   useStoreChange(store, (state) => state.thumbnailsOpened, onThumbnailsOpenedChange);
   useStoreChange(store, (state) => state.thumbnailsPosition, onThumbnailsPositionChange);
