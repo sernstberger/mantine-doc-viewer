@@ -981,7 +981,8 @@ describe('DocViewer PDF', () => {
 
     await userEvent.keyboard('-');
     fireEvent.wheel(region, { deltaY: -100, ctrlKey: true });
-    expect(zoomLevel()).not.toBe('100%');
+    // Pinch zoom is set at the next animation frame
+    await waitFor(() => expect(zoomLevel()).not.toBe('100%'));
   });
 
   it('gives the outline with page numbers through controllerRef', async () => {
