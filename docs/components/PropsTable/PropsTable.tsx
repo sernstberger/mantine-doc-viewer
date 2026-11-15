@@ -64,6 +64,15 @@ export function PropsTable({ component, query, data }: PropsTableProps) {
       );
     });
 
+  if (Object.keys(data[component].props).length === 0) {
+    return (
+      <Text c="dimmed" mb="xl" fz="sm">
+        This part has no props of its own. It takes the props of the element it renders and all
+        Mantine style props.
+      </Text>
+    );
+  }
+
   if (rows.length === 0) {
     return (
       <Text c="dimmed" mb="xl" fz="sm">
