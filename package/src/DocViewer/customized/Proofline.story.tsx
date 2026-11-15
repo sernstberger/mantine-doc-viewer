@@ -1,4 +1,5 @@
 import { Button, Checkbox, Switch, Textarea } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -152,6 +153,10 @@ export function Proofline() {
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showMarks, setShowMarks] = useState(true);
+  // One page at a time on a phone; the layout has no responsive form, so pick it here
+  const isPhone = useMediaQuery('(max-width: 47.99375em)', false, {
+    getInitialValueInEffect: false,
+  });
 
   useEffect(() => {
     if (!toast) {
@@ -205,7 +210,8 @@ export function Proofline() {
             color="gray"
             // A proof shows true colours, whatever the colour scheme
             pageColorScheme="light"
-            defaultPageLayout="two-page"
+            key={isPhone ? 'phone' : 'desktop'}
+            defaultPageLayout={isPhone ? 'single' : 'two-page'}
             defaultZoom="fit"
             // Room between the pages for the crop marks and the labels
             pageGap={56}

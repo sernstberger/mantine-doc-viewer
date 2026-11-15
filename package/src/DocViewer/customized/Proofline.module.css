@@ -45,6 +45,12 @@
   padding-inline: 20px;
   background: #1c3f31;
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+
+  @mixin smaller-than 48em {
+    height: calc(52px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-inline: 16px;
+  }
 }
 
 .brand {
@@ -187,6 +193,11 @@
 .pages {
   padding-block: 40px 56px;
   padding-inline: 48px;
+
+  @mixin smaller-than 48em {
+    padding-block: 28px 48px;
+    padding-inline: 28px;
+  }
 }
 
 .page {
@@ -258,6 +269,14 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+
+  /* No room beside the flag on a phone: hang the label below it, on the mat, clear of the text */
+  @mixin smaller-than 48em {
+    top: calc(100% + 6px);
+    right: 0;
+    left: auto;
+    translate: none;
+  }
 }
 
 /* Slug line under the page, on the mat */
@@ -278,6 +297,12 @@
   gap: 22px;
   padding: 10px 20px;
   background: rgb(20 52 40 / 0.78);
+
+  @mixin smaller-than 48em {
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  }
 }
 
 .marksSwitch {
@@ -293,7 +318,8 @@
 .legend {
   display: flex;
   flex-wrap: wrap;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
   gap: 6px 22px;
   margin: 0;
   padding: 0;
