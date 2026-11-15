@@ -35,6 +35,8 @@ export function useCurrentPage(
   // shows the target page instead of counting through every page in between
   const scrollTarget = useRef<number | null>(null);
   const settleScroll = useRef<(() => void) | null>(null);
+  // The page and offset of the scroll in progress, to restart it when the pages are scaled
+  const pendingOffset = useRef<number | ((pageHeight: number) => number)>(0);
 
   useEffect(() => () => settleScroll.current?.(), []);
 
@@ -128,6 +130,7 @@ export function useCurrentPage(
       // Finish any scroll still in progress, so its listener cannot end this one early
       settleScroll.current?.();
       scrollTarget.current = page;
+      pendingOffset.current = offset;
 
       const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
       const settle = () => {
@@ -165,5 +168,16 @@ export function useCurrentPage(
     [scrollRoot, horizontal, viewport]
   );
 
-  return { currentPage, registerPage, scrollToPage };
+  /**
+   * Starts the scroll to a page again, for when the pages were scaled while it was under way:
+   * setting the scroll offset to keep the view in place would cancel it. False when no scroll
+   * to a page is under way
+   */
+  const resumeScroll = useCallback(() => {
+    const page = scrollTarget.current;
+    page !== null && scrollToPage(page, pendingOffset.current);
+    return page !== null;
+  }, [scrollToPage]);
+
+  return { currentPage, registerPage, scrollToPage, resumeScroll };
 }

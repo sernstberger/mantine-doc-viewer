@@ -2,7 +2,7 @@ import { act, render as rtlRender, renderHook, screen } from '@testing-library/r
 import { render } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import * as pdfjs from 'pdfjs-dist';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { DocViewer } from '../DocViewer';
 import { DocViewerProvider } from '../DocViewer.context';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
@@ -389,6 +389,66 @@ describe('useAnnouncement', () => {
 });
 
 describe('useZoomAnchor', () => {
+  // Pages 400px tall at scale 1 with a gap that does not scale, like a kiosk's 100vh row gap
+  function pagesWithGap(gap: number, view = { width: 400, height: 600 }) {
+    const state = { scale: 1 };
+    const root = document.createElement('div');
+    defineOn(root, { clientHeight: () => view.height, clientWidth: () => view.width });
+    const empty = document.createElement('div');
+    empty.dataset.pageNumber = '0';
+    root.append(empty);
+    [1, 2, 3].forEach((number) => {
+      const node = document.createElement('div');
+      node.dataset.pageNumber = String(number);
+      defineOn(node, {
+        offsetTop: () => (number - 1) * (400 * state.scale + gap),
+        offsetLeft: () => 0,
+        offsetHeight: () => 400 * state.scale,
+        offsetWidth: () => 300 * state.scale,
+      });
+      root.append(node);
+    });
+    return { root, state };
+  }
+
+  it('keeps the same spot of the same page in the middle when the gaps do not scale', () => {
+    const { root, state } = pagesWithGap(1000);
+    // Middle of the view (scrollTop + 300) a quarter of the way down page 2, which starts at 1400
+    root.scrollTop = 1400 + 100 - 300;
+    const { rerender } = renderHook(
+      ({ scale }) => {
+        // Like React, the pages get their new size when the render is committed
+        useLayoutEffect(() => {
+          state.scale = scale;
+        }, [scale]);
+        useZoomAnchor(root, scale, true);
+      },
+      { initialProps: { scale: 1 } }
+    );
+    rerender({ scale: 0.5 });
+    // Page 2 now starts at 200 + 1000 and is 200 tall: a quarter down is 1250, the middle of the view
+    expect(root.scrollTop).toBe(1250 - 300);
+  });
+
+  it('anchors to the nearest page when the middle of the view is in a gap', () => {
+    const { root, state } = pagesWithGap(1000);
+    // Middle at 500, in the gap 100px below page 1 (which ends at 400)
+    root.scrollTop = 200;
+    const { rerender } = renderHook(
+      ({ scale }) => {
+        // Like React, the pages get their new size when the render is committed
+        useLayoutEffect(() => {
+          state.scale = scale;
+        }, [scale]);
+        useZoomAnchor(root, scale, true);
+      },
+      { initialProps: { scale: 1 } }
+    );
+    rerender({ scale: 2 });
+    // Page 1 is 800 tall: 1.25 of it is 1000, put in the middle of the view
+    expect(root.scrollTop).toBe(1000 - 300);
+  });
+
   it('keeps the middle of the view when the scale changes', () => {
     const root = document.createElement('div');
     const restore = defineOn(root, { clientHeight: () => 600, clientWidth: () => 400 });

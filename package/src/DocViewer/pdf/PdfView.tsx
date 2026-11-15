@@ -152,7 +152,7 @@ export function PdfView() {
     viewport,
     events,
   });
-  const { currentPage, registerPage, scrollToPage } = useCurrentPage(
+  const { currentPage, registerPage, scrollToPage, resumeScroll } = useCurrentPage(
     scrollRoot,
     horizontal,
     viewport,
@@ -288,7 +288,7 @@ export function PdfView() {
   });
 
   // The page a presentation ended on is restored below, after this has run
-  useZoomAnchor(scrollRoot, scale, !presenting && !viewport);
+  useZoomAnchor(scrollRoot, scale, !presenting && !viewport, resumeScroll);
 
   // After a presentation, stay on the page it ended on instead of the top of the document.
   // The toolbar and thumbnails come back and the fitted scale changes a moment later, so the
