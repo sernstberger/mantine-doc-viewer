@@ -4,9 +4,20 @@ module.exports = {
   // which is not set up here. Avoid that text in names such as getCodeBlock(), and mock modules
   // through moduleNameMapper below instead of jest.mock().
   transform: {
-    '^.+\\.tsx?$': 'esbuild-jest',
+    // es2022 keeps object spread as it is (no injected helpers that count as uncovered branches),
+    // and source maps make coverage point at the source lines
+    '^.+\\.tsx?$': ['esbuild-jest', { target: 'es2022', sourcemap: true }],
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
+  collectCoverageFrom: [
+    'package/src/**/*.{ts,tsx}',
+    '!package/src/**/*.story.tsx',
+    '!package/src/**/*.d.ts',
+    // Dynamic import() wrappers: tests replace them with mocks (moduleNameMapper below), so they
+    // never run in Jest. Each is one line that loads pdf.js or react-markdown
+    '!package/src/DocViewer/pdf/import-pdfjs.ts',
+    '!package/src/DocViewer/text/import-markdown.ts',
+  ],
   setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
   moduleNameMapper: {
     '/import-markdown$': '<rootDir>/test-utils/import-markdown.mock.tsx',
