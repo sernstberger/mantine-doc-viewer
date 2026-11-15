@@ -20,7 +20,7 @@ const reading = (page: Page, number: number) => async () =>
 
 test.describe('page indicator and navigation', () => {
   test('scrolling updates the page indicator', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     const pages = pdfPages(page);
     expect((await scrollMetrics(pages)).scrollHeight).toBeGreaterThan(
       (await scrollMetrics(pages)).clientHeight
@@ -34,7 +34,7 @@ test.describe('page indicator and navigation', () => {
   });
 
   test('Next and Previous page buttons move through the document', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     const next = page.getByRole('button', { name: 'Next page' });
     const previous = page.getByRole('button', { name: 'Previous page' });
     await expect(previous).toBeDisabled();
@@ -54,7 +54,7 @@ test.describe('page indicator and navigation', () => {
   });
 
   test('a thumbnail takes the reader to its page', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf-with-thumbnails');
+    await openPdf(page, 'docviewer--with-thumbnails');
     const thumbnails = page.getByRole('listbox', { name: 'Pages' });
     await expect(thumbnails.getByRole('option')).toHaveCount(3);
     await expect(thumbnails.getByRole('option', { name: 'Page 1' })).toHaveAttribute(
@@ -74,7 +74,7 @@ test.describe('page indicator and navigation', () => {
 
 test.describe('zoom', () => {
   test('zoom in, out and reset change the level', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     await resetZoom(page);
     await expect(zoomLevel(page)).toHaveText('100%');
 
@@ -91,7 +91,7 @@ test.describe('zoom', () => {
   });
 
   test('zooming keeps the page being read in view', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     await resetZoom(page);
     await expect(zoomLevel(page)).toHaveText('100%');
     await page.getByRole('button', { name: 'Next page' }).click();
@@ -106,7 +106,7 @@ test.describe('zoom', () => {
   });
 
   test('Ctrl+wheel zooms and keeps the page being read in view', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     await resetZoom(page);
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(pageIndicator(page)).toHaveText('Page 2 of 3');
@@ -150,7 +150,7 @@ test.describe('search', () => {
     });
 
   test('finds matches, highlights the current one and moves with Enter', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     await page.getByRole('button', { name: 'Search' }).click();
     const input = page.getByRole('textbox', { name: 'Search document' });
     await expect(input).toBeFocused();
@@ -187,7 +187,7 @@ test.describe('search', () => {
   });
 
   test('a query with no match says so', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     await page.getByRole('button', { name: 'Search' }).click();
     await page.getByRole('textbox', { name: 'Search document' }).fill('zzzzzz');
     await expect(page.getByRole('search')).toContainText(/no (results|matches)|0/i);
@@ -200,7 +200,7 @@ test.describe('search', () => {
 
 test.describe('full screen', () => {
   test('the Full screen button toggles and exits', async ({ page }) => {
-    await openPdf(page, 'docviewer--pdf');
+    await openPdf(page, 'docviewer--usage');
     const toggle = page.getByRole('button', { name: /full screen/i });
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
