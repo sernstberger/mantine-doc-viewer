@@ -15,6 +15,7 @@ import {
   ExtractIcon,
   RotateIcon,
   TrashIcon,
+  UndoIcon,
 } from '../icons';
 import { useAnnouncement } from './use-announcement';
 import { useNearViewport } from './use-near-viewport';
@@ -29,6 +30,7 @@ import {
   PageOrder,
   removeSelected,
 } from './page-edits';
+import { applyPageRotations } from './rotate-pages';
 
 export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'delete' | 'annotate';
 
@@ -48,6 +50,8 @@ interface PageTileProps {
   total: number;
   selected: boolean;
   focused: boolean;
+  /** How far the page is turned clockwise, in degrees */
+  rotation: number;
   scrollRoot: HTMLElement | null;
   reorder: ReorderList;
   onSelect: (event: React.MouseEvent) => void;
@@ -68,6 +72,10 @@ function PageTile(props: PageTileProps) {
     near,
   });
   const height = size ? (size.height / size.width) * TILE_WIDTH : TILE_WIDTH * 1.3;
+  // A turned page keeps the tile's width: sideways, the preview shrinks to fit across it
+  const sideways = props.rotation % 180 !== 0;
+  const boxHeight = sideways ? (TILE_WIDTH / height) * TILE_WIDTH : height;
+  const fit = sideways ? TILE_WIDTH / height : 1;
 
   return (
     <div
@@ -80,14 +88,36 @@ function PageTile(props: PageTileProps) {
       tabIndex={props.focused ? 0 : -1}
       data-page={props.page}
       data-selected={props.selected || undefined}
+      data-rotation={props.rotation || undefined}
       onClick={(event) => !props.reorder.isDragClick(event) && props.onSelect(event)}
     >
       {/* Touch and pen drag from here, so that swiping the rest of the page scrolls */}
       <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
         <DragHandleIcon />
       </span>
-      <span {...getStyles('thumbnailImage', { style: { width: TILE_WIDTH, height } })}>
-        {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
+      <span
+        {...getStyles('thumbnailImage', {
+          style: { position: 'relative', width: TILE_WIDTH, height: boxHeight },
+        })}
+      >
+        {near && (
+          <canvas
+            ref={canvasRef}
+            {...getStyles('canvas', {
+              style: props.rotation
+                ? {
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: TILE_WIDTH,
+                    height,
+                    transform: `translate(-50%, -50%) rotate(${props.rotation}deg) scale(${fit})`,
+                  }
+                : undefined,
+            })}
+            aria-hidden
+          />
+        )}
       </span>
       <span {...getStyles('thumbnailLabel')} aria-hidden>
         {props.page}
@@ -143,11 +173,14 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
   const { getStyles, labels } = useDocViewerContext();
   const [order, setOrder] = useState<PageOrder>(() => initialOrder(document.numPages));
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  // Quarter turns per page, clockwise in degrees, written into the PDF when it is saved
+  const [rotations, setRotations] = useState<Record<number, number>>({});
+  const turnOf = (page: number) => rotations[page] ?? 0;
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const [announcement, announce] = useAnnouncement();
-  const edited = isEdited(order, document.numPages);
+  const edited = isEdited(order, document.numPages) || order.some((page) => turnOf(page) !== 0);
   const selection = order.filter((page) => selected.has(page));
   const reorder = useReorderList({
     container: scrollRoot,
@@ -198,8 +231,24 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     announce(labels.pagesRemoved(order.length - next.length));
   };
 
-  const build = (pages: PageOrder) =>
-    document.extractPages(buildExtractRequest(pages)) as Promise<Uint8Array>;
+  const rotate = () => {
+    const pages = targets();
+    setRotations((current) => {
+      const next = { ...current };
+      pages.forEach((page) => {
+        next[page] = ((current[page] ?? 0) + 90) % 360;
+      });
+      return next;
+    });
+    announce(labels.pagesRotated(pages.size));
+  };
+
+  /** The document with these pages in this order, turned as the reader turned them */
+  const build = async (pages: PageOrder) =>
+    applyPageRotations(
+      (await document.extractPages(buildExtractRequest(pages))) as Uint8Array,
+      pages.map(turnOf)
+    );
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -230,6 +279,9 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     } else if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       remove();
+    } else if (event.key.toLowerCase() === 'r' && !event.metaKey && !event.ctrlKey) {
+      event.preventDefault();
+      rotate();
     } else if (event.key.toLowerCase() === 'a' && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       setSelected(new Set(order));
@@ -267,6 +319,12 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
             {...softDisabled(order.length <= 1, remove)}
           />
           <EditorButton
+            label={labels.rotatePages}
+            icon={<RotateIcon />}
+            variant="default"
+            onClick={rotate}
+          />
+          <EditorButton
             label={labels.extractPages}
             icon={<ExtractIcon />}
             variant="default"
@@ -276,10 +334,11 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
           />
           <EditorButton
             label={labels.resetPages}
-            icon={<RotateIcon />}
+            icon={<UndoIcon />}
             variant="subtle"
             {...softDisabled(!edited, () => {
               setOrder(initialOrder(document.numPages));
+              setRotations({});
               setSelected(new Set());
             })}
           />
@@ -317,7 +376,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         role="listbox"
         aria-multiselectable
         aria-label={labels.pages}
-        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space Control+A"
+        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A"
         onKeyDown={handleKeyDown}
         data-dragging={reorder.dragging || undefined}
       >
@@ -330,6 +389,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
             total={order.length}
             selected={selected.has(page)}
             focused={index === focusedIndex}
+            rotation={turnOf(page)}
             scrollRoot={scrollRoot}
             reorder={reorder}
             onSelect={(event) => {

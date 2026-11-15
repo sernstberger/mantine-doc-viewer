@@ -52,6 +52,8 @@ describe('labels', () => {
     expect(l.pageMoved(2, 3)).toBe('Page 2 moved to position 3');
     expect(l.pagesRemoved(1)).toBe('1 page removed');
     expect(l.pagesRemoved(3)).toBe('3 pages removed');
+    expect(l.pagesRotated(1)).toBe('1 page turned');
+    expect(l.pagesRotated(2)).toBe('2 pages turned');
     expect(l.downloadAttachment('a.txt')).toBe('Download attachment a.txt');
     expect(l.pageOf(1, 5)).toBe('Page 1 of 5');
     expect(l.thumbnail(2)).toBe('Page 2');

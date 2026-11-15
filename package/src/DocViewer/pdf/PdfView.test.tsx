@@ -2,6 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
+import { PDFDocument } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
 import React, { createRef } from 'react';
 import type { DocViewerController } from '../controller';
@@ -897,6 +898,51 @@ describe('DocViewer PDF', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(await screen.findAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
       expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('turns pages and saves the rotation into the PDF', async () => {
+      const { document } = mockPdf();
+      const original = await PDFDocument.create();
+      [1, 2, 3].forEach(() => original.addPage([612, 792]));
+      document.extractPages.mockResolvedValue((await original.save()) as never);
+      const onSave = jest.fn();
+      render(
+        <DocViewer
+          src="/files/report.pdf"
+          pdfWorkerSrc="/worker.mjs"
+          withPageEditing
+          onSave={onSave}
+        />
+      );
+      await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
+
+      // A turn alone is an edit: Reset becomes available, and undoes it
+      expect(screen.getByRole('button', { name: 'Reset' })).toHaveAttribute(
+        'aria-disabled',
+        'true'
+      );
+      await userEvent.click(screen.getByRole('option', { name: 'Page 1, position 1 of 3' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
+      expect(screen.getByRole('button', { name: 'Reset' })).not.toHaveAttribute('aria-disabled');
+      await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+      expect(screen.getByRole('button', { name: 'Reset' })).toHaveAttribute(
+        'aria-disabled',
+        'true'
+      );
+
+      // Page 2 a quarter turn with the button, page 3 a half turn with the R key
+      await userEvent.click(screen.getByRole('option', { name: 'Page 2, position 2 of 3' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
+      expect(screen.getByText(/1 page turned/)).toBeInTheDocument();
+      const third = screen.getByRole('option', { name: 'Page 3, position 3 of 3' });
+      await userEvent.click(third);
+      await userEvent.keyboard('rr');
+      expect(third).toHaveAttribute('data-rotation', '180');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() => expect(onSave).toHaveBeenCalled());
+      const saved = await PDFDocument.load(onSave.mock.calls[0][0]);
+      expect(saved.getPages().map((page) => page.getRotation().angle)).toEqual([0, 90, 180]);
     });
 
     it('downloads when there is no onSave', async () => {

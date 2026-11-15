@@ -45,6 +45,7 @@
     "react-dom": "^18.x || ^19.x"
   },
   "dependencies": {
+    "pdf-lib": "^1.17.1",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1"
   },

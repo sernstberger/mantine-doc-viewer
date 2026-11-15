@@ -23,14 +23,16 @@ module.exports = {
     '!package/src/**/*.story.tsx',
     '!package/src/**/*.d.ts',
     // Dynamic import() wrappers: tests replace them with mocks (moduleNameMapper below), so they
-    // never run in Jest. Each is one line that loads pdf.js or react-markdown
+    // never run in Jest. Each is one line that loads pdf.js, pdf-lib or react-markdown
     '!package/src/DocViewer/pdf/import-pdfjs.ts',
     '!package/src/DocViewer/text/import-markdown.ts',
+    '!package/src/DocViewer/pdf/import-pdf-lib.ts',
   ],
   setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
   moduleNameMapper: {
     '/import-markdown$': '<rootDir>/test-utils/import-markdown.mock.tsx',
     '/import-pdfjs$': '<rootDir>/test-utils/import-pdfjs.mock.ts',
+    '/import-pdf-lib$': '<rootDir>/test-utils/import-pdf-lib.mock.ts',
     '^pdfjs-dist$': '<rootDir>/test-utils/pdfjs-dist.mock.ts',
     '\\.(css)$': 'identity-obj-proxy',
   },

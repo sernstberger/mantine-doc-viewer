@@ -19,6 +19,7 @@ export interface DocViewerLabels {
   deletePages: string;
   deletePage: (page: number) => string;
   extractPages: string;
+  rotatePages: string;
   resetPages: string;
   cancel: string;
   done: string;
@@ -27,6 +28,7 @@ export interface DocViewerLabels {
   editorPage: (page: number, position: number, total: number) => string;
   pageMoved: (page: number, position: number) => string;
   pagesRemoved: (count: number) => string;
+  pagesRotated: (count: number) => string;
   exitPresentation: string;
   fullscreen: string;
   exitFullscreen: string;
@@ -146,6 +148,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   deletePages: 'Delete',
   deletePage: (page) => `Delete page ${page}`,
   extractPages: 'Extract selected',
+  rotatePages: 'Rotate',
   resetPages: 'Reset',
   cancel: 'Cancel',
   done: 'Done',
@@ -154,6 +157,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   editorPage: (page, position, total) => `Page ${page}, position ${position} of ${total}`,
   pageMoved: (page, position) => `Page ${page} moved to position ${position}`,
   pagesRemoved: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
+  pagesRotated: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
   exitPresentation: 'Exit presentation',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
