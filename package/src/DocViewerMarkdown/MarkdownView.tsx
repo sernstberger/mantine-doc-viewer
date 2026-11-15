@@ -1,8 +1,7 @@
 import { CodeHighlight } from '@mantine/code-highlight';
 import { Typography } from '@mantine/core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
+import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
@@ -12,9 +11,9 @@ import { rehypeHeadingIds, resolveMarkdownUrl } from '../utils/markdown-utils';
 import { printHtml, printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
-import { ViewModeToggle } from '../DocViewerViewModeControl/ViewModeToggle';
+import { useViewModeAvailable } from '../hooks/text/use-view-mode-available';
 import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
-import { useDocViewerStateValue } from '../hooks/use-doc-viewer-state';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import type { DocViewerMarkdownProps } from './DocViewerMarkdown';
 
 /** Prints what is shown: the rendered markdown in preview, otherwise the source */
@@ -114,13 +113,13 @@ export function MarkdownView({
 }: DocViewerMarkdownProps) {
   const { classNames, styles } = others;
   const ctx = useDocViewerContext();
-  const { getStyles, src, store, labels, fileName } = ctx;
-  const show = useShowControl();
+  const { getStyles, src, store, fileName } = ctx;
   const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
-  const [mode, setMode] = useDocViewerStateValue(store, 'viewMode');
+  const mode = useDocViewerState(store, (current) => current.viewMode);
+  useViewModeAvailable(store, state.status === 'ready');
   const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
   const bodyRef = useRef<HTMLDivElement>(null);
-  const onPrint = useTextView('markdown', state, async () => {
+  useTextView('markdown', state, async () => {
     const source = getMarkdownPrintSource(
       mode,
       bodyRef.current?.querySelector('[data-markdown]')?.innerHTML,
@@ -135,19 +134,6 @@ export function MarkdownView({
 
   return (
     <>
-      <ToolbarView onPrint={onPrint}>
-        {state.status === 'ready' && show('viewMode') && (
-          <ViewModeToggle
-            value={mode}
-            onChange={setMode}
-            data={[
-              { value: 'preview', label: labels.previewLabel },
-              { value: 'source', label: labels.sourceLabel },
-            ]}
-            label={labels.markdownViewLabel}
-          />
-        )}
-      </ToolbarView>
       <DocViewerBody ref={bodyRef} focusable={state.status === 'ready'} {...others}>
         {state.status !== 'ready' && (
           <TextStatus state={state} classNames={classNames} styles={styles} />

@@ -40,7 +40,6 @@ export const DocViewerTitle = factory<DocViewerTitleFactory>((_props) => {
   const show = useShowControl();
   const documentTitle = useDocumentTitle();
   const stylesApiProps = { classNames, styles };
-  const resolvedSubtitle = subtitle ?? ctx.toolbarSubtitle;
 
   if (!show('title')) {
     return null;
@@ -48,12 +47,8 @@ export const DocViewerTitle = factory<DocViewerTitleFactory>((_props) => {
 
   return (
     <Box {...ctx.getStyles('heading', { className, style, classNames, styles })} {...others}>
-      <span {...ctx.getStyles('title', stylesApiProps)}>
-        {title ?? ctx.toolbarTitle ?? documentTitle}
-      </span>
-      {resolvedSubtitle && (
-        <span {...ctx.getStyles('subtitle', stylesApiProps)}>{resolvedSubtitle}</span>
-      )}
+      <span {...ctx.getStyles('title', stylesApiProps)}>{title ?? documentTitle}</span>
+      {subtitle && <span {...ctx.getStyles('subtitle', stylesApiProps)}>{subtitle}</span>}
     </Box>
   );
 });

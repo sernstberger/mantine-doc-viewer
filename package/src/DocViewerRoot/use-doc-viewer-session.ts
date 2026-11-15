@@ -4,7 +4,6 @@ import { DEFAULT_LABELS, mergeLabels, type DocViewerLabels } from '../default-la
 import type { DocViewerStore } from '../doc-viewer.store';
 import { getControllerRegistry, useRegisterController } from '../hooks/use-controller-registry';
 import { useControlledFullscreen } from '../hooks/use-controlled-fullscreen';
-import { useTapToggle } from '../hooks/use-tap-toggle';
 import { getDocViewerType, type DocViewerType } from '../utils/get-doc-viewer-type';
 import { useShallowStable } from './use-shallow-stable';
 
@@ -24,17 +23,15 @@ interface DocViewerSessionInput {
   fileName: string | undefined;
   labels: Partial<DocViewerLabels> | undefined;
   extensionLabels: (Partial<DocViewerLabels> | undefined)[];
-  toggleOnTap: boolean | undefined;
   fullscreen: boolean | undefined;
   onFullscreenChange: ((fullscreen: boolean) => void) | undefined;
   ref: React.Ref<HTMLDivElement> | undefined;
   store: DocViewerStore;
 }
 
-/** The type, file name, labels, registry, full screen and tap toggle of one viewer */
+/** The type, file name, labels, registry and full screen of one viewer */
 export function useDocViewerSession(input: DocViewerSessionInput) {
   const { src, type, mimeType, fileName, store } = input;
-  const tapToggle = useTapToggle(input.toggleOnTap);
   const resolvedType = type ?? getDocViewerType({ src, mimeType, fileName });
   const labelsProp = useShallowStable(input.labels);
   const extensionLabels = useShallowStable(
@@ -62,7 +59,6 @@ export function useDocViewerSession(input: DocViewerSessionInput) {
   });
 
   return {
-    tapToggle,
     type: resolvedType,
     fileName: resolvedFileName,
     labels: resolvedLabels,

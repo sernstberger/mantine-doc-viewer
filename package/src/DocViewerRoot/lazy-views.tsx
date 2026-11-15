@@ -1,5 +1,4 @@
 import React, { Suspense } from 'react';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { importCodeView, importMarkdownView } from './import-views';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
@@ -16,17 +15,14 @@ export const MarkdownView = React.lazy(() =>
   importMarkdownView().then((module) => ({ default: module.MarkdownView }))
 );
 
-/** A lazy view, with the toolbar and the loading message the views show while a file loads */
+/** A lazy view, with the loading message the views show while a file loads */
 export function LazyView({ children }: { children: React.ReactNode }) {
   return (
     <Suspense
       fallback={
-        <>
-          <ToolbarView />
-          <DocViewerBody focusable={false}>
-            <DocViewerLoading />
-          </DocViewerBody>
-        </>
+        <DocViewerBody focusable={false}>
+          <DocViewerLoading />
+        </DocViewerBody>
       }
     >
       {children}

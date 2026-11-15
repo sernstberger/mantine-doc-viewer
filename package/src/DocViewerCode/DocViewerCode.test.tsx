@@ -6,6 +6,7 @@ import { axe } from 'jest-axe';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewer } from '../DocViewer';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { DocViewerRoot } from '../DocViewerRoot/DocViewerRoot';
 import {
   DocViewerCode,
@@ -16,6 +17,16 @@ import {
 const TestContainer = createContextContainer(DocViewerCode, DocViewerRoot, {
   src: '/src/answer.ts',
 });
+
+/** The part with the toolbar the default layout gives it */
+function Viewer(props: DocViewerCodeProps) {
+  return (
+    <DocViewerRoot src="/src/answer.ts">
+      <DocViewerToolbar />
+      <DocViewerCode {...props} />
+    </DocViewerRoot>
+  );
+}
 
 function capturePrints() {
   const printed: string[] = [];
@@ -38,7 +49,7 @@ function capturePrints() {
 
 beforeAll(async () => {
   mockFetch('loaded');
-  const { unmount } = render(<TestContainer />);
+  const { unmount } = render(<Viewer />);
   await screen.findByText('loaded');
   unmount();
 });
@@ -127,6 +138,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     const [store] = createDocViewer();
     render(
       <DocViewerRoot src="/package.json" store={store}>
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -146,6 +158,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     mockFetch('{ not json');
     render(
       <DocViewerRoot src="/broken.json">
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -158,6 +171,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     mockFetch('{"a":1}');
     render(
       <DocViewerRoot src="/data.txt" type="code">
+        <DocViewerToolbar />
         <DocViewerCode language="json" />
       </DocViewerRoot>
     );
@@ -168,6 +182,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     mockFetch('{"id": 12345678901234567890}');
     render(
       <DocViewerRoot src="/ids.json">
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -179,6 +194,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     mockFetch('some code');
     render(
       <DocViewerRoot src="/data" type="code">
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -187,7 +203,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
 
   it('refuses files over the maxSize prop', async () => {
     mockFetch('', { headers: { 'content-length': '5000' } });
-    render(<TestContainer maxSize={1000} />);
+    render(<Viewer maxSize={1000} />);
     expect(await screen.findByText(/too large to preview/)).toBeInTheDocument();
   });
 
@@ -202,6 +218,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     const onDocumentLoad = jest.fn();
     const { unmount } = render(
       <DocViewerRoot src="/src/answer.ts" onDocumentLoad={onDocumentLoad}>
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -217,6 +234,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     const [store] = createDocViewer();
     render(
       <DocViewerRoot src="/src/answer.ts" store={store}>
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -230,6 +248,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     const [store, actions] = createDocViewer();
     const { unmount } = render(
       <DocViewerRoot src="/src/answer.ts" store={store}>
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -244,6 +263,7 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
     const [loadedStore, loadedActions] = createDocViewer();
     render(
       <DocViewerRoot src="/src/answer.ts" store={loadedStore}>
+        <DocViewerToolbar />
         <DocViewerCode />
       </DocViewerRoot>
     );
@@ -257,13 +277,13 @@ describe('@mantine/doc-viewer/DocViewerCode', () => {
 
   describe('accessibility', () => {
     it('makes the loaded code a named, focusable region', async () => {
-      render(<TestContainer />);
+      render(<Viewer />);
       await screen.findByText(/const answer/);
       expect(screen.getByRole('region', { name: 'answer.ts' })).toHaveAttribute('tabindex', '0');
     });
 
     it('has no axe violations', async () => {
-      const { container } = render(<TestContainer />);
+      const { container } = render(<Viewer />);
       await screen.findByText(/const answer/);
       expect((await axe(container)).violations).toEqual([]);
     });

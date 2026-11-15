@@ -8,7 +8,10 @@ import {
   DocViewerViewModeControlStylesNames,
 } from './DocViewerViewModeControl';
 
-const markdown = { src: '/docs/NOTES.md', state: { type: 'markdown' } } as const;
+const markdown = {
+  src: '/docs/NOTES.md',
+  state: { type: 'markdown', viewModeAvailable: true },
+} as const;
 const { Harness } = createPartHarness(DocViewerViewModeControl, markdown);
 
 describe('mantine-doc-viewer/DocViewerViewModeControl', () => {
@@ -41,7 +44,7 @@ describe('mantine-doc-viewer/DocViewerViewModeControl', () => {
   it('switches JSON between its tree and its code', () => {
     const { Harness: Json, store } = createPartHarness(DocViewerViewModeControl, {
       src: '/data/config.json',
-      state: { type: 'code' },
+      state: { type: 'code', viewModeAvailable: true },
     });
     render(<Json />);
     fireEvent.click(screen.getByRole('radio', { name: 'Code' }));
@@ -49,17 +52,7 @@ describe('mantine-doc-viewer/DocViewerViewModeControl', () => {
     expect(screen.getByRole('radio', { name: 'Tree' })).toBeInTheDocument();
   });
 
-  it('uses the language of the code view to find JSON', () => {
-    const { Harness: Json } = createPartHarness(DocViewerViewModeControl, {
-      src: '/data/config.txt',
-      state: { type: 'code' },
-      viewerProps: { textProps: { language: 'json' } },
-    });
-    render(<Json />);
-    expect(screen.getByRole('radio', { name: 'Tree' })).toBeInTheDocument();
-  });
-
-  it('renders nothing for other documents', () => {
+  it('renders nothing while the view shown has no preview, like code that is not JSON', () => {
     const { Harness: Code } = createPartHarness(DocViewerViewModeControl, {
       src: '/src/app.ts',
       state: { type: 'code' },

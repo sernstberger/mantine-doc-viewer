@@ -13,7 +13,8 @@ import {
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { getDocViewerType, getCodeLanguage } from '../utils/get-doc-viewer-type';
 import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
+import { DocViewerFullscreenButton } from '../DocViewerFullscreenButton/DocViewerFullscreenButton';
+import { DocViewerTitle } from '../DocViewerTitle/DocViewerTitle';
 import { useDocViewerContext } from '../doc-viewer.context';
 import * as icons from '../utils/icons';
 import { DEFAULT_LABELS } from '../default-labels';
@@ -177,13 +178,13 @@ describe('DocViewer root', () => {
   });
 
   it('uses file names from encoded urls and none for data or blob urls', () => {
-    const first = renderIn(<ToolbarView />, { src: '/files/my%20doc.bin?x=1#y' });
+    const first = renderIn(<DocViewerTitle />, { src: '/files/my%20doc.bin?x=1#y' });
     expect(screen.getByText('my doc.bin')).toBeInTheDocument();
     first.unmount();
-    const second = renderIn(<ToolbarView />, { src: 'blob:abc' });
+    const second = renderIn(<DocViewerTitle />, { src: 'blob:abc' });
     expect(screen.getByText('Document')).toBeInTheDocument();
     second.unmount();
-    renderIn(<ToolbarView />, { src: '/files/' });
+    renderIn(<DocViewerTitle />, { src: '/files/' });
     expect(screen.getByText('Document')).toBeInTheDocument();
   });
 
@@ -292,69 +293,21 @@ describe('DocViewerBody and useDocViewer', () => {
   });
 });
 
-describe('DocViewerToolbar', () => {
-  const originalFullscreen = Object.getOwnPropertyDescriptor(document, 'fullscreenEnabled');
-
+describe('full screen', () => {
   afterEach(() => {
-    if (originalFullscreen) {
-      Object.defineProperty(document, 'fullscreenEnabled', originalFullscreen);
-    } else {
-      delete (document as any).fullscreenEnabled;
-    }
+    delete (document as any).fullscreenEnabled;
+    delete (document as any).fullscreenElement;
   });
 
-  it('hides the title when toolbarControls turns it off', () => {
-    renderIn(<ToolbarView />, { fileName: 'doc.bin', toolbarControls: { title: false } });
-    expect(screen.queryByText('doc.bin')).not.toBeInTheDocument();
-  });
-
-  it('renders nothing when the toolbar is off', () => {
-    renderIn(<ToolbarView />, { withToolbar: false });
-    expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
-  });
-
-  it('shows download, children and the section, and hides what is turned off', () => {
-    renderIn(
-      <ToolbarView>
-        <span>child</span>
-      </ToolbarView>,
-      { toolbarSection: <span>section</span>, toolbarControls: { download: false } }
-    );
-    expect(screen.getByText('child')).toBeInTheDocument();
-    expect(screen.getByText('section')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
-  });
-
-  it('shows the download link without a file name as a plain download', () => {
-    renderIn(<ToolbarView />, { src: 'blob:abc' });
-    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('download', '');
-  });
-
-  it('toggles full screen when the browser supports it', async () => {
+  it('shows the exit label while the viewer is in full screen', async () => {
     Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
-    renderIn(<ToolbarView />);
+    renderIn(<DocViewerFullscreenButton />);
     const button = await screen.findByRole('button', { name: 'Full screen' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(button);
-  });
-
-  it('shows the exit label while in full screen', async () => {
-    Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
-    renderIn(<ToolbarView />);
-    const button = await screen.findByRole('button', { name: 'Full screen' });
     const root = document.querySelector('[data-doc-type]')!;
     Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: root });
     fireEvent(root, new Event('fullscreenchange'));
     await waitFor(() => expect(button).toHaveAttribute('aria-pressed', 'true'));
-    delete (document as any).fullscreenElement;
-  });
-
-  it('has no print button without onPrint or when toolbarControls hides it', () => {
-    const first = renderIn(<ToolbarView />);
-    expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
-    first.unmount();
-    renderIn(<ToolbarView onPrint={() => {}} />, { toolbarControls: { print: false } });
-    expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
   });
 });
 

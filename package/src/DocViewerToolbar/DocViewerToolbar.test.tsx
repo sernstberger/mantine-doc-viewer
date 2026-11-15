@@ -71,7 +71,7 @@ describe('mantine-doc-viewer/DocViewerToolbar', () => {
       });
       const { Harness: Markdown } = createPartHarness(DocViewerToolbar, {
         src: '/docs/NOTES.md',
-        state: { type: 'markdown' },
+        state: { type: 'markdown', viewModeAvailable: true },
       });
       const { Harness: Archive } = createPartHarness(DocViewerToolbar, {
         src: '/files/archive.zip',

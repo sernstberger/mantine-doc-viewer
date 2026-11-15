@@ -1,6 +1,7 @@
 import { useCallbackRef, useUncontrolled } from '@mantine/hooks';
 import { useEffect, useRef } from 'react';
 import type { DocViewerEvents, DocViewerZoom } from './use-controller-registry';
+import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
 import { clampZoom } from '../utils/zoom';
 
 interface ZoomSettingInput {
@@ -16,6 +17,9 @@ interface ZoomSettingInput {
   /** The scale a zoom gives the document in the view now, 1 is 100% */
   scaleOf: (zoom: DocViewerZoom) => number;
   onZoomChange: Required<DocViewerEvents>['onZoomChange'];
+
+  /** The store that gets the zoom and scale shown, for the zoom controls */
+  store: DocViewerStore;
 }
 
 /** A requested zoom as it is kept and reported: scales within the zoom range */
@@ -35,6 +39,7 @@ export function useZoomSetting({
   ready,
   scaleOf,
   onZoomChange,
+  store,
 }: ZoomSettingInput) {
   const [zoom, setUncontrolled, controlled] = useUncontrolled<DocViewerZoom>({
     value,
@@ -58,6 +63,10 @@ export function useZoomSetting({
     // report reads the ref and the stable onZoomChange
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, zoom, scale]);
+
+  useEffect(() => {
+    ready && updateDocViewerStateAction({ zoom, scale }, store);
+  }, [ready, zoom, scale, store]);
 
   // Stable, so listeners that zoom (the wheel) stay attached
   const setZoom = useCallbackRef((next: DocViewerZoom) => {

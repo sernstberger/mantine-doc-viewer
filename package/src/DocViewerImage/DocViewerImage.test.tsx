@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewer } from '../DocViewer';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { DocViewerRoot } from '../DocViewerRoot/DocViewerRoot';
 import {
   DocViewerImage,
@@ -15,6 +16,16 @@ import {
 const TestContainer = createContextContainer(DocViewerImage, DocViewerRoot, {
   src: '/files/photo.png',
 });
+
+/** The part with the toolbar the default layout gives it */
+function Viewer(props: DocViewerImageProps) {
+  return (
+    <DocViewerRoot src="/files/photo.png">
+      <DocViewerToolbar />
+      <DocViewerImage {...props} />
+    </DocViewerRoot>
+  );
+}
 
 /** jsdom does not load images, so the natural size is set and load fired by hand */
 function loadImage(width = 800, height = 400) {
@@ -95,7 +106,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   });
 
   it('shows a loader until the image has loaded', () => {
-    render(<TestContainer />);
+    render(<Viewer />);
     expect(screen.getByText('Loading document')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
 
@@ -108,14 +119,15 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   });
 
   it('uses the alt prop, then the file name, then a generic name', () => {
-    const { rerender } = render(<TestContainer alt="A red bicycle" />);
+    const { rerender } = render(<Viewer alt="A red bicycle" />);
     expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'A red bicycle');
 
-    rerender(<TestContainer />);
+    rerender(<Viewer />);
     expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'photo.png');
 
     rerender(
       <DocViewerRoot src="data:image/png;base64,AAAA">
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -128,7 +140,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   });
 
   it('zooms in steps, resets to 100% and returns to fit', async () => {
-    render(<TestContainer />);
+    render(<Viewer />);
     const image = loadImage();
     expect(screen.getByText('100%')).toBeInTheDocument();
 
@@ -154,6 +166,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const [store] = createDocViewer();
     render(
       <DocViewerRoot src="/files/photo.png" store={store}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -168,7 +181,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   });
 
   it('supports keyboard shortcuts on the focused image and ignores other keys', () => {
-    render(<TestContainer />);
+    render(<Viewer />);
     const image = loadImage();
     const stage = getStage();
 
@@ -188,7 +201,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   });
 
   it('zooms with Ctrl+wheel and Meta+wheel and leaves other wheel events alone', () => {
-    render(<TestContainer />);
+    render(<Viewer />);
     loadImage();
     const stage = getStage();
 
@@ -209,6 +222,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const onDocumentError = jest.fn();
     render(
       <DocViewerRoot src="/files/missing.png" onDocumentError={onDocumentError}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -227,6 +241,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
   it('resets zoom when the image changes', async () => {
     const App = ({ src }: { src: string }) => (
       <DocViewerRoot src={src}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -253,6 +268,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const onDocumentLoad = jest.fn();
     render(
       <DocViewerRoot src="/files/photo.png" store={store} onDocumentLoad={onDocumentLoad}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -268,6 +284,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const onZoomChange = jest.fn();
     render(
       <DocViewerRoot src="/files/photo.png" store={store} onZoomChange={onZoomChange}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -296,6 +313,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const onDocumentLoad = jest.fn();
     render(
       <DocViewerRoot src="/files/photo.png" onDocumentLoad={onDocumentLoad}>
+        <DocViewerToolbar />
         <DocViewerImage />
       </DocViewerRoot>
     );
@@ -306,13 +324,13 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
 
   it('keeps waiting for a complete image without a size', () => {
     jest.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
-    render(<TestContainer />);
+    render(<Viewer />);
     expect(screen.getByText('Loading document')).toBeInTheDocument();
   });
 
   describe('drag to pan', () => {
     function setup(layout: Record<string, number>) {
-      render(<TestContainer />);
+      render(<Viewer />);
       loadImage();
       const stage = getStage() as HTMLElement;
       setLayout(stage, { clientWidth: 100, clientHeight: 100, scrollLeft: 0, scrollTop: 0 });
@@ -380,7 +398,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
 
   describe('accessibility', () => {
     it('names the focusable stage and lists its shortcuts', () => {
-      render(<TestContainer />);
+      render(<Viewer />);
       loadImage();
 
       const region = screen.getByRole('region', { name: 'photo.png' });
@@ -389,7 +407,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     });
 
     it('has no axe violations', async () => {
-      const { container } = render(<TestContainer />);
+      const { container } = render(<Viewer />);
       loadImage();
       expect((await axe(container)).violations).toEqual([]);
     });

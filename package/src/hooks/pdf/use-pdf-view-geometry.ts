@@ -83,6 +83,7 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
     ready: !!ready,
     scaleOf,
     onZoomChange: context.events.onZoomChange,
+    store: context.store,
   });
   const { scale } = zoomSetting;
 

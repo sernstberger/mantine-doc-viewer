@@ -1,5 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
+import { DocViewer } from '../DocViewer';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
 import { DocViewerTitle, DocViewerTitleProps, DocViewerTitleStylesNames } from './DocViewerTitle';
 
@@ -56,11 +57,11 @@ describe('mantine-doc-viewer/DocViewerTitle', () => {
   });
 
   it('shows the title and subtitle the toolbar of DocViewer is given', () => {
-    const { Harness: Toolbar } = createPartHarness(DocViewerTitle, {
-      viewerProps: { toolbarProps: { title: 'Sheet', subtitle: 'Edited' } },
-    });
-    render(<Toolbar />);
-    expect(screen.getAllByText('Sheet').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Edited').length).toBeGreaterThan(0);
+    render(
+      <DocViewer src="/files/report.pdf" toolbarProps={{ title: 'Sheet', subtitle: 'Edited' }} />
+    );
+    expect(screen.getByText('Sheet')).toBeInTheDocument();
+    expect(screen.getByText('Edited')).toBeInTheDocument();
+    expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();
   });
 });

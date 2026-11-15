@@ -1,14 +1,13 @@
 import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
 import React, { useMemo } from 'react';
 import { getCodeLanguage } from '../utils/get-doc-viewer-type';
-import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
+import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
-import { useDocViewerStateValue } from '../hooks/use-doc-viewer-state';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
-import { ViewModeToggle } from '../DocViewerViewModeControl/ViewModeToggle';
+import { useViewModeAvailable } from '../hooks/text/use-view-mode-available';
 import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
 import type { DocViewerCodeProps } from './DocViewerCode';
 
@@ -38,8 +37,7 @@ export function CodeView({
 }: DocViewerCodeProps) {
   const { classNames, styles } = others;
   const ctx = useDocViewerContext();
-  const { getStyles, src, fileName, store, labels } = ctx;
-  const show = useShowControl();
+  const { getStyles, src, fileName, store } = ctx;
   const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
   const resolvedLanguage = language ?? ctx.language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
@@ -49,27 +47,15 @@ export function CodeView({
     () => (text !== null && resolvedLanguage === 'json' ? parseJson(text) : NOT_JSON),
     [text, resolvedLanguage]
   );
-  const [viewMode, setViewMode] = useDocViewerStateValue(store, 'viewMode');
+  const viewMode = useDocViewerState(store, (current) => current.viewMode);
+  useViewModeAvailable(store, json !== NOT_JSON);
   const showTree = json !== NOT_JSON && viewMode === 'preview';
-  const onPrint = useTextView('code', state, async () => {
+  useTextView('code', state, async () => {
     text !== null && (await printText(text, fileName));
   });
 
   return (
     <>
-      <ToolbarView onPrint={onPrint}>
-        {json !== NOT_JSON && show('viewMode') && (
-          <ViewModeToggle
-            value={viewMode}
-            onChange={setViewMode}
-            data={[
-              { value: 'preview', label: labels.treeLabel },
-              { value: 'source', label: labels.codeLabel },
-            ]}
-            label={labels.jsonViewLabel}
-          />
-        )}
-      </ToolbarView>
       <DocViewerBody focusable={state.status === 'ready'} {...others}>
         {text === null && <TextStatus state={state} classNames={classNames} styles={styles} />}
         {text !== null && showTree && (

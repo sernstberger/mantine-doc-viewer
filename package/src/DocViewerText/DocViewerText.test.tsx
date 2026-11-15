@@ -6,6 +6,7 @@ import { axe } from 'jest-axe';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewer } from '../DocViewer';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { DocViewerRoot } from '../DocViewerRoot/DocViewerRoot';
 import {
   DocViewerText,
@@ -16,6 +17,16 @@ import {
 const TestContainer = createContextContainer(DocViewerText, DocViewerRoot, {
   src: '/files/notes.txt',
 });
+
+/** The part with the toolbar the default layout gives it */
+function Viewer(props: DocViewerTextProps) {
+  return (
+    <DocViewerRoot src="/files/notes.txt">
+      <DocViewerToolbar />
+      <DocViewerText {...props} />
+    </DocViewerRoot>
+  );
+}
 
 function capturePrints() {
   const printed: string[] = [];
@@ -85,6 +96,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     const fetch = mockFetch('first line\nsecond line');
     render(
       <DocViewerRoot src="/files/notes.txt" store={store}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -103,7 +115,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
 
   it('refuses files over the maxSize prop, and over maxSize of the simple component', async () => {
     mockFetch('', { headers: { 'content-length': '5000' } });
-    const { unmount } = render(<TestContainer maxSize={1000} />);
+    const { unmount } = render(<Viewer maxSize={1000} />);
     expect(
       await screen.findByText('This file is too large to preview (4.9 KB)')
     ).toBeInTheDocument();
@@ -119,7 +131,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
 
   it('refuses files over 2 MB by default', async () => {
     mockFetch('', { headers: { 'content-length': String(3 * 1024 * 1024) } });
-    render(<TestContainer />);
+    render(<Viewer />);
     expect(
       await screen.findByText('This file is too large to preview (3.0 MB)')
     ).toBeInTheDocument();
@@ -127,7 +139,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
 
   it('stops reading once the file passes maxSize, without content-length', async () => {
     const fetch = mockFetch('x'.repeat(10_000), { chunkSize: 1000 });
-    render(<TestContainer maxSize={2500} />);
+    render(<Viewer maxSize={2500} />);
 
     expect(await screen.findByText(/too large to preview \(2.9 KB\)/)).toBeInTheDocument();
     const response = await (fetch.mock.results[0].value as Promise<{ read: jest.Mock }>);
@@ -139,7 +151,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
       bytes: new Uint8Array([0x63, 0x61, 0x66, 0xe9]),
       headers: { 'content-type': 'text/plain; charset=windows-1252' },
     });
-    render(<TestContainer />);
+    render(<Viewer />);
     expect(await screen.findByText('café')).toBeInTheDocument();
   });
 
@@ -149,6 +161,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     const [store] = createDocViewer();
     render(
       <DocViewerRoot src="/files/notes.txt" store={store} onDocumentError={onDocumentError}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -163,6 +176,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     const onDocumentError = jest.fn();
     render(
       <DocViewerRoot src="/files/notes.txt" onDocumentError={onDocumentError}>
+        <DocViewerToolbar />
         <DocViewerText maxSize={100} />
       </DocViewerRoot>
     );
@@ -178,6 +192,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     const onDocumentLoad = jest.fn();
     const { unmount } = render(
       <DocViewerRoot src="/files/notes.txt" onDocumentLoad={onDocumentLoad}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -192,6 +207,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     mockFetch('hello', { headers: { 'content-type': 'text/plain' } });
     render(
       <DocViewerRoot src="/files/notes" mimeType="text/x-notes" onDocumentLoad={onDocumentLoad}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -215,6 +231,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     window.fetch = jest.fn(() => new Promise(() => {})) as unknown as typeof fetch;
     const { unmount } = render(
       <DocViewerRoot src="/files/notes.txt" store={store}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -228,6 +245,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
     const loaded = createDocViewer();
     render(
       <DocViewerRoot src="/files/notes.txt" store={loaded[0]}>
+        <DocViewerToolbar />
         <DocViewerText />
       </DocViewerRoot>
     );
@@ -242,13 +260,13 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
 
   describe('accessibility', () => {
     it('makes the loaded text a named, focusable region', async () => {
-      render(<TestContainer />);
+      render(<Viewer />);
       await screen.findByText(/first line/);
       expect(screen.getByRole('region', { name: 'notes.txt' })).toHaveAttribute('tabindex', '0');
     });
 
     it('has no axe violations', async () => {
-      const { container } = render(<TestContainer />);
+      const { container } = render(<Viewer />);
       await screen.findByText(/first line/);
       expect((await axe(container)).violations).toEqual([]);
     });

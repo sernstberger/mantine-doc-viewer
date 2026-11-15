@@ -24,7 +24,7 @@ interface DocViewerContextParts {
 /** The context value the views read, from Root's props and the layout of `DocViewer` */
 export function buildDocViewerContextValue(parts: DocViewerContextParts): DocViewerContextValue {
   const { props, layout, getStyles, session, events, store, adapters } = parts;
-  const { toolbarProps, pagesProps, textProps } = layout;
+  const { pagesProps, textProps } = layout;
 
   return {
     getStyles,
@@ -38,14 +38,8 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     keepView: props.keepView,
     labels: session.labels,
     locale: props.locale,
-    withToolbar: layout.withToolbar ?? true,
-    toolbarHidden: session.tapToggle.hidden,
     autoHeight: !!props.autosize,
     toolbarControls: layout.toolbarControls,
-    toolbarSection: toolbarProps?.rightSection,
-    toolbarStartSection: toolbarProps?.leftSection,
-    toolbarTitle: toolbarProps?.title,
-    toolbarSubtitle: toolbarProps?.subtitle,
     renderPageOverlay: pagesProps?.renderPageOverlay,
     maxCanvasPixels: pagesProps?.maxCanvasPixels ?? MAX_CANVAS_PIXELS,
     defaultPageLayout: props.defaultPageLayout,
@@ -55,7 +49,6 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     size: DOC_VIEWER_SIZES[props.size!] ?? DOC_VIEWER_SIZES.sm,
     color: props.color,
     thumbnailWidth: layout.thumbnailsProps?.width ?? DEFAULT_THUMBNAILS_WIDTH,
-    tooltipProps: toolbarProps?.tooltipProps,
     searchInputProps: layout.searchProps?.inputProps,
     passwordInputProps: pagesProps?.passwordInputProps,
     codeHighlightProps: textProps?.codeHighlightProps,

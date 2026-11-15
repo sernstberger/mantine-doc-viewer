@@ -9,6 +9,7 @@ import { mockFetch } from '../../../test-utils/mock-fetch';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewer } from '../DocViewer';
 import { DocViewerAdapterProvider } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { DocViewerRoot, type DocViewerRootProps } from '../DocViewerRoot/DocViewerRoot';
 import {
   DocViewerMarkdown,
@@ -27,6 +28,16 @@ function Wrapper({ children, ...props }: Partial<DocViewerRootProps>) {
 }
 
 const TestContainer = createContextContainer(DocViewerMarkdown, Wrapper);
+
+/** The part with the toolbar the default layout gives it */
+function Viewer(props: DocViewerMarkdownProps) {
+  return (
+    <Wrapper>
+      <DocViewerToolbar />
+      <DocViewerMarkdown {...props} />
+    </Wrapper>
+  );
+}
 
 function capturePrints() {
   const printed: string[] = [];
@@ -65,7 +76,7 @@ const markdownModule = {
 
 beforeAll(async () => {
   mockFetch('loaded');
-  const { unmount } = render(<TestContainer />);
+  const { unmount } = render(<Viewer />);
   await screen.findByTestId('markdown');
   unmount();
 });
@@ -108,7 +119,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
 
   it('applies the Styles API to the rendered markdown and to the source', async () => {
     render(
-      <TestContainer
+      <Viewer
         classNames={{ markdown: 'custom-markdown', code: 'custom-code' }}
         styles={{ markdown: { color: 'red' } }}
       />
@@ -125,6 +136,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
     const [store] = createDocViewer();
     render(
       <Wrapper store={store}>
+        <DocViewerToolbar />
         <DocViewerMarkdown />
       </Wrapper>
     );
@@ -142,7 +154,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
   });
 
   it('passes codeHighlightProps to the source, from the part and from the simple component', async () => {
-    const { unmount } = render(<TestContainer codeHighlightProps={{ className: 'highlight' }} />);
+    const { unmount } = render(<Viewer codeHighlightProps={{ className: 'highlight' }} />);
     await screen.findByTestId('markdown');
     await userEvent.click(screen.getByRole('radio', { name: 'Source' }));
     expect(document.querySelector('.highlight')).toBeInTheDocument();
@@ -163,7 +175,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
 
   it('refuses files over the maxSize prop', async () => {
     mockFetch('', { headers: { 'content-length': '5000' } });
-    render(<TestContainer maxSize={1000} />);
+    render(<Viewer maxSize={1000} />);
     expect(await screen.findByText(/too large to preview/)).toBeInTheDocument();
   });
 
@@ -193,7 +205,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
   describe('markdown module', () => {
     it('shows an error with a download link when the module fails to load', async () => {
       overrideMarkdownModule(new Error('chunk failed'));
-      render(<TestContainer />);
+      render(<Viewer />);
 
       expect(await screen.findByRole('alert')).toHaveTextContent(/markdown/i);
       expect(screen.getByRole('link', { name: 'Download file' })).toBeInTheDocument();
@@ -211,7 +223,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
             rejectModule = reject;
           })
         );
-        const { unmount } = render(<TestContainer />);
+        const { unmount } = render(<Viewer />);
         await screen.findByRole('radio', { name: 'Preview' });
         unmount();
         await act(async () => {
@@ -237,6 +249,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
       mockFetch('# Intro\n\n[go](#intro)');
       render(
         <Wrapper src="https://example.com/docs/readme.md">
+          <DocViewerToolbar />
           <DocViewerMarkdown />
         </Wrapper>
       );
@@ -279,6 +292,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
       const [store, actions] = createDocViewer();
       render(
         <Wrapper store={store}>
+          <DocViewerToolbar />
           <DocViewerMarkdown />
         </Wrapper>
       );
@@ -294,6 +308,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
       const [store, actions] = createDocViewer();
       render(
         <Wrapper store={store}>
+          <DocViewerToolbar />
           <DocViewerMarkdown />
         </Wrapper>
       );
@@ -325,6 +340,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
       const [store, actions] = createDocViewer();
       render(
         <Wrapper store={store}>
+          <DocViewerToolbar />
           <DocViewerMarkdown />
         </Wrapper>
       );
@@ -340,13 +356,13 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
 
   describe('accessibility', () => {
     it('makes the loaded markdown a named, focusable region', async () => {
-      render(<TestContainer />);
+      render(<Viewer />);
       await screen.findByTestId('markdown');
       expect(screen.getByRole('region', { name: 'CHANGELOG.md' })).toHaveAttribute('tabindex', '0');
     });
 
     it('has no axe violations', async () => {
-      const { container } = render(<TestContainer />);
+      const { container } = render(<Viewer />);
       await screen.findByTestId('markdown');
       expect((await axe(container)).violations).toEqual([]);
     });

@@ -12,7 +12,6 @@ import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { useReadyDocument } from '../DocViewerToolbar/use-ready-document';
-import { getCodeLanguage } from '../utils/get-doc-viewer-type';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerViewModeControlStylesNames = 'viewMode';
@@ -39,15 +38,14 @@ export const DocViewerViewModeControl = factory<DocViewerViewModeControlFactory>
     null,
     _props
   );
-  const { store, getStyles, labels, size, src, fileName, language } = useDocViewerContext();
+  const { store, getStyles, labels, size } = useDocViewerContext();
   const ready = useReadyDocument(MARKDOWN_AND_CODE);
-  const type = useDocViewerState(store, (state) => state.type);
+  const available = useDocViewerState(store, (state) => state.viewModeAvailable);
+  const markdown = useDocViewerState(store, (state) => state.type === 'markdown');
   const mode = useDocViewerState(store, (state) => state.viewMode);
   const show = useShowControl();
-  const json = (language ?? getCodeLanguage({ src, fileName })) === 'json';
-  const markdown = type === 'markdown';
 
-  if (!ready || !show('viewMode') || !(markdown || json)) {
+  if (!ready || !available || !show('viewMode')) {
     return null;
   }
 

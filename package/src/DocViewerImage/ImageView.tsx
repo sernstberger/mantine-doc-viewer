@@ -1,12 +1,10 @@
 import { Box, VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../doc-viewer.context';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { useImageView } from '../hooks/image/use-image-view';
 import { getRegionProps } from '../utils/a11y';
 import { getFrameStyle, getImageStyle } from '../utils/image-fit';
 import type { DocViewerImageProps } from './DocViewerImage';
-import { ImageControls } from './ImageControls';
 import { ImageOverlay } from './ImageOverlay';
 
 export function ImageView({
@@ -26,11 +24,6 @@ export function ImageView({
 
   return (
     <>
-      <ToolbarView onPrint={ready ? view.print : undefined}>
-        {ready && (
-          <ImageControls scale={scale} zoom={view.zoom} zoomTo={view.zoomTo} rotate={view.rotate} />
-        )}
-      </ToolbarView>
       <Box {...getStyles('body', { className, style, ...stylesProps })} {...others}>
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div

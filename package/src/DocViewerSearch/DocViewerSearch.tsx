@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import React, { use, useMemo } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -11,6 +11,7 @@ import {
 import { useDocViewerContext } from '../doc-viewer.context';
 import { PartStyles } from '../DocViewerPages/PartStyles';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
+import { DocViewerToolbarContext } from '../DocViewerToolbar/toolbar-context';
 import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
@@ -53,38 +54,37 @@ function SearchBar({
   ref,
   ...others
 }: DocViewerSearchProps) {
-  const context = useDocViewerContext();
   const session = usePdfSession();
   const stylesOptions = useShallowStable({ className, style });
   const elementProps = useShallowStable(others);
-  const overrides = tooltipProps
-    ? { tooltipProps: { ...context.tooltipProps, ...tooltipProps } }
-    : undefined;
+  const toolbar = useMemo(() => ({ tooltipProps }), [tooltipProps]);
   const search = session?.content.search;
   if (!search) {
     return null;
   }
 
   return (
-    <PartStyles classNames={classNames} styles={styles} overrides={overrides}>
-      <PdfSearchBar
-        inputRef={search.inputRef}
-        query={search.query}
-        onQueryChange={search.setQuery}
-        matchCount={search.matches.length}
-        activeIndex={search.activeIndex}
-        activePage={search.activeMatch?.pageNumber}
-        searching={search.searching}
-        onNext={search.next}
-        onPrevious={search.previous}
-        onClose={search.close}
-        options={search.options}
-        onOptionsChange={search.setOptions}
-        inputProps={inputProps}
-        stylesOptions={stylesOptions}
-        elementProps={elementProps}
-        rootRef={ref}
-      />
+    <PartStyles classNames={classNames} styles={styles}>
+      <DocViewerToolbarContext value={toolbar}>
+        <PdfSearchBar
+          inputRef={search.inputRef}
+          query={search.query}
+          onQueryChange={search.setQuery}
+          matchCount={search.matches.length}
+          activeIndex={search.activeIndex}
+          activePage={search.activeMatch?.pageNumber}
+          searching={search.searching}
+          onNext={search.next}
+          onPrevious={search.previous}
+          onClose={search.close}
+          options={search.options}
+          onOptionsChange={search.setOptions}
+          inputProps={inputProps}
+          stylesOptions={stylesOptions}
+          elementProps={elementProps}
+          rootRef={ref}
+        />
+      </DocViewerToolbarContext>
     </PartStyles>
   );
 }

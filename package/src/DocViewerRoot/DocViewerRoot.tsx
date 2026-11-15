@@ -208,7 +208,6 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
         ]}
         __vars={partVars}
         {...getRootElementProps(props)}
-        {...session.tapToggle.handlers}
       >
         <DocViewerExtensionsProvider extensions={extensions}>
           {withPdfSession ? (

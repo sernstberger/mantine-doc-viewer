@@ -1,68 +1,20 @@
 import React, { use } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
-import type { DocViewerControl } from '../doc-viewer.types';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
 import { DocViewerCode } from '../DocViewerCode/DocViewerCode';
 import { DocViewerImage } from '../DocViewerImage/DocViewerImage';
-import { DocViewerMarkdown } from '../DocViewerMarkdown/DocViewerMarkdown';
-import { DocViewerInfoButton } from '../DocViewerInfoButton/DocViewerInfoButton';
-import { DocViewerLayoutMenu } from '../DocViewerLayoutMenu/DocViewerLayoutMenu';
 import { DocViewerMain } from '../DocViewerMain/DocViewerMain';
-import { DocViewerOutlineButton } from '../DocViewerOutlineButton/DocViewerOutlineButton';
-import { OverlayControls } from '../DocViewerOverlayControls/OverlayControls';
-import { DocViewerPageControls } from '../DocViewerPageControls/DocViewerPageControls';
-import { DocViewerPresentationButton } from '../DocViewerPresentationButton/DocViewerPresentationButton';
-import { DocViewerRotateButton } from '../DocViewerRotateButton/DocViewerRotateButton';
+import { DocViewerMarkdown } from '../DocViewerMarkdown/DocViewerMarkdown';
+import { DocViewerOverlayControls } from '../DocViewerOverlayControls/DocViewerOverlayControls';
 import { DocViewerSearch } from '../DocViewerSearch/DocViewerSearch';
-import { DocViewerSearchButton } from '../DocViewerSearchButton/DocViewerSearchButton';
 import { DocViewerText } from '../DocViewerText/DocViewerText';
-import { DocViewerThumbnailsButton } from '../DocViewerThumbnailsButton/DocViewerThumbnailsButton';
-import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
-import { DocViewerZoomControls } from '../DocViewerZoomControls/DocViewerZoomControls';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { useDocViewerExtensions } from './extensions-context';
 import { DocViewerLayoutContext } from './layout-context';
-import { useReadyPdfSession } from './pdf-session-context';
 import { UnsupportedView } from './UnsupportedView';
 
-const PDF_CONTROLS: [DocViewerControl, React.ComponentType][] = [
-  ['thumbnails', DocViewerThumbnailsButton],
-  ['pages', DocViewerPageControls],
-  ['zoom', DocViewerZoomControls],
-  ['rotate', DocViewerRotateButton],
-  ['layout', DocViewerLayoutMenu],
-  ['outline', DocViewerOutlineButton],
-  ['info', DocViewerInfoButton],
-  ['presentation', DocViewerPresentationButton],
-  ['search', DocViewerSearchButton],
-];
-
-/** The PDF toolbar controls, with the extensions' controls after their anchor controls */
-function DefaultPdfControls() {
-  const extensions = useDocViewerExtensions();
-  const extra = extensions.flatMap((extension) => extension.toolbarControls ?? []);
-
-  return PDF_CONTROLS.flatMap(([control, Control]) => [
-    <Control key={control} />,
-    ...extra
-      .filter((item) => item.after === control)
-      .map((item) => <item.Component key={item.control} />),
-  ]);
-}
-
-/** The PDF toolbar: the PDF's controls and print once it is loaded, while reading */
-function DefaultPdfToolbar({ reading }: { reading: boolean }) {
-  const session = useReadyPdfSession();
-  const withControls = !!session && reading;
-
-  return (
-    <ToolbarView onPrint={withControls ? session.actions.print : undefined}>
-      {withControls && <DefaultPdfControls />}
-    </ToolbarView>
-  );
-}
-
-/** Toolbar, search, the extensions' bars, and the pages with their thumbnails */
+/** Search, the extensions' bars, and the pages with their thumbnails */
 function DefaultPdfLayout() {
   const { store } = useDocViewerContext();
   const extensions = useDocViewerExtensions();
@@ -72,7 +24,6 @@ function DefaultPdfLayout() {
 
   return (
     <>
-      {!presenting && <DefaultPdfToolbar reading={reading} />}
       {withBars &&
         extensions.map((extension) => extension.bar && <extension.bar key={extension.name} />)}
       {withBars && <DocViewerSearch />}
@@ -101,17 +52,19 @@ function DocumentView() {
   }
 }
 
-/** What `DocViewer` shows without children: the default layout for the document type */
+/** What `DocViewer` shows without children: the toolbar and the default layout for the document type */
 export function DefaultLayout() {
   const { type, src, keepView } = useDocViewerContext();
-  const { withOverlayControls } = use(DocViewerLayoutContext);
+  const { withToolbar, toolbarProps, toolbarControls, withOverlayControls } =
+    use(DocViewerLayoutContext);
 
   return (
     <>
+      {withToolbar !== false && <DocViewerToolbar {...toolbarProps} controls={toolbarControls} />}
       <React.Fragment key={keepView ? type : `${type}:${src}`}>
         <DocumentView />
       </React.Fragment>
-      {withOverlayControls && <OverlayControls />}
+      {withOverlayControls && <DocViewerOverlayControls controls={toolbarControls} />}
     </>
   );
 }

@@ -34,6 +34,7 @@ export function useImageView(alt: string | undefined) {
     fitScale,
     ready: load.ready,
     onZoomChange: events.onZoomChange,
+    store,
     layoutKey: `${rotation}:${width}x${height}`,
     onZoom: () => markZoom(),
   });

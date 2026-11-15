@@ -1,10 +1,5 @@
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import {
-  createSafeContext,
-  type GetStylesApi,
-  type MantineColor,
-  type TooltipProps,
-} from '@mantine/core';
+import { createSafeContext, type GetStylesApi, type MantineColor } from '@mantine/core';
 import { createElement } from 'react';
 import type { DocViewerLabels } from './default-labels';
 import type { DocViewerPdfAdapter } from './DocViewerAdapterProvider/adapters/pdfjs-adapter';
@@ -42,14 +37,8 @@ export interface DocViewerContextValue {
   keepView: boolean | undefined;
   labels: DocViewerLabels;
   locale: string | undefined;
-  withToolbar: boolean;
-  toolbarHidden: boolean;
   autoHeight: boolean;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
-  toolbarSection: React.ReactNode;
-  toolbarStartSection: React.ReactNode;
-  toolbarTitle: React.ReactNode;
-  toolbarSubtitle: React.ReactNode;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
   maxCanvasPixels: number;
   defaultPageLayout: DocViewerPageLayout | undefined;
@@ -59,7 +48,6 @@ export interface DocViewerContextValue {
   size: DocViewerSizeConfig;
   color: MantineColor | undefined;
   thumbnailWidth: number;
-  tooltipProps: Omit<TooltipProps, 'label' | 'children'> | undefined;
   searchInputProps: DocViewerSearchInputProps | undefined;
   passwordInputProps: DocViewerPasswordInputProps | undefined;
   codeHighlightProps: Omit<CodeHighlightProps, 'code' | 'language'> | undefined;

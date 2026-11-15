@@ -48,10 +48,7 @@ function createEvents(
       props().onDocumentError?.(error);
     },
     onPageChange: (page) => props().onPageChange?.(page),
-    onZoomChange: (zoom, details) => {
-      update({ zoom, scale: details.scale });
-      props().onZoomChange?.(zoom, details);
-    },
+    onZoomChange: (zoom, details) => props().onZoomChange?.(zoom, details),
     onPageLayoutChange: (layout) => props().onPageLayoutChange?.(layout),
     onReadingProgress: (progress) => props().onReadingProgress?.(progress),
     onReachEnd: () => props().onReachEnd?.(),

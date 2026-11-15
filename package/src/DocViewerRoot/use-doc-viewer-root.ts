@@ -117,7 +117,6 @@ export function useDocViewerRoot(
     fileName: props.fileName,
     labels: props.labels,
     extensionLabels: getExtensionLabels(props.extensions),
-    toggleOnTap: layout.toolbarProps?.toggleOnTap,
     fullscreen: props.fullscreen,
     onFullscreenChange: (value) => {
       updateDocViewerStateAction({ fullscreen: value }, store);

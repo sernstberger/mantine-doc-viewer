@@ -64,6 +64,9 @@ export interface DocViewerState {
   /** Rendered markdown (or JSON tree) or its source */
   viewMode: 'preview' | 'source';
 
+  /** True while a view with a preview and a source is shown: markdown, or JSON that parses */
+  viewModeAvailable: boolean;
+
   /** `'read'`, or the mode of an extension screen such as `'edit-pages'` */
   mode: 'read' | (string & {});
 
@@ -160,6 +163,7 @@ const INITIAL_STATE: DocViewerState = {
   canPrint: false,
   textWrap: true,
   viewMode: 'preview',
+  viewModeAvailable: false,
   mode: 'read',
   markupTool: null,
 };

@@ -1,6 +1,7 @@
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DocViewerEvents, DocViewerZoom } from '../use-controller-registry';
+import type { DocViewerStore } from '../../doc-viewer.store';
 import { useZoomSetting } from '../use-zoom-setting';
 import { clampZoom } from '../../utils/zoom';
 import {
@@ -23,6 +24,7 @@ interface ImageZoomInput {
   /** The image has loaded, so its scale is known */
   ready: boolean;
   onZoomChange: Required<DocViewerEvents>['onZoomChange'];
+  store: DocViewerStore;
 
   /** Changes that resize the image, after which the anchor point is put back */
   layoutKey: unknown;
@@ -43,6 +45,7 @@ export function useImageZoom(input: ImageZoomInput) {
     ready: input.ready,
     scaleOf: (zoom) => (typeof zoom === 'number' ? clampZoom(zoom) : fitScale),
     onZoomChange: input.onZoomChange,
+    store: input.store,
   });
   const { scale, setZoom } = setting;
   const zoom: ImageZoom = typeof setting.zoom === 'number' ? scale : 'fit';
