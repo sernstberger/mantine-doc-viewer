@@ -87,7 +87,7 @@ export function PdfWithoutWorker() {
 }
 
 // Logs a console error on purpose (a setup mistake for the developer): e2e/errors.spec.ts covers it
-PdfWithoutWorker.tags = ['no-smoke'];
+PdfWithoutWorker.parameters = { e2e: { allowConsole: [/pdf\.js worker is not configured/] } };
 
 export function PdfLoadError() {
   return (
@@ -96,6 +96,7 @@ export function PdfLoadError() {
     </div>
   );
 }
+PdfLoadError.parameters = { e2e: { allowConsole: [/404/, /Failed to load/] } };
 
 export function Image() {
   return (
@@ -120,6 +121,7 @@ export function ImageLoadError() {
     </div>
   );
 }
+ImageLoadError.parameters = { e2e: { allowConsole: [/404/, /Failed to load/] } };
 
 export function Markdown() {
   return (

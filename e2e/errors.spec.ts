@@ -1,5 +1,4 @@
 // Stories that fail on purpose: what the reader sees, and the console message a developer gets.
-// PdfWithoutWorker is tagged no-smoke because it logs that message by design
 import { expect, openStory, test } from './support/story';
 
 test.describe('PDF without a worker', () => {
