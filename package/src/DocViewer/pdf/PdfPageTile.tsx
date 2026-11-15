@@ -1,7 +1,7 @@
 import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { DragHandleIcon } from '../icons';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
@@ -25,7 +25,7 @@ interface PageTileProps {
 const TILE_WIDTH = 120;
 
 export function PageTile(props: PageTileProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(props.scrollRoot, '100% 0px');
   const { itemRef, handleRef } = useReorderItem(props.reorder, props.page);
   const tileRef = useMergedRef(ref, itemRef);

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { focusIfLost } from '../a11y';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import type { DocViewerMarkPoint } from './markup';
 import type { Draft, TextDraft } from './markup-draft';
 import { getMarkupKeyAction, MARKUP_KEY_SHORTCUTS, type MarkupKeyAction } from './markup-keys';
@@ -57,7 +57,7 @@ export function useMarkupKeyboard({
   textDraft,
   setTextDraft,
 }: MarkupKeyboardInput) {
-  const { labels } = useDocViewerContext();
+  const { labels } = useDocViewerPageContext();
   const { tool, announce } = markup;
   const { layerRef, returnFocusLater } = useTextBoxFocusReturn(textDraft);
   const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { DocViewerMark, getMarkLines, toPathData } from './markup';
 import { getOverlayStyle } from './page-overlay';
 import { PdfMarkupTextInput, PdfMarkupTexts } from './PdfMarkupText';
@@ -58,7 +58,7 @@ export function PdfMarkupLayer({
   rotation,
   markup,
 }: PdfMarkupLayerProps) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles } = useDocViewerPageContext();
   const { tool, marks } = markup;
   const input = { pageNumber, width, height, scale, rotation, markup };
   const text = useTextDraft(input);

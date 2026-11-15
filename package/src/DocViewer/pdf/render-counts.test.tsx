@@ -147,3 +147,45 @@ describe('page renders', () => {
     expect(firstPage.getAnnotations.mock.calls.length).toBe(drawn);
   });
 });
+
+/** Page numbers of the renders since `from`, from a mock called once per page render */
+function rendersSince(mock: jest.Mock, from: number) {
+  return mock.mock.calls
+    .slice(from)
+    .map(([info]) => (typeof info === 'number' ? info : (info.pageNumber as number)))
+    .sort((a, b) => a - b);
+}
+
+describe('page renders on a page turn and a new mark', () => {
+  it('renders no page again when the app turns a controlled page', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const renderPageOverlay = countPageRenders();
+    function App() {
+      const [page, setPage] = useState(1);
+      return (
+        <>
+          <button type="button" onClick={() => setPage(page + 2)}>
+            Turn
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            page={page}
+            onPageChange={setPage}
+            renderPageOverlay={renderPageOverlay}
+          />
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = renderPageOverlay.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
+    await act(async () => {});
+    expect(rendersSince(renderPageOverlay, before)).toEqual([]);
+  });
+});

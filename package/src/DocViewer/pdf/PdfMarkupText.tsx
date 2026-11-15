@@ -1,13 +1,13 @@
 import { Textarea } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import type { DocViewerMark } from './markup';
 import { getFontStyle, type TextDraft } from './markup-draft';
 
 /** Text boxes already on the page */
 export function PdfMarkupTexts({ marks, scale }: { marks: DocViewerMark[]; scale: number }) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles } = useDocViewerPageContext();
 
   return (
     <>
@@ -51,7 +51,7 @@ export function PdfMarkupTextInput({
   fontSize,
   color,
 }: PdfMarkupTextInputProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerPageContext();
 
   return (
     <Textarea

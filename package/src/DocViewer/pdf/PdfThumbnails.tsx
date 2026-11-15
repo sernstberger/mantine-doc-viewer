@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useMergedRef } from '@mantine/hooks';
 import React, { useMemo, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { DragHandleIcon } from '../icons';
 import { initialOrder } from './page-edits';
 import { PdfThumbnailDelete } from './PdfThumbnailDelete';
@@ -45,7 +45,7 @@ function PdfThumbnail({
   onSelect,
   onDelete,
 }: PdfThumbnailProps) {
-  const { getStyles, labels, thumbnailWidth } = useDocViewerContext();
+  const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
   const horizontal = orientation === 'horizontal';
   // Half size in the strip above or below the pages
   const width = horizontal ? Math.round(thumbnailWidth / 2) : thumbnailWidth;
@@ -130,7 +130,7 @@ export function PdfThumbnails({
   onReorder,
   onDelete,
 }: PdfThumbnailsProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
 
   const numPages = document.numPages;

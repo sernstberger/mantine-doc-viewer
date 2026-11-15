@@ -21,6 +21,8 @@ import type { DocViewerPdfOptions } from './pdf/use-pdf-document';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import type { DocViewerMarkupProps } from './pdf/use-markup';
 import type { DocViewerSizeConfig } from './sizes';
+import { createElement } from 'react';
+import { useShallowStable } from './use-shallow-stable';
 
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerFactory>;
@@ -86,9 +88,47 @@ export interface DocViewerContextValue {
   toggleFullscreen: () => Promise<void>;
 }
 
-export const [DocViewerProvider, useDocViewerContext] = createSafeContext<DocViewerContextValue>(
+const [DocViewerFullProvider, useDocViewerContext] = createSafeContext<DocViewerContextValue>(
   'DocViewer component was not found in the tree'
 );
+export { useDocViewerContext };
+
+/**
+ * What pages, thumbnails and page tiles read. These rarely change, unlike the rest of the context
+ * (the controlled page, zoom, fullscreen, the toolbar's tap toggle), so a memoised page only
+ * renders again when its own props change
+ */
+export type DocViewerPageContextValue = Pick<
+  DocViewerContextValue,
+  'getStyles' | 'labels' | 'maxCanvasPixels' | 'renderPageOverlay' | 'thumbnailWidth'
+>;
+
+const [DocViewerPageProvider, useDocViewerPageContext] =
+  createSafeContext<DocViewerPageContextValue>('DocViewer component was not found in the tree');
+export { useDocViewerPageContext };
+
+/** Provides the context, and the part of it pages read as a context of its own */
+export function DocViewerProvider({
+  value,
+  children,
+}: {
+  value: DocViewerContextValue;
+  children: React.ReactNode;
+}) {
+  const { getStyles, labels, maxCanvasPixels, renderPageOverlay, thumbnailWidth } = value;
+  const pageValue = useShallowStable({
+    getStyles,
+    labels,
+    maxCanvasPixels,
+    renderPageOverlay,
+    thumbnailWidth,
+  });
+  return createElement(
+    DocViewerFullProvider,
+    { value },
+    createElement(DocViewerPageProvider, { value: pageValue }, children)
+  );
+}
 
 /** Name of the document for the toolbar title and the scroll area's screen reader name */
 export function useDocumentTitle() {

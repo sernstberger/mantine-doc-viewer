@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
 import { useEffect, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { keepSize, usePageCanvasRef } from './page-canvas-ref';
 import { getPageViewport, PdfRotation, renderPageToCanvas } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -29,7 +29,7 @@ export function usePagePreview({
   rotation = 0,
   layers,
 }: PagePreviewInput) {
-  const { maxCanvasPixels } = useDocViewerContext();
+  const { maxCanvasPixels } = useDocViewerPageContext();
   const canvas = usePageCanvasRef();
   const [size, setSize] = useState<PdfPageSize | null>(null);
 

@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import type { PdfLinkService } from './link-service';
 import type { PdfLayersState } from './use-pdf-layers';
 import type { PdfJsModule } from './load-pdfjs';
@@ -61,7 +61,7 @@ function PdfPageView({
   ...props
 }: PdfPageProps) {
   const { document, pageNumber, scale } = props;
-  const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerContext();
+  const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   // What the canvas, text and link layers draw from; each hook takes the fields it needs
   const page = { ...props, rotation, near };

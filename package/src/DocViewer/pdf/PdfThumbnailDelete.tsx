@@ -1,6 +1,6 @@
 import { ActionIcon } from '@mantine/core';
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { TrashIcon } from '../icons';
 
 interface PdfThumbnailDeleteProps {
@@ -10,7 +10,7 @@ interface PdfThumbnailDeleteProps {
 
 /** Delete button on a thumbnail */
 export function PdfThumbnailDelete({ pageNumber, onDelete }: PdfThumbnailDeleteProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   return (
     // Not a tab stop: keyboard users press Delete on the thumbnail instead
     <ActionIcon

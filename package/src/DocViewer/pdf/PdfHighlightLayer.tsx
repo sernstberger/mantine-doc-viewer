@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { getOverlayStyle } from './page-overlay';
 import type { DocViewerPageRect } from './page-points';
 import type { PdfRotation } from './render-page';
@@ -22,7 +22,7 @@ export function PdfHighlightLayer({
   scale,
   rotation,
 }: PdfHighlightLayerProps) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles } = useDocViewerPageContext();
 
   return (
     <div
