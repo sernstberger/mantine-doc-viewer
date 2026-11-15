@@ -55,6 +55,34 @@ Set `defaultThumbnailsOpened` to show them when the PDF opens.
 <DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
 ```
 
+Thumbnails are on the left by default. Readers can move them to any side with the panel position
+button next to the thumbnails button. At the top or bottom they form one row that scrolls sideways.
+Set the starting side with `defaultThumbnailsPosition`, or control it with `thumbnailsPosition`
+and `onThumbnailsPositionChange`, for example to remember the reader's choice:
+
+```tsx
+import { useLocalStorage } from '@mantine/hooks';
+import { DocViewer, DocViewerThumbnailsPosition } from 'mantine-doc-viewer';
+
+function Demo() {
+  const [position, setPosition] = useLocalStorage<DocViewerThumbnailsPosition>({
+    key: 'doc-viewer-thumbnails',
+    defaultValue: 'left',
+  });
+
+  return (
+    <DocViewer
+      src="/report.pdf"
+      pdfWorkerSrc={pdfWorkerSrc}
+      defaultThumbnailsOpened
+      thumbnailsPosition={position}
+      onThumbnailsPositionChange={setPosition}
+      h={600}
+    />
+  );
+}
+```
+
 ## Text, code and markdown
 
 Text, code and markdown files are downloaded with `fetch`, so `src` must allow it (same origin or
@@ -113,3 +141,41 @@ const theme = createTheme({
   },
 });
 ```
+
+## Accessibility
+
+- Screen readers read PDF pages from their text layer. Each page is a group named "Page 2 of 3".
+- The scroll area of each document can be focused with Tab and scrolled with the arrow keys. It is
+  named after `fileName` and lists its keyboard shortcuts in `aria-keyshortcuts`.
+- Set `alt` to describe images. Without it, the file name is used.
+- The page buttons and thumbnails announce the new page, and search announces the match count.
+  Load errors are announced as alerts.
+- Links in markdown that open a new tab say so to screen readers.
+- Thumbnails are one tab stop: arrow keys, Home and End move between pages.
+- Buttons that become unavailable, such as Next page on the last page, keep focus.
+- Search announces the active match and its page once results settle.
+- In Windows high contrast mode, pressed toggle buttons get an outline.
+
+## Translating labels
+
+Every button name, message and screen reader text can be changed with `labels`. Labels that
+include a number are functions:
+
+```tsx
+import { DocViewer } from 'mantine-doc-viewer';
+
+function Demo() {
+  return (
+    <DocViewer
+      src="/report.pdf"
+      labels={{
+        nextPage: 'Nächste Seite',
+        previousPage: 'Vorherige Seite',
+        pageOf: (page, total) => `Seite ${page} von ${total}`,
+      }}
+    />
+  );
+}
+```
+
+`DOC_VIEWER_DEFAULT_LABELS` has the English defaults, and `DocViewerLabels` is the type of all labels.

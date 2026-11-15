@@ -90,6 +90,13 @@ export const SidebarIcon = (props: IconProps) => (
   </Icon>
 );
 
+export const PanelPositionIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M3 15h18M7 18h2M11 18h2M15 18h2" />
+  </Icon>
+);
+
 export const WrapIcon = (props: IconProps) => (
   <Icon {...props}>
     <path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4M4 18h5M15 16l-2 2 2 2" />

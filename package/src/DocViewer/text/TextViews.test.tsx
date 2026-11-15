@@ -1,5 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import React from 'react';
 import { mockFetch } from '../../../../test-utils/mock-fetch';
 import { DocViewer } from '../DocViewer';
@@ -75,5 +76,55 @@ describe('DocViewer markdown', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Source' }));
     expect(screen.queryByTestId('markdown')).not.toBeInTheDocument();
     expect(screen.getByText(/Release notes/)).toBeInTheDocument();
+  });
+});
+
+describe('DocViewer text accessibility', () => {
+  it('makes the loaded text a named, focusable region', async () => {
+    mockFetch('first line');
+    render(<DocViewer src="/files/notes.txt" />);
+
+    await screen.findByText('first line');
+    expect(screen.getByRole('region', { name: 'notes.txt' })).toHaveAttribute('tabindex', '0');
+  });
+
+  it('announces load errors as alerts', async () => {
+    mockFetch('', { status: 500 });
+    render(<DocViewer src="/files/notes.txt" />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('This file could not be loaded');
+  });
+
+  it('has no axe violations', async () => {
+    mockFetch('first line');
+    const { container } = render(<DocViewer src="/files/notes.txt" />);
+    await screen.findByText('first line');
+    expect((await axe(container)).violations).toEqual([]);
+  });
+  it('shows JSON with integers too large for JavaScript as code only', async () => {
+    mockFetch('{"id": 12345678901234567890}');
+    render(<DocViewer src="/ids.json" />);
+
+    expect(await screen.findByText(/12345678901234567890/)).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Tree' })).not.toBeInTheDocument();
+  });
+});
+
+describe('DocViewer text loading', () => {
+  it('stops reading once the file passes maxTextSize, without content-length', async () => {
+    const fetch = mockFetch('x'.repeat(10_000), { chunkSize: 1000 });
+    render(<DocViewer src="/files/huge.log" maxTextSize={2500} />);
+
+    expect(await screen.findByText(/too large to preview \(2.9 KB\)/)).toBeInTheDocument();
+    const response = await (fetch.mock.results[0].value as Promise<{ read: jest.Mock }>);
+    expect(response.read).toHaveBeenCalledTimes(3);
+  });
+
+  it('decodes text with the charset the server names', async () => {
+    mockFetch('', {
+      bytes: new Uint8Array([0x63, 0x61, 0x66, 0xe9]),
+      headers: { 'content-type': 'text/plain; charset=windows-1252' },
+    });
+    render(<DocViewer src="/files/menu.txt" />);
+    expect(await screen.findByText('café')).toBeInTheDocument();
   });
 });

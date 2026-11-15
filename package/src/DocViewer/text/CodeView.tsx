@@ -2,14 +2,21 @@ import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
 import { SegmentedControl } from '@mantine/core';
 import React, { useMemo, useState } from 'react';
 import { getCodeLanguage } from '../detect-doc-type';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { TextStatus } from './TextStatus';
 import { useTextDocument } from './use-text-document';
 
 const NOT_JSON = Symbol('not-json');
 
+/** Integers past 2^53 lose digits in JSON.parse, so such files are only shown as code */
+const UNSAFE_INTEGER = /[[:,]\s*-?\d{16,}\s*[,\]}]/;
+
 function parseJson(text: string) {
+  if (UNSAFE_INTEGER.test(text)) {
+    return NOT_JSON;
+  }
+
   try {
     return JSON.parse(text);
   } catch {
@@ -18,7 +25,8 @@ function parseJson(text: string) {
 }
 
 export function CodeView() {
-  const { getStyles, src, fileName, language, maxTextSize } = useDocViewerContext();
+  const { getStyles, src, fileName, language, maxTextSize, labels } = useDocViewerContext();
+  const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
@@ -40,14 +48,19 @@ export function CodeView() {
             value={mode}
             onChange={(value) => setMode(value as 'tree' | 'code')}
             data={[
-              { value: 'tree', label: 'Tree' },
-              { value: 'code', label: 'Code' },
+              { value: 'tree', label: labels.tree },
+              { value: 'code', label: labels.code },
             ]}
-            aria-label="JSON view"
+            aria-label={labels.jsonView}
           />
         )}
       </DocViewerToolbar>
-      <div {...getStyles('body')}>
+      <div
+        {...getStyles('body')}
+        tabIndex={state.status === 'ready' ? 0 : undefined}
+        role={state.status === 'ready' ? 'region' : undefined}
+        aria-label={state.status === 'ready' ? title : undefined}
+      >
         {text === null && <TextStatus state={state} />}
         {text !== null && showTree && (
           <JsonViewer value={json} defaultExpandDepth={2} {...getStyles('code')} />

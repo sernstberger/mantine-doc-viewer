@@ -38,15 +38,28 @@ export function buildPageText(items: Pick<TextItem, 'str' | 'hasEOL'>[]): PageTe
  * Case-insensitive search across pages. Lowercasing keeps string length for the
  * scripts documents usually contain, so match offsets line up with the original text.
  */
+/** Lowercases one character at a time, keeping characters whose lowercase is longer (such as İ) as they are */
+function toLowerSameLength(text: string) {
+  const lower = text.toLowerCase();
+  if (lower.length === text.length) {
+    return lower;
+  }
+
+  return Array.from(text, (char) => {
+    const lowerChar = char.toLowerCase();
+    return lowerChar.length === char.length ? lowerChar : char;
+  }).join('');
+}
+
 export function findMatches(pages: PageText[], query: string): SearchMatch[] {
-  const needle = query.trim().toLowerCase();
+  const needle = toLowerSameLength(query.trim());
   if (!needle) {
     return [];
   }
 
   const matches: SearchMatch[] = [];
   pages.forEach((page, index) => {
-    const haystack = page.text.toLowerCase();
+    const haystack = toLowerSameLength(page.text);
     let start = haystack.indexOf(needle);
 
     while (start !== -1) {

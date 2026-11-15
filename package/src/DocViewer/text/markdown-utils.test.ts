@@ -1,4 +1,10 @@
-import { createSlugger, getFencedCode, resolveMarkdownUrl } from './markdown-utils';
+import {
+  createSlugger,
+  getFencedCode,
+  HastNode,
+  rehypeHeadingIds,
+  resolveMarkdownUrl,
+} from './markdown-utils';
 
 describe('markdown utils', () => {
   const base = 'https://app.example.com/inbox/42';
@@ -57,5 +63,20 @@ describe('markdown utils', () => {
     expect(slug('Installation')).toBe('installation');
     expect(slug('Installation')).toBe('installation-1');
     expect(slug('Café menü')).toBe('café-menü');
+  });
+
+  it('gives headings the same ids however often the document is processed', () => {
+    const heading = (text: string): HastNode => ({
+      type: 'element',
+      tagName: 'h2',
+      children: [{ type: 'text', value: text }],
+    });
+    const tree: HastNode = { type: 'root', children: [heading('Install'), heading('Install')] };
+    const ids = () => tree.children!.map((node) => node.properties?.id);
+
+    rehypeHeadingIds()(tree);
+    expect(ids()).toEqual(['install', 'install-1']);
+    rehypeHeadingIds()(tree);
+    expect(ids()).toEqual(['install', 'install-1']);
   });
 });

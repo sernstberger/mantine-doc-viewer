@@ -11,10 +11,11 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
+import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import { PdfView } from './pdf/PdfView';
 import { CodeView } from './text/CodeView';
 import { MarkdownView } from './text/MarkdownView';
@@ -52,6 +53,8 @@ export type DocViewerStylesNames =
   | 'code'
   | 'markdown';
 
+export type DocViewerThumbnailsPosition = 'left' | 'right' | 'top' | 'bottom';
+
 export type DocViewerCssVariables = {
   root: '--doc-viewer-radius';
 };
@@ -70,11 +73,26 @@ export interface DocViewerProps
   /** File name displayed in the toolbar and used for downloads, taken from `src` by default */
   fileName?: string;
 
+  /** Alternative text for images, `fileName` by default */
+  alt?: string;
+
+  /** Text shown or read out by the viewer, override any of it to translate the viewer */
+  labels?: Partial<DocViewerLabels>;
+
   /** Url of the pdf.js worker file (`pdfjs-dist/build/pdf.worker.min.mjs`), required to display PDF files */
   pdfWorkerSrc?: string;
 
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
+
+  /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position */
+  thumbnailsPosition?: DocViewerThumbnailsPosition;
+
+  /** Side that PDF page thumbnails are shown on at first, `'left'` by default. Readers can move them from the toolbar */
+  defaultThumbnailsPosition?: DocViewerThumbnailsPosition;
+
+  /** Called when the reader moves the PDF page thumbnails */
+  onThumbnailsPositionChange?: (position: DocViewerThumbnailsPosition) => void;
 
   /** Largest text, code or markdown file that is displayed, in bytes, `2_000_000` by default */
   maxTextSize?: number;
@@ -149,8 +167,13 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     type,
     mimeType,
     fileName,
+    alt,
+    labels,
     pdfWorkerSrc,
     defaultThumbnailsOpened,
+    thumbnailsPosition,
+    defaultThumbnailsPosition,
+    onThumbnailsPositionChange,
     maxTextSize,
     language,
     radius,
@@ -173,6 +196,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   });
 
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
+  const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
 
   return (
     <DocViewerProvider
@@ -180,10 +204,15 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         getStyles,
         src,
         fileName: fileName ?? getFileName(src),
+        alt,
+        labels: resolvedLabels,
         withToolbar,
         toolbarSection,
         pdfWorkerSrc,
         defaultThumbnailsOpened,
+        thumbnailsPosition,
+        defaultThumbnailsPosition,
+        onThumbnailsPositionChange,
         maxTextSize: maxTextSize!,
         language,
       }}

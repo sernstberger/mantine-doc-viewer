@@ -10,6 +10,7 @@
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--mantine-spacing-xs);
   min-height: 44px;
@@ -19,7 +20,7 @@
 }
 
 .title {
-  flex: 1;
+  flex: 1 1 8rem;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -34,6 +35,12 @@
   min-height: 0;
   overflow: auto;
   background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: -2px;
+  }
 
   :where([data-doc-type='image']) > & {
     min-height: 240px;
@@ -114,9 +121,14 @@
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  flex-shrink: 0;
+  padding-block: 4px;
+
+  /* Wraps onto more lines in narrow viewers and at high zoom, instead of cutting controls off */
+  margin-inline-start: auto;
 }
 
 .pageIndicator {
@@ -253,6 +265,19 @@
   &:global(.selecting) :global(.endOfContent) {
     top: 0;
   }
+
+  /* pdf.js sizes the layer to the unrotated page and marks the page rotation, from pdf_viewer.css */
+  &[data-main-rotation='90'] {
+    transform: rotate(90deg) translateY(-100%);
+  }
+
+  &[data-main-rotation='180'] {
+    transform: rotate(180deg) translate(-100%, -100%);
+  }
+
+  &[data-main-rotation='270'] {
+    transform: rotate(270deg) translateX(-100%);
+  }
 }
 
 /* Search matches, painted with the CSS Custom Highlight API, see pdf/highlights.ts */
@@ -264,6 +289,23 @@
 ::highlight(mantine-doc-viewer-active-match) {
   color: transparent;
   background-color: rgb(253 126 20 / 65%);
+
+  /* Tells the active match apart by more than its colour */
+  text-decoration: underline 2px rgb(217 72 15);
+  text-underline-offset: 2px;
+}
+
+/* High contrast mode. The text layer keeps its own colours (forced-color-adjust: none), so search highlights stay as they are */
+@media (forced-colors: active) {
+  /* Pressed toggle buttons lose their background, mark them with an outline instead */
+  .toolbar [aria-pressed='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .thumbnail[data-active] {
+    outline: 2px solid Highlight;
+  }
 }
 
 .main {
@@ -271,12 +313,19 @@
   flex: 1;
   min-height: 0;
 
+  &[data-thumbnails-position='top'],
+  &[data-thumbnails-position='bottom'] {
+    flex-direction: column;
+  }
+
   & > .body {
     min-width: 0;
   }
 }
 
 .thumbnails {
+  /* Offset parent of the thumbnails, used to keep the active one in view */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -287,6 +336,27 @@
   overflow-y: auto;
   border-right: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
+
+  [data-thumbnails-position='right'] > & {
+    border-right: 0;
+    border-left: 1px solid var(--mantine-color-default-border);
+  }
+
+  &[data-orientation='horizontal'] {
+    flex-direction: row;
+    align-items: flex-start;
+    width: auto;
+    max-height: 40%;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    overflow: auto hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--mantine-color-default-border);
+  }
+
+  [data-thumbnails-position='bottom'] > &[data-orientation='horizontal'] {
+    border-bottom: 0;
+    border-top: 1px solid var(--mantine-color-default-border);
+  }
 }
 
 .thumbnail {
@@ -320,7 +390,6 @@
 /* Width must match THUMBNAIL_WIDTH in pdf/PdfThumbnails.tsx */
 .thumbnailImage {
   display: block;
-  width: 112px;
   overflow: hidden;
   border: 1px solid var(--mantine-color-default-border);
   background-color: white;

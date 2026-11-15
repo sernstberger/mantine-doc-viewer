@@ -5,16 +5,14 @@ import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerMessage } from './MessageView';
 
 export function UnsupportedView({ type }: { type: DocType }) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
 
   return (
     <>
       <DocViewerToolbar />
       <div {...getStyles('body')}>
         <DocViewerMessage withDownload>
-          {type === 'unknown'
-            ? 'Preview is not available for this file type'
-            : `Preview for ${type} files is not available yet`}
+          {type === 'unknown' ? labels.unsupported : labels.notSupportedYet(type)}
         </DocViewerMessage>
       </div>
     </>

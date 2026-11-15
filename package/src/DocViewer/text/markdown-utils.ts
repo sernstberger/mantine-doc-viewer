@@ -3,7 +3,7 @@ export interface HastNode {
   type: string;
   tagName?: string;
   value?: string;
-  properties?: { className?: unknown };
+  properties?: { className?: unknown; id?: unknown };
   children?: HastNode[];
 }
 
@@ -49,6 +49,25 @@ export function getFencedCode(pre: HastNode | undefined) {
  * Heading ids the way GitHub creates them, so that `#section` links written for GitHub work.
  * Returns a function that adds -1, -2… to repeated headings, call it in document order.
  */
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
+/**
+ * Rehype plugin that gives headings GitHub-style ids. It runs once per render of the
+ * whole document with a fresh slugger, so ids stay the same however often it renders
+ */
+export function rehypeHeadingIds() {
+  return (tree: HastNode) => {
+    const slug = createSlugger();
+    const visit = (node: HastNode) => {
+      if (node.type === 'element' && node.tagName && HEADING_TAGS.has(node.tagName)) {
+        node.properties = { ...node.properties, id: slug(getText(node)) };
+      }
+      node.children?.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 export function createSlugger() {
   const seen = new Map<string, number>();
 

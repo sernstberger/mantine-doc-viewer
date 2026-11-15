@@ -1,17 +1,11 @@
 import { CodeHighlight } from '@mantine/code-highlight';
-import { SegmentedControl, Typography } from '@mantine/core';
+import { SegmentedControl, Typography, VisuallyHidden } from '@mantine/core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerMessage } from '../views/MessageView';
 import { importMarkdown, MarkdownModule } from './import-markdown';
-import {
-  createSlugger,
-  getFencedCode,
-  getText,
-  HastNode,
-  resolveMarkdownUrl,
-} from './markdown-utils';
+import { getFencedCode, HastNode, rehypeHeadingIds, resolveMarkdownUrl } from './markdown-utils';
 import { TextStatus } from './TextStatus';
 import { useTextDocument } from './use-text-document';
 
@@ -33,16 +27,15 @@ function useMarkdownModule() {
   return { module, failed };
 }
 
-type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
-const HEADINGS: HeadingTag[] = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-
 function MarkdownPreview({ text }: { text: string }) {
-  const { getStyles, src } = useDocViewerContext();
+  const { getStyles, src, labels } = useDocViewerContext();
   const { module, failed } = useMarkdownModule();
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Links to a heading scroll the viewer instead of changing the url of the page around it
   const scrollToHeading = (event: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    // Never change the url of the page around the viewer, even when the heading does not exist
+    event.preventDefault();
     const root = rootRef.current;
     const target = root?.querySelector<HTMLElement>(
       `[id="${CSS.escape(decodeURIComponent(hash))}"]`
@@ -52,29 +45,20 @@ function MarkdownPreview({ text }: { text: string }) {
       return;
     }
 
-    event.preventDefault();
     const top =
       target.getBoundingClientRect().top -
       scrollContainer.getBoundingClientRect().top +
       scrollContainer.scrollTop;
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     scrollContainer.scrollTo({ top: top - 12, behavior: reduceMotion ? 'auto' : 'smooth' });
+
+    // Move focus too, so keyboard and screen reader users continue from the heading
+    target.tabIndex = -1;
+    target.focus({ preventScroll: true });
   };
 
-  // Rebuilt for every text so that repeated headings are numbered from the start
-  const components = useMemo(() => {
-    const slug = createSlugger();
-    const headings = Object.fromEntries(
-      HEADINGS.map((Tag) => [
-        Tag,
-        ({ node, children }: { node?: HastNode; children?: React.ReactNode }) => (
-          <Tag id={node ? slug(getText(node)) : undefined}>{children}</Tag>
-        ),
-      ])
-    );
-
-    return {
-      ...headings,
+  const components = useMemo(
+    () => ({
       pre: ({ node, children }: { node?: HastNode; children?: React.ReactNode }) => {
         const fenced = getFencedCode(node);
         return fenced ? (
@@ -91,18 +75,29 @@ function MarkdownPreview({ text }: { text: string }) {
       a: ({
         node: _node,
         href,
+        children,
         ...others
       }: React.ComponentPropsWithoutRef<'a'> & { node?: HastNode }) =>
         href?.startsWith('#') ? (
-          <a href={href} onClick={(event) => scrollToHeading(event, href.slice(1))} {...others} />
+          <a href={href} onClick={(event) => scrollToHeading(event, href.slice(1))} {...others}>
+            {children}
+          </a>
         ) : (
-          <a href={href} target="_blank" rel="noopener noreferrer" {...others} />
+          <a href={href} target="_blank" rel="noopener noreferrer" {...others}>
+            {children}
+            <VisuallyHidden> {labels.opensInNewTab}</VisuallyHidden>
+          </a>
         ),
-    };
-  }, [text]);
+    }),
+    [labels]
+  );
 
   if (failed) {
-    return <DocViewerMessage withDownload>Markdown preview could not be loaded</DocViewerMessage>;
+    return (
+      <DocViewerMessage withDownload error>
+        {labels.markdownError}
+      </DocViewerMessage>
+    );
   }
 
   if (!module) {
@@ -115,6 +110,7 @@ function MarkdownPreview({ text }: { text: string }) {
     <Typography ref={rootRef} {...getStyles('markdown')}>
       <Markdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHeadingIds]}
         components={components}
         skipHtml
         urlTransform={(url: string) =>
@@ -128,7 +124,8 @@ function MarkdownPreview({ text }: { text: string }) {
 }
 
 export function MarkdownView() {
-  const { getStyles, src, maxTextSize } = useDocViewerContext();
+  const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
+  const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
 
@@ -141,14 +138,19 @@ export function MarkdownView() {
             value={mode}
             onChange={(value) => setMode(value as 'preview' | 'source')}
             data={[
-              { value: 'preview', label: 'Preview' },
-              { value: 'source', label: 'Source' },
+              { value: 'preview', label: labels.preview },
+              { value: 'source', label: labels.source },
             ]}
-            aria-label="Markdown view"
+            aria-label={labels.markdownView}
           />
         )}
       </DocViewerToolbar>
-      <div {...getStyles('body')}>
+      <div
+        {...getStyles('body')}
+        tabIndex={state.status === 'ready' ? 0 : undefined}
+        role={state.status === 'ready' ? 'region' : undefined}
+        aria-label={state.status === 'ready' ? title : undefined}
+      >
         {state.status !== 'ready' && <TextStatus state={state} />}
         {state.status === 'ready' && mode === 'preview' && <MarkdownPreview text={state.text} />}
         {state.status === 'ready' && mode === 'source' && (

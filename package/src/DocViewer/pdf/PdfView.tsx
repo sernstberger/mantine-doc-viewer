@@ -1,10 +1,26 @@
-import { ActionIcon, Group, Loader, Text, Tooltip } from '@mantine/core';
-import { useDebouncedValue, useElementSize, useMergedRef } from '@mantine/hooks';
+import {
+  ActionIcon,
+  Group,
+  Popover,
+  SegmentedControl,
+  Text,
+  Tooltip,
+  VisuallyHidden,
+} from '@mantine/core';
+import { useDebouncedValue, useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
-import { ChevronDownIcon, ChevronUpIcon, FitWidthIcon, SearchIcon, SidebarIcon } from '../icons';
-import { DocViewerMessage } from '../views/MessageView';
+import type { DocViewerThumbnailsPosition } from '../DocViewer';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  FitWidthIcon,
+  PanelPositionIcon,
+  SearchIcon,
+  SidebarIcon,
+} from '../icons';
+import { DocViewerLoading, DocViewerMessage } from '../views/MessageView';
 import { ACTIVE_MATCH_HIGHLIGHT, addHighlightRanges, MATCH_HIGHLIGHT } from './highlights';
 import { PdfPage } from './PdfPage';
 import { PdfSearchBar } from './PdfSearchBar';
@@ -14,6 +30,7 @@ import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearch } from './use-pdf-search';
 import { ZoomControls } from '../ZoomControls';
 import { getFitWidthScale, PdfZoom } from './zoom';
+import { softDisabled, TOOLTIP_EVENTS } from '../a11y';
 
 /** Space left above a page when scrolling to it */
 const PAGE_SCROLL_OFFSET = 12;
@@ -23,6 +40,9 @@ function getScrollBehavior(): ScrollBehavior {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 }
 
+/** Jumps further than this many screens scroll instantly */
+const LONG_JUMP_SCREENS = 3;
+
 /** Longest a programmatic scroll is expected to take, used when `scrollend` is not supported */
 const SCROLL_SETTLE_TIMEOUT = 1000;
 
@@ -30,7 +50,7 @@ const SCROLL_SETTLE_TIMEOUT = 1000;
 function useCurrentPage(scrollRoot: HTMLElement | null) {
   const [currentPage, setCurrentPage] = useState(1);
   const pages = useRef(new Map<number, HTMLDivElement>());
-  const ratios = useRef(new Map<number, number>());
+  const visible = useRef(new Set<number>());
   const observer = useRef<IntersectionObserver | null>(null);
 
   // While scrolling to a page, the pages passed on the way are ignored so the counter
@@ -45,29 +65,54 @@ function useCurrentPage(scrollRoot: HTMLElement | null) {
       return undefined;
     }
 
+    // Measured in pixels, not intersection ratios: a page zoomed to several times the
+    // height of the viewer never reaches a ratio threshold, yet fills the whole view
+    const update = () => {
+      if (scrollTarget.current !== null) {
+        return;
+      }
+
+      const rootRect = scrollRoot.getBoundingClientRect();
+      let best = 0;
+      let bestHeight = 0;
+      visible.current.forEach((pageNumber) => {
+        const rect = pages.current.get(pageNumber)?.getBoundingClientRect();
+        const height = rect
+          ? Math.min(rect.bottom, rootRect.bottom) - Math.max(rect.top, rootRect.top)
+          : 0;
+        if (height > bestHeight) {
+          best = pageNumber;
+          bestHeight = height;
+        }
+      });
+
+      best && setCurrentPage(best);
+    };
+
     observer.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const pageNumber = Number((entry.target as HTMLElement).dataset.pageNumber);
-          ratios.current.set(pageNumber, entry.intersectionRatio);
+          entry.isIntersecting
+            ? visible.current.add(pageNumber)
+            : visible.current.delete(pageNumber);
         });
-
-        let best = 0;
-        let bestRatio = 0;
-        ratios.current.forEach((ratio, pageNumber) => {
-          if (ratio > bestRatio) {
-            best = pageNumber;
-            bestRatio = ratio;
-          }
-        });
-
-        best && scrollTarget.current === null && setCurrentPage(best);
+        update();
       },
-      { root: scrollRoot, threshold: [0, 0.25, 0.5, 0.75, 1] }
+      { root: scrollRoot }
     );
     pages.current.forEach((node) => observer.current?.observe(node));
 
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+    scrollRoot.addEventListener('scroll', onScroll, { passive: true });
+
     return () => {
+      cancelAnimationFrame(frame);
+      scrollRoot.removeEventListener('scroll', onScroll);
       observer.current?.disconnect();
       observer.current = null;
     };
@@ -82,7 +127,7 @@ function useCurrentPage(scrollRoot: HTMLElement | null) {
       observer.current?.observe(node);
     } else {
       pages.current.delete(pageNumber);
-      ratios.current.delete(pageNumber);
+      visible.current.delete(pageNumber);
     }
   }, []);
 
@@ -109,10 +154,11 @@ function useCurrentPage(scrollRoot: HTMLElement | null) {
       const timeout = window.setTimeout(settle, SCROLL_SETTLE_TIMEOUT);
       scrollRoot.addEventListener('scrollend', settle);
       settleScroll.current = settle;
-      scrollRoot.scrollTo({
-        top: node.offsetTop - PAGE_SCROLL_OFFSET,
-        behavior: getScrollBehavior(),
-      });
+      // Long jumps are instant: scrolling smoothly past hundreds of pages would draw each one
+      const top = node.offsetTop - PAGE_SCROLL_OFFSET;
+      const far =
+        Math.abs(top - scrollRoot.scrollTop) > scrollRoot.clientHeight * LONG_JUMP_SCREENS;
+      scrollRoot.scrollTo({ top, behavior: far ? 'auto' : getScrollBehavior() });
     },
     [scrollRoot]
   );
@@ -155,7 +201,17 @@ function scrollRangeIntoView(container: HTMLElement, range: Range) {
 }
 
 export function PdfView() {
-  const { getStyles, src, pdfWorkerSrc, defaultThumbnailsOpened } = useDocViewerContext();
+  const {
+    getStyles,
+    src,
+    pdfWorkerSrc,
+    defaultThumbnailsOpened,
+    thumbnailsPosition,
+    defaultThumbnailsPosition,
+    onThumbnailsPositionChange,
+    labels,
+  } = useDocViewerContext();
+  const title = useDocumentTitle();
   const state = usePdfDocument(src, pdfWorkerSrc);
   const [zoom, setZoom] = useState<PdfZoom>('fit-width');
   const { ref: bodyRef, width: bodyWidth } = useElementSize<HTMLDivElement>();
@@ -164,10 +220,23 @@ export function PdfView() {
   const { layers, version: textLayersVersion, onTextLayer } = useTextLayers();
   const [searchOpened, setSearchOpened] = useState(false);
   const [thumbnailsOpened, setThumbnailsOpened] = useState(defaultThumbnailsOpened ?? false);
+  const [position, setPosition] = useUncontrolled<DocViewerThumbnailsPosition>({
+    value: thumbnailsPosition,
+    defaultValue: defaultThumbnailsPosition,
+    finalValue: 'left',
+    onChange: onThumbnailsPositionChange,
+  });
+  const horizontalThumbnails = position === 'top' || position === 'bottom';
+  // Thumbnails after the pages in the DOM when they are shown after them, so the focus order matches
+  const thumbnailsFirst = position === 'left' || position === 'top';
   const [query, setQuery] = useState('');
   const [debouncedQuery] = useDebouncedValue(query, 200);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
   const pendingScroll = useRef(false);
+
+  // Read out after moving with the page buttons or thumbnails, but not while scrolling
+  const [pageAnnouncement, setPageAnnouncement] = useState('');
 
   const setBodyRef = useMergedRef(bodyRef, setScrollRoot);
 
@@ -178,6 +247,15 @@ export function PdfView() {
       ? getFitWidthScale(bodyWidth, ready.firstPageSize.width)
       : zoom
     : 1;
+
+  const goToPage = (pageNumber: number) => {
+    scrollToPage(pageNumber);
+    // Alternates an invisible character, so the same page is read out again when moved to again
+    setPageAnnouncement(
+      (current) =>
+        labels.pageOf(pageNumber, numPages) + (current.endsWith('\u200b') ? '' : '\u200b')
+    );
+  };
 
   const search = usePdfSearch(ready?.document ?? null, searchOpened ? debouncedQuery : '');
   const activeMatch = search.matches[search.activeIndex];
@@ -235,6 +313,8 @@ export function PdfView() {
   const closeSearch = () => {
     setSearchOpened(false);
     setQuery('');
+    // The search bar held focus, so return it to the button that opens search
+    requestAnimationFrame(() => searchToggleRef.current?.focus());
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -253,11 +333,14 @@ export function PdfView() {
 
   const controls = ready && (
     <>
-      <Tooltip label={thumbnailsOpened ? 'Hide pages' : 'Show pages'}>
+      <Tooltip
+        events={TOOLTIP_EVENTS}
+        label={thumbnailsOpened ? labels.hidePages : labels.showPages}
+      >
         <ActionIcon
           variant={thumbnailsOpened ? 'light' : 'subtle'}
           color="gray"
-          aria-label="Page thumbnails"
+          aria-label={labels.pageThumbnails}
           aria-pressed={thumbnailsOpened}
           onClick={() => setThumbnailsOpened((opened) => !opened)}
         >
@@ -265,28 +348,54 @@ export function PdfView() {
         </ActionIcon>
       </Tooltip>
 
+      {thumbnailsOpened && (
+        <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+          <Popover.Target>
+            <Tooltip events={TOOLTIP_EVENTS} label={labels.thumbnailsPosition}>
+              <ActionIcon variant="subtle" color="gray" aria-label={labels.thumbnailsPosition}>
+                <PanelPositionIcon />
+              </ActionIcon>
+            </Tooltip>
+          </Popover.Target>
+          <Popover.Dropdown p={4}>
+            <SegmentedControl
+              size="xs"
+              value={position}
+              onChange={(value) => setPosition(value as DocViewerThumbnailsPosition)}
+              aria-label={labels.thumbnailsPosition}
+              data={(['left', 'right', 'top', 'bottom'] as const).map((value) => ({
+                value,
+                label: labels[value],
+              }))}
+            />
+          </Popover.Dropdown>
+        </Popover>
+      )}
+
       <Group gap={2} wrap="nowrap">
-        <Tooltip label="Previous page">
+        <Tooltip events={TOOLTIP_EVENTS} label={labels.previousPage}>
           <ActionIcon
             variant="subtle"
             color="gray"
-            aria-label="Previous page"
-            disabled={currentPage <= 1}
-            onClick={() => scrollToPage(currentPage - 1)}
+            aria-label={labels.previousPage}
+            {...softDisabled(currentPage <= 1, () => goToPage(currentPage - 1))}
           >
             <ChevronUpIcon />
           </ActionIcon>
         </Tooltip>
-        <Text size="sm" {...getStyles('pageIndicator')} aria-live="polite">
+        <Text
+          size="sm"
+          {...getStyles('pageIndicator')}
+          title={labels.pageOf(currentPage, numPages)}
+        >
           {currentPage} / {numPages}
         </Text>
-        <Tooltip label="Next page">
+        <Tooltip events={TOOLTIP_EVENTS} label={labels.nextPage}>
           <ActionIcon
             variant="subtle"
             color="gray"
-            aria-label="Next page"
-            disabled={currentPage >= numPages}
-            onClick={() => scrollToPage(currentPage + 1)}
+            aria-label={labels.nextPage}
+            {...softDisabled(currentPage >= numPages, () => goToPage(currentPage + 1))}
           >
             <ChevronDownIcon />
           </ActionIcon>
@@ -296,17 +405,18 @@ export function PdfView() {
       <ZoomControls
         scale={scale}
         fitted={zoom === 'fit-width'}
-        fitLabel="Fit to width"
+        fitLabel={labels.fitToWidth}
         fitIcon={<FitWidthIcon />}
         onZoom={setZoom}
         onFit={() => setZoom('fit-width')}
       />
 
-      <Tooltip label="Search">
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.search}>
         <ActionIcon
           variant={searchOpened ? 'light' : 'subtle'}
           color="gray"
-          aria-label="Search"
+          ref={searchToggleRef}
+          aria-label={labels.search}
           aria-pressed={searchOpened}
           onClick={() => (searchOpened ? closeSearch() : openSearch())}
         >
@@ -314,6 +424,16 @@ export function PdfView() {
         </ActionIcon>
       </Tooltip>
     </>
+  );
+
+  const thumbnails = ready && thumbnailsOpened && (
+    <PdfThumbnails
+      document={ready.document}
+      placeholderSize={ready.firstPageSize}
+      currentPage={currentPage}
+      orientation={horizontalThumbnails ? 'horizontal' : 'vertical'}
+      onSelect={goToPage}
+    />
   );
 
   return (
@@ -326,38 +446,29 @@ export function PdfView() {
           onQueryChange={setQuery}
           matchCount={search.matches.length}
           activeIndex={search.activeIndex}
+          activePage={activeMatch?.pageNumber}
           searching={search.searching || query !== debouncedQuery}
           onNext={search.next}
           onPrevious={search.previous}
           onClose={closeSearch}
         />
       )}
-      <div {...getStyles('main')}>
-        {ready && thumbnailsOpened && (
-          <PdfThumbnails
-            document={ready.document}
-            placeholderSize={ready.firstPageSize}
-            currentPage={currentPage}
-            onSelect={scrollToPage}
-          />
-        )}
+      <div {...getStyles('main')} data-thumbnails-position={position}>
+        {thumbnailsFirst && thumbnails}
         <div
           ref={setBodyRef}
           {...getStyles('body')}
           tabIndex={ready ? 0 : undefined}
+          role={ready ? 'region' : undefined}
+          aria-label={ready ? title : undefined}
+          aria-keyshortcuts={ready ? 'Control+F Meta+F' : undefined}
           onKeyDown={handleKeyDown}
         >
-          {state.status === 'loading' && (
-            <DocViewerMessage>
-              <Loader size="sm" aria-label="Loading document" />
-            </DocViewerMessage>
-          )}
+          {state.status === 'loading' && <DocViewerLoading />}
 
           {state.status === 'error' && (
-            <DocViewerMessage withDownload>
-              {state.reason === 'worker'
-                ? 'PDF preview is not configured: set the pdfWorkerSrc prop'
-                : 'This PDF could not be opened'}
+            <DocViewerMessage withDownload error>
+              {state.reason === 'worker' ? labels.pdfWorkerMissing : labels.pdfError}
             </DocViewerMessage>
           )}
 
@@ -369,6 +480,7 @@ export function PdfView() {
                   pdfjs={ready.pdfjs}
                   document={ready.document}
                   pageNumber={index + 1}
+                  numPages={numPages}
                   scale={scale}
                   placeholderSize={ready.firstPageSize}
                   scrollRoot={scrollRoot}
@@ -379,7 +491,9 @@ export function PdfView() {
             </div>
           )}
         </div>
+        {!thumbnailsFirst && thumbnails}
       </div>
+      {ready && <VisuallyHidden role="status">{pageAnnouncement}</VisuallyHidden>}
     </>
   );
 }

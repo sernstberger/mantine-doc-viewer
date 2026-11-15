@@ -20,6 +20,37 @@ export function PdfWithThumbnails() {
   );
 }
 
+export function PdfThumbnailsBottom() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer
+        src="/sample.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        defaultThumbnailsOpened
+        defaultThumbnailsPosition="bottom"
+        h={600}
+      />
+    </div>
+  );
+}
+
+function LongPdf({ pages }: { pages: number }) {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer
+        src={`/sample-${pages}.pdf`}
+        pdfWorkerSrc={pdfWorkerSrc}
+        defaultThumbnailsOpened
+        h={700}
+      />
+    </div>
+  );
+}
+
+export const Pdf50Pages = () => <LongPdf pages={50} />;
+export const Pdf500Pages = () => <LongPdf pages={500} />;
+export const Pdf1000Pages = () => <LongPdf pages={1000} />;
+
 export function PdfWithoutWorker() {
   return (
     <div style={{ padding: 40 }}>

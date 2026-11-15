@@ -1,5 +1,6 @@
 /**
- * Writes docs/public/sample.pdf, a small multi-page PDF used by Storybook and the docs demos.
+ * Writes docs/public/sample.pdf, a small multi-page PDF used by Storybook and the docs demos,
+ * and sample-50.pdf, sample-500.pdf and sample-1000.pdf for checking long documents.
  * Run with `npx tsx scripts/generate-sample-pdf.ts`.
  */
 import fs from 'node:fs';
@@ -67,6 +68,15 @@ function buildPdf(totalPages: number) {
   return output;
 }
 
-const outputPath = path.join(process.cwd(), 'docs/public/sample.pdf');
-fs.writeFileSync(outputPath, buildPdf(3));
-signale.success(`Wrote ${outputPath}`);
+const SAMPLES: [fileName: string, pages: number][] = [
+  ['sample.pdf', 3],
+  ['sample-50.pdf', 50],
+  ['sample-500.pdf', 500],
+  ['sample-1000.pdf', 1000],
+];
+
+SAMPLES.forEach(([fileName, pages]) => {
+  const outputPath = path.join(process.cwd(), 'docs/public', fileName);
+  fs.writeFileSync(outputPath, buildPdf(pages));
+  signale.success(`Wrote ${outputPath}`);
+});

@@ -1,13 +1,14 @@
-import { ActionIcon, Loader, Tooltip } from '@mantine/core';
+import { ActionIcon, Tooltip } from '@mantine/core';
 import { useElementSize, useMergedRef } from '@mantine/hooks';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { FitScreenIcon, RotateIcon } from '../icons';
 import { clampZoom, zoomIn, zoomOut } from '../zoom';
 import { ZoomControls } from '../ZoomControls';
 import { getImageFitScale, getRotatedSize, ImageRotation, Size } from './image-fit';
-import { DocViewerMessage } from './MessageView';
+import { DocViewerLoading, DocViewerMessage } from './MessageView';
+import { TOOLTIP_EVENTS } from '../a11y';
 
 type ImageZoom = number | 'fit';
 
@@ -88,7 +89,8 @@ function useDragToPan(stage: HTMLDivElement | null) {
 }
 
 export function ImageView() {
-  const { getStyles, src, fileName } = useDocViewerContext();
+  const { getStyles, src, fileName, alt, labels } = useDocViewerContext();
+  const title = useDocumentTitle();
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState(false);
   const [zoom, setZoom] = useState<ImageZoom>('fit');
@@ -170,6 +172,13 @@ export function ImageView() {
     }
   };
 
+  // A server-rendered image can finish loading before React attaches onLoad
+  const checkLoaded = useCallback((image: HTMLImageElement | null) => {
+    if (image?.complete && image.naturalWidth > 0) {
+      setNaturalSize({ width: image.naturalWidth, height: image.naturalHeight });
+    }
+  }, []);
+
   const ready = naturalSize !== null && !failed;
   const frameSize = naturalSize ? getRotatedSize(naturalSize, rotation) : null;
 
@@ -178,16 +187,16 @@ export function ImageView() {
       <ZoomControls
         scale={scale}
         fitted={zoom === 'fit'}
-        fitLabel="Fit to view"
+        fitLabel={labels.fitToView}
         fitIcon={<FitScreenIcon />}
         onZoom={zoomTo}
         onFit={() => zoomTo('fit')}
       />
-      <Tooltip label="Rotate">
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.rotate}>
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label="Rotate"
+          aria-label={labels.rotate}
           onClick={() => setRotation((current) => ((current + 90) % 360) as ImageRotation)}
         >
           <RotateIcon />
@@ -204,6 +213,9 @@ export function ImageView() {
           ref={stageRef}
           {...getStyles('imageStage')}
           tabIndex={ready ? 0 : undefined}
+          role={ready ? 'region' : undefined}
+          aria-label={ready ? title : undefined}
+          aria-keyshortcuts={ready ? 'Plus Minus 0 R' : undefined}
           onKeyDown={handleKeyDown}
           data-pannable={(ready && overflowing) || undefined}
           data-panning={panning || undefined}
@@ -218,8 +230,9 @@ export function ImageView() {
             >
               {!failed && (
                 <img
+                  ref={checkLoaded}
                   src={src}
-                  alt={fileName ?? ''}
+                  alt={alt ?? fileName ?? labels.image}
                   draggable={false}
                   onLoad={(event) => {
                     const { naturalWidth, naturalHeight } = event.currentTarget;
@@ -245,11 +258,11 @@ export function ImageView() {
         {!ready && (
           <div {...getStyles('imageOverlay')}>
             {failed ? (
-              <DocViewerMessage withDownload>This image could not be loaded</DocViewerMessage>
-            ) : (
-              <DocViewerMessage>
-                <Loader size="sm" aria-label="Loading image" />
+              <DocViewerMessage withDownload error>
+                {labels.imageError}
               </DocViewerMessage>
+            ) : (
+              <DocViewerLoading />
             )}
           </div>
         )}

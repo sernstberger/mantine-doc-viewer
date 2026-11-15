@@ -1,7 +1,9 @@
-import { ActionIcon, CloseButton, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, CloseButton, TextInput, Tooltip, VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
+import type { DocViewerLabels } from '../labels';
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from '../icons';
+import { softDisabled, TOOLTIP_EVENTS } from '../a11y';
 
 interface PdfSearchBarProps {
   inputRef: React.Ref<HTMLInputElement>;
@@ -9,27 +11,46 @@ interface PdfSearchBarProps {
   onQueryChange: (query: string) => void;
   matchCount: number;
   activeIndex: number;
+
+  /** Page of the active match */
+  activePage: number | undefined;
   searching: boolean;
   onNext: () => void;
   onPrevious: () => void;
   onClose: () => void;
 }
 
-function getCountLabel({ query, matchCount, activeIndex, searching }: PdfSearchBarProps) {
+function getCountLabel(
+  { query, matchCount, activeIndex, searching }: PdfSearchBarProps,
+  labels: DocViewerLabels
+) {
   if (!query.trim()) {
     return '';
   }
 
   if (searching) {
-    return 'Searching…';
+    return labels.searching;
   }
 
-  return matchCount === 0 ? 'No matches' : `${activeIndex + 1} of ${matchCount}`;
+  return matchCount === 0 ? labels.noMatches : labels.matchOf(activeIndex + 1, matchCount);
+}
+
+function getAnnouncement(
+  { query, matchCount, activeIndex, activePage, searching }: PdfSearchBarProps,
+  labels: DocViewerLabels
+) {
+  if (!query.trim() || searching) {
+    return '';
+  }
+
+  return matchCount === 0 || activePage === undefined
+    ? labels.noMatches
+    : labels.matchOnPage(activeIndex + 1, matchCount, activePage);
 }
 
 export function PdfSearchBar(props: PdfSearchBarProps) {
   const { inputRef, query, onQueryChange, matchCount, onNext, onPrevious, onClose } = props;
-  const { getStyles } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -51,37 +72,35 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
         value={query}
         onChange={(event) => onQueryChange(event.currentTarget.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Search document"
-        aria-label="Search document"
+        placeholder={labels.searchDocument}
+        aria-label={labels.searchDocument}
         leftSection={<SearchIcon />}
         {...getStyles('searchInput')}
       />
-      <span {...getStyles('searchCount')} aria-live="polite">
-        {getCountLabel(props)}
-      </span>
-      <Tooltip label="Previous match">
+      <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
+      {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
+      <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.previousMatch}>
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label="Previous match"
-          disabled={matchCount === 0}
-          onClick={onPrevious}
+          aria-label={labels.previousMatch}
+          {...softDisabled(matchCount === 0, onPrevious)}
         >
           <ChevronUpIcon />
         </ActionIcon>
       </Tooltip>
-      <Tooltip label="Next match">
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.nextMatch}>
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label="Next match"
-          disabled={matchCount === 0}
-          onClick={onNext}
+          aria-label={labels.nextMatch}
+          {...softDisabled(matchCount === 0, onNext)}
         >
           <ChevronDownIcon />
         </ActionIcon>
       </Tooltip>
-      <CloseButton size="sm" aria-label="Close search" onClick={onClose} />
+      <CloseButton size="sm" aria-label={labels.closeSearch} onClick={onClose} />
     </div>
   );
 }

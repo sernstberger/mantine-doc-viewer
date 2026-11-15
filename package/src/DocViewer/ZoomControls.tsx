@@ -3,6 +3,7 @@ import React from 'react';
 import { useDocViewerContext } from './DocViewer.context';
 import { MinusIcon, PlusIcon } from './icons';
 import { MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from './zoom';
+import { softDisabled, TOOLTIP_EVENTS } from './a11y';
 
 interface ZoomControlsProps {
   /** Scale currently applied, including a fitted scale */
@@ -24,17 +25,16 @@ export function ZoomControls({
   onZoom,
   onFit,
 }: ZoomControlsProps) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
 
   return (
     <Group gap={2} wrap="nowrap">
-      <Tooltip label="Zoom out">
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.zoomOut}>
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label="Zoom out"
-          disabled={scale <= MIN_ZOOM + 0.001}
-          onClick={() => onZoom(zoomOut(scale))}
+          aria-label={labels.zoomOut}
+          {...softDisabled(scale <= MIN_ZOOM + 0.001, () => onZoom(zoomOut(scale)))}
         >
           <MinusIcon />
         </ActionIcon>
@@ -42,22 +42,22 @@ export function ZoomControls({
       <UnstyledButton
         {...getStyles('zoomLevel')}
         onClick={() => onZoom(1)}
-        aria-label="Reset zoom to 100%"
+        // The name starts with the visible text, for voice control
+        aria-label={`${Math.round(scale * 100)}%, ${labels.resetZoom}`}
       >
         {Math.round(scale * 100)}%
       </UnstyledButton>
-      <Tooltip label="Zoom in">
+      <Tooltip events={TOOLTIP_EVENTS} label={labels.zoomIn}>
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label="Zoom in"
-          disabled={scale >= MAX_ZOOM - 0.001}
-          onClick={() => onZoom(zoomIn(scale))}
+          aria-label={labels.zoomIn}
+          {...softDisabled(scale >= MAX_ZOOM - 0.001, () => onZoom(zoomIn(scale)))}
         >
           <PlusIcon />
         </ActionIcon>
       </Tooltip>
-      <Tooltip label={fitLabel}>
+      <Tooltip events={TOOLTIP_EVENTS} label={fitLabel}>
         <ActionIcon
           variant={fitted ? 'light' : 'subtle'}
           color="gray"

@@ -66,4 +66,10 @@ describe('pdf search', () => {
     expect(getMatchRanges(segments, [])).toEqual([]);
     expect(getMatchRanges(segments, [shortSpan])).toEqual([]);
   });
+
+  it('keeps match offsets when lowercasing changes the length of a character', () => {
+    const page = buildPageText([{ str: 'İstanbul report', hasEOL: true }]);
+    const [match] = findMatches([page], 'REPORT');
+    expect(page.text.slice(match.start, match.end)).toBe('report');
+  });
 });

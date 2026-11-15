@@ -23,16 +23,18 @@ function useSearchablePages(document: PDFDocumentProxy | null, enabled: boolean)
     }
 
     let cancelled = false;
+    // A page whose text cannot be read is searched as empty, so the other pages still are
     Promise.all(
       Array.from({ length: document.numPages }, (_, index) =>
-        getPageTextContent(document, index + 1).then((textContent) => {
-          const items = getTextItems(textContent);
-          return { text: buildPageText(items), items };
-        })
+        getPageTextContent(document, index + 1).then(
+          (textContent) => {
+            const items = getTextItems(textContent);
+            return { text: buildPageText(items), items };
+          },
+          () => ({ text: buildPageText([]), items: [] })
+        )
       )
-    )
-      .then((result) => !cancelled && setPages(result))
-      .catch(() => !cancelled && setPages([]));
+    ).then((result) => !cancelled && setPages(result));
 
     return () => {
       cancelled = true;

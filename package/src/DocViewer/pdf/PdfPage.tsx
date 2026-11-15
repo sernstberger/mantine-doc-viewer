@@ -11,6 +11,7 @@ interface PdfPageProps {
   pdfjs: PdfJsModule;
   document: PDFDocumentProxy;
   pageNumber: number;
+  numPages: number;
   scale: number;
 
   /** Size at scale 1 used until the page itself has loaded */
@@ -51,13 +52,14 @@ export function PdfPage({
   pdfjs,
   document,
   pageNumber,
+  numPages,
   scale,
   placeholderSize,
   scrollRoot,
   registerPage,
   onTextLayer,
 }: PdfPageProps) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
@@ -71,6 +73,7 @@ export function PdfPage({
 
   useEffect(() => {
     if (!near) {
+      setRendered(false);
       return undefined;
     }
 
@@ -154,10 +157,11 @@ export function PdfPage({
       })}
       data-page-number={pageNumber}
       data-rendered={rendered || undefined}
-      role="img"
-      aria-label={`Page ${pageNumber}`}
+      // A group, not an image: screen readers read the page from its text layer
+      role="group"
+      aria-label={labels.pageOf(pageNumber, numPages)}
     >
-      {near && <canvas ref={canvasRef} {...getStyles('canvas')} />}
+      {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />
     </div>
   );

@@ -1,6 +1,7 @@
 import { render, screen } from '@mantine-tests/core';
 import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import React from 'react';
 import { DocViewer } from '../DocViewer';
 
@@ -16,11 +17,11 @@ function loadImage(width = 800, height = 400) {
 describe('DocViewer image', () => {
   it('shows a loader until the image has loaded', () => {
     render(<DocViewer src="/files/photo.png" />);
-    expect(screen.getByLabelText('Loading image')).toBeInTheDocument();
+    expect(screen.getByText('Loading document')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
 
     loadImage();
-    expect(screen.queryByLabelText('Loading image')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading document')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Fit to view' })).toHaveAttribute(
       'aria-pressed',
       'true'
@@ -42,7 +43,7 @@ describe('DocViewer image', () => {
       'false'
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'Reset zoom to 100%' }));
+    await userEvent.click(screen.getByRole('button', { name: /Reset zoom to 100%/ }));
     expect(image).toHaveStyle({ width: '800px' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
@@ -98,8 +99,42 @@ describe('DocViewer image', () => {
     expect(screen.getByText('125%')).toBeInTheDocument();
 
     rerender(<DocViewer src="/files/two.png" />);
-    expect(screen.getByLabelText('Loading image')).toBeInTheDocument();
+    expect(screen.getByText('Loading document')).toBeInTheDocument();
     loadImage();
     expect(screen.getByText('100%')).toBeInTheDocument();
+  });
+
+  describe('accessibility', () => {
+    it('uses the alt prop, then the file name, then a generic name', () => {
+      const { rerender } = render(<DocViewer src="/files/photo.png" alt="A red bicycle" />);
+      expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'A red bicycle');
+
+      rerender(<DocViewer src="/files/photo.png" />);
+      expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'photo.png');
+
+      rerender(<DocViewer src="data:image/png;base64,AAAA" />);
+      expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'Image');
+    });
+
+    it('names the focusable stage and lists its shortcuts', () => {
+      render(<DocViewer src="/files/photo.png" />);
+      loadImage();
+
+      const region = screen.getByRole('region', { name: 'photo.png' });
+      expect(region).toHaveAttribute('tabindex', '0');
+      expect(region).toHaveAttribute('aria-keyshortcuts', 'Plus Minus 0 R');
+    });
+
+    it('announces load errors as alerts', () => {
+      render(<DocViewer src="/files/missing.png" />);
+      fireEvent.error(screen.getByRole('img', { hidden: true }));
+      expect(screen.getByRole('alert')).toHaveTextContent('This image could not be loaded');
+    });
+
+    it('has no axe violations', async () => {
+      const { container } = render(<DocViewer src="/files/photo.png" />);
+      loadImage();
+      expect((await axe(container)).violations).toEqual([]);
+    });
   });
 });

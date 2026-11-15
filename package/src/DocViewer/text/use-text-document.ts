@@ -29,12 +29,45 @@ export function useTextDocument(src: string, maxSize: number): TextDocumentState
         return { status: 'too-large', size: declaredSize } as const;
       }
 
-      const blob = await response.blob();
-      if (blob.size > maxSize) {
-        return { status: 'too-large', size: blob.size } as const;
+      // Counted while reading, as the size may be missing or be the compressed size
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      const reader = response.body?.getReader();
+
+      if (reader) {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          size += value.byteLength;
+          if (size > maxSize) {
+            controller.abort();
+            return { status: 'too-large', size } as const;
+          }
+          chunks.push(value);
+        }
+      } else {
+        const buffer = new Uint8Array(await response.arrayBuffer());
+        size = buffer.byteLength;
+        if (size > maxSize) {
+          return { status: 'too-large', size } as const;
+        }
+        chunks.push(buffer);
       }
 
-      return { status: 'ready', text: await blob.text() } as const;
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      chunks.forEach((chunk) => {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
+      });
+
+      return {
+        status: 'ready',
+        text: decodeText(bytes, response.headers.get('content-type')),
+      } as const;
     })()
       .then((next) => !cancelled && setState(next))
       .catch((error: Error) => !cancelled && setState({ status: 'error', error }));
@@ -46,6 +79,17 @@ export function useTextDocument(src: string, maxSize: number): TextDocumentState
   }, [src, maxSize]);
 
   return state;
+}
+
+/** Decodes with the charset the server names, UTF-8 when it names none or one the browser does not know */
+export function decodeText(bytes: Uint8Array, contentType: string | null) {
+  const charset = contentType?.match(/charset=["']?([^;"'\s]+)/i)?.[1];
+
+  try {
+    return new TextDecoder(charset ?? 'utf-8').decode(bytes);
+  } catch {
+    return new TextDecoder().decode(bytes);
+  }
 }
 
 export function formatFileSize(bytes: number) {
