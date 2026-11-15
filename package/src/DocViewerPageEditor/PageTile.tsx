@@ -1,7 +1,8 @@
 import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
-import { useDocViewerPageContext } from '../doc-viewer.context';
+import { usePageEditor } from './page-editor-setup';
+import { usePageEditorStyles } from './page-editor-styles';
 import { DragHandleIcon } from '../utils/icons';
 import { useNearViewport } from '../hooks/pdf/use-near-viewport';
 import { usePagePreview } from '../hooks/pdf/use-page-preview';
@@ -31,8 +32,14 @@ interface PageTileProps {
 /** Width of page previews in the editor, in px */
 const TILE_WIDTH = 120;
 
+/**
+ * An option of the editor's listbox; the listbox handles the keys of the focused option. A turned
+ * page keeps the tile's width, so sideways its preview shrinks to fit across it. Touch and pen
+ * drag from the handle, so that swiping the rest of the tile scrolls
+ */
 function PageTileView(props: PageTileProps) {
-  const { getStyles, labels } = useDocViewerPageContext();
+  const getStyles = usePageEditorStyles();
+  const { labels } = usePageEditor()!;
   const { ref, near } = useNearViewport<HTMLDivElement>(props.scrollRoot, '100% 0px');
   const { itemRef, handleRef } = useReorderItem(props.reorder, props.page);
   const tileRef = useMergedRef(ref, itemRef);
@@ -43,19 +50,17 @@ function PageTileView(props: PageTileProps) {
     near,
   });
   const height = size ? (size.height / size.width) * TILE_WIDTH : TILE_WIDTH * 1.3;
-  // A turned page keeps the tile's width: sideways, the preview shrinks to fit across it
   const sideways = props.rotation % 180 !== 0;
   const boxHeight = sideways ? (TILE_WIDTH / height) * TILE_WIDTH : height;
   const fit = sideways ? TILE_WIDTH / height : 1;
+  const reorderProps = getReorderItemProps(props.dragState);
 
   return (
-    // An option in the editor's listbox: the listbox handles the keys for the focused option
-    // (Space selects, arrows move), as in the ARIA listbox pattern
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
       ref={tileRef}
-      {...getStyles('editorPage')}
-      {...getReorderItemProps(props.dragState)}
+      {...reorderProps}
+      {...getStyles('editorPage', { style: reorderProps.style })}
       role="option"
       aria-selected={props.selected}
       aria-label={labels.editorPageLabel(props.page, props.position, props.total)}
@@ -67,7 +72,6 @@ function PageTileView(props: PageTileProps) {
         !props.reorder.isDragClick(event) && props.onSelect(props.page, props.position - 1, event)
       }
     >
-      {/* Touch and pen drag from here, so that swiping the rest of the page scrolls */}
       <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
         <DragHandleIcon />
       </span>

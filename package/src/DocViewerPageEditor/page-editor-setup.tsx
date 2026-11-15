@@ -8,24 +8,27 @@ import {
   usePdfSession,
   type PdfSession,
 } from '../DocViewerRoot/pdf-session-context';
+import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useReturnFocus } from '../hooks/pdf/use-return-focus';
 import { useRegisterController } from '../hooks/use-controller-registry';
 import { useDocViewerStateValue } from '../hooks/use-doc-viewer-state';
+import { DEFAULT_LABELS, type DocViewerPageEditorLabels } from './default-labels';
+import type { DocViewerPageEditorOptions } from './page-editor-extension';
 import {
   buildExtractRequest,
   initialOrder,
   movePage,
   removeSelected,
   type PdfSaveReason,
-} from '../utils/page-edits';
-import type { DocViewerPageEditorOptions } from './page-editor-extension';
+} from './utils/page-edits';
 
 /** The store `mode` while the page editor is open */
 export const EDIT_PAGES_MODE = 'edit-pages';
 
-interface PageEditorContextValue {
+export interface PageEditorContextValue {
   /** Buttons show only icons */
   compact: boolean | undefined;
+  labels: DocViewerPageEditorLabels;
   editing: boolean;
   open: () => void;
   close: () => void;
@@ -35,7 +38,7 @@ interface PageEditorContextValue {
   editPagesRef: (node: HTMLElement | null) => void;
 }
 
-const PageEditorContext = createContext<PageEditorContextValue | null>(null);
+export const PageEditorContext = createContext<PageEditorContextValue | null>(null);
 
 /** The page editor of the viewer, null without the editor extension or outside a PDF */
 export function usePageEditor() {
@@ -45,8 +48,12 @@ export function usePageEditor() {
 type SaveEdit = PageEditorContextValue['save'];
 
 /** Thumbnails drag to reorder and delete pages: the viewer shows the changed document */
-function useThumbnailEdits(session: PdfSession, save: SaveEdit, enabled: boolean) {
-  const { labels } = useDocViewerContext();
+function useThumbnailEdits(
+  session: PdfSession,
+  labels: DocViewerPageEditorLabels,
+  save: SaveEdit,
+  enabled: boolean
+) {
   const { document, numPages } = session.loaded;
   const { showBytes } = session.actions;
   const { announce } = session.position;
@@ -73,6 +80,12 @@ function useThumbnailEdits(session: PdfSession, save: SaveEdit, enabled: boolean
   );
 }
 
+/** The editor's labels: `DEFAULT_LABELS` with the extension's `labels` option */
+function usePageEditorLabels(overrides: Partial<DocViewerPageEditorLabels> | undefined) {
+  const stable = useShallowStable(overrides);
+  return useMemo(() => ({ ...DEFAULT_LABELS, ...stable }), [stable]);
+}
+
 /**
  * The page editor's setup inside the PDF session: the editor mode in the store, the actions of
  * the registry, saving, and reorder and delete for the thumbnails
@@ -81,6 +94,7 @@ export function PageEditorSetup({ children }: { children: React.ReactNode }) {
   const { store, controller, fileName } = useDocViewerContext();
   const session = usePdfSession()!;
   const options = useDocViewerExtensionOptions<DocViewerPageEditorOptions>('page-editor')!;
+  const labels = usePageEditorLabels(options.labels);
   const [mode, setMode] = useDocViewerStateValue(store, 'mode');
   const editing = mode === EDIT_PAGES_MODE;
   const ready = !!session.loaded.ready;
@@ -98,11 +112,16 @@ export function PageEditorSetup({ children }: { children: React.ReactNode }) {
   const close = useCallbackRef(() => setMode('read'));
   useRegisterController(controller, { editPages: open, closePageEditor: close });
 
-  const thumbnailEdits = useThumbnailEdits(session, save, options.withThumbnailEditing !== false);
+  const thumbnailEdits = useThumbnailEdits(
+    session,
+    labels,
+    save,
+    options.withThumbnailEditing !== false
+  );
   const { compact } = options;
   const value = useMemo(
-    () => ({ compact, editing, open, close, save, editPagesRef }),
-    [compact, editing, open, close, save, editPagesRef]
+    () => ({ compact, labels, editing, open, close, save, editPagesRef }),
+    [compact, labels, editing, open, close, save, editPagesRef]
   );
 
   return (

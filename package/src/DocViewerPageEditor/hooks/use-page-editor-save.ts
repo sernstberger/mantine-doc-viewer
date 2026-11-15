@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useState } from 'react';
-import { buildExtractRequest, PageOrder, type PdfSaveReason } from '../../utils/page-edits';
-import { applyPageRotations } from '../../utils/rotate-pages';
+import { buildExtractRequest, PageOrder, type PdfSaveReason } from '../utils/page-edits';
+import { applyPageRotations } from '../utils/rotate-pages';
 
 interface PageEditorSaveInput {
   document: PDFDocumentProxy;

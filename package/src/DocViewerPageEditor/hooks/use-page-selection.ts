@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { PageOrder } from '../../utils/page-edits';
-import { clickSelection, toggleSelection } from '../../utils/page-selection';
+import type { PageOrder } from '../utils/page-edits';
+import { clickSelection, toggleSelection } from '../utils/page-selection';
 
 /** Which pages are selected, in page numbers; `selection` lists them in the order on screen */
 export function usePageSelection(order: PageOrder) {

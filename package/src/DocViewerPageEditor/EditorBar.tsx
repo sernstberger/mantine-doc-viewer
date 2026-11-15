@@ -3,6 +3,7 @@ import React from 'react';
 import { softDisabled } from '../utils/a11y';
 import { DocViewerTooltip } from '../DocViewerToolbar/DocViewerTooltip';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { usePageEditorStyles } from './page-editor-styles';
 import { usePageEditor } from './page-editor-setup';
 import {
   ArrowLeftIcon,
@@ -15,7 +16,7 @@ import {
   TrashIcon,
   UndoIcon,
 } from '../utils/icons';
-import type { PageOrder } from '../utils/page-edits';
+import type { PageOrder } from './utils/page-edits';
 
 interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
   label: string;
@@ -27,8 +28,9 @@ interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
 
 /** An action of the editor bar: a labelled button, or an icon with the label as tooltip with the `compact` option */
 function EditorButton({ label, icon, variant, loading, ...others }: EditorButtonProps) {
-  const { getStyles, size } = useDocViewerContext();
-  const compact = usePageEditor()?.compact;
+  const { size } = useDocViewerContext();
+  const getStyles = usePageEditorStyles();
+  const { compact } = usePageEditor()!;
 
   if (!compact) {
     return (
@@ -78,7 +80,7 @@ interface EditorBarProps {
 
 /** The editing actions, from moving pages to saving */
 function EditorActions(props: EditorBarProps) {
-  const { labels } = useDocViewerContext();
+  const { labels } = usePageEditor()!;
   const rtl = useDirection().dir === 'rtl';
 
   return (
@@ -144,7 +146,8 @@ function EditorActions(props: EditorBarProps) {
 
 /** The bar above the pages: the title and count of selected pages, and the actions */
 export function EditorBar(props: EditorBarProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const getStyles = usePageEditorStyles();
+  const { labels } = usePageEditor()!;
 
   return (
     <Group {...getStyles('editorBar')} gap="xs" justify="space-between" wrap="wrap">

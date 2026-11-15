@@ -53,13 +53,6 @@ describe('index', () => {
 describe('labels', () => {
   it('formats every default label function', () => {
     const l = DEFAULT_LABELS;
-    expect(l.selectedCountLabel(3)).toBe('3 selected');
-    expect(l.editorPageLabel(2, 3, 4)).toBe('Page 2, position 3 of 4');
-    expect(l.pageMovedLabel(2, 3)).toBe('Page 2 moved to position 3');
-    expect(l.pagesRemovedLabel(1)).toBe('1 page removed');
-    expect(l.pagesRemovedLabel(3)).toBe('3 pages removed');
-    expect(l.pagesRotatedLabel(1)).toBe('1 page turned');
-    expect(l.pagesRotatedLabel(2)).toBe('2 pages turned');
     expect(l.downloadAttachmentLabel('a.txt')).toBe('Download attachment a.txt');
     expect(l.pageOfLabel(1, 5)).toBe('Page 1 of 5');
     expect(l.thumbnailLabel(2)).toBe('Page 2');
