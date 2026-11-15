@@ -57,8 +57,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 ## 4. Polish
 
 - [ ] Check search highlight colours in Safari and Firefox (only checked in Chrome)
-- [ ] Swap the toolbar to Mantine's `Toolbar`, keeping soft-disabled buttons, per-control hiding
-      and the `control` Styles API part
+- [x] Swap the toolbar to Mantine's `Toolbar` (`controls` is now a `Toolbar`: one tab stop, arrow keys,
+      Home and End), keeping soft-disabled buttons, per-control hiding and the `control` Styles API part
 
 ## Probably out of scope (confirm before dropping)
 

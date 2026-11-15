@@ -17,6 +17,8 @@ export function useControlProps() {
 
   return (pressed?: boolean) => ({
     ...getStyles('control'),
+    // Makes the button a stop for the arrow keys of Mantine's Toolbar
+    'data-toolbar-toggle': true,
     size: size.control,
     variant: pressed ? 'light' : 'subtle',
     color: pressed ? (color ?? 'gray') : 'gray',

@@ -1,4 +1,4 @@
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Toolbar } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { DocViewerTooltip, useControlProps } from './controls';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
@@ -63,7 +63,8 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
       ) : (
         <span {...getStyles('title')} />
       )}
-      <div {...getStyles('controls')}>
+      {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
+      <Toolbar unstyled withBorder={false} aria-label={labels.toolbar} {...getStyles('controls')}>
         {children}
         {toolbarSection}
         {withPrint && show('print') && onPrint && (
@@ -106,7 +107,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
             </ActionIcon>
           </DocViewerTooltip>
         )}
-      </div>
+      </Toolbar>
     </div>
   );
 }
