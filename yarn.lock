@@ -8905,8 +8905,8 @@ __metadata:
     "@mantine/core": ^9.7.0
     "@mantine/hooks": ^9.7.0
     pdfjs-dist: ^6.5.0
-    react: ^18.x || ^19.x
-    react-dom: ^18.x || ^19.x
+    react: ^19.2.0
+    react-dom: ^19.2.0
   languageName: unknown
   linkType: soft
 
