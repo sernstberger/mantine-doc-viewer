@@ -142,7 +142,9 @@ export function PdfThumbnails({
     enabled: !!onReorder,
   });
 
-  const handleKeyDown = useThumbnailKeys({ numPages, horizontal, onSelect, onDelete });
+  // The last page stays: no delete button, and Delete does nothing
+  const deletePage = numPages > 1 ? onDelete : undefined;
+  const handleKeyDown = useThumbnailKeys({ numPages, horizontal, onSelect, onDelete: deletePage });
 
   return (
     <div
@@ -151,7 +153,7 @@ export function PdfThumbnails({
       role="listbox"
       aria-label={labels.pages}
       aria-orientation={horizontal ? 'horizontal' : 'vertical'}
-      aria-keyshortcuts={onDelete && numPages > 1 ? 'Delete Backspace' : undefined}
+      aria-keyshortcuts={deletePage ? 'Delete Backspace' : undefined}
       data-orientation={orientation}
       onKeyDown={handleKeyDown}
     >
@@ -168,7 +170,7 @@ export function PdfThumbnails({
           scrollRoot={scrollRoot}
           reorder={reorder}
           onSelect={onSelect}
-          onDelete={numPages > 1 ? onDelete : undefined}
+          onDelete={deletePage}
         />
       ))}
     </div>

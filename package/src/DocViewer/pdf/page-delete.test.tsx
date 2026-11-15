@@ -2,6 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
+import { mockFetch } from '../../../../test-utils/mock-fetch';
 import { mockPdf } from '../../../../test-utils/mock-pdf';
 import type { DocViewerController } from '../controller';
 import { DocViewer } from '../DocViewer';
@@ -71,7 +72,10 @@ describe('delete pages from the sidebar', () => {
     const { listbox, onSave } = await openThumbnails({}, 1);
     expect(screen.queryByRole('button', { name: /^Delete page/ })).not.toBeInTheDocument();
     fireEvent.keyDown(within(listbox).getAllByRole('option')[0], { key: 'Delete' });
+    // Give a delete time to run: nothing is saved and the page stays
+    await act(async () => {});
     expect(onSave).not.toHaveBeenCalled();
+    expect(within(listbox).getAllByRole('option')).toHaveLength(1);
   });
 
   it('is off without withPageEditing', async () => {
@@ -114,8 +118,11 @@ describe('get the bytes of the document as shown', () => {
 
   it('gives null before a PDF is loaded and for other documents', async () => {
     const controller = createRef<DocViewerController>();
+    mockFetch('hi');
     render(<DocViewer src="data:text/plain,hi" fileName="a.txt" controllerRef={controller} />);
     expect(await controller.current!.getBytes()).toBeNull();
+    // Let the text finish loading inside the test
+    expect(await screen.findByText('hi')).toBeInTheDocument();
   });
 });
 
