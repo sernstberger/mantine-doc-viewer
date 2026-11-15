@@ -8,7 +8,6 @@ import type {
   DocViewerZoom,
 } from '../doc-viewer.types';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
-import type { DocViewerMarkupTool } from '../DocViewerMarkup/utils/markup';
 import type { DocViewerPageRect } from '../utils/page-points';
 
 export type {
@@ -38,17 +37,15 @@ export interface DocViewerPagesEvents {
   onTextSelect?: (text: string, details: { page: number; rects: DocViewerPageRect[] }) => void;
 }
 
-/** What views put into the registry: the actions, the extension actions, and `isPrintable` */
+/** What views put into the registry: the actions, `isPrintable`, and the actions of extensions by name */
 export type ControllerImplementation = Partial<
   Omit<DocViewerActions, 'nextSpread'> & {
     nextSpread: () => void;
-    editPages: () => void;
-    closePageEditor: () => void;
-    setMarkupTool: (tool: DocViewerMarkupTool | null) => void;
-    saveMarkup: () => Promise<void>;
     isPrintable: () => boolean;
   }
->;
+> & {
+  [extensionAction: string]: unknown;
+};
 
 const registries = new WeakMap<DocViewerStore, React.RefObject<ControllerImplementation>>();
 
@@ -60,6 +57,14 @@ export function getControllerRegistry(store: DocViewerStore) {
     registries.set(store, registry);
   }
   return registry;
+}
+
+/** An action an extension registered under `name`, typed by the extension that calls it */
+export function getExtensionAction<Action extends (...args: never[]) => unknown>(
+  store: DocViewerStore,
+  name: string
+) {
+  return getControllerRegistry(store).current[name] as Action | undefined;
 }
 
 /** Puts a view's actions into the registry, always the latest ones, and takes them out on unmount */
