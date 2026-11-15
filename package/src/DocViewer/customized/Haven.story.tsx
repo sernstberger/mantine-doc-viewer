@@ -1,8 +1,9 @@
-import { Button, Checkbox, TextInput } from '@mantine/core';
+import { Button, Checkbox, TextInput, UnstyledButton } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import type { DocViewerController } from '../controller';
 import { DocViewer } from '../DocViewer';
+import type { DocViewerMark } from '../pdf/markup';
 import classes from './Haven.module.css';
 
 export default { title: 'DocViewer/Apps/Haven (rental agreement checkout)' };
@@ -14,6 +15,9 @@ const RATE = 214;
 const CLEANING = 95;
 const SERVICE = 148;
 
+/** The guest's signature line on page 4, in PDF points from the page's top-left */
+const SIGN_LINE = { x: 64, y: 492, width: 220 };
+
 function money(value: number) {
   return `$${value.toLocaleString('en-US')}`;
 }
@@ -21,7 +25,7 @@ function money(value: number) {
 /**
  * A guest booking a lake cabin must read the house agreement to the end and sign before
  * paying. The viewer reports which pages have been seen; the booking card turns that into a
- * reading meter and only then lets the guest sign.
+ * reading meter and only then lets the guest sign, by hand, on the agreement's own line.
  */
 export function Haven() {
   const controller = useRef<DocViewerController>(null);
@@ -30,6 +34,9 @@ export function Haven() {
   const [name, setName] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [signed, setSigned] = useState(false);
+  const [signing, setSigning] = useState(false);
+  const [marks, setMarks] = useState<DocViewerMark[]>([]);
+  const signature = marks.find((mark) => mark.type === 'signature');
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,15 +54,22 @@ export function Haven() {
 
   const readAll = seen.length === PAGES.length;
   const trimmed = name.trim();
-  const canSign = readAll && trimmed.length > 1 && agreed && !signed;
+  const canSign = readAll && trimmed.length > 1 && agreed && !!signature && !signed;
   const total = NIGHTS * RATE + CLEANING + SERVICE;
 
   let hint = 'Read to the last page to unlock signing.';
   if (signed) {
     hint = 'Signed on 14 November 2026. Next, pay to confirm.';
+  } else if (signing) {
+    hint = 'Sign above the Guest line on page 4.';
   } else if (readAll) {
     hint = 'You have read all four pages.';
   }
+
+  const startSigning = () => {
+    setSigning(true);
+    controller.current?.goToPage(PAGES.length);
+  };
 
   return (
     <div className={classes.page}>
@@ -86,6 +100,34 @@ export function Haven() {
               matchColor="#ffe3a3"
               activeMatchColor="#ffb4bd"
               onPageChange={handlePageChange}
+              // The guest signs with a finger or the mouse; the signature is written into the PDF
+              markupTool={signing ? 'signature' : null}
+              markup={marks}
+              onMarkupChange={setMarks}
+              markupColor="#2a3558"
+              markupWidth={1.6}
+              onSave={(bytes, { reason }) => {
+                reason === 'annotate' &&
+                  setToast(`Signed. Agreement saved, ${Math.round(bytes.length / 1024)} KB`);
+              }}
+              renderPageOverlay={({ pageNumber, scale }) =>
+                pageNumber === PAGES.length &&
+                !signed && (
+                  <div
+                    className={classes.signHere}
+                    data-active={signing || undefined}
+                    data-signed={signature ? true : undefined}
+                    style={{
+                      left: SIGN_LINE.x * scale,
+                      top: (SIGN_LINE.y - 46) * scale,
+                      width: SIGN_LINE.width * scale,
+                      height: 46 * scale,
+                    }}
+                  >
+                    {!signature && <span className={classes.signFlag}>Sign here</span>}
+                  </div>
+                )
+              }
               toolbarControls={{
                 title: false,
                 thumbnails: false,
@@ -113,7 +155,6 @@ export function Haven() {
               }}
               // MISSING: a page-visibility callback with the fraction seen. onPageChange reports only the current page, so "read" is approximated by pages reached.
               // MISSING: a scroll-to-end signal ("reached the bottom of the last page") to unlock signing exactly.
-              // MISSING: drawing a signature onto a page (annotations layer): the signature is only mirrored in the card.
             />
           </div>
         </section>
@@ -212,10 +253,32 @@ export function Haven() {
                 maxLength={40}
                 classNames={{ label: classes.inputLabel, input: classes.input }}
               />
-              <div className={classes.signature} data-signed={signed || undefined}>
-                <span className={classes.signatureInk}>{trimmed}</span>
-                <span className={classes.signatureLine} />
-              </div>
+              {signature ? (
+                <div className={classes.signed}>
+                  <span className={classes.signedText}>Signed on page 4</span>
+                  {!signed && (
+                    <UnstyledButton
+                      className={classes.signAgain}
+                      onClick={() => {
+                        setMarks([]);
+                        startSigning();
+                      }}
+                    >
+                      Sign again
+                    </UnstyledButton>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="default"
+                  fullWidth
+                  className={classes.signButton}
+                  onClick={startSigning}
+                  disabled={signing}
+                >
+                  {signing ? 'Signing on page 4' : 'Sign on the agreement'}
+                </Button>
+              )}
               <Checkbox
                 label="I have read the house agreement and agree to follow it"
                 checked={agreed}
@@ -239,10 +302,11 @@ export function Haven() {
                 fullWidth
                 className={classes.continue}
                 disabled={!canSign}
-                onClick={() => {
+                onClick={async () => {
+                  setSigning(false);
                   setSigned(true);
-                  controller.current?.goToPage(PAGES.length);
-                  setToast('Signed');
+                  // Writes the drawn signature into the agreement and hands the PDF to onSave
+                  await controller.current?.saveMarkup();
                 }}
               >
                 Sign and continue

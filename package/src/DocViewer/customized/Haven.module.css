@@ -1,7 +1,7 @@
 /*
  * Haven: a friendly travel marketplace checkout. The story owns its white background in both
  * colour schemes, like the real site. The bold thing is the reading meter in the booking card,
- * which fills as the guest reaches each page, and the signature that lands on the line.
+ * which fills as the guest reaches each page, and the signature the guest draws on the agreement's own line.
  */
 
 .page {
@@ -430,46 +430,72 @@
   }
 }
 
-.signature {
-  position: relative;
-  height: 56px;
-}
+.signButton {
+  height: 48px;
+  border: 1px dashed #b0b0b0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
 
-.signatureInk {
-  position: absolute;
-  right: 4px;
-  bottom: 12px;
-  left: 4px;
-  overflow: hidden;
-  color: #2a3558;
-  font-family: Caveat, cursive;
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  text-overflow: clip;
-  transform: rotate(-2deg);
-  transform-origin: left bottom;
-
-  .signature[data-signed] & {
-    animation: ink 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+  &:disabled {
+    border-color: var(--haven-rose);
+    background: #fff5f6;
+    color: var(--haven-rose-dark);
   }
 }
 
-.signatureLine {
+.signed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding-inline: 14px;
+  border: 1px solid var(--haven-ink);
+  border-radius: 8px;
+}
+
+.signedText {
+  font-weight: 600;
+}
+
+.signAgain {
+  color: var(--haven-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* On the agreement: the guest line, flagged until there is a signature on it */
+.signHere {
   position: absolute;
-  right: 0;
-  bottom: 8px;
+  border-radius: 4px;
+  pointer-events: none;
+
+  &[data-active] {
+    background: rgb(224 71 90 / 0.06);
+    outline: 1.5px dashed var(--haven-rose);
+    outline-offset: 2px;
+  }
+
+  &[data-signed] {
+    background: none;
+    outline: 0;
+  }
+}
+
+.signFlag {
+  position: absolute;
+  bottom: 4px;
   left: 0;
-  border-bottom: 2px dotted #b0b0b0;
-
-  .signature[data-signed] & {
-    border-bottom: 2px solid var(--haven-ink);
-  }
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--haven-rose);
+  color: #fff;
+  font-family: Figtree, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .checkLabel {
@@ -545,23 +571,6 @@
   height: 10px;
   border-radius: 50%;
   background: #4bd18a;
-}
-
-@keyframes ink {
-  0% {
-    clip-path: inset(-20% 100% -20% 0);
-    opacity: 0.6;
-    translate: 0 -14px;
-  }
-
-  60% {
-    opacity: 1;
-  }
-
-  100% {
-    clip-path: inset(-20% 0 -20% 0);
-    translate: 0 0;
-  }
 }
 
 @keyframes toast-in {
