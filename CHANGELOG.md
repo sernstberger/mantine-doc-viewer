@@ -7,7 +7,7 @@ First release.
 Formats
 
 - `DocViewer` for PDFs (pdf.js), images, plain text, code, JSON and markdown, with custom
-  `renderers` (a renderer's `DocViewerBody` gets `onLoad` and `onError` helpers that report to
+  `renderers` (the `useDocViewer()` hook gives a renderer `onLoad` and `onError` helpers that report to
   `onDocumentLoad` and `onDocumentError`)
 - Images: fit, zoom, pinch, rotate, drag to pan
 
