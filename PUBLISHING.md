@@ -2,10 +2,14 @@
 
 Everything below the line is outward facing and done by hand. Already checked locally:
 
-- `npm test` passes (format, types, lint, 386 tests, 100% coverage)
+- `npm test` passes (syncpack, format, types, lint, 642 tests, 100% coverage). Run `npm run docgen` first on a fresh clone: the docs typecheck reads `docs/docgen.json`
 - `npm run build` and `npm run docs:build` succeed, with no CSS warnings from Next.js
-- The packed tarball (259 kB, 353 files, no tests or stories) installs in a fresh Vite + React 19
-  app, typechecks, builds, renders a PDF, and loads pdf.js and markdown only when needed
+- The packed tarball (166 kB, 319 files with README and LICENSE: `dist` only, no source maps, tests or
+  stories) installs in a fresh Vite + React 19 app, typechecks, builds, renders a PDF, and loads
+  pdf.js and markdown only when needed
+- The types are one bundled file (`index.d.ts` and `index.d.mts`); `npx @arethetypeswrong/cli --pack package`
+  is green for node10, node16 (CJS and ESM) and bundler (only the CSS files show as unresolved, which
+  is expected), and a scratch app on `moduleResolution` nodenext and bundler type-checks
 - The CommonJS and ESM entry points both load
 - The name `mantine-doc-viewer` is free on npm
 
@@ -15,7 +19,7 @@ Everything below the line is outward facing and done by hand. Already checked lo
 
 1. Create the public repository `sernstberger/mantine-doc-viewer` (package.json `repository`,
    `homepage` and `bugs` already point there).
-2. Merge `feat/pdf-viewer` into `main`, then push `main`.
+2. Push `main` (development happens on `main`).
 3. Settings, Pages: deploy from the `gh-pages` branch (created by the first `docs:deploy`).
 
 ## 2. npm
@@ -26,8 +30,11 @@ Everything below the line is outward facing and done by hand. Already checked lo
    - copies `README.md` and `LICENSE` into `package/`
    - bumps 0.0.0 to 0.1.0 and runs `npm publish --access public`
    - commits "Release 0.1.0", pushes, and opens a GitHub release page to fill in
-   - then `docs:deploy` builds the docs and pushes them to `gh-pages`
-3. Move the 0.1.0 notes from `CHANGELOG.md` into the GitHub release.
+   - `release:minor` is `tsx scripts/release minor && npm run docs:deploy`, so only when the
+     release succeeds does `docs:deploy` build the docs and push them to `gh-pages`. If the release
+     script fails it exits 1 with a message and the docs are not deployed
+3. Replace "fill in on release day" in the `CHANGELOG.md` heading with the date of the release (and
+   commit it), then move the 0.1.0 notes into the GitHub release.
 
 ## 3. Check what was published
 
