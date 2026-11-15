@@ -151,3 +151,6 @@ docs/docgen.json
 # Agent worktrees and Storybook builds (copies of the source; keep them out of format, lint and tests)
 .claude/worktrees/
 storybook-static/
+playwright-report
+blob-report
+test-results
