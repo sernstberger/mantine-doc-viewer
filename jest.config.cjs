@@ -9,6 +9,9 @@ module.exports = {
     '^.+\\.tsx?$': ['esbuild-jest', { target: 'es2022', sourcemap: true }],
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
+  // Agent worktrees under .claude/ hold whole copies of the repo; their tests are not ours
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
+  modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   // Every source file is fully covered; keep it that way
   // A summary in the terminal, and lcov for editors and CI
   coverageReporters: ['text-summary', 'lcov'],
