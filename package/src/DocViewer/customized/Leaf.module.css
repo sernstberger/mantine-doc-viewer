@@ -1,0 +1,604 @@
+/*
+ * Leaf: an e-reader. The page is the product; the room around it takes the paper's mood (pale
+ * sage for white, toasted for sepia, near black at night) and the bars are only words and thin
+ * lines in the margins, gone after the first turn. The one bold moment is the page turn itself.
+ *
+ * On a phone (below Mantine's sm, 48em) the room is the paper, so the page fills the screen.
+ */
+
+.app {
+  --leaf-room: #e2e6e0;
+  --leaf-paper: #fdfdfb;
+  --leaf-ink: #252a26;
+  --leaf-muted: #69726b;
+  --leaf-accent: #3d6a4f;
+  --leaf-line: rgb(37 42 38 / 0.14);
+  --leaf-panel: #f8f9f6;
+  --leaf-well: rgb(37 42 38 / 0.07);
+  --leaf-shadow: rgb(34 46 37 / 0.34);
+  --leaf-blend: multiply;
+  --leaf-canvas-filter: none;
+  --leaf-fade: 220ms;
+
+  position: relative;
+  height: 100vh;
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--leaf-room);
+  color: var(--leaf-ink);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 13px;
+  transition: background-color 300ms ease;
+
+  &[data-paper='sepia'] {
+    --leaf-room: #d6c7a6;
+    --leaf-paper: #f5e9d1;
+    --leaf-ink: #3e3121;
+    --leaf-muted: #7b6950;
+    --leaf-accent: #8a5a2b;
+    --leaf-line: rgb(62 49 33 / 0.16);
+    --leaf-panel: #f8efdd;
+    --leaf-well: rgb(62 49 33 / 0.08);
+    --leaf-shadow: rgb(74 52 24 / 0.38);
+  }
+
+  /* Night: the page is inverted and laid on dark paper; screen keeps the paper's own tone */
+  &[data-paper='night'] {
+    --leaf-room: #0f1112;
+    --leaf-paper: #1c1e20;
+    --leaf-ink: #dcd8d0;
+    --leaf-muted: #8d918e;
+    --leaf-accent: #9dcaa9;
+    --leaf-line: rgb(220 216 208 / 0.14);
+    --leaf-panel: #222528;
+    --leaf-well: rgb(220 216 208 / 0.07);
+    --leaf-shadow: rgb(0 0 0 / 0.7);
+    --leaf-blend: screen;
+    --leaf-canvas-filter: invert(1) hue-rotate(180deg) brightness(0.8);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    --leaf-fade: 120ms;
+
+    transition: none;
+  }
+
+  @mixin smaller-than 48em {
+    height: 100dvh;
+    min-height: 0;
+    background: var(--leaf-paper);
+  }
+}
+
+/* ---------------------------------- the page ---------------------------------- */
+
+.room {
+  position: absolute;
+  inset: 0;
+}
+
+/* The space a page or spread may take; the bars sit in the margins around it */
+.desk {
+  position: absolute;
+  inset: 64px 32px 96px;
+  display: grid;
+  place-items: center;
+
+  @mixin smaller-than 48em {
+    inset: calc(48px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
+.book {
+  position: relative;
+  transition: opacity 140ms ease;
+
+  /* A jump from the scrubber or the contents: out, move, back in */
+  .app[data-turning='jump'] & {
+    opacity: 0;
+  }
+
+  /* A flip plays in the overlay while the viewer moves underneath */
+  .app[data-turning='flip'] & {
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.viewer {
+  width: 100%;
+  height: 100%;
+}
+
+/* The app turns the pages: the viewer does not scroll for the reader */
+.app .body {
+  overflow: hidden;
+  scrollbar-width: none;
+  touch-action: none;
+}
+
+/* Matches PAGE_INSET in the story: the fitted page sits centred in the viewer */
+.app .pages {
+  padding: 12px;
+
+  &[data-layout] {
+    row-gap: 64px;
+  }
+}
+
+.page {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 22px 46px -22px var(--leaf-shadow);
+
+  @mixin smaller-than 48em {
+    box-shadow: none;
+  }
+}
+
+.canvas,
+.sheetCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: var(--leaf-canvas-filter);
+  mix-blend-mode: var(--leaf-blend);
+}
+
+/* The spine: pages darken a little towards the binding */
+.gutter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  &[data-side='left'] {
+    background: linear-gradient(
+      to left,
+      rgb(0 0 0 / 0.07),
+      rgb(0 0 0 / 0.02) 3%,
+      transparent 9%
+    );
+  }
+
+  &[data-side='right'] {
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.08),
+      rgb(0 0 0 / 0.02) 3%,
+      transparent 9%
+    );
+  }
+
+  &[data-side='single'] {
+    background: linear-gradient(to right, rgb(0 0 0 / 0.07), transparent 5%);
+
+    @mixin smaller-than 48em {
+      background: none;
+    }
+  }
+}
+
+/* ---------------------------------- the turn ---------------------------------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  perspective: 1600px;
+  pointer-events: none;
+}
+
+.face {
+  position: absolute;
+  overflow: hidden;
+  background: var(--leaf-paper);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 22px 46px -22px var(--leaf-shadow);
+
+  /* The same spine shading as the pages in the viewer */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  &[data-side='left']::after {
+    background: linear-gradient(
+      to left,
+      rgb(0 0 0 / 0.07),
+      rgb(0 0 0 / 0.02) 3%,
+      transparent 9%
+    );
+  }
+
+  &[data-side='right']::after {
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.08),
+      rgb(0 0 0 / 0.02) 3%,
+      transparent 9%
+    );
+  }
+
+  &[data-side='single']::after {
+    background: linear-gradient(to right, rgb(0 0 0 / 0.07), transparent 5%);
+  }
+
+  @mixin smaller-than 48em {
+    box-shadow: none;
+  }
+}
+
+/* The sheet that turns over the spine, front and back */
+.sheet {
+  position: absolute;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.front,
+.back {
+  /* WebKit still wants the prefix to hide the face turned away */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-shadow: 0 0 24px -6px var(--leaf-shadow);
+}
+
+.front {
+  transform: rotateY(0deg);
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+
+/* The turning page darkens towards its free edge as it lifts away from the light */
+.bendShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to right,
+    rgb(0 0 0 / 0.02),
+    rgb(0 0 0 / 0.1) 60%,
+    rgb(0 0 0 / 0.22)
+  );
+  opacity: 0;
+}
+
+/* The shadow the lifted sheet throws on the pages below it, strongest at the spine */
+.castShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+
+  .face[data-side='right'] > &,
+  .face[data-side='single'] > & {
+    background: linear-gradient(to right, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.05) 22%, transparent 45%);
+  }
+
+  .face[data-side='left'] > & {
+    background: linear-gradient(to left, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.05) 22%, transparent 45%);
+  }
+}
+
+/* Brightness: a dark veil over the room and the bars, never in the way of a tap */
+.dim {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: #000;
+  pointer-events: none;
+}
+
+/* ----------------------------------- taps ----------------------------------- */
+
+.zones {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 24% minmax(0, 1fr) 24%;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zone {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--leaf-accent);
+    outline-offset: -6px;
+    border-radius: 12px;
+  }
+}
+
+/* ----------------------------------- bars ----------------------------------- */
+
+.bar {
+  position: absolute;
+  z-index: 5;
+  transition:
+    opacity var(--leaf-fade) ease,
+    translate var(--leaf-fade) ease;
+
+  .app:not([data-chrome]) & {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity var(--leaf-fade) linear;
+  }
+}
+
+.top {
+  inset: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  padding: 0 12px;
+
+  .app:not([data-chrome]) & {
+    translate: 0 -6px;
+  }
+
+  @mixin smaller-than 48em {
+    height: calc(48px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 4px 0;
+    gap: 4px;
+  }
+}
+
+.library {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 2px;
+  height: 36px;
+  padding: 0 10px 0 4px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--leaf-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--leaf-ink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--leaf-accent);
+    outline-offset: 0;
+  }
+}
+
+.libraryLabel {
+  @mixin smaller-than 48em {
+    display: none;
+  }
+}
+
+.heading {
+  min-width: 0;
+  text-align: center;
+}
+
+.bookTitle {
+  overflow: hidden;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 19px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @mixin smaller-than 48em {
+    font-size: 17px;
+  }
+}
+
+.bookAuthor {
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--leaf-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-self: end;
+  gap: 2px;
+}
+
+.action {
+  color: var(--leaf-muted);
+
+  &:hover {
+    color: var(--leaf-ink);
+  }
+
+  &[aria-expanded='true'] {
+    color: var(--leaf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--leaf-accent);
+    outline-offset: 0;
+  }
+}
+
+.aa {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bottom {
+  bottom: 0;
+  left: 50%;
+  width: min(560px, 100% - 32px);
+  padding-bottom: 22px;
+  translate: -50% 0;
+
+  .app:not([data-chrome]) & {
+    translate: -50% 6px;
+  }
+
+  @mixin smaller-than 48em {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--leaf-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+
+  & > :last-child {
+    text-align: end;
+  }
+}
+
+.brand {
+  display: inline-flex;
+  color: var(--leaf-accent);
+}
+
+/* ---------------------------------- controls ---------------------------------- */
+
+.slider {
+  --slider-color: var(--leaf-accent);
+  --slider-track-bg: var(--leaf-line);
+
+  flex: 1;
+}
+
+.sliderTrack {
+  &::before {
+    background-color: var(--leaf-line);
+  }
+}
+
+.sliderBar {
+  background-color: var(--leaf-accent);
+}
+
+.sliderThumb {
+  border: 2px solid var(--leaf-accent);
+  background-color: var(--leaf-paper);
+  color: var(--leaf-accent);
+}
+
+.sliderMark {
+  width: 2px;
+  height: 8px;
+  border: 0;
+  border-radius: 1px;
+  background-color: var(--leaf-muted);
+  opacity: 0.6;
+  transform: translate(-1px, -1px);
+}
+
+.sliderLabel {
+  background-color: var(--leaf-ink);
+  color: var(--leaf-paper);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dropdown {
+  border: 1px solid var(--leaf-line);
+  border-radius: 14px;
+  background-color: var(--leaf-panel);
+  color: var(--leaf-ink);
+  box-shadow: 0 18px 40px -16px var(--leaf-shadow);
+}
+
+.menuLabel {
+  color: var(--leaf-muted);
+  font-size: 12px;
+}
+
+.menuItem {
+  color: var(--leaf-ink);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  font-weight: 500;
+
+  &[data-hovered] {
+    background-color: var(--leaf-well);
+  }
+
+  &[data-current] {
+    color: var(--leaf-accent);
+  }
+}
+
+.menuPage {
+  color: var(--leaf-muted);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.settingLabel {
+  margin: 4px 2px 8px;
+  color: var(--leaf-muted);
+  font-size: 12px;
+
+  & ~ & {
+    margin-top: 16px;
+  }
+}
+
+.papers {
+  background-color: var(--leaf-well);
+}
+
+.paperIndicator {
+  background-color: var(--leaf-paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+.paperLabel {
+  color: var(--leaf-muted);
+
+  &[data-active] {
+    color: var(--leaf-ink);
+  }
+}
+
+.brightness {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px 4px;
+  color: var(--leaf-muted);
+}
