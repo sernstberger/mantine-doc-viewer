@@ -17,8 +17,13 @@ async function main() {
     .filter((file) => !only || file === `${only}.ts`);
 
   for (const file of files) {
-    const source = (await import(path.join(dir, file))).default as StoryPdfSource;
-    signale.success(`Wrote ${writeStoryPdf(source)}`);
+    // A generator may default-export one source, or a list when it writes several PDFs
+    const exported = (await import(path.join(dir, file))).default as
+      | StoryPdfSource
+      | StoryPdfSource[];
+    for (const source of Array.isArray(exported) ? exported : [exported]) {
+      signale.success(`Wrote ${writeStoryPdf(source)}`);
+    }
   }
 }
 

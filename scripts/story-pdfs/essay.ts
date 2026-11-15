@@ -1,4 +1,10 @@
-/** A Year 10 persuasive essay for the Markbook (teacher grading) story: 3 Letter pages in Times */
+/**
+ * The Year 10 persuasive essays for the Markbook (teacher grading) story: one 2 to 3 page Letter
+ * PDF in Times for each of the eight students, each with their own name, title and text.
+ * Mia Okafor's is the one the teacher's margin notes are lined up with (see NOTE_ANCHORS in
+ * Markbook.story.tsx): keep its layout as it is
+ */
+import { EssayText, OTHER_ESSAYS } from './essays/others';
 import { StoryPage, StoryPdfSource, text } from './pdf-writer';
 
 const W = 612;
@@ -9,9 +15,9 @@ const LEADING = 24;
 const MAX_CHARS = 92;
 const INK = '#1a1a1a';
 
-const TITLE = 'Phones Belong in the Locker, Not the Classroom';
+const MIA_TITLE = 'Phones Belong in the Locker, Not the Classroom';
 
-const PARAGRAPHS = [
+const MIA_PARAGRAPHS = [
   'Last term, my maths teacher asked a question and the whole room went quiet. It was not the quiet of people thinking. It was the quiet of thirty people looking down at their laps. I know, because I was one of them. That moment is why I believe Fairmount High School should keep phones in lockers from the first bell until the last.',
   'The strongest reason is attention. Researchers at the London School of Economics studied schools that banned phones and found that test scores rose, and rose most for students who were struggling. A phone does not have to buzz to be a distraction. Just knowing that a message might be waiting pulls part of your mind away from the lesson. Nobody can follow an argument about Macbeth while half-wondering who replied in the group chat.',
   'Some people say phones are useful learning tools, and sometimes they are. A phone can look up a word or time an experiment. But the school already owns laptops and calculators for exactly those jobs, and they do not come with games and social media attached. If a teacher really needs phones for a task, they can be handed out for ten minutes and handed back. That is very different from letting every student keep one on the desk all day.',
@@ -42,23 +48,34 @@ function wrap(value: string): string[] {
   return lines;
 }
 
-function build() {
+const ESSAYS: EssayText[] = [
+  {
+    id: 'okafor',
+    name: 'Mia Okafor',
+    surname: 'Okafor',
+    date: '12 November 2026',
+    title: MIA_TITLE,
+    paragraphs: MIA_PARAGRAPHS,
+  },
+  ...OTHER_ESSAYS,
+];
+
+function build(essay: EssayText) {
   const pages: string[][] = [[]];
-  const frontMatter = [
-    text(MARGIN, H - 72, 'Mia Okafor', { font: 'serif', size: SIZE, color: INK }),
+  pages[0].push(
+    text(MARGIN, H - 72, essay.name, { font: 'serif', size: SIZE, color: INK }),
     text(MARGIN, H - 96, 'Year 10 English, Ms Haddad, Period 3', {
       font: 'serif',
       size: SIZE,
       color: INK,
     }),
-    text(MARGIN, H - 120, '12 November 2026', { font: 'serif', size: SIZE, color: INK }),
-    text(MARGIN + 36, H - 168, TITLE, { font: 'serifBold', size: 16, color: INK }),
-  ];
-  pages[0].push(...frontMatter);
+    text(MARGIN, H - 120, essay.date, { font: 'serif', size: SIZE, color: INK }),
+    text(MARGIN + 36, H - 168, essay.title, { font: 'serifBold', size: 16, color: INK })
+  );
 
   let pageIndex = 0;
   let y = H - 216;
-  PARAGRAPHS.forEach((paragraph) => {
+  essay.paragraphs.forEach((paragraph) => {
     wrap(paragraph).forEach((lineText, lineIndex) => {
       if (y < 72) {
         pageIndex += 1;
@@ -78,19 +95,24 @@ function build() {
     height: H,
     content: [
       ...ops,
-      text(W - MARGIN - 70, H - 40, `Okafor ${index + 1}`, { font: 'serif', size: 11, color: INK }),
+      text(W - MARGIN - 70, H - 40, `${essay.surname} ${index + 1}`, {
+        font: 'serif',
+        size: 11,
+        color: INK,
+      }),
     ].join('\n'),
   }));
 }
 
-const source: StoryPdfSource = {
-  fileName: 'essay.pdf',
+/** One source per student: essay-okafor.pdf, essay-berg.pdf and so on */
+const sources: StoryPdfSource[] = ESSAYS.map((essay) => ({
+  fileName: `essay-${essay.id}.pdf`,
   build: () => ({
-    title: TITLE,
-    author: 'Mia Okafor',
+    title: essay.title,
+    author: essay.name,
     subject: 'Year 10 persuasive essay',
-    pages: build(),
+    pages: build(essay),
   }),
-};
+}));
 
-export default source;
+export default sources;
