@@ -37,6 +37,8 @@ export interface DocViewerLabels {
   zoomIn: string;
   zoomOut: string;
   resetZoom: string;
+  /** Read out after zooming, with the zoom as a percentage */
+  zoomLevel: (percent: string) => string;
   fitToWidth: string;
   fitToView: string;
   rotate: string;
@@ -173,6 +175,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
   resetZoom: 'Reset zoom to 100%',
+  zoomLevel: (percent) => `Zoom ${percent}`,
   fitToWidth: 'Fit to width',
   fitToView: 'Fit to view',
   rotate: 'Rotate',

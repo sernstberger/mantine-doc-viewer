@@ -1,6 +1,7 @@
 import type React from 'react';
 import type { DocViewerContextValue } from '../DocViewer.context';
 import { printPdfBytes } from '../print';
+import { useZoomAnnouncement } from '../use-zoom-announcement';
 import { zoomIn, zoomOut } from '../zoom';
 import { getPdfKeyAction, type PdfKeyAction } from './pdf-keys';
 import { usePdfController } from './use-pdf-controller';
@@ -10,6 +11,7 @@ import type { PdfPageContent } from './use-pdf-page-content';
 import type { PdfPageTurns } from './use-pdf-page-turns';
 import type { PdfReadingPosition } from './use-pdf-reading-position';
 import type { PdfLoaded, PdfViewGeometry } from './use-pdf-view-geometry';
+import type { PdfZoom } from './zoom';
 import { usePresentationRestore } from './use-presentation-restore';
 import { useWheelZoom } from './use-wheel-zoom';
 import { useZoomAnchor } from './use-zoom-anchor';
@@ -36,6 +38,13 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
   const { currentPage, scrollToPage, goToPage } = position;
   const { search, markup } = content;
 
+  // Zoom from keys, buttons, the wheel and the app is read out once it settles
+  const markZoom = useZoomAnnouncement(scale, position.announce);
+  const zoomTo = (zoom: PdfZoom) => {
+    markZoom();
+    setZoom(zoom);
+  };
+
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
   };
@@ -48,7 +57,7 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     scrollRoot,
     withPageEditing: context.withPageEditing,
     goToPage,
-    setZoom,
+    setZoom: zoomTo,
     setEditing: edited.setEditing,
     toggleThumbnails: view.thumbnailsPanel.toggle,
     togglePresentation: view.presentation.toggle,
@@ -85,14 +94,14 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     markup,
   });
 
-  useWheelZoom(scrollRoot, !presenting, scale, setZoom);
+  useWheelZoom(scrollRoot, !presenting, scale, zoomTo);
 
   const keyActions: Record<PdfKeyAction['type'], (action: PdfKeyAction) => void> = {
     page: (action) => action.type === 'page' && goToPage(action.page),
     exit: () => view.presentation.stop(),
-    'zoom-in': () => setZoom(zoomIn(scale)),
-    'zoom-out': () => setZoom(zoomOut(scale)),
-    fit: () => setZoom('fit-width'),
+    'zoom-in': () => zoomTo(zoomIn(scale)),
+    'zoom-out': () => zoomTo(zoomOut(scale)),
+    fit: () => zoomTo('fit-width'),
     search: () => search.open(),
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -106,7 +115,7 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
 
   useLogWorkerError(input.state);
 
-  return { ...edits, print, handleKeyDown };
+  return { ...edits, print, handleKeyDown, setZoom: zoomTo };
 }
 
 export type PdfViewActions = ReturnType<typeof usePdfViewActions>;

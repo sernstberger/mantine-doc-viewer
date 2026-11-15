@@ -55,7 +55,7 @@ export function PdfReaderBars({
             onPage={position.goToPage}
             scale={view.scale}
             zoom={view.zoom}
-            onZoom={view.setZoom}
+            onZoom={actions.setZoom}
             onRotate={view.rotate}
             layout={view.layout}
             layers={pdfLayers.layers}
