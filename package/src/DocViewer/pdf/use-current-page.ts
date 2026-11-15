@@ -37,6 +37,7 @@ export function useCurrentPage(
   const settleScroll = useRef<(() => void) | null>(null);
   // The page and offset of the scroll in progress, to restart it when the pages are scaled
   const pendingOffset = useRef<number | ((pageHeight: number) => number)>(0);
+  const pendingInstant = useRef(false);
 
   useEffect(() => () => settleScroll.current?.(), []);
 
@@ -131,6 +132,7 @@ export function useCurrentPage(
       settleScroll.current?.();
       scrollTarget.current = page;
       pendingOffset.current = offset;
+      pendingInstant.current = instant;
 
       const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
       const settle = () => {
@@ -175,7 +177,7 @@ export function useCurrentPage(
    */
   const resumeScroll = useCallback(() => {
     const page = scrollTarget.current;
-    page !== null && scrollToPage(page, pendingOffset.current);
+    page !== null && scrollToPage(page, pendingOffset.current, pendingInstant.current);
     return page !== null;
   }, [scrollToPage]);
 

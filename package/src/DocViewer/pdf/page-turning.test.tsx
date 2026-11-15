@@ -279,3 +279,111 @@ describe('withPageTurning', () => {
     });
   });
 });
+
+describe('page layout', () => {
+  const { matchMedia } = window;
+
+  beforeEach(() => {
+    getDocument.mockReset();
+    mockPdf({ numPages: 5 });
+  });
+
+  afterEach(() => {
+    window.matchMedia = matchMedia;
+  });
+
+  /** Makes min-width queries up to the given width in em match, as Mantine's useMatches asks */
+  function viewport(em: number) {
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: Number(/min-width: ([\d.]+)em/.exec(query)?.[1] ?? Infinity) <= em,
+      media: query,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+  }
+
+  const layoutOf = () => body().querySelector('[data-layout]')?.getAttribute('data-layout');
+
+  it('takes a responsive default, until the reader picks a layout', async () => {
+    viewport(30);
+    const onPageLayoutChange = jest.fn();
+    const { controller } = renderViewer({
+      defaultPageLayout: { base: 'single', sm: 'two-page-cover' },
+      onPageLayoutChange,
+    });
+    await pages();
+    expect(layoutOf()).toBe('single');
+
+    act(() => controller.current!.setPageLayout('wrapped'));
+    expect(layoutOf()).toBe('wrapped');
+    expect(onPageLayoutChange).toHaveBeenLastCalledWith('wrapped');
+  });
+
+  it('uses the larger breakpoint on wide screens', async () => {
+    viewport(64);
+    renderViewer({ defaultPageLayout: { base: 'single', sm: 'two-page-cover' } });
+    await pages();
+    expect(layoutOf()).toBe('two-page-cover');
+  });
+
+  it('follows a controlled layout and reports what the reader picks', async () => {
+    const onPageLayoutChange = jest.fn();
+    const { controller, rerender } = renderViewer({ pageLayout: 'single', onPageLayoutChange });
+    await pages();
+
+    act(() => controller.current!.setPageLayout('two-page'));
+    expect(onPageLayoutChange).toHaveBeenLastCalledWith('two-page');
+    // Controlled: nothing changes until the app passes the new layout
+    expect(layoutOf()).toBe('single');
+    // Picking the layout that is shown reports nothing
+    onPageLayoutChange.mockClear();
+    act(() => controller.current!.setPageLayout('single'));
+    expect(onPageLayoutChange).not.toHaveBeenCalled();
+
+    rerender(
+      <DocViewer
+        src="/files/book.pdf"
+        pdfWorkerSrc="/worker.mjs"
+        pageLayout="two-page"
+        onPageLayoutChange={onPageLayoutChange}
+      />
+    );
+    await pages();
+    expect(layoutOf()).toBe('two-page');
+  });
+
+  it('keeps the current page in view when the layout changes', async () => {
+    const scrollTo = jest.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {});
+    const { controller } = renderViewer({ defaultPageLayout: 'single' });
+    await pages();
+    act(() => controller.current!.goToPage(3));
+    scrollTo.mockClear();
+
+    act(() => controller.current!.setPageLayout('two-page'));
+    expect(screen.getByText(indicator(3))).toBeInTheDocument();
+    expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'instant' }));
+    scrollTo.mockRestore();
+  });
+});
+
+describe('withScroll', () => {
+  beforeEach(() => {
+    getDocument.mockReset();
+    mockPdf({ numPages: 5 });
+  });
+
+  it('stops reader scrolling, and the controller still moves the view', async () => {
+    const { controller } = renderViewer({ withScroll: false });
+    await pages();
+    expect(body()).toHaveAttribute('data-no-scroll');
+
+    act(() => controller.current!.goToPage(4));
+    expect(screen.getByText(indicator(4))).toBeInTheDocument();
+  });
+
+  it('lets readers scroll by default', async () => {
+    renderViewer();
+    await pages();
+    expect(body()).not.toHaveAttribute('data-no-scroll');
+  });
+});

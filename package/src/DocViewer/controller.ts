@@ -198,6 +198,9 @@ export interface DocViewerEvents {
   onSpreadChange?: (spread: number, pages: number[]) => void;
   onZoomChange?: (scale: number, fitted: boolean) => void;
 
+  /** Called when the reader picks a PDF page layout from the toolbar, or `setPageLayout` is called. Pass it back as `pageLayout` to control the layout */
+  onPageLayoutChange?: (layout: DocViewerPageLayout) => void;
+
   /** Called when how much of a PDF has been seen changes: the fraction seen of each page, the scroll position and whether the end was reached. Pages that were scrolled past count too, so check `seen` to tell a skim from a read */
   onReadingProgress?: (progress: DocViewerReadingProgress) => void;
 

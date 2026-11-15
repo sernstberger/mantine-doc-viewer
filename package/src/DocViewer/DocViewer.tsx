@@ -209,9 +209,18 @@ export interface DocViewerProps
   /**
    * How PDF pages are laid out when a PDF opens, `'single'` by default: one per row, two per row,
    * two per row with the first page on its own as a cover, one row scrolled sideways, or rows that
-   * wrap. Readers can change it from the toolbar
+   * wrap. Readers can change it from the toolbar. Takes a value per breakpoint, for example
+   * `{ base: 'single', sm: 'two-page-cover' }`; it follows the screen until the reader picks a
+   * layout
    */
-  defaultPageLayout?: DocViewerPageLayout;
+  defaultPageLayout?: DocViewerResponsive<DocViewerPageLayout>;
+
+  /**
+   * Controlled PDF page layout, for an app that sets it itself. Also takes a value per breakpoint.
+   * A layout the reader picks from the toolbar is reported to `onPageLayoutChange`, and shown once
+   * the app passes it back. The current page stays in view when the layout changes
+   */
+  pageLayout?: DocViewerResponsive<DocViewerPageLayout>;
 
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
@@ -284,6 +293,13 @@ export interface DocViewerProps
 
   /** Determines whether scrolling a PDF stops at the start of each page, or of each spread in two-page layouts, `false` by default */
   withScrollSnap?: boolean;
+
+  /**
+   * Determines whether readers can scroll a PDF, `true` by default. Turn it off when the app turns
+   * pages itself, with `withPageTurning`, `goToPage` or its own buttons: wheel, touch and key
+   * scrolling stop, while text selection, zoom and the controller keep working
+   */
+  withScroll?: boolean;
 
   /** Determines whether readers can reorder, remove and extract PDF pages (in the page editor, and by dragging or deleting thumbnails), `false` by default. Edits make a new document; the original file is not changed */
   withPageEditing?: boolean;
@@ -525,6 +541,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     maxCanvasPixels,
     defaultThumbnailsOpened,
     defaultPageLayout,
+    pageLayout,
     thumbnailsPosition,
     defaultThumbnailsPosition,
     onThumbnailsPositionChange,
@@ -568,6 +585,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     compactPageEditor,
     withPageTurning,
     withScrollSnap,
+    withScroll,
     onSave,
     onDocumentLoadStart,
     withMarkup,
@@ -586,6 +604,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     onPageChange,
     onSpreadChange,
     onZoomChange,
+    onPageLayoutChange,
     onReadingProgress,
     onReachEnd,
     onLinkClick,
@@ -599,6 +618,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const resolvedPageGap = useResponsiveValue(pageGap);
   const resolvedThumbnailWidth = useResponsiveValue(thumbnailWidth) ?? DEFAULT_THUMBNAIL_WIDTH;
   const resolvedThumbnailsPosition = useResponsiveValue(thumbnailsPosition);
+  const resolvedDefaultPageLayout = useResponsiveValue(defaultPageLayout);
+  const resolvedPageLayout = useResponsiveValue(pageLayout);
 
   const getStyles = useStyles<DocViewerFactory>({
     name: 'DocViewer',
@@ -649,6 +670,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handlePageChange = useCallbackRef(onPageChange);
   const handleSpreadChange = useCallbackRef(onSpreadChange);
   const handleZoomChange = useCallbackRef(onZoomChange);
+  const handlePageLayoutChange = useCallbackRef(onPageLayoutChange);
   const handleReadingProgress = useCallbackRef(onReadingProgress);
   const handleReachEnd = useCallbackRef(onReachEnd);
   const handleLinkClick = useCallbackRef(onLinkClick);
@@ -661,6 +683,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       onPageChange: handlePageChange,
       onSpreadChange: handleSpreadChange,
       onZoomChange: handleZoomChange,
+      onPageLayoutChange: handlePageLayoutChange,
       onReadingProgress: handleReadingProgress,
       onReachEnd: handleReachEnd,
       onLinkClick: handleLinkClick,
@@ -672,6 +695,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       handleDocumentError,
       handlePageChange,
       handleZoomChange,
+      handlePageLayoutChange,
       handleLinkClick,
       handleTextSelect,
       handleReadingProgress,
@@ -711,7 +735,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         pdfOptions,
         maxCanvasPixels: maxCanvasPixels!,
         defaultThumbnailsOpened,
-        defaultPageLayout,
+        defaultPageLayout: resolvedDefaultPageLayout,
+        pageLayout: resolvedPageLayout,
         thumbnailsPosition: resolvedThumbnailsPosition,
         defaultThumbnailsPosition,
         onThumbnailsPositionChange,
@@ -734,6 +759,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         compactPageEditor,
         withPageTurning,
         withScrollSnap,
+        withScroll,
         onSave,
         markup: {
           withMarkup,

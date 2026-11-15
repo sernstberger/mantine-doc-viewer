@@ -50,6 +50,7 @@ export interface DocViewerContextValue {
   maxCanvasPixels: number;
   defaultThumbnailsOpened: boolean | undefined;
   defaultPageLayout: DocViewerPageLayout | undefined;
+  pageLayout: DocViewerPageLayout | undefined;
   thumbnailsPosition: DocViewerThumbnailsPosition | undefined;
   defaultThumbnailsPosition: DocViewerThumbnailsPosition | undefined;
   onThumbnailsPositionChange: ((position: DocViewerThumbnailsPosition) => void) | undefined;
@@ -72,6 +73,7 @@ export interface DocViewerContextValue {
   compactPageEditor: boolean | undefined;
   withPageTurning: boolean | DocViewerPageTurning | undefined;
   withScrollSnap: boolean | undefined;
+  withScroll: boolean | undefined;
   onSave:
     | ((
         bytes: Uint8Array,

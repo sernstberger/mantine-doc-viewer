@@ -1,6 +1,6 @@
 import { ActionIcon, CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from '../DocViewer.context';
@@ -105,7 +105,15 @@ export function PdfView() {
   const numPages = document?.numPages ?? 0;
 
   const [zoom, setZoom] = useState<PdfZoom>(() => toPdfZoom(context.defaultZoom));
-  const [layout, setLayout] = useState<DocViewerPageLayout>(defaultPageLayout ?? 'single');
+  // The layout the app controls, else the one the reader picked, else the (responsive) default
+  const [pickedLayout, setPickedLayout] = useState<DocViewerPageLayout | null>(null);
+  const layout = context.pageLayout ?? pickedLayout ?? defaultPageLayout ?? 'single';
+  const setLayout = (next: DocViewerPageLayout) => {
+    if (next !== layout) {
+      setPickedLayout(next);
+      events.onPageLayoutChange(next);
+    }
+  };
   const [rotation, setRotation] = useState<PdfRotation>(0);
   const [thumbnailsOpened, setThumbnailsOpened] = useState(
     context.defaultThumbnailsOpened ?? false
@@ -164,6 +172,14 @@ export function PdfView() {
     viewport,
     progress.sample
   );
+  // A new layout moves every page: jump back to the page being read
+  const shownLayout = useRef(layout);
+  useLayoutEffect(() => {
+    if (shownLayout.current !== layout) {
+      shownLayout.current = layout;
+      scrollToPage(currentPage, 0, true);
+    }
+  }, [layout, currentPage, scrollToPage]);
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
   const textLayers = useTextLayers();
@@ -586,6 +602,7 @@ export function PdfView() {
                 : 'y'
               : undefined
           }
+          data-no-scroll={(context.withScroll === false && !presenting) || undefined}
           data-swipe={(swipeable && !presenting) || undefined}
           onKeyDown={handleKeyDown}
           // In a presentation a click shows the next page; otherwise the edges may turn pages
