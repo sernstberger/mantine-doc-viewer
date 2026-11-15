@@ -1,0 +1,600 @@
+/*
+ * Clause: a contract review tool for in-house counsel. The app owns a light palette (a legal
+ * tool is read on paper-white pages), so it does not follow the Mantine colour scheme. The
+ * redline colours of the PDF come back in the clause list and the thread: green insertions,
+ * red deletions, an amber dot until the clause is answered.
+ */
+
+.app {
+  --clause-bg: #f3f5f8;
+  --clause-panel: #fff;
+  --clause-ink: #152238;
+  --clause-muted: #5d6b82;
+  --clause-line: #dde2ea;
+  --clause-ins: #1b6e3a;
+  --clause-ins-bg: #e3f3e8;
+  --clause-del: #b3261e;
+  --clause-del-bg: #fbe9e7;
+  --clause-pending: #a86400;
+  --clause-pending-bg: #fdf1dc;
+  --clause-countered: #2d5fa8;
+  --clause-countered-bg: #e4edfa;
+
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 560px;
+  background: var(--clause-bg);
+  color: var(--clause-ink);
+  color-scheme: light;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+/* --------------------------------- header --------------------------------- */
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 24px;
+  height: 60px;
+  padding-inline: 20px;
+  border-bottom: 1px solid var(--clause-line);
+  background: var(--clause-panel);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-right: 24px;
+  border-right: 1px solid var(--clause-line);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.matter {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.matterName {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.version {
+  color: var(--clause-muted);
+  font-size: 12.5px;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.progressText {
+  color: var(--clause-muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.segments {
+  display: flex;
+  gap: 3px;
+
+  & > span {
+    width: 22px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--clause-line);
+    transition: background-color 200ms;
+
+    &[data-status='pending'] {
+      background: #f0cf94;
+    }
+
+    &[data-status='accepted'] {
+      background: var(--clause-ins);
+    }
+
+    &[data-status='countered'] {
+      background: var(--clause-countered);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+}
+
+.approve {
+  min-width: 164px;
+  border-radius: 6px;
+  background: var(--clause-ink);
+  color: #fff;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background: #22355a;
+  }
+
+  &:disabled {
+    background: #e6e9ef;
+    color: #8b95a7;
+  }
+
+  &:disabled[data-approved] {
+    background: var(--clause-ins-bg);
+    color: var(--clause-ins);
+  }
+
+  &:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--clause-ink) 40%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------- panes --------------------------------- */
+
+.panes {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 290px minmax(0, 1fr) 380px;
+  min-height: 0;
+}
+
+.paneTitle {
+  margin: 0;
+  padding: 16px 20px 10px;
+  color: var(--clause-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* --------------------------------- clauses -------------------------------- */
+
+.clauses {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--clause-line);
+  background: var(--clause-panel);
+}
+
+.clauseList {
+  margin: 0;
+  padding: 0 8px 16px;
+  list-style: none;
+}
+
+.clauseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px 8px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f5f8;
+  }
+
+  &[data-active] {
+    background: #e8edf5;
+    box-shadow: inset 3px 0 0 var(--clause-ink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--clause-ink);
+    outline-offset: -2px;
+  }
+}
+
+.clauseNumber {
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--clause-muted);
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 15px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+
+  .clauseRow[data-status='unchanged'] > & {
+    opacity: 0.6;
+  }
+}
+
+.clauseBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.clauseTitle {
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .clauseRow[data-status='unchanged'] & {
+    color: var(--clause-muted);
+    font-weight: 400;
+  }
+}
+
+.clauseMarks {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plus {
+  color: var(--clause-ins);
+  font-weight: 600;
+}
+
+.minus {
+  color: var(--clause-del);
+  font-weight: 600;
+}
+
+.untouched {
+  color: #8b95a7;
+}
+
+.dot {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+
+  &[data-status='pending'] {
+    background: var(--clause-pending-bg);
+    box-shadow: inset 0 0 0 2px var(--clause-pending);
+  }
+
+  &[data-status='accepted'] {
+    background: var(--clause-ins);
+    color: #fff;
+  }
+
+  &[data-status='countered'] {
+    background: var(--clause-countered);
+    color: #fff;
+  }
+
+  &[data-status='unchanged'] {
+    width: 6px;
+    height: 6px;
+    margin-inline: 6px;
+    background: #cfd5df;
+  }
+}
+
+/* ---------------------------------- viewer -------------------------------- */
+
+.viewer {
+  min-width: 0;
+  min-height: 0;
+}
+
+.root {
+  height: 100%;
+  border: 0;
+  background: var(--clause-bg);
+  font-family: inherit;
+}
+
+.toolbar {
+  min-height: 44px;
+  border-bottom: 1px solid var(--clause-line);
+  background: var(--clause-panel);
+  color: var(--clause-ink);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.control {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--clause-muted);
+
+  &:hover {
+    background: #eef1f6;
+    color: var(--clause-ink);
+  }
+
+  &[data-pressed] {
+    background: #e1e7f0;
+    color: var(--clause-ink);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--clause-ink);
+    outline-offset: 1px;
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: var(--clause-muted);
+  font-size: 12.5px;
+}
+
+.search {
+  border-bottom: 1px solid var(--clause-line);
+  background: var(--clause-panel);
+}
+
+.body {
+  background: var(--clause-bg);
+}
+
+.page {
+  box-shadow:
+    0 0 0 1px rgb(21 34 56 / 0.08),
+    0 2px 12px rgb(21 34 56 / 0.1);
+}
+
+/* ---------------------------------- thread -------------------------------- */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--clause-line);
+  background: var(--clause-panel);
+}
+
+.threadHead {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--clause-line);
+}
+
+.threadNumber {
+  color: var(--clause-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.threadTitle {
+  margin: 2px 0 10px;
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 5px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+
+  &[data-status='pending'] {
+    background: var(--clause-pending-bg);
+    color: var(--clause-pending);
+  }
+
+  &[data-status='accepted'] {
+    background: var(--clause-ins-bg);
+    color: var(--clause-ins);
+  }
+
+  &[data-status='countered'] {
+    background: var(--clause-countered-bg);
+    color: var(--clause-countered);
+  }
+}
+
+.threadBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 22px 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--clause-line);
+  border-radius: 8px;
+
+  &[data-you] {
+    background: #f8f9fb;
+  }
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #d9e0ec;
+  font-size: 11.5px;
+  font-weight: 600;
+
+  &[data-you] {
+    background: var(--clause-ink);
+    color: #fff;
+  }
+}
+
+.person {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.role {
+  color: var(--clause-muted);
+  font-size: 12px;
+}
+
+/* The change as the other side marked it, in the contract's own serif */
+.redline {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fafbfc;
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.ins {
+  background: var(--clause-ins-bg);
+  color: var(--clause-ins);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.del {
+  background: var(--clause-del-bg);
+  color: var(--clause-del);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.comment,
+.reply {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  font-size: 12.5px;
+}
+
+.fieldLabel {
+  margin-bottom: 6px;
+  color: var(--clause-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field {
+  border-color: #c3ccda;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--clause-ink);
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.55;
+
+  &:focus {
+    border-color: var(--clause-ink);
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.accept,
+.pushBack {
+  flex: 1;
+  border-radius: 6px;
+  font-weight: 600;
+
+  &:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--clause-ink) 40%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+.accept {
+  background: var(--clause-ins);
+  color: #fff;
+
+  &:hover {
+    background: #165b30;
+  }
+}
+
+.pushBack {
+  border-color: #c3ccda;
+  background: #fff;
+  color: var(--clause-ink);
+
+  &:hover:not(:disabled) {
+    background: #f3f5f8;
+  }
+}
+
+.untouchedNote {
+  margin: 0;
+  color: var(--clause-muted);
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  line-height: 1.6;
+}
+
+/* ---------------------------------- toast --------------------------------- */
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  padding: 11px 16px;
+  border-radius: 6px;
+  background: var(--clause-ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgb(21 34 56 / 0.3);
+  animation: toast-in 200ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
