@@ -617,6 +617,22 @@
   &[data-tool='text'] {
     cursor: text;
   }
+
+  /* A tab stop while a tool is picked: keys move a cursor and place marks */
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+
+  & [data-markup-caret] {
+    stroke-width: 1.5px;
+  }
+
+  &:not(:focus-visible) [data-markup-caret] {
+    display: none;
+  }
 }
 
 /* Text box marks, and the box a new one is typed into: Helvetica, as the saved PDF shows it */

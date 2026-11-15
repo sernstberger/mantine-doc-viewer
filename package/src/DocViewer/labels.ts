@@ -112,6 +112,13 @@ export interface DocViewerLabels {
   /** Screen reader name of the box a text mark is typed into */
   markupText: string;
   markupSaved: string;
+  /** Screen reader name of a page while a markup tool is picked, where keys place marks */
+  markupLayer: (tool: string, page: number) => string;
+  /** How to place marks with the keyboard, read after the page's markup name */
+  markupKeys: string;
+  markStarted: (tool: string) => string;
+  markAdded: (tool: string) => string;
+  markCancelled: string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -243,6 +250,12 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   closeMarkup: 'Close markup',
   markupText: 'Text box text',
   markupSaved: 'Markup saved',
+  markupLayer: (tool, page) => `${tool} on page ${page}`,
+  markupKeys:
+    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels.',
+  markStarted: (tool) => `${tool} started`,
+  markAdded: (tool) => `${tool} added`,
+  markCancelled: 'Mark cancelled',
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',

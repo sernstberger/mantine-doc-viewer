@@ -3,7 +3,7 @@ import { createMarkId, DocViewerStrokeMark, MIN_MARK_SIZE, rectFromPoints } from
 import { type Draft, isStrokeTool, makeMark } from './markup-draft';
 import { addMark, type MarkupLayerInput } from './markup-layer-input';
 
-/** Writes a finished drag or stroke into the marks */
+/** Writes a finished drag or stroke into the marks; the function it returns says whether a mark was added */
 export function useMarkCommit({
   pageNumber,
   markup,
@@ -37,14 +37,15 @@ export function useMarkCommit({
   return (points: Draft) => {
     if (isStrokeTool(tool)) {
       addStroke(points);
-      return;
+      return true;
     }
 
     const rect = rectFromPoints(points[0], points[points.length - 1]);
     if (rect.width < MIN_MARK_SIZE || rect.height < MIN_MARK_SIZE) {
-      return;
+      return false;
     }
     const id = createMarkId();
     addMark(markup, makeMark(tool!, id, pageNumber, markup.getColor(tool!), markup.width, points));
+    return true;
   };
 }
