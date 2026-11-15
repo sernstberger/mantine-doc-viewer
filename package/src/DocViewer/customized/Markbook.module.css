@@ -1,0 +1,567 @@
+/*
+ * Markbook: a school grading app. The story owns its desk colour, so it looks the same in light
+ * and dark colour schemes: a teacher's marking desk is a bright place. The bold thing is the red
+ * pen (Kalam): the total and the margin notes are handwritten, everything else is quiet.
+ */
+
+.app {
+  --mb-desk: #eef1f6;
+  --mb-paper: #fff;
+  --mb-ink: #1f2a44;
+  --mb-muted: #5c6781;
+  --mb-line: #d9deea;
+  --mb-pen: #c8372d;
+  --mb-band-1: #dce6f7;
+  --mb-band-2: #9db8ea;
+  --mb-band-3: #4f7bd6;
+  --mb-band-4: #2c55b4;
+  --mb-done: #2f8f5b;
+  --mb-focus: 0 0 0 3px rgb(79 123 214 / 0.45);
+
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr) 320px;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'header header header'
+    'roster reader rubric';
+  height: 100vh;
+  min-height: 560px;
+  background: var(--mb-desk);
+  color: var(--mb-ink);
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* --------------------------------- header --------------------------------- */
+
+.header {
+  display: flex;
+  grid-area: header;
+  align-items: center;
+  gap: 32px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--mb-line);
+  background: var(--mb-paper);
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.assignment {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.assignmentTitle {
+  font-weight: 600;
+}
+
+.assignmentMeta {
+  color: var(--mb-muted);
+  font-size: 13px;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--mb-muted);
+  font-size: 14px;
+}
+
+.progressTrack {
+  width: 120px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--mb-band-1);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--mb-done);
+  transition: width 300ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* --------------------------------- roster --------------------------------- */
+
+.roster {
+  grid-area: roster;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.panelTitle {
+  margin: 0 0 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mb-muted);
+}
+
+.rosterList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+
+  &:hover {
+    background: rgb(31 42 68 / 0.06);
+  }
+
+  &[data-active] {
+    background: var(--mb-paper);
+    box-shadow:
+      0 0 0 1px var(--mb-line),
+      0 1px 3px rgb(31 42 68 / 0.08);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--mb-focus);
+  }
+}
+
+.studentName {
+  font-weight: 600;
+}
+
+.studentMeta {
+  color: var(--mb-muted);
+  font-size: 13px;
+}
+
+.studentStatus {
+  font-size: 13px;
+  font-weight: 600;
+
+  &[data-tone='done'] {
+    color: var(--mb-done);
+  }
+
+  &[data-tone='progress'] {
+    color: var(--mb-band-3);
+  }
+
+  &[data-tone='late'] {
+    color: var(--mb-pen);
+  }
+
+  &[data-tone='todo'] {
+    color: var(--mb-muted);
+    font-weight: 400;
+  }
+}
+
+/* --------------------------------- reader --------------------------------- */
+
+.reader {
+  display: flex;
+  grid-area: reader;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 12px 16px 4px;
+}
+
+.readerBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step {
+  border-color: var(--mb-line);
+  background: var(--mb-paper);
+  color: var(--mb-ink);
+
+  &:hover:not(:disabled) {
+    background: var(--mb-band-1);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--mb-focus);
+  }
+}
+
+.readerName {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+
+  strong {
+    font-size: 17px;
+  }
+
+  span {
+    color: var(--mb-muted);
+    font-size: 13px;
+  }
+}
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+}
+
+.root {
+  height: 100%;
+  border: 1px solid var(--mb-line);
+  border-radius: 10px;
+  background: var(--mb-paper);
+  font-family: inherit;
+}
+
+.toolbar {
+  border-bottom: 1px solid var(--mb-line);
+  background: var(--mb-paper);
+  color: var(--mb-ink);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.control {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mb-muted);
+
+  &:hover {
+    background: var(--mb-band-1);
+    color: var(--mb-ink);
+  }
+
+  &[data-pressed] {
+    border-color: var(--mb-band-2);
+    background: var(--mb-band-1);
+    color: var(--mb-ink);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--mb-focus);
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: var(--mb-muted);
+  font-size: 13px;
+}
+
+.search {
+  border-bottom: 1px solid var(--mb-line);
+  background: var(--mb-paper);
+}
+
+.body {
+  background: #dfe4ee;
+}
+
+.page {
+  box-shadow:
+    0 0 0 1px rgb(31 42 68 / 0.08),
+    0 4px 14px rgb(31 42 68 / 0.12);
+}
+
+/* --------------------------------- rubric --------------------------------- */
+
+.rubric {
+  display: flex;
+  grid-area: rubric;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px 16px 8px;
+  overflow-y: auto;
+}
+
+.criteria {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.criterion {
+  position: relative;
+  margin: 0;
+  padding: 8px 0 6px;
+  border: 0;
+  border-bottom: 1px solid var(--mb-line);
+}
+
+.criterionName {
+  float: left;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.scoreRow {
+  display: grid;
+  clear: both;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.score {
+  position: relative;
+  display: block;
+  cursor: pointer;
+
+  &[data-value='1'] {
+    --band: var(--mb-band-1);
+    --band-ink: var(--mb-ink);
+  }
+
+  &[data-value='2'] {
+    --band: var(--mb-band-2);
+    --band-ink: var(--mb-ink);
+  }
+
+  &[data-value='3'] {
+    --band: var(--mb-band-3);
+    --band-ink: #fff;
+  }
+
+  &[data-value='4'] {
+    --band: var(--mb-band-4);
+    --band-ink: #fff;
+  }
+}
+
+.scoreInput {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.scoreFace {
+  display: grid;
+  place-items: center;
+  height: 36px;
+  border: 1px solid var(--mb-line);
+  border-radius: 8px;
+  background: var(--mb-paper);
+  color: var(--mb-muted);
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 120ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  .score:hover & {
+    background: color-mix(in srgb, var(--band) 35%, white);
+  }
+
+  .scoreInput:checked + & {
+    border-color: var(--band);
+    background: var(--band);
+    color: var(--band-ink);
+  }
+
+  .scoreInput:focus-visible + & {
+    box-shadow: var(--mb-focus);
+  }
+
+  .scoreInput:disabled + & {
+    cursor: default;
+  }
+}
+
+.descriptor {
+  min-height: 2.6em;
+  margin: 6px 0 0;
+  color: var(--mb-muted);
+  font-size: 13px;
+}
+
+/* The red pen: short margin notes, written on from left to right */
+.margin {
+  position: absolute;
+  top: 6px;
+  right: 0;
+  white-space: nowrap;
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--mb-pen);
+  font-family: Kalam, cursive;
+  font-size: 17px;
+  line-height: 1.2;
+  rotate: -1.5deg;
+  animation: write-on 450ms steps(14, end) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.totalBlock {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.totalLabel {
+  align-self: start;
+  justify-self: start;
+  color: var(--mb-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.total {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 84px;
+  color: var(--mb-pen);
+  font-family: Kalam, cursive;
+  rotate: -3deg;
+
+  &[data-empty] {
+    color: var(--mb-line);
+  }
+}
+
+.totalNumber {
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.totalOutOf {
+  font-size: 32px;
+  font-weight: 400;
+}
+
+.penCircle {
+  position: absolute;
+  inset: -4px -14px;
+  width: calc(100% + 28px);
+  height: calc(100% + 8px);
+  fill: none;
+  stroke: var(--mb-pen);
+  stroke-linecap: round;
+  stroke-width: 2.6;
+  stroke-dasharray: 1;
+  animation: draw 600ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.summary {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--mb-muted);
+  font-size: 14px;
+
+  &[data-visible] {
+    color: var(--mb-pen);
+    font-family: Kalam, cursive;
+    font-size: 20px;
+    rotate: -1deg;
+  }
+}
+
+.returnButton {
+  --button-bg: var(--mb-ink);
+  --button-hover: #2b3a5e;
+  --button-color: #fff;
+  --button-bd: transparent;
+  --button-height: 42px;
+  --button-radius: 8px;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+
+  &:disabled,
+  &[data-disabled] {
+    --button-bg: var(--mb-band-1);
+    --button-color: var(--mb-muted);
+    --button-bd: transparent;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--mb-focus);
+  }
+}
+
+.notice {
+  min-height: 1.4em;
+  color: var(--mb-done);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+@keyframes write-on {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: 200px minmax(0, 1fr) 280px;
+  }
+
+  .progressTrack {
+    display: none;
+  }
+}
