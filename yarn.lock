@@ -8986,6 +8986,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "mantine-doc-viewer-docs@workspace:docs"
   dependencies:
+    "@cantoo/pdf-lib": "npm:^2.11.1"
     "@mantine/code-highlight": "npm:9.8.0"
     "@mantine/core": "npm:9.8.0"
     "@mantine/hooks": "npm:9.8.0"
@@ -9007,6 +9008,7 @@ __metadata:
     pdfjs-dist: "npm:^6.5.438"
     react: "npm:19.2.4"
     react-dom: "npm:19.2.4"
+    react-markdown: "npm:^10.1.0"
     remark-gfm: "npm:^4.0.1"
     remark-slug: "npm:^7.0.1"
     shiki: "npm:^3.4.2"

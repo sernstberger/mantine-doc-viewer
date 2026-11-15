@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cantoo/pdf-lib": "^2.11.1",
     "@mantine/code-highlight": "9.8.0",
     "@mantine/core": "9.8.0",
     "@mantine/hooks": "9.8.0",
@@ -27,6 +28,7 @@
     "pdfjs-dist": "^6.5.438",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "remark-slug": "^7.0.1",
     "shiki": "^3.4.2",
