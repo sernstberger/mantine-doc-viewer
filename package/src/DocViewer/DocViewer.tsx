@@ -227,6 +227,16 @@ export interface DocViewerProps
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
 
+  /**
+   * Determines whether PDF page thumbnails are shown, for a controlled state. Use with
+   * `onThumbnailsOpenedChange`; the toolbar button and `controllerRef.toggleThumbnails` report
+   * to it, and the strip opens or closes once the app passes the value back
+   */
+  thumbnailsOpened?: boolean;
+
+  /** Called when the reader opens or closes the PDF page thumbnails, from the toolbar or the controller */
+  onThumbnailsOpenedChange?: (opened: boolean) => void;
+
   /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position. Can differ per breakpoint, for example `{ base: 'bottom', sm: 'left' }` */
   thumbnailsPosition?: DocViewerResponsive<DocViewerThumbnailsPosition>;
 

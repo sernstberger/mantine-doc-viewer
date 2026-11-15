@@ -48,7 +48,9 @@ export interface DocViewerContextValue {
   pdfWorkerSrc: string | undefined;
   pdfOptions: DocViewerPdfOptions | undefined;
   maxCanvasPixels: number;
+  thumbnailsOpened: boolean | undefined;
   defaultThumbnailsOpened: boolean | undefined;
+  onThumbnailsOpenedChange: ((opened: boolean) => void) | undefined;
   defaultPageLayout: DocViewerPageLayout | undefined;
   pageLayout: DocViewerPageLayout | undefined;
   thumbnailsPosition: DocViewerThumbnailsPosition | undefined;

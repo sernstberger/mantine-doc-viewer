@@ -52,7 +52,9 @@ Ctrl+wheel zooms too. Ctrl/Cmd+F opens search.
 
 The sidebar button in the toolbar shows a thumbnail for every page. Thumbnails are drawn as they
 scroll into view, the current page is highlighted and clicking a thumbnail scrolls to its page.
-Set `defaultThumbnailsOpened` to show them when the PDF opens.
+Set `defaultThumbnailsOpened` to show them when the PDF opens, or control them with
+`thumbnailsOpened` and `onThumbnailsOpenedChange`, for example to keep an app's own "Pages" button
+in step.
 
 ```tsx
 <DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
