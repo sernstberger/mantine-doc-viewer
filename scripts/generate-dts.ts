@@ -26,6 +26,13 @@ async function generateDts() {
     });
     await bundle.write({ file: path.join(typesDir, 'index.d.ts'), format: 'es' });
     await bundle.close();
+    // pdfjs-dist has no "exports" map, so under nodenext an ESM consumer needs the file extension
+    // on its deep type imports (the .js resolves to the .d.ts next to it)
+    const declarations = await fs.readFile(path.join(typesDir, 'index.d.ts'), 'utf-8');
+    await fs.writeFile(
+      path.join(typesDir, 'index.d.ts'),
+      declarations.replace(/(from 'pdfjs-dist\/types\/[^']+)'/g, "$1.js'")
+    );
     await fs.copy(path.join(typesDir, 'index.d.ts'), path.join(typesDir, 'index.d.mts'));
     await fs.remove(tscDir);
   } catch (err) {
