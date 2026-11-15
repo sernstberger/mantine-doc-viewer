@@ -2,15 +2,16 @@
 
 Everything below the line is outward facing and done by hand. Already checked locally:
 
-- `npm test` passes (syncpack, format, types, lint, 642 tests, 100% coverage). Run `npm run docgen` first on a fresh clone: the docs typecheck reads `docs/docgen.json`
+- `npm test` passes (syncpack, format, types, lint, 726 tests, 100% coverage). Run `npm run docgen` first on a fresh clone: the docs typecheck reads `docs/docgen.json`
 - `npm run build` and `npm run docs:build` succeed, with no CSS warnings from Next.js
-- The packed tarball (166 kB, 319 files with README and LICENSE: `dist` only, no source maps, tests or
+- The packed tarball (about 180 kB, 341 files with README and LICENSE: `dist` only, no source maps, tests or
   stories) installs in a fresh Vite + React 19 app, typechecks, builds, renders a PDF, and loads
   pdf.js and markdown only when needed
 - The types are one bundled file (`index.d.ts` and `index.d.mts`); `npx @arethetypeswrong/cli --pack package`
   is green for node10, node16 (CJS and ESM) and bundler (only the CSS files show as unresolved, which
   is expected), and a scratch app on `moduleResolution` nodenext and bundler type-checks
 - The CommonJS and ESM entry points both load
+- The 294 browser tests (`npm run e2e`, Chromium, Firefox and WebKit) pass
 - The name `mantine-doc-viewer` is free on npm
 
 ---
@@ -26,7 +27,8 @@ Everything below the line is outward facing and done by hand. Already checked lo
 
 1. `npm login` (an npm account with two-factor authentication).
 2. From a clean `main`: `npm run release:minor`. The template's script:
-   - pulls, refuses a dirty tree, installs and builds
+   - pulls, refuses a dirty tree, installs, cleans and builds
+   - runs `npm run check:exports` and `npm test`, and stops before publishing if either fails
    - copies `README.md` and `LICENSE` into `package/`
    - bumps 0.0.0 to 0.1.0 and runs `npm publish --access public`
    - commits "Release 0.1.0", pushes, and opens a GitHub release page to fill in
