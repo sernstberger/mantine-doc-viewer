@@ -21,31 +21,27 @@ import {
   useStyles,
 } from '@mantine/core';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import { useCallbackRef, useIsomorphicEffect, useMergedRef } from '@mantine/hooks';
-import React, { useMemo } from 'react';
-import {
-  DocViewerController,
-  DocViewerEvents,
-  DocViewerZoom,
-  useControllerRegistry,
-  useRegisterController,
-} from './controller';
-import { detectDocType, DocType } from './detect-doc-type';
+import React from 'react';
+import type { DocViewerController, DocViewerEvents, DocViewerZoom } from './controller';
+import type { DocType } from './detect-doc-type';
+import { buildDocViewerContextValue } from './doc-viewer-context-value';
+import { getRootProps } from './doc-viewer-root-props';
 import { DocViewerProvider } from './DocViewer.context';
-import { DocViewerAutoAdvance, useIdleTimeout } from './kiosk';
+import type { DocViewerAutoAdvance } from './kiosk';
 import classes from './DocViewer.module.css';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
-import { useTapToggle } from './use-tap-toggle';
+import { useDocViewerEvents } from './use-doc-viewer-events';
+import { useDocViewerSession } from './use-doc-viewer-session';
+import { DEFAULT_THUMBNAIL_WIDTH, useResolvedProps } from './use-resolved-props';
 import { OverlayControls } from './OverlayControls';
-import { DEFAULT_LABELS, DocViewerLabels } from './labels';
-import { useControlledFullscreen } from './use-controlled-fullscreen';
+import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { DocViewerPageTurning } from './pdf/spreads';
 import type { DocViewerMarkupProps } from './pdf/use-markup';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
-import { DocViewerResponsive, useResponsiveValue } from './responsive';
+import type { DocViewerResponsive } from './responsive';
 import { DOC_VIEWER_SIZES } from './sizes';
 import { PdfView } from './pdf/PdfView';
 import { CodeView } from './text/CodeView';
@@ -429,8 +425,6 @@ export type DocViewerFactory = Factory<{
   variant: DocViewerVariant;
 }>;
 
-const DEFAULT_THUMBNAIL_WIDTH = 112;
-
 const defaultProps: Partial<DocViewerProps> = {
   withToolbar: true,
   maxTextSize: 2_000_000,
@@ -487,15 +481,6 @@ const varsResolver = createVarsResolver<DocViewerFactory>((theme, props) => {
   };
 });
 
-function getFileName(src: string) {
-  if (src.startsWith('data:') || src.startsWith('blob:')) {
-    return undefined;
-  }
-
-  const name = src.split(/[?#]/)[0].split('/').pop();
-  return name ? decodeURIComponent(name) : undefined;
-}
-
 function renderView(file: DocViewerFile, renderers: DocViewerRenderer[] | undefined) {
   const renderer = renderers?.find((item) => item.test(file));
   if (renderer) {
@@ -521,115 +506,18 @@ function renderView(file: DocViewerFile, renderers: DocViewerRenderer[] | undefi
 
 export const DocViewer = factory<DocViewerFactory>((_props) => {
   const props = useProps('DocViewer', defaultProps, _props);
-  const {
-    classNames,
-    className,
-    style,
-    styles,
-    unstyled,
-    vars,
-    src,
-    type,
-    mimeType,
-    fileName,
-    alt,
-    keepView,
-    labels,
-    locale,
-    pdfWorkerSrc,
-    pdfOptions,
-    maxCanvasPixels,
-    defaultThumbnailsOpened,
-    defaultPageLayout,
-    pageLayout,
-    thumbnailsPosition,
-    defaultThumbnailsPosition,
-    onThumbnailsPositionChange,
-    maxTextSize,
-    language,
-    radius,
-    size,
-    color,
-    matchColor,
-    activeMatchColor,
-    pageGap,
-    thumbnailWidth,
-    tooltipProps,
-    codeHighlightProps,
-    toolbarSection,
-    toolbarStartSection,
-    toolbarSubtitle,
-    renderToolbarTitle,
-    renderPageOverlay,
-    tapToggleToolbar,
-    withOverlayControls,
-    idleTimeout,
-    onIdle,
-    autoAdvance,
-    withToolbar,
-    height,
-    toolbarControls,
-    pageBackground,
-    pageColorScheme,
-    renderers,
-    controllerRef,
-    page,
-    defaultPage,
-    defaultZoom,
-    withPrint,
-    withDownload,
-    withFullscreen,
-    fullscreen: fullscreenProp,
-    onFullscreenChange,
-    withPageEditing,
-    compactPageEditor,
-    withPageTurning,
-    withScrollSnap,
-    withScroll,
-    onSave,
-    onDocumentLoadStart,
-    withMarkup,
-    markupTools,
-    markupTool,
-    defaultMarkupTool,
-    onMarkupToolChange,
-    markup,
-    defaultMarkup,
-    onMarkupChange,
-    markupColor,
-    markupWidth,
-    markupFontSize,
-    onDocumentLoad,
-    onDocumentError,
-    onPageChange,
-    onSpreadChange,
-    onZoomChange,
-    onPageLayoutChange,
-    onReadingProgress,
-    onReachEnd,
-    onLinkClick,
-    onTextSelect,
-    mod,
-    ref,
-    ...others
-  } = props;
-
-  const resolvedSize = useResponsiveValue(size) ?? 'sm';
-  const resolvedPageGap = useResponsiveValue(pageGap);
-  const resolvedThumbnailWidth = useResponsiveValue(thumbnailWidth) ?? DEFAULT_THUMBNAIL_WIDTH;
-  const resolvedThumbnailsPosition = useResponsiveValue(thumbnailsPosition);
-  const resolvedDefaultPageLayout = useResponsiveValue(defaultPageLayout);
-  const resolvedPageLayout = useResponsiveValue(pageLayout);
+  const { className, style, classNames, styles, unstyled, vars, mod, height } = props;
+  const resolved = useResolvedProps(props);
 
   const getStyles = useStyles<DocViewerFactory>({
     name: 'DocViewer',
     classes,
     props: {
       ...props,
-      size: resolvedSize,
-      pageGap: resolvedPageGap,
-      thumbnailWidth: resolvedThumbnailWidth,
-      thumbnailsPosition: resolvedThumbnailsPosition,
+      size: resolved.size,
+      pageGap: resolved.pageGap,
+      thumbnailWidth: resolved.thumbnailWidth,
+      thumbnailsPosition: resolved.thumbnailsPosition,
     } satisfies ResolvedDocViewerProps,
     className,
     style,
@@ -640,167 +528,47 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     varsResolver,
   });
 
-  const tapToggle = useTapToggle(tapToggleToolbar);
-  const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
-  const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
-  const idle = useIdleTimeout(idleTimeout, onIdle);
-  const playing = autoAdvance && (idleTimeout === undefined || idle) ? autoAdvance : undefined;
-  const controller = useControllerRegistry(controllerRef);
-  const fullscreen = useControlledFullscreen(fullscreenProp, onFullscreenChange);
-  const rootRef = useMergedRef(ref, fullscreen.ref);
-
-  const resolvedFileName = fileName ?? getFileName(src);
-  useRegisterController(controller, {
-    download: () => {
-      const link = document.createElement('a');
-      link.href = src;
-      link.download = resolvedFileName ?? '';
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-    },
-    toggleFullscreen: () => fullscreen.toggle(),
-    getType: () => resolvedType,
-  });
-
-  // Stable, so views can call them from effects without re-running them
-  const handleDocumentLoadStart = useCallbackRef(onDocumentLoadStart);
-  const handleDocumentLoad = useCallbackRef(onDocumentLoad);
-  const handleDocumentError = useCallbackRef(onDocumentError);
-  const handlePageChange = useCallbackRef(onPageChange);
-  const handleSpreadChange = useCallbackRef(onSpreadChange);
-  const handleZoomChange = useCallbackRef(onZoomChange);
-  const handlePageLayoutChange = useCallbackRef(onPageLayoutChange);
-  const handleReadingProgress = useCallbackRef(onReadingProgress);
-  const handleReachEnd = useCallbackRef(onReachEnd);
-  const handleLinkClick = useCallbackRef(onLinkClick);
-  const handleTextSelect = useCallbackRef(onTextSelect);
-  const events = useMemo(
-    () => ({
-      onDocumentLoadStart: handleDocumentLoadStart,
-      onDocumentLoad: handleDocumentLoad,
-      onDocumentError: handleDocumentError,
-      onPageChange: handlePageChange,
-      onSpreadChange: handleSpreadChange,
-      onZoomChange: handleZoomChange,
-      onPageLayoutChange: handlePageLayoutChange,
-      onReadingProgress: handleReadingProgress,
-      onReachEnd: handleReachEnd,
-      onLinkClick: handleLinkClick,
-      onTextSelect: handleTextSelect,
-    }),
-    [
-      handleDocumentLoadStart,
-      handleDocumentLoad,
-      handleDocumentError,
-      handlePageChange,
-      handleZoomChange,
-      handlePageLayoutChange,
-      handleLinkClick,
-      handleTextSelect,
-      handleReadingProgress,
-      handleReachEnd,
-      handleSpreadChange,
-    ]
-  );
-
-  // A layout effect, so the start is reported before any view reports that it loaded
-  useIsomorphicEffect(() => {
-    handleDocumentLoadStart({ type: resolvedType, src });
-  }, [resolvedType, src, handleDocumentLoadStart]);
+  const session = useDocViewerSession(props);
+  const events = useDocViewerEvents(props, session.type);
+  const others = getRootProps(props);
 
   return (
     <DocViewerProvider
-      value={{
-        getStyles,
-        src,
-        type: resolvedType,
-        mimeType,
-        fileName: resolvedFileName,
-        alt,
-        keepView,
-        labels: resolvedLabels,
-        locale,
-        withToolbar,
-        toolbarHidden: tapToggle.hidden,
-        autoHeight: height === 'auto',
-        toolbarControls,
-        toolbarSection,
-        toolbarStartSection,
-        toolbarSubtitle,
-        renderToolbarTitle,
-        renderPageOverlay,
-        autoAdvance: playing,
-        pdfWorkerSrc,
-        pdfOptions,
-        maxCanvasPixels: maxCanvasPixels!,
-        defaultThumbnailsOpened,
-        defaultPageLayout: resolvedDefaultPageLayout,
-        pageLayout: resolvedPageLayout,
-        thumbnailsPosition: resolvedThumbnailsPosition,
-        defaultThumbnailsPosition,
-        onThumbnailsPositionChange,
-        maxTextSize: maxTextSize!,
-        language,
-        size: DOC_VIEWER_SIZES[resolvedSize] ?? DOC_VIEWER_SIZES.sm,
-        color,
-        thumbnailWidth: resolvedThumbnailWidth,
-        tooltipProps,
-        codeHighlightProps,
-        controller,
-        events,
-        page,
-        defaultPage,
-        defaultZoom: defaultZoom!,
-        withPrint,
-        withDownload,
-        withFullscreen,
-        withPageEditing,
-        compactPageEditor,
-        withPageTurning,
-        withScrollSnap,
-        withScroll,
-        onSave,
-        markup: {
-          withMarkup,
-          markupTools,
-          markupTool,
-          defaultMarkupTool,
-          onMarkupToolChange,
-          markup,
-          defaultMarkup,
-          onMarkupChange,
-          markupColor,
-          markupWidth,
-          markupFontSize,
-        },
-        fullscreen: fullscreen.fullscreen,
-        toggleFullscreen: fullscreen.toggle,
-      }}
+      value={buildDocViewerContextValue({ props, getStyles, resolved, session, events })}
     >
       <Box
-        ref={rootRef}
+        ref={session.rootRef}
         {...getStyles('root')}
-        data-doc-type={resolvedType}
-        data-page-color-scheme={pageColorScheme === 'light' ? undefined : pageColorScheme}
+        data-doc-type={session.type}
+        data-page-color-scheme={
+          props.pageColorScheme === 'light' ? undefined : props.pageColorScheme
+        }
         // Like core components: data-size for size keys, not for CSS values such as 5rem
         mod={[
           {
-            size: isNumberLike(resolvedSize) ? undefined : resolvedSize,
-            fullscreen: fullscreen.fullscreen,
+            size: isNumberLike(resolved.size) ? undefined : resolved.size,
+            fullscreen: session.fullscreen.fullscreen,
             'auto-height': height === 'auto',
           },
           mod,
         ]}
         {...others}
-        {...tapToggle.handlers}
+        {...session.tapToggle.handlers}
         h={others.h ?? height}
       >
         {/* Keyed so that zoom, rotation and search reset when the document changes, unless the view is kept */}
-        <React.Fragment key={keepView ? resolvedType : `${resolvedType}:${src}`}>
-          {renderView({ src, fileName: resolvedFileName, mimeType, type: resolvedType }, renderers)}
+        <React.Fragment key={props.keepView ? session.type : `${session.type}:${props.src}`}>
+          {renderView(
+            {
+              src: props.src,
+              fileName: session.fileName,
+              mimeType: props.mimeType,
+              type: session.type,
+            },
+            props.renderers
+          )}
         </React.Fragment>
-        {withOverlayControls && <OverlayControls />}
+        {props.withOverlayControls && <OverlayControls />}
       </Box>
     </DocViewerProvider>
   );
