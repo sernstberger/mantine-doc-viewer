@@ -15,6 +15,7 @@ import {
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
 import { softDisabled } from '../../utils/a11y';
+import { UndoIcon } from '../../utils/icons';
 import {
   CloudIcon,
   EllipseIcon,
@@ -23,8 +24,7 @@ import {
   RectangleIcon,
   SignatureIcon,
   TextBoxIcon,
-  UndoIcon,
-} from '../../utils/icons';
+} from '../markup-icons';
 import classes from '../../DocViewer.module.css';
 import { useMarkupContext } from '../markup-setup';
 import type { DocViewerMarkupTool } from '../utils/markup';

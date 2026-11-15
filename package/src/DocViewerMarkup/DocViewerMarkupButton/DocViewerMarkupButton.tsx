@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
-import { MarkupIcon } from '../../utils/icons';
+import { MarkupIcon } from '../markup-icons';
 import classes from '../../DocViewer.module.css';
 import { useMarkupContext } from '../markup-setup';
 

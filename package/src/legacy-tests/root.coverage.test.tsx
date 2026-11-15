@@ -17,6 +17,7 @@ import { DocViewerFullscreenButton } from '../DocViewerFullscreenButton/DocViewe
 import { DocViewerTitle } from '../DocViewerTitle/DocViewerTitle';
 import { useDocViewerContext } from '../doc-viewer.context';
 import * as icons from '../utils/icons';
+import * as markupIcons from '../DocViewerMarkup/markup-icons';
 import { DEFAULT_LABELS } from '../default-labels';
 import { getScrollBehavior, prefersReducedMotion } from '../utils/scroll';
 import { DOC_VIEWER_SIZES } from '../utils/sizes';
@@ -67,7 +68,8 @@ describe('labels', () => {
 
 describe('icons', () => {
   it('renders every icon as a hidden svg and passes props on', () => {
-    Object.values(icons).forEach((Icon) => {
+    const { Icon: _base, ...shared } = icons;
+    Object.values({ ...shared, ...markupIcons }).forEach((Icon) => {
       const { container, unmount } = render(<Icon data-testid="icon" />);
       const svg = container.querySelector('svg')!;
       expect(svg).toHaveAttribute('aria-hidden', 'true');
