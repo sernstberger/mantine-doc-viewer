@@ -228,33 +228,6 @@ export function FieldReport() {
             <span className={classes.figureLabel}>Figure 2</span>
             <span className={classes.figureTitle}>Shade and the summer street, full report</span>
           </div>
-          <div className={classes.plate}>
-            <div className={classes.well}>
-              <DocViewer
-                src={REPORT_URL}
-                fileName="Shade and the summer street.pdf"
-                pdfWorkerSrc={pdfWorkerSrc}
-                controllerRef={controllerRef}
-                onPageChange={setPage}
-                onReadingProgress={(progress) => setPosition(progress.position)}
-                withToolbar={false}
-                variant="plain"
-                radius={0}
-                size="sm"
-                color="teal"
-                pageGap="lg"
-                pageBackground="white"
-                defaultZoom="fit"
-                // As tall as the report: the article scrolls, not a window inside it
-                height="auto"
-                classNames={{
-                  root: classes.root,
-                  body: classes.reportBody,
-                  page: classes.reportPage,
-                }}
-              />
-            </div>
-          </div>
           <div className={classes.captionBar}>
             <div className={classes.captionStatus} aria-live="polite">
               Page {page} of {REPORT_PAGES}, {Math.round(position * 100)}% read
@@ -295,9 +268,36 @@ export function FieldReport() {
               Open full report
             </Button>
           </div>
+          <div className={classes.plate}>
+            <div className={classes.well}>
+              <DocViewer
+                src={REPORT_URL}
+                fileName="Shade and the summer street.pdf"
+                pdfWorkerSrc={pdfWorkerSrc}
+                controllerRef={controllerRef}
+                onPageChange={setPage}
+                onReadingProgress={(progress) => setPosition(progress.position)}
+                withToolbar={false}
+                variant="plain"
+                radius={0}
+                size="sm"
+                color="teal"
+                pageGap="lg"
+                pageBackground="white"
+                defaultZoom="fit"
+                // As tall as the report: the article scrolls, not a window inside it
+                height="auto"
+                classNames={{
+                  root: classes.root,
+                  body: classes.reportBody,
+                  page: classes.reportPage,
+                }}
+              />
+            </div>
+          </div>
           <figcaption className={classes.caption}>
             Calder Urban Policy Lab, policy report 2026-04. Six pages, with the data table in the
-            middle. Scroll the pages here or open the PDF to read it on its own.
+            middle. Scroll the pages here, or follow the link in note 1 to read it on its own.
           </figcaption>
         </figure>
 
