@@ -22,8 +22,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 - [ ] **Toolbar slots**: a subtitle under the title ("Edited", "Draft 4"), a left slot, and a title
       render prop so the title can be the current sheet (Folio, Dealroom, Plan room, Stand)
-- [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
-      (Field Report)
+- [x] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
+      (Field Report). PDFs, text and code grow; images keep a minimum height
 - [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
 - [x] **Controlled `fullscreen` prop** (Atrium): `fullscreen` and `onFullscreenChange`
 - [x] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate): `thumbnailsPosition` takes `{ base, sm }` values

@@ -431,6 +431,19 @@ PDF pages for dark interfaces, keeping hues so images and charts stay recognisab
 <DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} pageColorScheme="auto" />
 ```
 
+### Height
+
+The viewer fills the height its parent gives it. In an article, `height="auto"` makes it as tall
+as its content, so the page scrolls instead of a window inside the page. A PDF shows all its
+pages, and the page number, `goToPage` and search follow the page's scroll. Text, code and
+markdown grow too; images keep a minimum height, so give them a fixed `height`. In full screen
+the viewer fills the screen and scrolls inside, as usual. Fit to height layouts (`'horizontal'`,
+`'wrapped'`) fit to the width instead.
+
+```tsx
+<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} height="auto" />
+```
+
 ## Accessibility
 
 - Screen readers read PDF pages from their text layer. Each page is a group named "Page 2 of 3".

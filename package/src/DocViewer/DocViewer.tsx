@@ -298,6 +298,15 @@ export interface DocViewerProps
 
   /** Determines whether the toolbar is displayed, `true` by default */
   withToolbar?: boolean;
+
+  /**
+   * Height of the viewer, a number in px or any CSS value; the viewer fills its parent by default
+   * when the parent has a height. `'auto'` makes the viewer as tall as its content, so the page
+   * scrolls instead of the viewer: a PDF shows all its pages, text and code show every line. Page
+   * tracking, `goToPage` and search then scroll the window. Images and custom renderers keep a
+   * minimum height. Full screen and presentations use the whole screen as usual
+   */
+  height?: 'auto' | (string & {}) | number;
 }
 
 export type DocViewerFactory = Factory<{
@@ -435,6 +444,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     toolbarSection,
     renderPageOverlay,
     withToolbar,
+    height,
     toolbarControls,
     pageBackground,
     pageColorScheme,
@@ -529,6 +539,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         alt,
         labels: resolvedLabels,
         withToolbar,
+        autoHeight: height === 'auto',
         toolbarControls,
         toolbarSection,
         renderPageOverlay,
@@ -571,10 +582,12 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
           {
             size: isNumberLike(resolvedSize) ? undefined : resolvedSize,
             fullscreen: fullscreen.fullscreen,
+            'auto-height': height === 'auto',
           },
           mod,
         ]}
         {...others}
+        h={others.h ?? height}
       >
         {/* Keyed so that zoom, rotation and search reset when the document changes */}
         <React.Fragment key={`${resolvedType}:${src}`}>

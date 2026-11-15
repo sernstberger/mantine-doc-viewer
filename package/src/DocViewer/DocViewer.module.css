@@ -768,6 +768,28 @@
   }
 }
 
+/*
+ * height="auto": the viewer is as tall as its content and the window scrolls. Full screen has a
+ * height of its own, so it scrolls inside the viewer as usual
+ */
+.root[data-auto-height]:not([data-fullscreen]) {
+  & .body {
+    flex: none;
+  }
+
+  /* Side rails stay in view while the pages scroll past */
+  & .main > .thumbnails:not([data-orientation='horizontal']) {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+  }
+
+  & .main > .thumbnails[data-orientation='horizontal'] {
+    max-height: none;
+  }
+}
+
 /* variant="plain": just the document, for embedding in a page */
 .root[data-variant='plain'] {
   border: 0;

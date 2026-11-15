@@ -29,6 +29,9 @@ export interface ScaleInput {
 
   /** Padding of the pages element, kept free when fitting. 16px a side by default */
   gutter?: PagesGutter;
+
+  /** The viewer grows to its pages, so the height of the view cannot be fitted to */
+  autoHeight?: boolean;
 }
 
 /** Scale of the pages: the zoom, or the scale that fits the layout to the view */
@@ -38,7 +41,7 @@ export function computeScale(input: ScaleInput) {
   if (zoom !== 'fit-width') {
     return zoom;
   }
-  if (fitsToHeight(layout)) {
+  if (fitsToHeight(layout) && !input.autoHeight) {
     return getFitWidthScale(bodyHeight, pageHeight, gutter.y);
   }
   return isTwoPages(layout)
