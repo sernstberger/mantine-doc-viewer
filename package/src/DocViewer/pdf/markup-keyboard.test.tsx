@@ -1,9 +1,9 @@
 import { render, screen } from '@mantine-tests/core';
-import { act, waitFor } from '@testing-library/react';
+import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { DocViewer, DocViewerProps } from '../DocViewer';
-import type { DocViewerMarkupTool } from './markup';
+import type { DocViewerMark, DocViewerMarkupTool } from './markup';
 
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
@@ -291,5 +291,53 @@ describe('markup from the keyboard', () => {
       await act(async () => io.setIntersecting(pageGroup(1), false));
       expect(screen.queryByRole('application', { name: 'Rectangle on page 1' })).toBeNull();
     });
+  });
+});
+
+describe('the marks for screen readers', () => {
+  beforeEach(() => getDocument.mockReset());
+
+  const marks: DocViewerMark[] = [
+    {
+      type: 'highlight',
+      id: 'a',
+      page: 1,
+      color: 'yellow',
+      rect: { x: 10, y: 10, width: 50, height: 20 },
+    },
+    {
+      type: 'text',
+      id: 'b',
+      page: 1,
+      color: 'red',
+      x: 20,
+      y: 40,
+      text: 'Check this',
+      fontSize: 14,
+    },
+  ];
+
+  it('lists the marks of each page beside its markup layer, and keeps the list up to date', async () => {
+    mockPdf();
+    renderViewer('rectangle', { defaultMarkup: marks });
+
+    const list = await screen.findByRole('list', { name: 'Page 1: 2 marks' });
+    const items = within(list).getAllByRole('listitem');
+    expect(items.map((item) => item.textContent)).toEqual(['Highlight', 'Text box: Check this']);
+    // Outside the layer, where screen readers read in browse mode
+    expect(list.closest('[role="application"]')).toBeNull();
+    expect(screen.queryByRole('list', { name: /^Page 2/ })).toBeNull();
+
+    await focusLayer('Rectangle on page 2');
+    await userEvent.keyboard('{Enter}{Shift>}{ArrowRight}{ArrowDown}{/Shift}{Enter}');
+    expect(await screen.findByRole('list', { name: 'Page 2: 1 mark' })).toHaveTextContent(
+      'Rectangle'
+    );
+  });
+
+  it('lists the marks without a tool too', async () => {
+    mockPdf();
+    renderViewer('pen', { markupTool: null, defaultMarkup: marks });
+    expect(await screen.findByRole('list', { name: 'Page 1: 2 marks' })).toBeInTheDocument();
   });
 });

@@ -127,6 +127,10 @@ export interface DocViewerLabels {
   markStarted: (tool: string) => string;
   markAdded: (tool: string) => string;
   markCancelled: string;
+  /** Screen reader name of the hidden list of a page's marks */
+  pageMarks: (page: number, count: number) => string;
+  /** A text mark in that list, after the tool's name */
+  textMark: (tool: string, text: string) => string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -268,6 +272,8 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   markStarted: (tool) => `${tool} started`,
   markAdded: (tool) => `${tool} added`,
   markCancelled: 'Mark cancelled',
+  pageMarks: (page, count) => `Page ${page}: ${count} ${count === 1 ? 'mark' : 'marks'}`,
+  textMark: (tool, text) => `${tool}: ${text}`,
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',

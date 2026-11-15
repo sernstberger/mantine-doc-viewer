@@ -1,4 +1,4 @@
-import { Textarea } from '@mantine/core';
+import { Textarea, VisuallyHidden } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerPageContext } from '../DocViewer.context';
@@ -80,5 +80,26 @@ export function PdfMarkupTextInput({
       styles={{ input: getFontStyle(fontSize, color, scale) }}
       data-editing
     />
+  );
+}
+
+/**
+ * The page's marks for screen readers, which skip the drawing: a hidden list beside the markup
+ * layer (not in it, since the layer is an application where screen readers pass keys through)
+ */
+export function PdfMarkList({ pageNumber, marks }: { pageNumber: number; marks: DocViewerMark[] }) {
+  const { labels } = useDocViewerPageContext();
+
+  return (
+    <VisuallyHidden role="list" aria-label={labels.pageMarks(pageNumber, marks.length)}>
+      {marks.map((mark) => {
+        const tool = labels.markupTools[mark.type];
+        return (
+          <span key={mark.id} role="listitem">
+            {mark.type === 'text' ? labels.textMark(tool, mark.text) : tool}
+          </span>
+        );
+      })}
+    </VisuallyHidden>
   );
 }

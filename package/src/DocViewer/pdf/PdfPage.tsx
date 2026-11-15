@@ -10,6 +10,7 @@ import type { DocViewerPageRect } from './page-points';
 import { PdfHighlightLayer } from './PdfHighlightLayer';
 import { NO_MARKS } from './marks-by-page';
 import { PdfMarkupLayer } from './PdfMarkupLayer';
+import { PdfMarkList } from './PdfMarkupText';
 import type { DocViewerMark } from './markup';
 import type { PdfLayerMarkup } from './use-markup';
 import { useLinkLayer } from './use-link-layer';
@@ -112,6 +113,7 @@ function PdfPageView({
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
       {highlightRects && <PdfHighlightLayer rects={highlightRects} {...layerSize} />}
+      {marks.length > 0 && <PdfMarkList pageNumber={pageNumber} marks={marks} />}
       {/* Only near the view: a long document would otherwise hold a layer for every page */}
       {markup && near && (
         <PdfMarkupLayer

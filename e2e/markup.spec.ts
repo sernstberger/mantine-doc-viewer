@@ -39,6 +39,8 @@ test('arrows and Enter place a highlight on the focused page', async ({ page }) 
 
   await expect(first.locator('[data-mark="highlight"]')).toHaveCount(1);
   await expect(page.getByRole('status').filter({ hasText: 'Highlight added' })).toBeAttached();
+  // Screen readers can review the page's marks
+  await expect(page.getByRole('list', { name: 'Page 1: 1 mark' })).toHaveText('Highlight');
   // Focus stays on the page, ready for the next mark
   await expect(first).toBeFocused();
   await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
