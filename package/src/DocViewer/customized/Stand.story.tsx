@@ -1,5 +1,4 @@
 import { ActionIcon } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -60,9 +59,6 @@ const SETLIST: Piece[] = [
  * toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.
  */
 export function Stand() {
-  // Mantine sm (48em) and below is a phone: one page at a time, fitted to the screen. The layout
-  // props are defaults, so the viewer is keyed on it to start over when the screen class changes.
-  const phone = useMediaQuery('(max-width: 47.99375em)', false, { getInitialValueInEffect: false });
   const [drawer, setDrawer] = useState<boolean | null>(null);
   // Closed on arrival: the score takes the whole screen until the setlist is asked for
   const drawerOpened = drawer ?? false;
@@ -153,7 +149,6 @@ export function Stand() {
 
       <main className={classes.reader}>
         <DocViewer
-          key={phone ? 'phone' : 'tablet'}
           src="/stories/nocturne.pdf"
           fileName="Lantern Hour"
           pdfWorkerSrc={pdfWorkerSrc}
@@ -164,7 +159,9 @@ export function Stand() {
           // Ivory paper, so the score glows against the aubergine stage
           pageBackground="#FBF8F1"
           pageGap="xl"
-          defaultPageLayout={phone ? 'horizontal' : 'two-page'}
+          // One page at a time on a phone, a spread from Mantine's sm breakpoint (48em) up; the
+          // page being played stays in view when the screen changes
+          defaultPageLayout={{ base: 'horizontal', sm: 'two-page' }}
           // A whole page (a phone) or spread (a tablet) fills the screen, however it is held
           defaultZoom="fit-page"
           // A thin strip: the title, the page and full screen, nothing else on stage
