@@ -1,0 +1,36 @@
+name: Bug report
+description: Something in mantine-doc-viewer does not work as documented
+labels: ['bug']
+body:
+  - type: input
+    id: version
+    attributes:
+      label: mantine-doc-viewer version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: mantine
+    attributes:
+      label: '@mantine/core version'
+      placeholder: 9.8.0
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Safari 19 on macOS
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: A minimal example (CodeSandbox, StackBlitz or a repository) and the document type it happens with
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
