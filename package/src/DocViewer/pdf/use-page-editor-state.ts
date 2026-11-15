@@ -27,7 +27,7 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
   const { turnOf, turn, clearTurns } = usePageTurns();
   const [announcement, announce] = useAnnouncement();
   const edited = isEdited(order, document.numPages) || order.some((page) => turnOf(page) !== 0);
-  const { focusedIndex, setFocusedIndex, focusIndex } = usePageFocus(scrollRoot, order);
+  const { focusedIndex, setFocusedIndex, focusIndex, refocus } = usePageFocus(scrollRoot, order);
   const pageSelection = usePageSelection(order);
   const { selected, clear } = pageSelection;
   const reorder = useReorderList({
@@ -51,7 +51,7 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
     setOrder(next);
     const moved = [...pages][0];
     announce(labels.pageMoved(moved, next.indexOf(moved) + 1));
-    requestAnimationFrame(() => focusIndex(next.indexOf(order[focusedIndex]), next));
+    refocus(next.indexOf(order[focusedIndex]), next);
   };
 
   const remove = () => {
@@ -63,7 +63,7 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
     setOrder(next);
     clear();
     // The focused page may be gone: keep keyboard focus in the list
-    requestAnimationFrame(() => focusIndex(focusedIndex, next));
+    refocus(focusedIndex, next);
     announce(labels.pagesRemoved(order.length - next.length));
   };
 

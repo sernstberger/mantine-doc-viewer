@@ -885,6 +885,26 @@ describe('DocViewer PDF', () => {
       expect(order()).toEqual(['2', '1']);
     });
 
+    it('acts on the moved or next page for a second key pressed before the next frame', async () => {
+      const { listbox, order } = await openEditor();
+      // Hold every animation frame: only DOM focus waits for one, the focused page does not
+      const frames = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
+
+      fireEvent.keyDown(listbox, { key: 'ArrowRight', altKey: true });
+      fireEvent.keyDown(listbox, { key: 'ArrowRight', altKey: true });
+      expect(order()).toEqual(['2', '3', '1']);
+      expect(screen.getByRole('option', { name: 'Page 1, position 3 of 3' })).toHaveAttribute(
+        'tabindex',
+        '0'
+      );
+
+      // The last page goes, then the one that is last after it
+      fireEvent.keyDown(listbox, { key: 'Delete' });
+      fireEvent.keyDown(listbox, { key: 'Delete' });
+      expect(order()).toEqual(['2']);
+      frames.mockRestore();
+    });
+
     it('extracts the selected pages without changing the document', async () => {
       const { onSave } = await openEditor();
       await userEvent.click(screen.getByRole('option', { name: 'Page 2, position 2 of 3' }));
