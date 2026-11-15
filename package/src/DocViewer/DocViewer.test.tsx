@@ -1,12 +1,13 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
-import { waitFor } from '@testing-library/react';
-import { DocViewer, DocViewerProps, DocViewerStylesNames } from './DocViewer';
+import { fireEvent, waitFor } from '@testing-library/react';
+import { DocViewer, DocViewerProps } from './DocViewer';
 
-const defaultProps: DocViewerProps = { src: 'https://example.com/photo.png' };
+// DocViewer.Props is DocViewerProps, like Mantine's own component namespaces
+const defaultProps: DocViewer.Props = { src: 'https://example.com/photo.png' };
 
 describe('DocViewer', () => {
-  tests.itSupportsSystemProps<DocViewerProps, DocViewerStylesNames>({
+  tests.itSupportsSystemProps<DocViewerProps, DocViewer.StylesNames>({
     component: DocViewer,
     props: defaultProps,
     styleProps: true,
@@ -161,6 +162,39 @@ describe('DocViewer', () => {
       );
       expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
       expect(screen.queryByText('archive.zip')).not.toBeInTheDocument();
+    });
+
+    it('shows print, download and full screen unless toolbarControls or withFullscreen hide them', () => {
+      Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true });
+      const loadImage = () => {
+        const image = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
+        Object.defineProperty(image, 'naturalWidth', { value: 800 });
+        Object.defineProperty(image, 'naturalHeight', { value: 400 });
+        fireEvent.load(image);
+      };
+      const { rerender } = render(<DocViewer src="/files/photo.png" />);
+      loadImage();
+      expect(screen.getByRole('button', { name: 'Print' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Download' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Full screen' })).toBeInTheDocument();
+
+      rerender(
+        <DocViewer
+          src="/files/photo.png"
+          toolbarControls={{ print: false, download: false, fullscreen: false }}
+        />
+      );
+      loadImage();
+      expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();
+
+      rerender(<DocViewer src="/files/photo.png" withFullscreen={false} />);
+      loadImage();
+      expect(screen.getByRole('button', { name: 'Print' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();
+      delete (document as any).fullscreenEnabled;
     });
 
     it('sets the plain variant, page background and page colour scheme', () => {

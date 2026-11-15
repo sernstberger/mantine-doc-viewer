@@ -210,10 +210,10 @@ export function Proofline() {
             defaultZoom="fit"
             // Room between the pages for the crop marks and the labels
             pageGap={56}
-            withPrint={false}
-            withDownload={false}
             tooltipProps={{ openDelay: 400, position: 'bottom' }}
             toolbarControls={{
+              print: false,
+              download: false,
               thumbnails: false,
               outline: false,
               info: false,

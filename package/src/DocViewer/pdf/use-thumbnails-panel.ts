@@ -1,19 +1,25 @@
 import { useUncontrolled } from '@mantine/hooks';
-import { useState } from 'react';
 import type { DocViewerThumbnailsPosition } from '../DocViewer';
 import type { DocViewerContextValue } from '../DocViewer.context';
 
 type ThumbnailsSettings = Pick<
   DocViewerContextValue,
+  | 'thumbnailsOpened'
   | 'defaultThumbnailsOpened'
+  | 'onThumbnailsOpenedChange'
   | 'thumbnailsPosition'
   | 'defaultThumbnailsPosition'
   | 'onThumbnailsPositionChange'
 >;
 
-/** Whether the thumbnails strip is open, and where it sits (controlled or not) */
+/** Whether the thumbnails strip is open and where it sits, each controlled or not */
 export function useThumbnailsPanel(settings: ThumbnailsSettings) {
-  const [opened, setOpened] = useState(settings.defaultThumbnailsOpened ?? false);
+  const [opened, setOpened] = useUncontrolled<boolean>({
+    value: settings.thumbnailsOpened,
+    defaultValue: settings.defaultThumbnailsOpened,
+    finalValue: false,
+    onChange: settings.onThumbnailsOpenedChange,
+  });
   const [position, setPosition] = useUncontrolled<DocViewerThumbnailsPosition>({
     value: settings.thumbnailsPosition,
     defaultValue: settings.defaultThumbnailsPosition,
@@ -22,7 +28,10 @@ export function useThumbnailsPanel(settings: ThumbnailsSettings) {
   });
 
   /** Opens or closes the strip; without an argument, flips it */
-  const toggle = (next?: boolean) => setOpened((current) => next ?? !current);
+  const toggle = (next?: boolean) => {
+    const value = next ?? !opened;
+    value !== opened && setOpened(value);
+  };
 
   return { opened, toggle, position, setPosition };
 }

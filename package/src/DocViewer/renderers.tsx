@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import type { DocViewerLoadInfo } from './controller';
 import { getRegionProps } from './a11y';
 import { useControlProps } from './controls';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import { useDocumentTitle, useDocViewerContext } from './DocViewer.context';
 import { useKeepScroll } from './keep-scroll';
 
@@ -13,7 +13,7 @@ export interface DocViewerFile {
   mimeType: string | undefined;
 
   /** Type detected by the viewer, `'unknown'` for files it cannot show itself */
-  type: DocType;
+  type: DocViewerType;
 }
 
 /** Shows file types the viewer does not support, or replaces how it shows a type */

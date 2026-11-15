@@ -1,6 +1,6 @@
 import { useCallbackRef } from '@mantine/hooks';
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
 import type { DocViewerPageRect } from './pdf/page-points';
 import type { DocViewerMarkupTool } from './pdf/markup';
@@ -97,7 +97,7 @@ export interface DocViewerController {
   readonly canPrint: boolean;
 
   /** Type of the document that is shown, `'unknown'` for files the viewer cannot show itself */
-  readonly type: DocType;
+  readonly type: DocViewerType;
 
   /** Forgets how much of the PDF has been seen, for the next reader. `onReadingProgress` is called with the empty progress, and `onReachEnd` can be called again */
   resetReadingProgress: () => void;
@@ -162,7 +162,7 @@ export interface DocViewerOutlineItem {
 }
 
 export interface DocViewerLoadInfo {
-  type: DocType;
+  type: DocViewerType;
 
   /** Number of pages of a PDF */
   numPages?: number;
@@ -183,7 +183,7 @@ export interface DocViewerLoadInfo {
 
 /** What `onDocumentLoadStart` reports */
 export interface DocViewerLoadStartInfo {
-  type: DocType;
+  type: DocViewerType;
   src: string;
 }
 
@@ -196,7 +196,12 @@ export interface DocViewerEvents {
 
   /** Called when the PDF spread in view changes, with its number counted from 1 and its pages, for example `[4, 5]` */
   onSpreadChange?: (spread: number, pages: number[]) => void;
-  onZoomChange?: (scale: number, fitted: boolean) => void;
+  /**
+   * Called when the zoom of a PDF or image changes, with the zoom as `zoom` and `defaultZoom` take
+   * it (a scale, `'fit'` or `'fit-page'`) and the scale it gives, where 1 is 100%. A fitted zoom
+   * reports a new scale when the view is resized. Pass the zoom back as `zoom` to control it
+   */
+  onZoomChange?: (zoom: DocViewerZoom, details: { scale: number }) => void;
 
   /** Called when the reader picks a PDF page layout from the toolbar, or `setPageLayout` is called. Pass it back as `pageLayout` to control the layout */
   onPageLayoutChange?: (layout: DocViewerPageLayout) => void;
@@ -222,7 +227,7 @@ export interface DocViewerEvents {
 export type ControllerImplementation = Partial<
   Omit<DocViewerController, 'canPrint' | 'type'> & {
     isPrintable: () => boolean;
-    getType: () => DocType;
+    getType: () => DocViewerType;
   }
 >;
 

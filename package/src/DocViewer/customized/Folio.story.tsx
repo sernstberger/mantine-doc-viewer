@@ -81,7 +81,7 @@ export function Folio() {
           // Like a macOS title bar: the name with a small line under it
           toolbarSubtitle={edited ? 'Edited' : 'On this Mac'}
           // A document app opens files in place, there is nothing to download
-          withDownload={false}
+          toolbarControls={{ download: false }}
           tooltipProps={{ openDelay: 500, position: 'bottom' }}
           classNames={{
             root: classes.root,

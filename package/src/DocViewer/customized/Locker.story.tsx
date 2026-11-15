@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { DocViewerController, DocViewerLoadInfo } from '../controller';
 import { DocViewer } from '../DocViewer';
 import { DocViewerBody, DocViewerRenderer, useDocViewer } from '../renderers';
-import { useTextDocument } from '../text/use-text-document';
+import { useDocViewerText } from '../text/use-doc-viewer-text';
 import { DocViewerLoading, DocViewerMessage } from '../views/MessageView';
 import classes from './Locker.module.css';
 
@@ -262,7 +262,7 @@ const isNumber = (cell: string) => cell !== '' && !Number.isNaN(Number(cell));
 function CsvView({ src }: { src: string }) {
   // A custom renderer reports load / error itself, the built-in views do it for the built-in types only
   const { onLoad, onError } = useDocViewer();
-  const state = useTextDocument(src, 2_000_000);
+  const state = useDocViewerText(src, 2_000_000);
 
   useEffect(() => {
     if (state.status === 'ready') {
@@ -329,6 +329,8 @@ const RENDERERS = [csvRenderer];
 // The app has its own download, print and full screen buttons, and its own title
 // A preview pane is narrow: keep reading controls, leave layout, presentation and info to the full viewer
 const TOOLBAR_CONTROLS = {
+  print: false,
+  download: false,
   title: false,
   layout: false,
   presentation: false,
@@ -603,8 +605,6 @@ export function Locker() {
             radius={0}
             variant="plain"
             // The app has its own download, print and full screen buttons
-            withDownload={false}
-            withPrint={false}
             withFullscreen={false}
             toolbarControls={TOOLBAR_CONTROLS}
             tooltipProps={TOOLTIP_PROPS}

@@ -33,7 +33,17 @@ Annotation and editing
 API and styling
 
 - Toolbar built on Mantine's `Toolbar`, with slots (`toolbarSubtitle`, `toolbarStartSection`,
-  `renderToolbarTitle`) and `toolbarControls`
+  `renderToolbarTitle`) and `toolbarControls`, the one switch for which toolbar buttons show
+  (`print`, `download`, `fullscreen` and the rest); `withFullscreen={false}` turns off full screen
+  buttons everywhere, the overlay one too
+- Controlled state with Mantine's value / default / on-change triad: `page`, `pageLayout`,
+  `thumbnailsPosition`, `thumbnailsOpened` (`onThumbnailsOpenedChange`), `zoom` (`defaultZoom`,
+  `onZoomChange(zoom, { scale })`: the same zoom type in and out, with the scale it gives),
+  `markupTool`, `markup`, `fullscreen`
+- Exported types carry the `DocViewer` prefix (`DocViewerType`, `DocViewerDetectTypeInput`,
+  `DocViewerPdfOptions`, `DocViewerTextState`, `useDocViewerText`), and `DocViewer.Props`,
+  `DocViewer.StylesNames`, `DocViewer.CssVariables`, `DocViewer.Factory` and `DocViewer.Variant`
+  like Mantine's components
 - `controllerRef`, events (`onDocumentLoadStart`, `onDocumentLoad`, `onLoad`, `onError`,
   `onFullscreenChange`), `controller.canPrint` and `controller.type`
 - Styles API (including `attributes`), `variant="plain"`, dark pages, translatable `labels`

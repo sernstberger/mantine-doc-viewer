@@ -98,6 +98,9 @@ const GERMAN_LABELS = {
 
 // Defined once at module level: the viewer must see the same objects on every render
 const TOOLBAR_CONTROLS = {
+  // A kiosk is not for taking files home
+  download: false,
+  print: false,
   title: false,
   thumbnails: false,
   rotate: false,
@@ -235,9 +238,6 @@ export function Atrium() {
               controller.current?.setZoom('fit-page');
             }}
             autoAdvance={{ interval: ATTRACT_INTERVAL }}
-            // A kiosk is not for taking files home
-            withDownload={false}
-            withPrint={false}
             // The guide links to its own pages; a link must never take the kiosk anywhere else
             onLinkClick={(_url, event) => event.preventDefault()}
             // The band's Vollbild button and the viewer's own full screen button stay in step

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import type { DocViewerProps } from './DocViewer';
 
 /** Stable event handlers for the views, and the load-start report */
@@ -20,7 +20,7 @@ export function useDocViewerEvents(
     | 'onLinkClick'
     | 'onTextSelect'
   >,
-  type: DocType
+  type: DocViewerType
 ) {
   // Stable, so views can call them from effects without re-running them
   const handleDocumentLoadStart = useCallbackRef(props.onDocumentLoadStart);

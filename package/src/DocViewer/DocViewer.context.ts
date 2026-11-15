@@ -11,13 +11,13 @@ import {
   type MantineColor,
   type TooltipProps,
 } from '@mantine/core';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
 import type { DocViewerAutoAdvance } from './kiosk';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { DocViewerPageTurning } from './pdf/spreads';
-import type { PdfLoadOptions } from './pdf/use-pdf-document';
+import type { DocViewerPdfOptions } from './pdf/use-pdf-document';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import type { DocViewerMarkupProps } from './pdf/use-markup';
 import type { DocViewerSizeConfig } from './sizes';
@@ -25,7 +25,7 @@ import type { DocViewerSizeConfig } from './sizes';
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerFactory>;
   src: string;
-  type: DocType;
+  type: DocViewerType;
   mimeType: string | undefined;
   fileName: string | undefined;
   alt: string | undefined;
@@ -46,9 +46,11 @@ export interface DocViewerContextValue {
   /** Set while the viewer should play: `autoAdvance`, once the viewer is idle when `idleTimeout` is set */
   autoAdvance: DocViewerAutoAdvance | undefined;
   pdfWorkerSrc: string | undefined;
-  pdfOptions: PdfLoadOptions | undefined;
+  pdfOptions: DocViewerPdfOptions | undefined;
   maxCanvasPixels: number;
+  thumbnailsOpened: boolean | undefined;
   defaultThumbnailsOpened: boolean | undefined;
+  onThumbnailsOpenedChange: ((opened: boolean) => void) | undefined;
   defaultPageLayout: DocViewerPageLayout | undefined;
   pageLayout: DocViewerPageLayout | undefined;
   thumbnailsPosition: DocViewerThumbnailsPosition | undefined;
@@ -65,9 +67,8 @@ export interface DocViewerContextValue {
   events: Required<DocViewerEvents>;
   page: number | undefined;
   defaultPage: number | undefined;
+  zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
-  withPrint: boolean | undefined;
-  withDownload: boolean | undefined;
   withFullscreen: boolean | undefined;
   withPageEditing: boolean | undefined;
   compactPageEditor: boolean | undefined;

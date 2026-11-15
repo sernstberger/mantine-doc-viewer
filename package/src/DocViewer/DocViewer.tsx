@@ -23,7 +23,7 @@ import {
 import type { CodeHighlightProps } from '@mantine/code-highlight';
 import React from 'react';
 import type { DocViewerController, DocViewerEvents, DocViewerZoom } from './controller';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import { useDocViewerContextValue } from './doc-viewer-context-value';
 import { getRootProps } from './doc-viewer-root-props';
 import { DocViewerProvider } from './DocViewer.context';
@@ -38,7 +38,7 @@ import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { DocViewerPageTurning } from './pdf/spreads';
 import type { DocViewerMarkupProps } from './pdf/use-markup';
-import type { PdfLoadOptions } from './pdf/use-pdf-document';
+import type { DocViewerPdfOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
 import type { DocViewerResponsive } from './responsive';
@@ -162,14 +162,15 @@ export interface DocViewerProps
   extends
     BoxProps,
     StylesApiProps<DocViewerFactory>,
-    ElementProps<'div'>,
+    // color is the viewer's accent colour, not the HTML attribute
+    ElementProps<'div', 'color'>,
     DocViewerEvents,
     DocViewerMarkupProps {
   /** Url of the document: a regular url, blob url or data url */
   src: string;
 
   /** Document type, detected from `mimeType`, `fileName` or `src` when not set */
-  type?: DocType;
+  type?: DocViewerType;
 
   /** MIME type of the document, used to detect `type` */
   mimeType?: string;
@@ -203,7 +204,7 @@ export interface DocViewerProps
    * the parts of a PDF needed for the pages on screen are downloaded (`disableAutoFetch` and
    * `disableStream`). Read when a document starts loading
    */
-  pdfOptions?: PdfLoadOptions;
+  pdfOptions?: DocViewerPdfOptions;
 
   /** Largest canvas drawn for a PDF page, in pixels. Pages are drawn at a lower resolution beyond it, `16_777_216` by default (the Safari limit) */
   maxCanvasPixels?: number;
@@ -226,6 +227,16 @@ export interface DocViewerProps
 
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
+
+  /**
+   * Determines whether PDF page thumbnails are shown, for a controlled state. Use with
+   * `onThumbnailsOpenedChange`; the toolbar button and `controllerRef.toggleThumbnails` report
+   * to it, and the strip opens or closes once the app passes the value back
+   */
+  thumbnailsOpened?: boolean;
+
+  /** Called when the reader opens or closes the PDF page thumbnails, from the toolbar or the controller */
+  onThumbnailsOpenedChange?: (opened: boolean) => void;
 
   /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position. Can differ per breakpoint, for example `{ base: 'bottom', sm: 'left' }` */
   thumbnailsPosition?: DocViewerResponsive<DocViewerThumbnailsPosition>;
@@ -286,6 +297,13 @@ export interface DocViewerProps
   defaultZoom?: DocViewerZoom;
 
   /**
+   * Controlled zoom of a PDF or image, with `onZoomChange`: a scale where 1 is 100%, `'fit'` or
+   * `'fit-page'`, like `defaultZoom`. Zooming from the toolbar, keys, the wheel, a pinch or the
+   * controller is reported to `onZoomChange`, and shown once the app passes it back
+   */
+  zoom?: DocViewerZoom;
+
+  /**
    * Determines whether PDF pages turn by spread, like a book: a click or tap on the left or right
    * edge of the view, a sideways swipe, or Arrow left, Arrow right, Page up and Page down from
    * anywhere on the page (the keys page turner pedals send). `true` turns all of them on; pass
@@ -322,20 +340,21 @@ export interface DocViewerProps
     info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
   ) => void | Promise<void>;
 
-  /** Determines whether the toolbar has a print button, `true` by default */
-  withPrint?: boolean;
-
-  /** Determines whether the toolbar has a download button, `true` by default */
-  withDownload?: boolean;
-
-  /** Determines whether the toolbar has a full screen button, `true` by default */
+  /**
+   * Determines whether readers can make the viewer full screen from its buttons, `true` by
+   * default. `false` removes both the toolbar button and the `withOverlayControls` button;
+   * `toolbarControls={{ fullscreen: false }}` removes only the toolbar button. The controller,
+   * the `fullscreen` prop and presentations still work
+   */
   withFullscreen?: boolean;
 
   /**
    * Determines whether the viewer is full screen, for a controlled state. Use with
    * `onFullscreenChange`. Browsers only allow full screen after a click or key press, so set it
    * from an event handler. When a request is refused, or the reader presses Escape,
-   * `onFullscreenChange` reports what really happened
+   * `onFullscreenChange` reports what really happened. There is no `defaultFullscreen`: a
+   * browser refuses full screen that does not come from a click or key press, so the viewer
+   * cannot open full screen on its own
    */
   fullscreen?: boolean;
 
@@ -397,7 +416,11 @@ export interface DocViewerProps
    */
   autoAdvance?: DocViewerAutoAdvance;
 
-  /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
+  /**
+   * Toolbar controls to hide, for example `{ print: false, download: false, rotate: false }`. All
+   * are shown by default. This is the one switch for toolbar buttons; the full screen button also
+   * needs `withFullscreen`
+   */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
   /** Key of `theme.colors` or any valid CSS color behind PDF pages and thumbnails, white by default */
@@ -438,8 +461,6 @@ const defaultProps: Partial<DocViewerProps> = {
   thumbnailWidth: DEFAULT_THUMBNAIL_WIDTH,
   maxCanvasPixels: MAX_CANVAS_PIXELS,
   defaultZoom: 'fit',
-  withPrint: true,
-  withDownload: true,
   withFullscreen: true,
 };
 
@@ -591,3 +612,12 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
 
 DocViewer.displayName = 'DocViewer';
 DocViewer.classes = classes;
+
+/** Types under the component name, like Mantine's own components: `DocViewer.Props` and so on */
+export namespace DocViewer {
+  export type Props = DocViewerProps;
+  export type StylesNames = DocViewerStylesNames;
+  export type CssVariables = DocViewerCssVariables;
+  export type Factory = DocViewerFactory;
+  export type Variant = DocViewerVariant;
+}
