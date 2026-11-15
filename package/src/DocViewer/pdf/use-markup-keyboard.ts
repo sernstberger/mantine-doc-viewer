@@ -2,6 +2,7 @@ import { useMergedRef } from '@mantine/hooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { focusIfLost } from '../a11y';
 import { useDocViewerPageContext } from '../DocViewer.context';
+import type { DocViewerLabels } from '../labels';
 import type { DocViewerMarkPoint } from './markup';
 import type { Draft, TextDraft } from './markup-draft';
 import { getMarkupKeyAction, MARKUP_KEY_SHORTCUTS, type MarkupKeyAction } from './markup-keys';
@@ -12,6 +13,10 @@ const PAGE_STEPS: Record<string, number> = { PageUp: -1, PageDown: 1 };
 
 const hasModifier = (event: React.KeyboardEvent) =>
   event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+
+/** Pages to move by for the key: 1 for Page Down, -1 for Page Up, 0 for other keys */
+const getPageStep = (event: React.KeyboardEvent) =>
+  hasModifier(event) ? 0 : (PAGE_STEPS[event.key] ?? 0);
 
 interface MarkupKeyboardInput extends MarkupLayerInput {
   numPages: number;
@@ -50,44 +55,47 @@ function useTextBoxFocusReturn(textDraft: TextDraft | null) {
   };
 }
 
-/**
- * Placing marks without a pointer: while a tool is picked the current page's markup layer is a
- * tab stop with a cursor that the arrow keys move; Enter starts and finishes a mark at it, or
- * opens a text box there, and Page Up and Page Down move to the layer of the page before or
- * after. What happens is read out through the viewer's status region
- */
-export function useMarkupKeyboard({
-  pageNumber,
-  numPages,
-  tabStop,
-  width,
-  height,
-  rotation,
-  markup,
-  draft,
-  setDraft,
-  commit,
-  textDraft,
-  setTextDraft,
-}: MarkupKeyboardInput) {
-  const { labels } = useDocViewerPageContext();
-  const { tool, announce, registerLayer } = markup;
+/** The layer's ref: registered with the markup by page, and focused again after a text box */
+function useLayerRef(
+  pageNumber: number,
+  registerLayer: (pageNumber: number, node: HTMLElement | null) => void,
+  textDraft: TextDraft | null
+) {
   const { layerRef: focusReturnRef, returnFocusLater } = useTextBoxFocusReturn(textDraft);
   const register = useCallback(
     (node: HTMLDivElement | null) => registerLayer(pageNumber, node),
     [registerLayer, pageNumber]
   );
-  const layerRef = useMergedRef(focusReturnRef, register);
-  const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
-  // The cursor starts in the middle of the page
-  const caret = caretPoint ?? [width / 2, height / 2];
+  return { layerRef: useMergedRef(focusReturnRef, register), returnFocusLater };
+}
 
-  if (!tool) {
-    return { layerRef, caret: null, keyboardProps: {} };
-  }
-  const toolName = labels.markupTools[tool];
+interface KeyActionsInput {
+  toolName: string;
+  caret: DocViewerMarkPoint;
+  draft: Draft | null;
+  setCaret: (caret: DocViewerMarkPoint) => void;
+  setDraft: (draft: Draft | null) => void;
+  commit: (draft: Draft) => boolean;
+  setTextDraft: (draft: TextDraft | null) => void;
+  returnFocusLater: () => void;
+  labels: DocViewerLabels;
+  announce: (message: string) => void;
+}
 
-  const actions: Record<MarkupKeyAction['type'], (action: MarkupKeyAction) => void> = {
+/** What each markup key action does, and what it reads out */
+function getKeyActions({
+  toolName,
+  caret,
+  draft,
+  setCaret,
+  setDraft,
+  commit,
+  setTextDraft,
+  returnFocusLater,
+  labels,
+  announce,
+}: KeyActionsInput): Record<MarkupKeyAction['type'], (action: MarkupKeyAction) => void> {
+  return {
     move: (action) => {
       const moved = action as MoveAction;
       !draft && moved.draft && announce(labels.markStarted(toolName));
@@ -113,14 +121,59 @@ export function useMarkupKeyboard({
       setTextDraft({ x: caret[0], y: caret[1], text: '' });
     },
   };
+}
+
+/**
+ * Placing marks without a pointer: while a tool is picked the current page's markup layer is a
+ * tab stop with a cursor that the arrow keys move; Enter starts and finishes a mark at it, or
+ * opens a text box there, and Page Up and Page Down move to the layer of the page before or
+ * after. What happens is read out through the viewer's status region
+ */
+export function useMarkupKeyboard({
+  pageNumber,
+  numPages,
+  tabStop,
+  width,
+  height,
+  rotation,
+  markup,
+  draft,
+  setDraft,
+  commit,
+  textDraft,
+  setTextDraft,
+}: MarkupKeyboardInput) {
+  const { labels } = useDocViewerPageContext();
+  const { tool, announce, registerLayer } = markup;
+  const { layerRef, returnFocusLater } = useLayerRef(pageNumber, registerLayer, textDraft);
+  const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
+  // The cursor starts in the middle of the page
+  const caret = caretPoint ?? [width / 2, height / 2];
+
+  if (!tool) {
+    return { layerRef, caret: null, keyboardProps: {} };
+  }
+  const toolName = labels.markupTools[tool];
+
+  const actions = getKeyActions({
+    toolName,
+    caret,
+    draft,
+    setCaret,
+    setDraft,
+    commit,
+    setTextDraft,
+    returnFocusLater,
+    labels,
+    announce,
+  });
 
   const goToPage = (step: number) => {
     const target = pageNumber + step;
-    if (target < 1 || target > numPages) {
-      return;
+    if (target >= 1 && target <= numPages) {
+      draft && actions.cancel({ type: 'cancel' });
+      markup.focusPage(target);
     }
-    draft && actions.cancel({ type: 'cancel' });
-    markup.focusPage(target);
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -128,18 +181,14 @@ export function useMarkupKeyboard({
     if (event.target !== event.currentTarget) {
       return;
     }
-    const step = PAGE_STEPS[event.key];
-    if (step && !hasModifier(event)) {
+    const step = getPageStep(event);
+    const action = step
+      ? null
+      : getMarkupKeyAction(event, { tool, caret, draft, width, height, rotation });
+    if (step || action) {
       event.preventDefault();
       event.stopPropagation();
-      goToPage(step);
-      return;
-    }
-    const action = getMarkupKeyAction(event, { tool, caret, draft, width, height, rotation });
-    if (action) {
-      event.preventDefault();
-      event.stopPropagation();
-      actions[action.type](action);
+      step ? goToPage(step) : actions[action!.type](action!);
     }
   };
 
