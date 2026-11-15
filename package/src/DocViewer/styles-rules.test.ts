@@ -26,6 +26,15 @@ describe('DocViewer.module.css rules', () => {
     expect(coarse).toContain('display: grid');
   });
 
+  it('makes the thumbnail delete button untappable and hidden on touch screens until its thumbnail is current', () => {
+    const coarse = ruleOf('.thumbnailDelete').match(/@media \(pointer: coarse\) \{[\s\S]*\n {2}\}/)![0];
+    const [hidden, current] = coarse.split(':where(.thumbnail[data-active]) > &');
+    expect(hidden).toContain('visibility: hidden');
+    expect(hidden).toContain('pointer-events: none');
+    expect(current).toContain('visibility: visible');
+    expect(current).toContain('pointer-events: auto');
+  });
+
   it('scopes the drag to reorder styles to the two module classes', () => {
     expect(css).not.toMatch(/^\[data-reorder-item\]/m);
     expect(css).toContain(':is(.thumbnail, .editorPage) {');

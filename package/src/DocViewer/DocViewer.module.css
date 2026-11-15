@@ -1016,8 +1016,14 @@
     opacity: 1;
   }
 
+  /* On touch screens only the current thumbnail shows it; elsewhere it is not there to tap or announce */
   @media (pointer: coarse) {
+    visibility: hidden;
+    pointer-events: none;
+
     :where(.thumbnail[data-active]) > & {
+      visibility: visible;
+      pointer-events: auto;
       opacity: 1;
     }
   }
