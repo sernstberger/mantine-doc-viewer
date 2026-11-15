@@ -331,7 +331,11 @@ function buildPages() {
     let y: number;
 
     // Chapter opening: sunk low on a fresh page, no running head
-    outline.push({ title: `${chapter.number}. ${chapter.title}`, page: pageNumber });
+    // Outline titles are PDFDocEncoding, where the right single quote is byte 0x90
+    outline.push({
+      title: `${chapter.number}. ${chapter.title}`.replace(/\u2019/g, '\x90'),
+      page: pageNumber,
+    });
     ops.push(centred(H - CHAPTER_SINK + 92, chapter.number, 12, 'F5', MUTED));
     ops.push(centred(H - CHAPTER_SINK + 64, chapter.title, 18, 'F3'));
     ops.push(ornament(H - CHAPTER_SINK + 36));
