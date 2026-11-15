@@ -1,18 +1,11 @@
 import '@mantine/core/styles.css';
 import '@mantine/code-highlight/styles.css';
-import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight';
 import { MantineProvider } from '@mantine/core';
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
-import { repoDecorators } from './repo';
+import { repoDecorators, repoTheme } from './repo';
 
-const shikiAdapter = createShikiAdapter(async () => {
-  const { createHighlighter } = await import('shiki');
-  return createHighlighter({
-    langs: ['tsx', 'ts', 'json', 'markdown', 'python', 'bash'],
-    themes: [],
-  });
 });
 
 const preview: Preview = {
@@ -80,10 +73,8 @@ const preview: Preview = {
       // effects that do not clean up after themselves show up there
       return (
         <React.StrictMode>
-          <MantineProvider forceColorScheme={scheme}>
-            <CodeHighlightAdapterProvider adapter={shikiAdapter}>
-              {renderStory()}
-            </CodeHighlightAdapterProvider>
+          <MantineProvider theme={repoTheme} forceColorScheme={scheme}>
+            {renderStory()}
           </MantineProvider>
         </React.StrictMode>
       );

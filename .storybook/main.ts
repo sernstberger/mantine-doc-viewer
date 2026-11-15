@@ -1,5 +1,6 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import { dirname, join } from 'path';
+import { repoStaticDirs, repoViteConfig } from './repo-vite';
 
 function getAbsolutePath(value: string): any {
   return dirname(require.resolve(join(value, 'package.json')));
@@ -7,7 +8,7 @@ function getAbsolutePath(value: string): any {
 
 const config: StorybookConfig = {
   stories: ['../package/src/**/*.story.@(js|jsx|mjs|ts|tsx)'],
-  staticDirs: ['../docs/public'],
+  staticDirs: repoStaticDirs,
   addons: [getAbsolutePath('@storybook/addon-essentials')],
   framework: {
     name: getAbsolutePath('@storybook/react-vite'),
@@ -20,17 +21,11 @@ const config: StorybookConfig = {
   core: { disableTelemetry: true },
   viteFinal: (viteConfig) => ({
     ...viteConfig,
-    // Dependencies the package imports on demand: Vite would find them only when a story first
-    // loads them, re-optimise and reload the page mid-test on a cold dev server
     optimizeDeps: {
       ...viteConfig.optimizeDeps,
       include: [
         ...(viteConfig.optimizeDeps?.include ?? []),
-        'pdfjs-dist',
-        '@cantoo/pdf-lib',
-        'react-markdown',
-        'remark-gfm',
-        '@mantine/code-highlight',
+        ...(repoViteConfig.optimizeDeps?.include ?? []),
       ],
     },
     build: {
