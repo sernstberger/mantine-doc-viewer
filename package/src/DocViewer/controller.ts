@@ -1,6 +1,6 @@
 import { useCallbackRef } from '@mantine/hooks';
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
 import type { DocViewerPageRect } from './pdf/page-points';
 import type { DocViewerMarkupTool } from './pdf/markup';
@@ -97,7 +97,7 @@ export interface DocViewerController {
   readonly canPrint: boolean;
 
   /** Type of the document that is shown, `'unknown'` for files the viewer cannot show itself */
-  readonly type: DocType;
+  readonly type: DocViewerType;
 
   /** Forgets how much of the PDF has been seen, for the next reader. `onReadingProgress` is called with the empty progress, and `onReachEnd` can be called again */
   resetReadingProgress: () => void;
@@ -162,7 +162,7 @@ export interface DocViewerOutlineItem {
 }
 
 export interface DocViewerLoadInfo {
-  type: DocType;
+  type: DocViewerType;
 
   /** Number of pages of a PDF */
   numPages?: number;
@@ -183,7 +183,7 @@ export interface DocViewerLoadInfo {
 
 /** What `onDocumentLoadStart` reports */
 export interface DocViewerLoadStartInfo {
-  type: DocType;
+  type: DocViewerType;
   src: string;
 }
 
@@ -222,7 +222,7 @@ export interface DocViewerEvents {
 export type ControllerImplementation = Partial<
   Omit<DocViewerController, 'canPrint' | 'type'> & {
     isPrintable: () => boolean;
-    getType: () => DocType;
+    getType: () => DocViewerType;
   }
 >;
 

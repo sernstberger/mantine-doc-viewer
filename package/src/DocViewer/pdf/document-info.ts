@@ -2,7 +2,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useState } from 'react';
 import { saveBytes } from '../files';
 import { formatDateTime, formatNumber } from '../format';
-import { formatFileSize } from '../text/use-text-document';
+import { formatFileSize } from '../text/use-doc-viewer-text';
 
 export interface PdfProperty {
   key:

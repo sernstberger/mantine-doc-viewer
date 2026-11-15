@@ -12,7 +12,7 @@ import type { DocViewerController } from '../controller';
 import { getMarkdownPrintSource } from './MarkdownView';
 import { createMarkdownComponents, scrollToHeading } from './markdown-components';
 import { getText, resolveMarkdownUrl } from './markdown-utils';
-import { decodeText } from './use-text-document';
+import { decodeText } from './use-doc-viewer-text';
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -252,7 +252,7 @@ describe('markdown-utils and markdown-components', () => {
   });
 });
 
-describe('use-text-document', () => {
+describe('use-doc-viewer-text', () => {
   function responseWithoutBody(bytes: Uint8Array, headers: Record<string, string> = {}) {
     window.fetch = jest.fn(() =>
       Promise.resolve({

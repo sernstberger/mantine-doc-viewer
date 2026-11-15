@@ -5,7 +5,7 @@ import type { DocViewerController } from './controller';
 import { DocViewer } from './DocViewer';
 import { DocViewerToolbar } from './DocViewerToolbar';
 import { DocViewerBody, DocViewerRenderer } from './renderers';
-import { useTextDocument } from './text/use-text-document';
+import { useDocViewerText } from './text/use-doc-viewer-text';
 import { DocViewerLoading, DocViewerMessage } from './views/MessageView';
 
 export default { title: 'DocViewer' };
@@ -239,7 +239,7 @@ function parseCsv(text: string) {
 }
 
 function CsvView({ src }: { src: string }) {
-  const state = useTextDocument(src, 2_000_000);
+  const state = useDocViewerText(src, 2_000_000);
 
   return (
     <>

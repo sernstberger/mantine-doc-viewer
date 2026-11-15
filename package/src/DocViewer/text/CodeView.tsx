@@ -8,7 +8,7 @@ import { printText } from '../print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from './use-text-view';
 import { ViewModeToggle } from './ViewModeToggle';
-import { useTextDocument } from './use-text-document';
+import { useDocViewerText } from './use-doc-viewer-text';
 
 const NOT_JSON = Symbol('not-json');
 
@@ -31,7 +31,7 @@ export function CodeView() {
   const { getStyles, src, fileName, language, maxTextSize, labels, codeHighlightProps } =
     useDocViewerContext();
   const show = useShowControl();
-  const state = useTextDocument(src, maxTextSize);
+  const state = useDocViewerText(src, maxTextSize);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
 

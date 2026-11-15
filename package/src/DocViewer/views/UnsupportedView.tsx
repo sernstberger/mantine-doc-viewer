@@ -1,10 +1,10 @@
 import React from 'react';
-import type { DocType } from '../detect-doc-type';
+import type { DocViewerType } from '../detect-doc-type';
 import { useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerMessage } from './MessageView';
 
-export function UnsupportedView({ type }: { type: DocType }) {
+export function UnsupportedView({ type }: { type: DocViewerType }) {
   const { getStyles, labels } = useDocViewerContext();
 
   return (

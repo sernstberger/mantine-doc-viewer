@@ -23,7 +23,7 @@ import {
 import type { CodeHighlightProps } from '@mantine/code-highlight';
 import React from 'react';
 import type { DocViewerController, DocViewerEvents, DocViewerZoom } from './controller';
-import type { DocType } from './detect-doc-type';
+import type { DocViewerType } from './detect-doc-type';
 import { useDocViewerContextValue } from './doc-viewer-context-value';
 import { getRootProps } from './doc-viewer-root-props';
 import { DocViewerProvider } from './DocViewer.context';
@@ -38,7 +38,7 @@ import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { DocViewerPageTurning } from './pdf/spreads';
 import type { DocViewerMarkupProps } from './pdf/use-markup';
-import type { PdfLoadOptions } from './pdf/use-pdf-document';
+import type { DocViewerPdfOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
 import type { DocViewerResponsive } from './responsive';
@@ -169,7 +169,7 @@ export interface DocViewerProps
   src: string;
 
   /** Document type, detected from `mimeType`, `fileName` or `src` when not set */
-  type?: DocType;
+  type?: DocViewerType;
 
   /** MIME type of the document, used to detect `type` */
   mimeType?: string;
@@ -203,7 +203,7 @@ export interface DocViewerProps
    * the parts of a PDF needed for the pages on screen are downloaded (`disableAutoFetch` and
    * `disableStream`). Read when a document starts loading
    */
-  pdfOptions?: PdfLoadOptions;
+  pdfOptions?: DocViewerPdfOptions;
 
   /** Largest canvas drawn for a PDF page, in pixels. Pages are drawn at a lower resolution beyond it, `16_777_216` by default (the Safari limit) */
   maxCanvasPixels?: number;

@@ -39,7 +39,7 @@ export function getLoaded(state: PdfDocumentState) {
   return { ready, document: ready?.document ?? null, numPages: ready?.document.numPages ?? 0 };
 }
 
-export type PdfLoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
+export type DocViewerPdfOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
 
 export { DEFAULT_PDF_LOAD_OPTIONS };
 
@@ -47,7 +47,7 @@ export { DEFAULT_PDF_LOAD_OPTIONS };
 export function usePdfDocument(
   src: string,
   workerSrc: string | undefined,
-  options?: PdfLoadOptions,
+  options?: DocViewerPdfOptions,
   /** Bytes to open instead of `src`, such as a document with edited pages */
   data?: Uint8Array | null
 ): PdfDocumentState {

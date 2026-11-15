@@ -14,7 +14,7 @@ import { DEFAULT_LABELS } from './labels';
 import { getScrollBehavior, prefersReducedMotion } from './scroll';
 import { DOC_VIEWER_SIZES } from './sizes';
 import { TextStatus } from './text/TextStatus';
-import { formatFileSize } from './text/use-text-document';
+import { formatFileSize } from './text/use-doc-viewer-text';
 import { DocViewerLoading, DocViewerMessage } from './views/MessageView';
 import { UnsupportedView } from './views/UnsupportedView';
 import { clampZoom, MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from './zoom';
@@ -40,7 +40,7 @@ describe('index', () => {
     expect(api.DocViewerMessage).toBe(DocViewerMessage);
     expect(api.DocViewerBody).toBe(DocViewerBody);
     expect(api.useDocViewer).toBe(useDocViewer);
-    expect(api.useTextDocument).toBeDefined();
+    expect(api.useDocViewerText).toBeDefined();
   });
 });
 

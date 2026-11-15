@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { formatNumber } from '../format';
 
-export type TextDocumentState =
+export type DocViewerTextState =
   | { status: 'loading' }
   | { status: 'ready'; text: string; size: number; mimeType: string | undefined }
   | { status: 'too-large'; size: number }
   | { status: 'error'; error: Error };
 
 /** Loads a text file, refusing files larger than `maxSize` bytes before reading them when the server says how large they are */
-export function useTextDocument(src: string, maxSize: number): TextDocumentState {
-  const [state, setState] = useState<TextDocumentState>({ status: 'loading' });
+export function useDocViewerText(src: string, maxSize: number): DocViewerTextState {
+  const [state, setState] = useState<DocViewerTextState>({ status: 'loading' });
 
   useEffect(() => {
     // Aborting also stops the download of a file that turns out to be too large,

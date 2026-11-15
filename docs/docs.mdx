@@ -277,7 +277,7 @@ function Demo() {
 
 Add file types with `renderers`. A renderer's `test` gets `{ src, fileName, mimeType, type }`
 and its `render` returns the view. `DocViewerToolbar`, `DocViewerBody`, `DocViewerMessage`,
-`DocViewerLoading` and `useTextDocument` give it the same toolbar, scroll area, messages and
+`DocViewerLoading` and `useDocViewerText` give it the same toolbar, scroll area, messages and
 size limit as the built-in views:
 
 ```tsx
@@ -287,11 +287,11 @@ import {
   DocViewerLoading,
   DocViewerRenderer,
   DocViewerToolbar,
-  useTextDocument,
+  useDocViewerText,
 } from 'mantine-doc-viewer';
 
 function CsvView({ src }: { src: string }) {
-  const state = useTextDocument(src, 2_000_000);
+  const state = useDocViewerText(src, 2_000_000);
   return (
     <>
       <DocViewerToolbar />

@@ -6,7 +6,7 @@ import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { DocViewer } from './DocViewer';
 import { formatDateTime, formatPercent } from './format';
 import { formatPageSize, getPdfProperties } from './pdf/document-info';
-import { formatFileSize } from './text/use-text-document';
+import { formatFileSize } from './text/use-doc-viewer-text';
 
 describe('locale', () => {
   beforeEach(() => getDocument.mockReset());

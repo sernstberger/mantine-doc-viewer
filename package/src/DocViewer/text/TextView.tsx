@@ -7,14 +7,14 @@ import { WrapIcon } from '../icons';
 import { printText } from '../print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from './use-text-view';
-import { useTextDocument } from './use-text-document';
+import { useDocViewerText } from './use-doc-viewer-text';
 import { DocViewerTooltip, useControlProps } from '../controls';
 
 export function TextView() {
   const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
   const controlProps = useControlProps();
   const show = useShowControl();
-  const state = useTextDocument(src, maxTextSize);
+  const state = useDocViewerText(src, maxTextSize);
   const [wrap, setWrap] = useState(true);
   const { fileName } = useDocViewerContext();
   const onPrint = useTextView('text', state, async () => {
