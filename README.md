@@ -57,7 +57,7 @@ for every prop, the Styles API, events and the controller.
 
 ## Requirements
 
-- Mantine 9, React 18 or 19, pdfjs-dist 6
+- Mantine 9.7 or newer, React 19.2 or newer, pdfjs-dist 6.5 or newer
 - Current versions of Chrome, Edge, Firefox and Safari. Search highlights use the CSS Custom
   Highlight API; where it is missing, search still finds and scrolls to matches.
 
