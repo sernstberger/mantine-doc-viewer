@@ -715,10 +715,10 @@ export function Leaf() {
                     // The app turns the pages
                     withScroll={false}
                     // The gutter: pages darken a little towards the spine
-                    renderPageOverlay={({ pageNumber }) => (
+                    renderPageOverlay={({ page }) => (
                       <div
                         className={classes.gutter}
-                        data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
+                        data-side={spread ? (page % 2 ? 'right' : 'left') : 'single'}
                       />
                     )}
                   />

@@ -8,7 +8,7 @@ import { printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
 import { useViewModeAvailable } from '../hooks/text/use-view-mode-available';
-import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
+import { DEFAULT_MAX_TEXT_SIZE, useDocViewerText } from '../hooks/text/use-doc-viewer-text';
 import type { DocViewerCodeProps } from './DocViewerCode';
 
 const NOT_JSON = Symbol('not-json');
@@ -36,11 +36,9 @@ export function CodeView({
   ...others
 }: DocViewerCodeProps) {
   const { classNames, styles } = others;
-  const ctx = useDocViewerContext();
-  const { getStyles, src, fileName, store } = ctx;
-  const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
-  const resolvedLanguage = language ?? ctx.language ?? getCodeLanguage({ src, fileName }) ?? 'text';
-  const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
+  const { getStyles, src, fileName, store } = useDocViewerContext();
+  const state = useDocViewerText(src, maxSize ?? DEFAULT_MAX_TEXT_SIZE);
+  const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
 
   const json = useMemo(
@@ -72,12 +70,12 @@ export function CodeView({
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...highlightProps}
+            {...codeHighlightProps}
             {...getStyles('code', {
               classNames,
               styles,
-              className: highlightProps?.className,
-              style: highlightProps?.style,
+              className: codeHighlightProps?.className,
+              style: codeHighlightProps?.style,
             })}
           />
         )}

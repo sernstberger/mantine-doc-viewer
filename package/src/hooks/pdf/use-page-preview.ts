@@ -1,8 +1,12 @@
 import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
 import { useEffect, useState } from 'react';
-import { useDocViewerPageContext } from '../../doc-viewer.context';
 import { keepSize, usePageCanvasRef } from '../../utils/page-canvas-ref';
-import { getPageViewport, PdfRotation, renderPageToCanvas } from '../../utils/render-page';
+import {
+  getPageViewport,
+  MAX_CANVAS_PIXELS,
+  PdfRotation,
+  renderPageToCanvas,
+} from '../../utils/render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import type { PdfLayersState } from './use-pdf-layers';
 import { useReleasePage } from './use-release-page';
@@ -29,7 +33,6 @@ export function usePagePreview({
   rotation = 0,
   layers,
 }: PagePreviewInput) {
-  const { maxCanvasPixels } = useDocViewerPageContext();
   const canvas = usePageCanvasRef();
   const [size, setSize] = useState<PdfPageSize | null>(null);
 
@@ -53,7 +56,7 @@ export function usePagePreview({
         page,
         node,
         width / pageWidth,
-        maxCanvasPixels,
+        MAX_CANVAS_PIXELS,
         rotation,
         layers?.config ?? undefined
       );
@@ -69,7 +72,7 @@ export function usePagePreview({
       renderTask?.cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- pages draw with the document's own layer visibility until a layer is toggled (version)
-  }, [document, pageNumber, near, width, maxCanvasPixels, rotation, layers?.version]);
+  }, [document, pageNumber, near, width, rotation, layers?.version]);
 
   useReleasePage(document, pageNumber, near);
 

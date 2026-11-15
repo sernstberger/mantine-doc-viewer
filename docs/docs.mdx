@@ -341,16 +341,14 @@ safe to call them at any time. Use them from handlers and effects:
 
 <Demo data={demos.store} />
 
-`createDocViewer` does the same outside of React, and `docViewerActions` has every action with the
-store as the last argument, like `lightboxActions`:
+`createDocViewer` does the same outside of React, like `createLightbox`:
 
 ```tsx
-import { createDocViewer, docViewerActions } from 'mantine-doc-viewer';
+import { createDocViewer } from 'mantine-doc-viewer';
 
 const [store, viewer] = createDocViewer();
 
 viewer.goToPage(3);
-docViewerActions.goToPage(3, undefined, store);
 ```
 
 The state has the type and status of the document, the page and spread in view, the zoom and its

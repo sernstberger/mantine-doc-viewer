@@ -4,7 +4,7 @@ import type { PdfRotation } from './render-page';
 /** What `renderPageOverlay` gets for each PDF page */
 export interface DocViewerPageOverlayInfo {
   /** Page number, counted from 1 */
-  pageNumber: number;
+  page: number;
 
   /** Width of the page at 100% in px (PDF points), as the page shows before the viewer rotates it */
   width: number;

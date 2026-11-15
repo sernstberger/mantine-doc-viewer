@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
 import fs from 'fs-extra';
+import { generateDeclarations } from 'mantine-docgen-script';
 import path from 'path';
 
 const getComponentPath = (componentPath: string) =>
@@ -66,27 +66,6 @@ async function writePartSelectors(partFiles: Record<string, string>) {
 }
 
 async function docgen() {
-  // react-docgen-typescript names every component of a file after the first factory in it (the
-  // displayName literal it reads) and drops the rest as duplicates: DocViewerBody.tsx holds the
-  // useDocViewerContext hook with its JSDoc and was documented with the hook's text and no props.
-  // mantine-docgen-script does not expose the parser options, so the parser is given the export
-  // name as the component name before the script loads it, through require so that the script
-  // gets the swapped module (an import() of its ESM build reads the original)
-  const nodeRequire = createRequire(path.join(process.cwd(), 'package.json'));
-  const modulePath = nodeRequire.resolve('react-docgen-typescript');
-  const original = nodeRequire(modulePath);
-
-  nodeRequire.cache[modulePath]!.exports = {
-    ...original,
-    withCustomConfig: (tsconfigPath: string, parserOptions: object) =>
-      original.withCustomConfig(tsconfigPath, {
-        ...parserOptions,
-        componentNameResolver: (exp: { escapedName: string }) => exp.escapedName,
-      }),
-  };
-
-  const { generateDeclarations } = nodeRequire('mantine-docgen-script');
-
   const partFiles: Record<string, string> = Object.fromEntries([
     ['DocViewer', getComponentPath('DocViewerBase.tsx')],
     ...PARTS.map((part) => [
@@ -107,7 +86,7 @@ async function docgen() {
   const declarations: Record<string, unknown> = await fs.readJson(docgenPath);
   const renamed = Object.fromEntries(
     Object.entries(declarations).map(([key, value]) => [
-      key.replace(/^DocViewerBase$/, 'DocViewer'),
+      key.replace(/^mantine-doc-viewer\//, '').replace(/^DocViewerBase$/, 'DocViewer'),
       value,
     ])
   );

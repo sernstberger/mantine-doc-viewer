@@ -237,11 +237,10 @@ export { createReactMarkdownAdapter } from './DocViewerAdapterProvider/adapters/
 export {
   createDocViewer,
   createDocViewerStore,
-  docViewerActions,
   useDocViewer,
   useDocViewerStore,
 } from './doc-viewer.store.js';
-export { useDocViewerContext } from './DocViewerBody/DocViewerBody.js';
+export { useDocViewerContext } from './hooks/view/use-doc-viewer-context.js';
 export { useDocViewerText } from './hooks/text/use-doc-viewer-text.js';
 export { getDocViewerType } from './utils/get-doc-viewer-type.js';
 export { DEFAULT_LABELS } from './default-labels.js';
@@ -383,4 +382,5 @@ export type {
   DocViewerZoom,
 };
 export { useDocViewerView } from './hooks/view/use-doc-viewer-view.js';
+export type { UseDocViewerContextReturnValue } from './hooks/view/use-doc-viewer-context.js';
 export type { UseDocViewerViewReturnValue } from './hooks/view/use-doc-viewer-view.js';

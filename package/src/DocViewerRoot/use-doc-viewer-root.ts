@@ -1,13 +1,5 @@
 import { use, useEffect, useState } from 'react';
-import {
-  getEnv,
-  getSpacing,
-  getThemeColor,
-  MantineColor,
-  rem,
-  useMantineTheme,
-  type GetStylesApi,
-} from '@mantine/core';
+import { getEnv, type GetStylesApi } from '@mantine/core';
 import { useIsomorphicEffect } from '@mantine/hooks';
 import {
   createDocViewerStore,
@@ -17,7 +9,7 @@ import {
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
 import { useDocViewerContextValue } from './doc-viewer-context-value';
 import type { DocViewerRootFactory, DocViewerRootProps } from './DocViewerRoot';
-import { DocViewerLayoutContext, type DocViewerLayoutConfig } from './layout-context';
+import { DocViewerLayoutContext } from './layout-context';
 import { useDocViewerEvents } from './use-doc-viewer-events';
 import { useDocViewerSession } from './use-doc-viewer-session';
 
@@ -57,22 +49,6 @@ function useMissingPdfAdapterWarning(missing: boolean) {
       );
     }
   }, [missing]);
-}
-
-/** CSS variables of the parts, from the part props `DocViewer` passes through */
-function usePartVars(layout: DocViewerLayoutConfig) {
-  const theme = useMantineTheme();
-  const { pagesProps, thumbnailsProps } = layout;
-  const color = (value: MantineColor | undefined) =>
-    value ? getThemeColor(value, theme) : undefined;
-  return {
-    '--doc-viewer-page-gap': pagesProps?.gap === undefined ? undefined : getSpacing(pagesProps.gap),
-    '--doc-viewer-match-color': color(pagesProps?.matchColor),
-    '--doc-viewer-active-match-color': color(pagesProps?.activeMatchColor),
-    '--doc-viewer-thumbnails-width': thumbnailsProps?.width
-      ? rem(thumbnailsProps.width)
-      : undefined,
-  };
 }
 
 /** Opens the thumbnails as `defaultThumbnails*` say, when a viewer mounts and for each new document */
@@ -126,7 +102,6 @@ export function useDocViewerRoot(
   useThumbnailsDefaults(props, store, session.type);
   useMissingPdfAdapterWarning(session.type === 'pdf' && !adapters.pdf);
 
-  const partVars = usePartVars(layout);
   const value = useDocViewerContextValue({
     props,
     layout,
@@ -137,5 +112,5 @@ export function useDocViewerRoot(
     adapters,
   });
 
-  return { value, session, partVars, withPdfSession: session.type === 'pdf' && !!adapters.pdf };
+  return { value, session, withPdfSession: session.type === 'pdf' && !!adapters.pdf };
 }

@@ -12,7 +12,7 @@ import { printHtml, printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
 import { useViewModeAvailable } from '../hooks/text/use-view-mode-available';
-import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
+import { DEFAULT_MAX_TEXT_SIZE, useDocViewerText } from '../hooks/text/use-doc-viewer-text';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import type { DocViewerMarkdownProps } from './DocViewerMarkdown';
 
@@ -112,12 +112,10 @@ export function MarkdownView({
   ...others
 }: DocViewerMarkdownProps) {
   const { classNames, styles } = others;
-  const ctx = useDocViewerContext();
-  const { getStyles, src, store, fileName } = ctx;
-  const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
+  const { getStyles, src, store, fileName } = useDocViewerContext();
+  const state = useDocViewerText(src, maxSize ?? DEFAULT_MAX_TEXT_SIZE);
   const mode = useDocViewerState(store, (current) => current.viewMode);
   useViewModeAvailable(store, state.status === 'ready');
-  const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
   const bodyRef = useRef<HTMLDivElement>(null);
   useTextView('markdown', state, async () => {
     const source = getMarkdownPrintSource(
@@ -148,12 +146,12 @@ export function MarkdownView({
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...highlightProps}
+            {...codeHighlightProps}
             {...getStyles('code', {
               classNames,
               styles,
-              className: highlightProps?.className,
-              style: highlightProps?.style,
+              className: codeHighlightProps?.className,
+              style: codeHighlightProps?.style,
             })}
           />
         )}

@@ -380,11 +380,11 @@ export function Markbook() {
             <DocViewer.Pages
               gap="md"
               matchColor="yellow"
-              renderPageOverlay={({ pageNumber, scale }) =>
+              renderPageOverlay={({ page, scale }) =>
                 CRITERIA.map((criterion, criterionIndex) => {
                   const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
                   const note = scoredNotes[criterionIndex];
-                  if (!anchor || anchor.page !== pageNumber || !note) {
+                  if (!anchor || anchor.page !== page || !note) {
                     return null;
                   }
                   return (

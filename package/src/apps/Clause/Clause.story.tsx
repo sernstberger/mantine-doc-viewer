@@ -469,8 +469,8 @@ export function Clause() {
               {/* A rail beside each changed clause, in the colour of its answer: select it from the page */}
               <DocViewer.Pages
                 gap="md"
-                renderPageOverlay={({ pageNumber, scale }) =>
-                  CHANGED.filter((item) => item.page === pageNumber).map((item) => {
+                renderPageOverlay={({ page, scale }) =>
+                  CHANGED.filter((item) => item.page === page).map((item) => {
                     const itemStatus = statuses[item.number];
                     const [top, bottom] = item.span;
                     const active = item.number === selected || undefined;

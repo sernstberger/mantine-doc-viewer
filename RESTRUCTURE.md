@@ -562,7 +562,7 @@ predates `searchInputProps` and `passwordInputProps`).
 | `DocViewerEvents` | removed (events are props of Root / Pages) | |
 | `DocViewerLoadStartInfo` | removed | `state.status` |
 | `DocViewerGoToPageOptions`, `DocViewerHighlightTarget`, `DocViewerLoadInfo`, `DocViewerOutlineItem`, `DocViewerReadingProgress` | kept | |
-| new | `DocViewerRoot` + every part and its `*Props`, `*StylesNames`; `createDocViewer`, `createDocViewerStore`, `useDocViewer`, `useDocViewerStore`, `docViewerActions`, `DocViewerStore`, `DocViewerState`, `DocViewerActions`; `DocViewerAdapterProvider`, `createPdfJsAdapter`, `createReactMarkdownAdapter`, `DocViewerPdfAdapter`, `DocViewerMarkdownAdapter`; `DocViewerExtension` | |
+| new | `DocViewerRoot` + every part and its `*Props`, `*StylesNames`; `createDocViewer`, `createDocViewerStore`, `useDocViewer`, `useDocViewerStore`, `DocViewerStore`, `DocViewerState`, `DocViewerActions`; `DocViewerAdapterProvider`, `createPdfJsAdapter`, `createReactMarkdownAdapter`, `DocViewerPdfAdapter`, `DocViewerMarkdownAdapter`; `DocViewerExtension` | |
 
 `export namespace DocViewer { … namespace Root { Props; StylesNames } namespace Toolbar {…} … }` for every part, as in Lightbox's index.
 
@@ -678,7 +678,7 @@ export interface DocViewerState {
 export type DocViewerStore = MantineStore<DocViewerState>;
 export function createDocViewerStore(): DocViewerStore;
 export const useDocViewerStore = (store: DocViewerStore) => useStore(store);   // exactly useLightboxStore
-export const docViewerActions: { goToPage(page, options, store) …; };   // store-last, like lightboxActions
+const docViewerActions: { goToPage(page, options, store) …; };   // store-last and internal, as lightboxActions: Lightbox and Spotlight export only bound actions
 export function createDocViewer(): readonly [DocViewerStore, DocViewerActions];
 export function useDocViewer(): readonly [DocViewerStore, DocViewerActions];  // useState(createDocViewer)[0], the useCombobox pattern for a store owned by a component
 ```

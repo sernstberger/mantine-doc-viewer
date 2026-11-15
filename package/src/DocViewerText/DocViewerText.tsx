@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -10,6 +10,7 @@ import {
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerCodeProps } from '../DocViewerCode/DocViewerCode';
 import type { DocViewerMarkdownProps } from '../DocViewerMarkdown/DocViewerMarkdown';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import classes from '../DocViewer.module.css';
 import { TextView } from './TextView';
 
@@ -29,15 +30,15 @@ export type DocViewerTextFactory = Factory<{
 }>;
 
 /** Props of whichever of Text, Code or Markdown is shown, for the simple component's `textProps` */
-export type DocViewerTextViewProps = Partial<
-  Pick<DocViewerTextProps, 'maxSize'> &
-    Pick<DocViewerCodeProps, 'language' | 'codeHighlightProps'> &
-    Pick<DocViewerMarkdownProps, 'codeHighlightProps'>
->;
+export type DocViewerTextViewProps = DocViewerTextProps &
+  DocViewerCodeProps &
+  DocViewerMarkdownProps;
 
 /** Plain text view with its toolbar */
 export const DocViewerText = factory<DocViewerTextFactory>((_props) => {
-  const props = useProps('DocViewerText', null, _props);
+  const { language, codeHighlightProps, ...textProps } =
+    use(DocViewerLayoutContext).textProps ?? {};
+  const props = useProps('DocViewerText', null, mergePartProps(textProps, _props));
   useDocViewerContext();
   return <TextView {...props} />;
 });

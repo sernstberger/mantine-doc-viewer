@@ -135,8 +135,8 @@ export function Haven() {
                   matchColor="#ffe3a3"
                   activeMatchColor="#ffb4bd"
                   onReadingProgress={setProgress}
-                  renderPageOverlay={({ pageNumber, scale }) =>
-                    pageNumber === PAGES.length &&
+                  renderPageOverlay={({ page, scale }) =>
+                    page === PAGES.length &&
                     !signed && (
                       <div
                         className={classes.signHere}

@@ -220,11 +220,11 @@ function ProoflineScreen() {
               {/* Proof marks and the slug line: drawn over each page, outside the PDF, so they can be hidden. Room between the pages for the crop marks and the labels */}
               <DocViewer.Pages
                 gap={56}
-                renderPageOverlay={({ pageNumber, scale, height }) => (
+                renderPageOverlay={({ page, scale, height }) => (
                   <>
-                    {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
+                    {showMarks && <ProofMarks pageNumber={page} scale={scale} />}
                     <span className={classes.slug} style={{ top: height * scale + 22 }}>
-                      {SLUGS[pageNumber - 1]}
+                      {SLUGS[page - 1]}
                     </span>
                   </>
                 )}

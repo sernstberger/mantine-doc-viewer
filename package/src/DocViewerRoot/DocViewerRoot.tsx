@@ -188,7 +188,7 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
       stable: true,
     })
   );
-  const { value, session, partVars, withPdfSession } = useDocViewerRoot(props, getStyles);
+  const { value, session, withPdfSession } = useDocViewerRoot(props, getStyles);
   const { size, autosize, pageColorScheme, keepView, src, extensions } = props;
 
   return (
@@ -206,7 +206,6 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
           },
           mod,
         ]}
-        __vars={partVars}
         {...getRootElementProps(props)}
       >
         <DocViewerExtensionsProvider extensions={extensions}>

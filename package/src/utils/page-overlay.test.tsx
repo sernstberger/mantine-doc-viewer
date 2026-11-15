@@ -26,9 +26,9 @@ describe('renderPageOverlay', () => {
 
   it('renders content over each page with its number, size and scale', async () => {
     mockPdf();
-    const renderPageOverlay = jest.fn(({ pageNumber, scale }) => (
+    const renderPageOverlay = jest.fn(({ page, scale }) => (
       <button type="button" style={{ left: 10 * scale }}>
-        Pin {pageNumber}
+        Pin {page}
       </button>
     ));
     render(
@@ -49,7 +49,7 @@ describe('renderPageOverlay', () => {
 
   it('scales with zoom and turns with the page', async () => {
     mockPdf();
-    const renderPageOverlay = jest.fn(({ pageNumber }) => <span>Mark {pageNumber}</span>);
+    const renderPageOverlay = jest.fn(({ page }) => <span>Mark {page}</span>);
     render(
       <TestDocViewer src="/files/report.pdf" defaultZoom={1} pagesProps={{ renderPageOverlay }} />
     );
@@ -73,7 +73,7 @@ describe('renderPageOverlay', () => {
       <TestDocViewer
         src="/files/report.pdf"
         pagesProps={{
-          renderPageOverlay: ({ pageNumber }) => pageNumber === 1 && <span>Only first</span>,
+          renderPageOverlay: ({ page }) => page === 1 && <span>Only first</span>,
         }}
       />
     );

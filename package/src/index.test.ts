@@ -1,6 +1,7 @@
 import { DocViewer } from './DocViewer';
 import { DEFAULT_LABELS } from './default-labels';
-import { DocViewerBody, useDocViewerContext } from './DocViewerBody/DocViewerBody';
+import { DocViewerBody } from './DocViewerBody/DocViewerBody';
+import { useDocViewerContext } from './hooks/view/use-doc-viewer-context';
 import { DocViewerLoading } from './DocViewerLoading/DocViewerLoading';
 import { DocViewerMessage } from './DocViewerMessage/DocViewerMessage';
 import { DocViewerToolbar } from './DocViewerToolbar/DocViewerToolbar';

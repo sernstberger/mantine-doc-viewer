@@ -10,15 +10,14 @@ import {
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { updateDocViewerStateAction } from '../doc-viewer.store';
-import { DEFAULT_THUMBNAILS_WIDTH } from '../DocViewerRoot/doc-viewer-context-value';
-import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { getThumbnailsLayout } from '../utils/geometry';
 import classes from '../DocViewer.module.css';
-import { PdfThumbnails } from './PdfThumbnails';
+import { DEFAULT_THUMBNAILS_WIDTH, PdfThumbnails } from './PdfThumbnails';
 
 export type DocViewerThumbnailsStylesNames =
   | 'thumbnails'
@@ -91,8 +90,8 @@ export const DocViewerThumbnails = factory<DocViewerThumbnailsFactory>((_props) 
   const layout = use(DocViewerLayoutContext);
   const { width, ...props } = useProps(
     'DocViewerThumbnails',
-    { ...defaultProps, ...layout.thumbnailsProps },
-    _props
+    defaultProps,
+    mergePartProps(layout.thumbnailsProps, _props)
   );
   const { store } = useDocViewerContext();
   const opened = useDocViewerState(store, (state) => state.thumbnailsOpened);
