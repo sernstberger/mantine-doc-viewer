@@ -12,6 +12,8 @@
   `[docs] ...` for the docs site, `[core] ...` for repo tooling.
 - Docs: text goes before each demo; no Markdown pipe tables (use a `DataTable`-style component or
   a list), as on mantine.dev.
+- Storybook: follow `~/.claude/skills/mantine-lib-harness/storybook.md` (component titles = export
+  names, `Usage` first; showcase apps under `Apps/<Name>` as single items).
 - Public API follows the official extensions (Lightbox is the closest analogue): compound parts,
   about 30 own props or fewer per component, engines through adapters.
 
