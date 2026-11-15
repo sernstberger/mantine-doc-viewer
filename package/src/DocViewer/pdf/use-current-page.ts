@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getScrollBehavior } from '../scroll';
-import { getMostVisiblePage, VisibleBox } from './geometry';
+import { Box, getMostVisiblePage, VisibleBox } from './geometry';
 
 /** Space left above a page when scrolling to it */
 const PAGE_SCROLL_OFFSET = 12;
@@ -14,13 +14,18 @@ const SCROLL_SETTLE_TIMEOUT = 1000;
 /**
  * Tracks which page takes up most of the scroll container, and scrolls to pages. With `viewport`
  * the viewer has no scroll area of its own (`height="auto"`): the browser window scrolls, so the
- * window is the view and pages are scrolled into it
+ * window is the view and pages are scrolled into it. `onView` is called with the pages in view and
+ * the view whenever either changes, also during a scroll to a page
  */
 export function useCurrentPage(
   scrollRoot: HTMLElement | null,
   horizontal = false,
-  viewport = false
+  viewport = false,
+  onView?: (boxes: VisibleBox[], view: Box) => void
 ) {
+  const handleView = useRef(onView);
+  handleView.current = onView;
+
   const [currentPage, setCurrentPage] = useState(1);
   const pages = useRef(new Map<number, HTMLDivElement>());
   const visible = useRef(new Set<number>());
@@ -42,10 +47,6 @@ export function useCurrentPage(
     // Measured in pixels, not intersection ratios: a page zoomed to several times the
     // height of the viewer never reaches a ratio threshold, yet fills the whole view
     const update = () => {
-      if (scrollTarget.current !== null) {
-        return;
-      }
-
       const boxes: VisibleBox[] = [];
       visible.current.forEach((page) => {
         const rect = pages.current.get(page)?.getBoundingClientRect();
@@ -61,6 +62,11 @@ export function useCurrentPage(
       const view = viewport
         ? { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
         : scrollRoot.getBoundingClientRect();
+      handleView.current?.(boxes, view);
+      if (scrollTarget.current !== null) {
+        return;
+      }
+
       const best = getMostVisiblePage(boxes, view);
       best && setCurrentPage(best);
     };

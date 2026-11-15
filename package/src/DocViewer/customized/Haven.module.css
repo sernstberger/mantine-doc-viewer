@@ -1,7 +1,7 @@
 /*
  * Haven: a friendly travel marketplace checkout. The story owns its white background in both
  * colour schemes, like the real site. The bold thing is the reading meter in the booking card,
- * which fills as the guest reaches each page, and the signature that lands on the line.
+ * which fills as the guest reads each page, and the signature that lands on the line.
  */
 
 .page {
@@ -368,8 +368,9 @@
     }
   }
 
-  .segment[data-seen] > &::after {
-    transform: scaleX(1);
+  /* Fills as the page is seen, and is whole once it counts as read */
+  .segment > &::after {
+    transform: scaleX(var(--seen, 0));
   }
 
   .segment[data-current] > & {

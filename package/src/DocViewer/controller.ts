@@ -62,6 +62,21 @@ export interface DocViewerController {
 
   /** Type of the document that is shown, `'unknown'` for files the viewer cannot show itself */
   readonly type: DocType;
+
+  /** Forgets how much of the PDF has been seen, for the next reader. `onReadingProgress` is called with the empty progress, and `onReachEnd` can be called again */
+  resetReadingProgress: () => void;
+}
+
+/** How far a reader has got through a PDF */
+export interface DocViewerReadingProgress {
+  /** Fraction of each page that has been on screen, from 0 to 1, in page order: `seen[0]` is page 1 */
+  seen: number[];
+
+  /** How far the view is scrolled through the document, from 0 at the start to 1 at the end */
+  position: number;
+
+  /** True once the bottom of the last page has been on screen */
+  reachedEnd: boolean;
 }
 
 export interface DocViewerGoToPageOptions {
@@ -138,6 +153,12 @@ export interface DocViewerEvents {
   onPageChange?: (page: number) => void;
   onZoomChange?: (scale: number, fitted: boolean) => void;
 
+  /** Called when how much of a PDF has been seen changes: the fraction seen of each page, the scroll position and whether the end was reached. Pages that were scrolled past count too, so check `seen` to tell a skim from a read */
+  onReadingProgress?: (progress: DocViewerReadingProgress) => void;
+
+  /** Called once when the bottom of the last page of a PDF is on screen. Call `controllerRef.resetReadingProgress()` to allow it again */
+  onReachEnd?: () => void;
+
   /** Called when a web link in a PDF is clicked, before it opens in a new tab. Call `event.preventDefault()` to stop it */
   onLinkClick?: (url: string, event: MouseEvent) => void;
 
@@ -196,6 +217,7 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       get type() {
         return implementation.current.getType?.() ?? 'unknown';
       },
+      resetReadingProgress: call('resetReadingProgress'),
     }),
     []
   );

@@ -26,6 +26,10 @@ const ROOMS: Room[] = [
 const FIRST_ROOM_PAGE = 3;
 const PAGE_SIZE = { width: 420, height: 595 };
 const PAGE_GAP = 20;
+
+/** Time without a touch before the kiosk starts over, and how long each spread shows while it plays */
+const IDLE_TIMEOUT = 60_000;
+const ATTRACT_INTERVAL = 9_000;
 const TOOLBAR_HEIGHT = 68;
 
 /** The page that opens a spread in the two-page-cover layout: 1, then 2-3, 4-5, 6-7, 8 */
@@ -156,7 +160,7 @@ export function Atrium() {
 
   // Zoom so that a whole spread is visible without scrolling, from the room the viewer has
   const { ref: readerRef, width, height } = useElementSize<HTMLDivElement>();
-  useEffect(() => {
+  const fitSpread = useCallback(() => {
     if (numPages === 0) {
       return;
     }
@@ -168,6 +172,7 @@ export function Atrium() {
       controller.current?.setZoom(Math.max(0.3, Math.min(byWidth, byHeight)));
     }
   }, [numPages, width, height, fullscreen]);
+  useEffect(fitSpread, [fitSpread]);
 
   const first = spreadStart(page);
   const last = first === 1 ? 1 : Math.min(first + 1, numPages || first + 1);
@@ -246,6 +251,14 @@ export function Atrium() {
             defaultPageLayout="two-page-cover"
             onDocumentLoad={(info) => setNumPages(info.numPages ?? 0)}
             onPageChange={setPage}
+            // After a minute nobody has touched the screen: back to the cover at the spread zoom, then
+            // the guide turns a spread every nine seconds until the next visitor touches it
+            idleTimeout={IDLE_TIMEOUT}
+            onIdle={() => {
+              controller.current?.goToPage(1);
+              fitSpread();
+            }}
+            autoAdvance={{ interval: ATTRACT_INTERVAL }}
             // A kiosk is not for taking files home
             withDownload={false}
             withPrint={false}
@@ -257,8 +270,6 @@ export function Atrium() {
             tooltipProps={TOOLTIP_PROPS}
             toolbarControls={TOOLBAR_CONTROLS}
             classNames={CLASS_NAMES}
-            // MISSING: kiosk behaviours: `idleTimeout` + `onIdle` to return to the cover and reset the zoom, and an attract mode
-            //          (`autoAdvance={{ interval }}`) that plays the guide until someone touches the screen.
             // MISSING: swipe to turn the page; turning is an app button that calls goToPage, with the spread arithmetic done here.
             // MISSING: a zoom that fits the whole spread (width and height); 'fit' only fits the width, so the story computes it.
           />

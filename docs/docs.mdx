@@ -221,10 +221,14 @@ function Demo() {
 | `onDocumentError` | Called with the error when a document cannot be loaded |
 | `onPageChange` | Called with the PDF page that takes up most of the view |
 | `onZoomChange` | Called with the scale (1 is 100%) and whether it is fitted |
+| `onReadingProgress` | Called with `{ seen, position, reachedEnd }` when how much of a PDF has been seen changes: the fraction seen of each page, how far the view is scrolled (0 to 1) and whether the end was reached |
+| `idleTimeout`, `onIdle` | For kiosks: `onIdle` is called when nothing was touched for `idleTimeout` ms, so the app can go back to the start |
+| `autoAdvance` | `{ interval, loop }`: plays a PDF page by page (a spread at a time in two-page layouts). With `idleTimeout` it plays only while idle |
+| `onReachEnd` | Called once when the bottom of the last page of a PDF is on screen |
 | `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
 | `defaultZoom` | A scale, or `'fit'` (the default) |
 | `fullscreen`, `onFullscreenChange` | Control full screen from your app. Set `fullscreen` from a click handler (browsers refuse it otherwise); `onFullscreenChange` reports what really happened, including Escape |
-| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `getOutline`, `print`, `download` and `toggleFullscreen` |
+| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `getOutline`, `print`, `download`, `toggleFullscreen` and `resetReadingProgress` |
 
 ## Other file types
 

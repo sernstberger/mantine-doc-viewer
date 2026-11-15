@@ -14,6 +14,7 @@ import {
 import type { DocType } from './detect-doc-type';
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
+import type { DocViewerAutoAdvance } from './kiosk';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
@@ -39,6 +40,9 @@ export interface DocViewerContextValue {
   toolbarSubtitle: React.ReactNode;
   renderToolbarTitle: DocViewerRenderToolbarTitle | undefined;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
+
+  /** Set while the viewer should play: `autoAdvance`, once the viewer is idle when `idleTimeout` is set */
+  autoAdvance: DocViewerAutoAdvance | undefined;
   pdfWorkerSrc: string | undefined;
   pdfOptions: PdfLoadOptions | undefined;
   maxCanvasPixels: number;

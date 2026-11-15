@@ -32,6 +32,8 @@ import { PdfThumbnails } from './PdfThumbnails';
 import { PdfRotation, rotateSize } from './render-page';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
+import { useReadingProgress } from './use-reading-progress';
+import { useAutoAdvance } from './use-auto-advance';
 import { useLinkService } from './use-link-service';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePresentation } from './use-presentation';
@@ -128,10 +130,20 @@ export function PdfView() {
           autoHeight: viewport,
         });
 
+  const horizontal = layout === 'horizontal';
+  const progress = useReadingProgress({
+    scrollRoot,
+    document,
+    numPages,
+    horizontal,
+    viewport,
+    events,
+  });
   const { currentPage, registerPage, scrollToPage } = useCurrentPage(
     scrollRoot,
-    layout === 'horizontal',
-    viewport
+    horizontal,
+    viewport,
+    progress.sample
   );
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
@@ -188,6 +200,13 @@ export function PdfView() {
     );
     withAnnouncement && announce(labels.pageOf(page, numPages));
   };
+  useAutoAdvance({
+    autoAdvance: ready && !presenting && !editing ? context.autoAdvance : undefined,
+    currentPage,
+    numPages,
+    layout,
+    goToPage: (page) => goToPage(page, false),
+  });
   const rotate = () => setRotation(nextRotation);
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
@@ -215,6 +234,7 @@ export function PdfView() {
     },
     print,
     isPrintable: () => !!ready,
+    resetReadingProgress: progress.reset,
   });
 
   // The page a presentation ended on is restored below, after this has run
