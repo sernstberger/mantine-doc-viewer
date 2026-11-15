@@ -58,22 +58,14 @@ function MarkdownPreview({ text }: { text: string }) {
     [labels]
   );
 
-  if (failed) {
+  // react-markdown parses and transforms the whole text on every render: only when it changes
+  const rendered = useMemo(() => {
+    if (!module) {
+      return null;
+    }
+
+    const { Markdown, remarkGfm, defaultUrlTransform } = module;
     return (
-      <DocViewerMessage withDownload error>
-        {labels.markdownError}
-      </DocViewerMessage>
-    );
-  }
-
-  if (!module) {
-    return null;
-  }
-
-  const { Markdown, remarkGfm, defaultUrlTransform } = module;
-
-  return (
-    <Typography ref={rootRef} {...getStyles('markdown')} data-markdown>
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHeadingIds]}
@@ -85,6 +77,24 @@ function MarkdownPreview({ text }: { text: string }) {
       >
         {text}
       </Markdown>
+    );
+  }, [module, text, components, src]);
+
+  if (failed) {
+    return (
+      <DocViewerMessage withDownload error>
+        {labels.markdownError}
+      </DocViewerMessage>
+    );
+  }
+
+  if (!rendered) {
+    return null;
+  }
+
+  return (
+    <Typography ref={rootRef} {...getStyles('markdown')} data-markdown>
+      {rendered}
     </Typography>
   );
 }
