@@ -1,21 +1,12 @@
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import { createPageEditorExtension } from '../editor';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from '../index';
-import { createMarkupExtension } from '../markup';
+import { createPageEditorExtension } from '../../editor';
+import { DocViewer } from '../../index';
+import { createMarkupExtension } from '../../markup';
 import classes from './Folio.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Folio (desktop document app)',
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
+  title: 'Apps/Folio',
+  parameters: { layout: 'fullscreen' },
 };
 
 interface Toast {
@@ -152,3 +143,13 @@ export function Folio() {
     </div>
   );
 }
+
+Folio.storyName = 'Folio';
+Folio.parameters = {
+  docs: {
+    description: {
+      story:
+        'A Mac user tidies a quarterly report before sending it: remove the draft cover, reorder sections and extract pages from the page editor, then mark it up and sign it off.',
+    },
+  },
+};

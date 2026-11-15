@@ -1097,6 +1097,83 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/barlow-condensed@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/barlow-condensed@npm:5.3.0"
+  checksum: 10c0/0b2a913cc5e75ca66cdeddbc5304be3fff5dbb374f70e82cdf515f4fec32871bb5dd50e16fe3faf2bc2f656b387be475dd95d039463a035b583209d625c94643
+  languageName: node
+  linkType: hard
+
+"@fontsource/barlow@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/barlow@npm:5.3.0"
+  checksum: 10c0/2efe5abb3dac2ef2eb3ae9a3fd5acdc6955daf85efc1b5439081003e2d67ea90d62aae1d54fd1dcf6fc0eccfc815174bb77e70120a4973c0142431827d0b9c6d
+  languageName: node
+  linkType: hard
+
+"@fontsource/cormorant-garamond@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/cormorant-garamond@npm:5.3.0"
+  checksum: 10c0/74f1fd9aa5c62d77e60df14b52c3f1737949f2fec8a2cb383c304f4409664b4c95e5cc5065a78269849959a4ae7d7922d997336f2159b4008c285e61a40b1284
+  languageName: node
+  linkType: hard
+
+"@fontsource/figtree@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/figtree@npm:5.3.0"
+  checksum: 10c0/735f4308ed5564d59f24edd1103e6f8727711c4d2a8290f25a0b3433cddad431738260750c2bde6eb27f82a537084c820405c9a4253e3fadb7ed245c9baa5f9e
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-mono@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/ibm-plex-mono@npm:5.3.0"
+  checksum: 10c0/4aaf5a3c9efc7c32de4fa46ff3187ac63720904beab825f331ac01800038899761da23270f09d3fb5cff22f7cdc366904834854e2107229ad60833bba71c223d
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-sans@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/ibm-plex-sans@npm:5.3.0"
+  checksum: 10c0/8e4c7a849e8167c8de1905282a62ff312a4266e364e3c436fa6d89d650bbb30b3386157ae31af3783e00f85fa64fd7e26bee7ca232db7d22fdc082f6b531edb5
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-serif@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/ibm-plex-serif@npm:5.3.0"
+  checksum: 10c0/0c986a1d4acfc1d4339cd0e3cadaf88e2599af4be0155fcca46125202f217c26b3346423faddb5fc3e886554132b3962b913dc90070076836305032b3a41f642
+  languageName: node
+  linkType: hard
+
+"@fontsource/instrument-sans@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/instrument-sans@npm:5.3.0"
+  checksum: 10c0/6dcaa879f3412d3a74e43e463056731f329267c7283f6bb8236aac01f73b3aa4e378762d60b5082c95e6473c8368385091f0c12124a587aad02add4668750ddb
+  languageName: node
+  linkType: hard
+
+"@fontsource/kalam@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/kalam@npm:5.3.0"
+  checksum: 10c0/ecf6d70e36e3f1aeb3d66b5cd2d05f8377750b4626cb023e8added5b5c4d3ced21eb4d9ea06f5a10f178fe4c6a059685c7ec0872c4e36721c7d54e8a32b6d693
+  languageName: node
+  linkType: hard
+
+"@fontsource/manrope@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/manrope@npm:5.3.0"
+  checksum: 10c0/e0e16f37b953ae5cb164d7dbea3c8a3ae30d0ede291c9f774ad5b3266abeb4b9b5efec11148afe90b6a9cd8e3d141f2e02d70a813dfb524f1d7577ab393f3528
+  languageName: node
+  linkType: hard
+
+"@fontsource/source-sans-3@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "@fontsource/source-sans-3@npm:5.3.1"
+  checksum: 10c0/6dffc3fba514fc49976bfd8dd173c9ecc74cdbbe60e1fb54023ba5404cd0f6224ef6e15d9b32f6b85c395c302c0536df42d098585eb78ebf5543247130b0d5b2
+  languageName: node
+  linkType: hard
+
 "@img/colour@npm:^1.0.0":
   version: 1.1.0
   resolution: "@img/colour@npm:1.1.0"
@@ -9023,6 +9100,17 @@ __metadata:
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.5"
     "@cantoo/pdf-lib": "npm:^2.11.1"
+    "@fontsource/barlow": "npm:^5.3.0"
+    "@fontsource/barlow-condensed": "npm:^5.3.0"
+    "@fontsource/cormorant-garamond": "npm:^5.3.0"
+    "@fontsource/figtree": "npm:^5.3.0"
+    "@fontsource/ibm-plex-mono": "npm:^5.3.0"
+    "@fontsource/ibm-plex-sans": "npm:^5.3.0"
+    "@fontsource/ibm-plex-serif": "npm:^5.3.0"
+    "@fontsource/instrument-sans": "npm:^5.3.0"
+    "@fontsource/kalam": "npm:^5.3.0"
+    "@fontsource/manrope": "npm:^5.3.0"
+    "@fontsource/source-sans-3": "npm:^5.3.1"
     "@mantine-tests/core": "npm:^2.0.0"
     "@mantine/code-highlight": "npm:9.8.0"
     "@mantine/core": "npm:9.8.0"

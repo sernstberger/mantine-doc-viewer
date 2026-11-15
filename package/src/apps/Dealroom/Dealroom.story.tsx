@@ -1,28 +1,12 @@
 import { Avatar, Button, Drawer, Menu, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  createPdfJsAdapter,
-  DocViewer,
-  DocViewerAdapterProvider,
-  useDocViewer,
-  type DocViewerPageRect,
-} from '../index';
+import { DocViewer, useDocViewer, type DocViewerPageRect } from '../../index';
 import classes from './Dealroom.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Dealroom (contract review)',
+  title: 'Apps/Dealroom',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 type Status = 'in-review' | 'changes' | 'approved';
@@ -875,3 +859,13 @@ export function Dealroom() {
     </div>
   );
 }
+
+Dealroom.storyName = 'Dealroom';
+Dealroom.parameters = {
+  docs: {
+    description: {
+      story:
+        "A deal desk at a software company reviews a customer's master services agreement before it goes out for signature: sections to navigate, comments from legal and finance, and a deal rail that shows the money and the two commercial risks the contract contains.",
+    },
+  },
+};

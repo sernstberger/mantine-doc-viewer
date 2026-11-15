@@ -1,27 +1,11 @@
 import { useIdle, useInterval } from '@mantine/hooks';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import {
-  createPdfJsAdapter,
-  DocViewer,
-  DocViewerAdapterProvider,
-  useDocViewer,
-  useDocViewerStore,
-} from '../index';
+import { DocViewer, useDocViewer, useDocViewerStore } from '../../index';
 import classes from './Atrium.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Atrium (museum kiosk)',
+  title: 'Apps/Atrium',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 interface Room {
@@ -314,3 +298,13 @@ export function Atrium() {
     </div>
   );
 }
+
+Atrium.storyName = 'Atrium';
+Atrium.parameters = {
+  docs: {
+    description: {
+      story:
+        'A touchscreen in the foyer of the Kunsthalle Lindenau shows the guide to the exhibition. The screen is a wayfinding sign: the rooms on the open spread are named in signage type, and big arrows turn the spread. Nothing leaves the kiosk: no downloads, no printing, no links.',
+    },
+  },
+};

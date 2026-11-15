@@ -1,27 +1,11 @@
 import { Button, Checkbox, Switch, Textarea, useMatches } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import {
-  createPdfJsAdapter,
-  DocViewer,
-  DocViewerAdapterProvider,
-  useDocViewer,
-  type DocViewerPageLayout,
-} from '../index';
+import { DocViewer, useDocViewer, type DocViewerPageLayout } from '../../index';
 import classes from './Proofline.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Proofline (print proof approval)',
+  title: 'Apps/Proofline',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 const CHECKS = [
@@ -153,13 +137,7 @@ function formatNow() {
   });
 }
 
-/**
- * A café owner approves the proof of a new menu before 500 copies print: check the bleed and the
- * safe area on the cutting mat, then approve or ask for changes.
- *
- * The story owns its colours: a green cutting mat and a white job ticket, in light and dark.
- */
-export function Proofline() {
+function ProoflineScreen() {
   const [store, viewer] = useDocViewer();
   // One page at a time on a phone, the two sides together from Mantine's sm (48em) up
   const pageLayout = useMatches<DocViewerPageLayout>({ base: 'single', sm: 'two-page' });
@@ -211,7 +189,7 @@ export function Proofline() {
 
       <div className={classes.workspace}>
         <div className={classes.stage}>
-          <DocViewer
+          <DocViewer.Root
             src="/stories/menu-proof.pdf"
             fileName="Little Wren menu, proof 2.pdf"
             store={store}
@@ -222,18 +200,6 @@ export function Proofline() {
             pageColorScheme="light"
             pageLayout={pageLayout}
             defaultZoom="fit"
-            toolbarProps={{ tooltipProps: { openDelay: 400, position: 'bottom' } }}
-            toolbarControls={{
-              print: false,
-              download: false,
-              thumbnails: false,
-              outline: false,
-              info: false,
-              presentation: false,
-              search: false,
-              layout: false,
-              rotate: false,
-            }}
             classNames={{
               root: classes.root,
               toolbar: classes.toolbar,
@@ -245,20 +211,29 @@ export function Proofline() {
               pages: classes.pages,
               page: classes.page,
             }}
-            // Proof marks and the slug line: drawn over each page, outside the PDF, so they can be hidden
-            pagesProps={{
-              // Room between the pages for the crop marks and the labels
-              gap: 56,
-              renderPageOverlay: ({ pageNumber, scale, height }) => (
-                <>
-                  {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
-                  <span className={classes.slug} style={{ top: height * scale + 22 }}>
-                    {SLUGS[pageNumber - 1]}
-                  </span>
-                </>
-              ),
-            }}
-          />
+          >
+            <DocViewer.Toolbar
+              leftSection={<DocViewer.Title />}
+              tooltipProps={{ openDelay: 400, position: 'bottom' }}
+            >
+              <DocViewer.PageControls />
+              <DocViewer.ZoomControls />
+            </DocViewer.Toolbar>
+            <DocViewer.Main>
+              {/* Proof marks and the slug line: drawn over each page, outside the PDF, so they can be hidden. Room between the pages for the crop marks and the labels */}
+              <DocViewer.Pages
+                gap={56}
+                renderPageOverlay={({ pageNumber, scale, height }) => (
+                  <>
+                    {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
+                    <span className={classes.slug} style={{ top: height * scale + 22 }}>
+                      {SLUGS[pageNumber - 1]}
+                    </span>
+                  </>
+                )}
+              />
+            </DocViewer.Main>
+          </DocViewer.Root>
           <div className={classes.legendBar}>
             <Switch
               className={classes.marksSwitch}
@@ -424,3 +399,23 @@ export function Proofline() {
     </div>
   );
 }
+
+/**
+ * A café owner approves the proof of a new menu before 500 copies print: check the bleed and the
+ * safe area on the cutting mat, then approve or ask for changes.
+ *
+ * The story owns its colours: a green cutting mat and a white job ticket, in light and dark.
+ */
+export function Proofline() {
+  return <ProoflineScreen />;
+}
+
+Proofline.storyName = 'Proofline';
+Proofline.parameters = {
+  docs: {
+    description: {
+      story:
+        'A café owner approves the proof of a new menu before 500 copies print: check the bleed and the safe area on the cutting mat, then approve or ask for changes.',
+    },
+  },
+};

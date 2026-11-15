@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 import { openPdf } from './support/doc';
 import { expect, test } from './support/story';
 
-const FOLIO = 'docviewer-apps-folio-desktop-document-app--folio';
+const FOLIO = 'apps-folio--folio';
 
 const layer = (page: Page, tool: string, pageNumber: number) =>
   page.getByRole('application', { name: `${tool} on page ${pageNumber}` });

@@ -1,21 +1,11 @@
 import { Button, SegmentedControl, Textarea } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
+import { DocViewer, useDocViewer } from '../../index';
 import classes from './Clause.module.css';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
-
 export default {
-  title: 'DocViewer/Apps/Clause (contract redlining)',
+  title: 'Apps/Clause',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
 };
 
 type Kind = 'plain' | 'ins' | 'del';
@@ -217,17 +207,7 @@ const CLAUSES: ClauseInfo[] = [
   },
 ];
 
-// Stable references: the viewer keeps its scroll position across the app's own re-renders
-const TOOLBAR_CONTROLS = {
-  thumbnails: false,
-  outline: false,
-  layout: false,
-  rotate: false,
-  presentation: false,
-  info: false,
-  fullscreen: false,
-};
-const TOOLBAR_PROPS = { tooltipProps: { openDelay: 400 } };
+// Stable reference: the viewer keeps its scroll position across the app's own re-renders
 const VIEWER_CLASSES = {
   root: classes.root,
   toolbar: classes.toolbar,
@@ -466,7 +446,7 @@ export function Clause() {
         </nav>
 
         <main className={classes.viewer}>
-          <DocViewer
+          <DocViewer.Root
             src="/stories/nda.pdf"
             fileName="Mutual NDA, version 3.pdf"
             store={store}
@@ -474,47 +454,57 @@ export function Clause() {
             color="#152238"
             radius={0}
             onPageChange={handlePageChange}
-            toolbarControls={TOOLBAR_CONTROLS}
-            toolbarProps={TOOLBAR_PROPS}
             classNames={VIEWER_CLASSES}
-            // A rail beside each changed clause, in the colour of its answer: select it from the page
-            pagesProps={{
-              gap: 'md',
-              renderPageOverlay: ({ pageNumber, scale }) =>
-                CHANGED.filter((item) => item.page === pageNumber).map((item) => {
-                  const itemStatus = statuses[item.number];
-                  const [top, bottom] = item.span;
-                  const active = item.number === selected || undefined;
-                  const box = { top: top * scale, height: (bottom - top) * scale };
-                  return (
-                    <React.Fragment key={item.number}>
-                      <div
-                        className={classes.wash}
-                        data-status={itemStatus}
-                        data-active={active}
-                        style={{ ...box, left: 70 * scale, width: (612 - 140) * scale }}
-                      />
-                      <button
-                        type="button"
-                        className={classes.rail}
-                        data-status={itemStatus}
-                        data-active={active}
-                        aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
-                        aria-pressed={item.number === selected}
-                        onClick={() => {
-                          setSelected(item.number);
-                          setPane('clause');
-                        }}
-                        style={{ ...box, left: 44 * scale, width: 22 * scale }}
-                      >
-                        <StatusDot status={itemStatus} />
-                      </button>
-                    </React.Fragment>
-                  );
-                }),
-            }}
             // MISSING: reading the PDF's tracked changes as data (author, range, text) so the clause list would not need to repeat them.
-          />
+          >
+            <DocViewer.Toolbar leftSection={<DocViewer.Title />} tooltipProps={{ openDelay: 400 }}>
+              <DocViewer.PageControls />
+              <DocViewer.ZoomControls />
+              <DocViewer.SearchButton />
+              <DocViewer.PrintButton />
+              <DocViewer.DownloadButton />
+            </DocViewer.Toolbar>
+            <DocViewer.Search />
+            <DocViewer.Main>
+              {/* A rail beside each changed clause, in the colour of its answer: select it from the page */}
+              <DocViewer.Pages
+                gap="md"
+                renderPageOverlay={({ pageNumber, scale }) =>
+                  CHANGED.filter((item) => item.page === pageNumber).map((item) => {
+                    const itemStatus = statuses[item.number];
+                    const [top, bottom] = item.span;
+                    const active = item.number === selected || undefined;
+                    const box = { top: top * scale, height: (bottom - top) * scale };
+                    return (
+                      <React.Fragment key={item.number}>
+                        <div
+                          className={classes.wash}
+                          data-status={itemStatus}
+                          data-active={active}
+                          style={{ ...box, left: 70 * scale, width: (612 - 140) * scale }}
+                        />
+                        <button
+                          type="button"
+                          className={classes.rail}
+                          data-status={itemStatus}
+                          data-active={active}
+                          aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
+                          aria-pressed={item.number === selected}
+                          onClick={() => {
+                            setSelected(item.number);
+                            setPane('clause');
+                          }}
+                          style={{ ...box, left: 44 * scale, width: 22 * scale }}
+                        >
+                          <StatusDot status={itemStatus} />
+                        </button>
+                      </React.Fragment>
+                    );
+                  })
+                }
+              />
+            </DocViewer.Main>
+          </DocViewer.Root>
         </main>
 
         <aside className={classes.thread} aria-label={`Clause ${selected}`}>
@@ -654,3 +644,13 @@ export function Clause() {
     </div>
   );
 }
+
+Clause.storyName = 'Clause';
+Clause.parameters = {
+  docs: {
+    description: {
+      story:
+        'In-house counsel reviews a supplier NDA that came back from Northwind Supply with tracked changes. They go clause by clause, accept or push back, and approve when nothing is open. The app owns its light palette, it does not follow the Mantine colour scheme.',
+    },
+  },
+};

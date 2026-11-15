@@ -20,7 +20,7 @@ const focusedOption = (page: Page) =>
   });
 
 async function openEditor(page: Page) {
-  await openPdf(page, 'docviewer--page-editing');
+  await openPdf(page, 'docviewerpageeditor--usage');
   await page.getByRole('button', { name: 'Edit pages' }).focus();
   await page.keyboard.press('Enter');
   await expect(pages(page).getByRole('option')).toHaveCount(3);
