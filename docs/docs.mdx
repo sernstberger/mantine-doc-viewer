@@ -117,9 +117,20 @@ match accents buttons. Accents are ignored by default, so "cafe" also finds "caf
 
 The page layout button offers single pages (the default), two pages side by side, two pages with
 the first page on its own as a cover, one row scrolled sideways, and rows that wrap. Horizontal
-and wrapped layouts fit pages to the height of the view. Set the starting layout with
-`defaultPageLayout`, or change it with `controllerRef.current.setPageLayout()`. Zooming keeps the
-middle of the view on the same part of the document.
+and wrapped layouts fit pages to the height of the view, without making a landscape page wider
+than the view. Set the starting layout with `defaultPageLayout`, which takes a value per breakpoint
+such as `{ base: 'single', sm: 'two-page' }` and follows the screen until the reader picks a layout,
+or control it with `pageLayout` and `onPageLayoutChange`. `controllerRef.current.setPageLayout()`
+changes it too. The page being read stays in view when the layout changes, and zooming keeps the
+middle of the view on the same spot of the same page.
+
+## Apps that turn pages themselves
+
+An app can take over page turning, for example to animate it like a book. `withScroll={false}`
+stops reader scrolling while text selection, zoom and the controller keep working.
+`controllerRef.current.goToPage(page, { behavior: 'instant' })` jumps without a smooth scroll, and
+`controllerRef.current.getPageCanvas(page)` gives the canvas a drawn page is on, to copy into an
+animation. The Leaf story builds a book reader this way.
 
 ## Document info, attachments and layers
 
@@ -256,7 +267,7 @@ function Demo() {
 | `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
 | `defaultZoom` | A scale, or `'fit'` (the default) |
 | `fullscreen`, `onFullscreenChange` | Control full screen from your app. Set `fullscreen` from a click handler (browsers refuse it otherwise); `onFullscreenChange` reports what really happened, including Escape |
-| `controllerRef` | `goToPage`, `goToSpread`, `nextSpread`, `previousSpread`, `highlight`, `clearHighlight`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `setMarkupTool`, `saveMarkup`, `getOutline`, `getBytes`, `print`, `download`, `toggleFullscreen` and `resetReadingProgress`; `canPrint` and `type` to read |
+| `controllerRef` | `goToPage`, `goToSpread`, `nextSpread`, `previousSpread`, `highlight`, `clearHighlight`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `setMarkupTool`, `saveMarkup`, `getOutline`, `getBytes`, `getPageCanvas`, `print`, `download`, `toggleFullscreen` and `resetReadingProgress`; `canPrint` and `type` to read |
 
 ## Other file types
 

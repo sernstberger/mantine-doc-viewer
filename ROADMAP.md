@@ -61,6 +61,11 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [x] **Kiosk** (`idleTimeout`, `onIdle`, `autoAdvance`): reset when idle, and an auto-advance attract
       mode (Atrium)
 - [x] **Locale prop** (`locale`) for the number formats the viewer shows (Atrium)
+- [x] **Responsive and controlled page layout** (`defaultPageLayout` per breakpoint, `pageLayout`,
+      `onPageLayoutChange`): the page stays in view when it changes, so apps stop remounting the
+      viewer at a breakpoint (Leaf, Stand, Proofline)
+- [x] **Apps that turn pages themselves** (Leaf): `goToPage(page, { behavior: 'instant' })`,
+      `controller.getPageCanvas(page)` to copy a drawn page, and `withScroll={false}`
 
 ## 4. Polish
 
@@ -68,6 +73,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       draw default and custom `matchColor`/`activeMatchColor` like Chrome, active underline included
 - [x] Swap the toolbar to Mantine's `Toolbar` (`controls` is now a `Toolbar`: one tab stop, arrow keys,
       Home and End), keeping soft-disabled buttons, per-control hiding and the `control` Styles API part
+- [x] Documents open at the top of page 1: the first fit no longer scrolls into the page
 
 ## Probably out of scope (confirm before dropping)
 
