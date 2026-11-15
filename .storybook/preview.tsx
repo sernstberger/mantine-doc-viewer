@@ -6,8 +6,6 @@ import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
 import { repoDecorators, repoTheme } from './repo';
 
-});
-
 const preview: Preview = {
   parameters: {
     options: {
