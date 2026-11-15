@@ -13,6 +13,13 @@ describe('thumbnail keys', () => {
     expect(getNextThumbnailPage('Tab', 2, 10, 4)).toBeNull();
   });
 
+  it('swaps Left and Right in right-to-left and keeps Up and Down', () => {
+    expect(getNextThumbnailPage('ArrowRight', 3, 10, 4, true)).toBe(2);
+    expect(getNextThumbnailPage('ArrowLeft', 3, 10, 4, true)).toBe(4);
+    expect(getNextThumbnailPage('ArrowDown', 3, 10, 4, true)).toBe(4);
+    expect(getNextThumbnailPage('ArrowUp', 3, 10, 4, true)).toBe(2);
+  });
+
   it('fits at least one thumbnail per view', () => {
     expect(getThumbnailsPerView(600, 160)).toBe(3);
     expect(getThumbnailsPerView(100, 160)).toBe(1);

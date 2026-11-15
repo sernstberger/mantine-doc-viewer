@@ -1,3 +1,4 @@
+import { useDirection } from '@mantine/core';
 import React from 'react';
 import { EditorKeyAction, getEditorKeyAction } from './editor-keys';
 import type { PageEditorState } from './use-page-editor-state';
@@ -18,6 +19,7 @@ type PageEditorKeysInput = Pick<
 
 /** The keydown handler of the page list: each key runs one editor action */
 export function usePageEditorKeys(editor: PageEditorKeysInput, onCancel: () => void) {
+  const rtl = useDirection().dir === 'rtl';
   const { order, focusedIndex, focusIndex } = editor;
   const keyActions: Record<EditorKeyAction, (step: -1 | 1) => void> = {
     move: (step) => editor.move(step),
@@ -33,7 +35,7 @@ export function usePageEditorKeys(editor: PageEditorKeysInput, onCancel: () => v
   };
 
   return (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const key = getEditorKeyAction(event);
+    const key = getEditorKeyAction(event, rtl);
     if (key) {
       event.preventDefault();
       keyActions[key.action](key.step);

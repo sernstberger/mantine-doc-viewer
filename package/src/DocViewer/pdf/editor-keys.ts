@@ -33,6 +33,9 @@ const ARROW_ACTIONS: Record<string, [EditorKey, EditorKey]> = {
   ArrowDown: [later('focus'), later('move')],
 };
 
+/** In a right-to-left page order the horizontal arrows swap: Right is earlier, Left is later */
+const RTL_ARROW: Record<string, string> = { ArrowLeft: 'ArrowRight', ArrowRight: 'ArrowLeft' };
+
 /** Keys that act the same whatever modifier is held */
 const PLAIN_ACTIONS: Record<string, EditorKey> = {
   Home: later('focusFirst'),
@@ -50,8 +53,8 @@ const LETTER_ACTIONS: Record<string, [EditorKey, boolean]> = {
 };
 
 /** Action for a key pressed in the page editor, or null when the key is not one of its shortcuts */
-export function getEditorKeyAction(event: EditorKeyEvent): EditorKey | null {
-  const arrow = ARROW_ACTIONS[event.key];
+export function getEditorKeyAction(event: EditorKeyEvent, rtl = false): EditorKey | null {
+  const arrow = ARROW_ACTIONS[(rtl && RTL_ARROW[event.key]) || event.key];
   if (arrow) {
     return arrow[event.altKey ? 1 : 0];
   }
