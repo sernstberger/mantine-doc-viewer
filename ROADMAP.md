@@ -56,7 +56,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 ## 4. Polish
 
-- [ ] Check search highlight colours in Safari and Firefox (only checked in Chrome)
+- [x] Check search highlight colours in Safari and Firefox: WebKit and Firefox 159 (Playwright)
+      draw default and custom `matchColor`/`activeMatchColor` like Chrome, active underline included
 - [ ] Swap the toolbar to Mantine's `Toolbar`, keeping soft-disabled buttons, per-control hiding
       and the `control` Styles API part
 
