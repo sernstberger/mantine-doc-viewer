@@ -1,7 +1,6 @@
 import React from 'react';
 import { zoomIn, zoomOut } from '../zoom';
-import { getImageKeyAction } from './image-zoom';
-import type { ImageZoom } from './image-zoom';
+import { getImageKeyAction, type ImageZoom } from './image-zoom';
 
 interface ImageKeyInput {
   scale: number;

@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
-import { useRegisterController } from '../controller';
+import { useRegisterController, type DocViewerZoom } from '../controller';
 import { zoomIn, zoomOut } from '../zoom';
-import type { DocViewerZoom } from '../controller';
 import type { ImageZoom } from './image-zoom';
 
 interface ImageControllerInput {
