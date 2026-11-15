@@ -152,6 +152,42 @@ function useThumbnailActions() {
   );
 }
 
+/** Reorder, select and delete wiring of the strip, with the same functions on every render */
+function useThumbnailsList({
+  numPages,
+  horizontal,
+  scrollRoot,
+  onSelect,
+}: {
+  numPages: number;
+  horizontal: boolean;
+  scrollRoot: HTMLElement | null;
+  onSelect: (pageNumber: number) => void;
+}) {
+  const edits = use(PdfThumbnailEditsContext);
+  const order = useMemo(
+    () => Array.from({ length: numPages }, (_, index) => index + 1),
+    [numPages]
+  );
+  const { list: reorder, getItemState } = useReorderList({
+    container: scrollRoot,
+    layout: horizontal ? 'horizontal' : 'vertical',
+    order,
+    onReorder: (page, toIndex) => edits!.onReorder(page, toIndex),
+    enabled: !!edits,
+  });
+  const select = useCallbackRef(onSelect);
+  const remove = useCallbackRef((page: number) => edits!.onDelete!(page));
+  const deletePage = edits?.onDelete ? remove : undefined;
+  const handleKeyDown = useThumbnailKeys({
+    numPages,
+    horizontal,
+    onSelect: select,
+    onDelete: deletePage,
+  });
+  return { reorder, getItemState, select, deletePage, handleKeyDown };
+}
+
 /**
  * The thumbnails strip. An extension's setup can make thumbnails drag to reorder and delete pages
  * (PdfThumbnailEditsContext); its thumbnail actions show on each thumbnail
@@ -170,39 +206,19 @@ function PdfThumbnailsView({
   rootRef,
 }: PdfThumbnailsProps) {
   const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
-  const edits = use(PdfThumbnailEditsContext);
   const actions = useThumbnailActions();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const mergedRef = useMergedRef(rootRef, setScrollRoot);
   const { onKeyDown, ...others } = elementProps ?? {};
 
-  const numPages = document.numPages;
   const horizontal = orientation === 'horizontal';
   const base = railWidth ?? thumbnailWidth;
   const width = horizontal ? Math.round(base / 2) : base;
-  const order = useMemo(
-    () => Array.from({ length: numPages }, (_, index) => index + 1),
-    [numPages]
-  );
-  const { list: reorder, getItemState } = useReorderList({
-    container: scrollRoot,
-    layout: horizontal ? 'horizontal' : 'vertical',
-    order,
-    // Only called when dragging is enabled, which needs the edits
-    onReorder: (page, toIndex) => edits!.onReorder(page, toIndex),
-    enabled: !!edits,
-  });
-
-  // The same functions on every render, so thumbnails skip renders their own props do not need
-  const select = useCallbackRef(onSelect);
-  // Only called when the edits can delete
-  const remove = useCallbackRef((page: number) => edits!.onDelete!(page));
-  const deletePage = edits?.onDelete ? remove : undefined;
-  const handleKeyDown = useThumbnailKeys({
-    numPages,
+  const { reorder, getItemState, select, deletePage, handleKeyDown } = useThumbnailsList({
+    numPages: document.numPages,
     horizontal,
-    onSelect: select,
-    onDelete: deletePage,
+    scrollRoot,
+    onSelect,
   });
 
   return (
