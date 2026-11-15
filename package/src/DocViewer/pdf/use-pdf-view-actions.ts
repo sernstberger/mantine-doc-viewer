@@ -1,7 +1,6 @@
 import type React from 'react';
 import type { DocViewerContextValue } from '../DocViewer.context';
 import { printPdfBytes } from '../print';
-import { useZoomAnnouncement } from '../use-zoom-announcement';
 import { zoomIn, zoomOut } from '../zoom';
 import { getPdfKeyAction, type PdfKeyAction } from './pdf-keys';
 import { usePdfController } from './use-pdf-controller';
@@ -11,7 +10,6 @@ import type { PdfPageContent } from './use-pdf-page-content';
 import type { PdfPageTurns } from './use-pdf-page-turns';
 import type { PdfReadingPosition } from './use-pdf-reading-position';
 import type { PdfLoaded, PdfViewGeometry } from './use-pdf-view-geometry';
-import type { PdfZoom } from './zoom';
 import { usePresentationRestore } from './use-presentation-restore';
 import { useWheelZoom } from './use-wheel-zoom';
 import { useZoomAnchor } from './use-zoom-anchor';
@@ -34,16 +32,9 @@ interface PdfViewActionsInput {
 export function usePdfViewActions(input: PdfViewActionsInput) {
   const { context, loaded, edited, view, position, content, turns } = input;
   const { document, numPages } = loaded;
-  const { scale, scrollRoot, presenting, setZoom } = view;
-  const { currentPage, scrollToPage, goToPage } = position;
+  const { scale, scrollRoot, presenting } = view;
+  const { currentPage, scrollToPage, goToPage, zoomTo } = position;
   const { search, markup } = content;
-
-  // Zoom from keys, buttons, the wheel and the app is read out once it settles
-  const markZoom = useZoomAnnouncement(scale, position.announce);
-  const zoomTo = (zoom: PdfZoom) => {
-    markZoom();
-    setZoom(zoom);
-  };
 
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
@@ -115,7 +106,7 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
 
   useLogWorkerError(input.state);
 
-  return { ...edits, print, handleKeyDown, setZoom: zoomTo };
+  return { ...edits, print, handleKeyDown };
 }
 
 export type PdfViewActions = ReturnType<typeof usePdfViewActions>;

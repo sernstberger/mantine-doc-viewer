@@ -29,3 +29,16 @@ export function useZoomAnnouncement(scale: number, announce: (message: string) =
     requested.current = true;
   };
 }
+
+/** `setZoom` that reads out the zoom it leads to, with useZoomAnnouncement */
+export function useAnnouncedZoom<Zoom>(
+  scale: number,
+  setZoom: (zoom: Zoom) => void,
+  announce: (message: string) => void
+) {
+  const markZoom = useZoomAnnouncement(scale, announce);
+  return (zoom: Zoom) => {
+    markZoom();
+    setZoom(zoom);
+  };
+}

@@ -8,6 +8,7 @@ import { PdfPageList } from './PdfPageList';
 import { PdfStatus } from './PdfStatus';
 import type { PdfDocumentState } from './use-pdf-document';
 import type { PdfPageContent } from './use-pdf-page-content';
+import type { PdfModes } from './use-pdf-modes';
 import type { PdfPageTurns } from './use-pdf-page-turns';
 import type { PdfReadingPosition } from './use-pdf-reading-position';
 import type { PdfViewActions } from './use-pdf-view-actions';
@@ -19,12 +20,7 @@ interface PdfReaderBarsProps {
   position: PdfReadingPosition;
   content: PdfPageContent;
   actions: PdfViewActions;
-  setEditing: (editing: boolean) => void;
-  /** Refs of the buttons that take focus back after a presentation and the page editor */
-  returnFocus: {
-    present: React.Ref<HTMLButtonElement>;
-    editPages: React.Ref<HTMLButtonElement>;
-  };
+  modes: PdfModes;
 }
 
 /** The toolbar with the PDF's controls, and the markup and search bars below it */
@@ -34,8 +30,7 @@ export function PdfReaderBars({
   position,
   content,
   actions,
-  setEditing,
-  returnFocus,
+  modes,
 }: PdfReaderBarsProps) {
   const { thumbnailsPanel } = view;
   const { search, pdfLayers } = content;
@@ -55,7 +50,7 @@ export function PdfReaderBars({
             onPage={position.goToPage}
             scale={view.scale}
             zoom={view.zoom}
-            onZoom={actions.setZoom}
+            onZoom={position.zoomTo}
             onRotate={view.rotate}
             layout={view.layout}
             layers={pdfLayers.layers}
@@ -69,9 +64,9 @@ export function PdfReaderBars({
             searchToggleRef={search.toggleRef}
             onToggleSearch={() => (search.opened ? search.close() : search.open())}
             onPresent={view.presentation.start}
-            onEditPages={() => setEditing(true)}
-            presentRef={returnFocus.present}
-            editPagesRef={returnFocus.editPages}
+            onEditPages={() => modes.setEditing(true)}
+            presentRef={modes.presentRef}
+            editPagesRef={modes.editPagesRef}
           />
         )
       }

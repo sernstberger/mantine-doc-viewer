@@ -12,10 +12,9 @@ import { usePdfPageContent } from './use-pdf-page-content';
 import { usePdfPageSync } from './use-pdf-page-sync';
 import { usePdfPageTurns } from './use-pdf-page-turns';
 import { usePdfReadingPosition } from './use-pdf-reading-position';
+import { usePdfModes } from './use-pdf-modes';
 import { usePdfViewActions } from './use-pdf-view-actions';
 import { usePdfViewGeometry } from './use-pdf-view-geometry';
-import { usePresentationAnnouncement } from './use-presentation-announcement';
-import { useReturnFocus } from './use-return-focus';
 
 /** The PDF viewer: wires the hook groups (in this order, since effects run in call order) to the layout */
 export function PdfView() {
@@ -47,11 +46,7 @@ export function PdfView() {
     turns,
   });
   const { presenting, thumbnailsPanel } = view;
-  usePresentationAnnouncement(presenting, position.announce);
-  const returnFocus = {
-    present: useReturnFocus(presenting),
-    editPages: useReturnFocus(editing),
-  };
+  const modes = usePdfModes(edited, presenting, position.announce);
 
   if (editing && ready) {
     return (
@@ -73,15 +68,7 @@ export function PdfView() {
   const parts = { view, position, content };
   return (
     <>
-      {!presenting && (
-        <PdfReaderBars
-          ready={ready}
-          {...parts}
-          actions={actions}
-          setEditing={setEditing}
-          returnFocus={returnFocus}
-        />
-      )}
+      {!presenting && <PdfReaderBars ready={ready} {...parts} actions={actions} modes={modes} />}
 
       <PdfMain
         position={thumbnailsPanel.position}

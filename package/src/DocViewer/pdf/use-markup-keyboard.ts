@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { focusIfLost } from '../a11y';
 import { useDocViewerContext } from '../DocViewer.context';
 import type { DocViewerMarkPoint } from './markup';
 import type { Draft, TextDraft } from './markup-draft';
@@ -15,6 +16,29 @@ interface MarkupKeyboardInput extends MarkupLayerInput {
 }
 
 type MoveAction = Extract<MarkupKeyAction, { type: 'move' }>;
+
+/**
+ * The page's markup layer, and focus back on it when a text box opened from the keyboard closes.
+ * Only when the box took focus with it; a click or Tab elsewhere keeps its own focus
+ */
+function useTextBoxFocusReturn(textDraft: TextDraft | null) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  const pending = useRef(false);
+
+  useEffect(() => {
+    if (!textDraft && pending.current) {
+      pending.current = false;
+      focusIfLost(layerRef.current);
+    }
+  }, [textDraft]);
+
+  return {
+    layerRef,
+    returnFocusLater: () => {
+      pending.current = true;
+    },
+  };
+}
 
 /**
  * Placing marks without a pointer: while a tool is picked the page's markup layer is a tab stop
@@ -35,21 +59,10 @@ export function useMarkupKeyboard({
 }: MarkupKeyboardInput) {
   const { labels } = useDocViewerContext();
   const { tool, announce } = markup;
-  const layerRef = useRef<HTMLDivElement>(null);
+  const { layerRef, returnFocusLater } = useTextBoxFocusReturn(textDraft);
   const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
   // The cursor starts in the middle of the page
   const caret = caretPoint ?? [width / 2, height / 2];
-  // A text box opened from the keyboard gives focus back to the page when it closes
-  const returnFocus = useRef(false);
-
-  useEffect(() => {
-    if (textDraft || !returnFocus.current) {
-      return;
-    }
-    returnFocus.current = false;
-    // Only when the box took focus with it; a click or Tab elsewhere keeps its own focus
-    document.activeElement === document.body && layerRef.current?.focus();
-  }, [textDraft]);
 
   if (!tool) {
     return { layerRef, caret: null, keyboardProps: {} };
@@ -78,7 +91,7 @@ export function useMarkupKeyboard({
     },
     // An open text box was written when focus left it for the page
     text: () => {
-      returnFocus.current = true;
+      returnFocusLater();
       setTextDraft({ x: caret[0], y: caret[1], text: '' });
     },
   };
