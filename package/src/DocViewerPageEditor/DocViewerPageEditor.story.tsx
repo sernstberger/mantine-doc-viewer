@@ -66,7 +66,6 @@ export function Composition() {
       <Text size="sm">{saved}</Text>
       <DocViewer.Root src="/sample.pdf" extensions={[extension]} defaultThumbnailsOpened h={600}>
         <DocViewer.Toolbar>
-          <DocViewer.Title />
           <DocViewer.PageControls />
           <DocViewer.ZoomControls />
           <DocViewerPageEditorButton />

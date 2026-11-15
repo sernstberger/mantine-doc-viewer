@@ -457,7 +457,7 @@ export function Clause() {
             classNames={VIEWER_CLASSES}
             // MISSING: reading the PDF's tracked changes as data (author, range, text) so the clause list would not need to repeat them.
           >
-            <DocViewer.Toolbar leftSection={<DocViewer.Title />} tooltipProps={{ openDelay: 400 }}>
+            <DocViewer.Toolbar tooltipProps={{ openDelay: 400 }}>
               <DocViewer.PageControls />
               <DocViewer.ZoomControls />
               <DocViewer.SearchButton />

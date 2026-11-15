@@ -24,7 +24,7 @@ export type DocViewerToolbarStylesNames = 'toolbar' | 'toolbarSection' | 'contro
 
 export interface DocViewerToolbarProps
   extends BoxProps, CompoundStylesApiProps<DocViewerToolbarFactory>, ElementProps<'div', 'title'> {
-  /** Toolbar content; without children the default controls for the document type are rendered */
+  /** Controls; without children the default controls for the document type are rendered. The title is shown before them either way */
   children?: React.ReactNode;
 
   /** Default controls to hide (ignored with children) */
@@ -36,7 +36,7 @@ export interface DocViewerToolbarProps
   /** Content after the document controls, before print, download and full screen */
   rightSection?: React.ReactNode;
 
-  /** Replaces the file name in the default title */
+  /** Replaces the file name in the title shown before the controls, `false` hides the title */
   title?: React.ReactNode;
 
   /** Small text under the title */
@@ -106,7 +106,7 @@ export const DocViewerToolbar = factory<DocViewerToolbarFactory>((_props) => {
             {leftSection}
           </div>
         )}
-        {withDefaults && controls?.title !== false && (
+        {title !== false && controls?.title !== false && (
           <DocViewerTitle title={title} subtitle={subtitle} />
         )}
         <Toolbar

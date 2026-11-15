@@ -369,7 +369,7 @@ export function Markbook() {
             page: classes.page,
           }}
         >
-          <DocViewer.Toolbar leftSection={<DocViewer.Title />}>
+          <DocViewer.Toolbar>
             <DocViewer.PageControls />
             <DocViewer.ZoomControls />
             <DocViewer.SearchButton />

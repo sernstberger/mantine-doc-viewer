@@ -20,7 +20,7 @@
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--mantine-spacing-xs);
   min-height: var(--doc-viewer-toolbar-height, rem(44px));
@@ -52,10 +52,10 @@
 
 .heading {
   display: flex;
-  flex: 1 1 8rem;
+  flex: 1 1 0;
   flex-direction: column;
   justify-content: center;
-  min-width: 0;
+  min-width: rem(72px);
 }
 
 .title {
@@ -193,10 +193,11 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
+  flex: 0 1 auto;
   gap: var(--mantine-spacing-xs);
   padding-block: rem(4px);
 
-  /* Wraps onto more lines in narrow viewers and at high zoom, instead of cutting controls off */
+  /* The title gives way first; below its minimum width the controls wrap inside their own box */
   margin-inline-start: auto;
 }
 
