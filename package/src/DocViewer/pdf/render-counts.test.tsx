@@ -88,20 +88,62 @@ describe('page renders', () => {
 
   it('renders the pages again when the app changes a prop they show', async () => {
     mockPdf({ numPages: 2 });
-    render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        renderPageOverlay={({ pageNumber }) => <span>A{pageNumber}</span>}
-      />
-    ).rerender(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        renderPageOverlay={({ pageNumber }) => <span>B{pageNumber}</span>}
-      />
-    );
+    function App() {
+      const [mark, setMark] = useState('A');
+      return (
+        <>
+          <button type="button" onClick={() => setMark('B')}>
+            Change
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            renderPageOverlay={({ pageNumber }) => (
+              <span>
+                {mark}
+                {pageNumber}
+              </span>
+            )}
+          />
+        </>
+      );
+    }
+    render(<App />);
+    expect(await screen.findByText('A2')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Change' }));
     expect(await screen.findByText('B2')).toBeInTheDocument();
     expect(screen.queryByText('A2')).not.toBeInTheDocument();
+  });
+
+  it('does not draw the link layers again when the app passes new labels', async () => {
+    const { document: pdf } = mockPdf({
+      links: [{ id: 'costs', annotationType: 2, dest: 'costs' }],
+    });
+    const firstPage = await pdf.getPage(1);
+    function App() {
+      const [word, setWord] = useState('Go to');
+      return (
+        <>
+          <button type="button" onClick={() => setWord('Page')}>
+            Rename
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            labels={{ linkToPage: (page) => `${word} ${page}` }}
+          />
+        </>
+      );
+    }
+    render(<App />);
+    const link = () => document.querySelector('a[data-element-id="costs"]');
+    await waitFor(() => expect(link()).toHaveAttribute('aria-label', 'Go to 2'));
+    await act(async () => {});
+    const drawn = firstPage.getAnnotations.mock.calls.length;
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
+    await act(async () => {});
+    expect(firstPage.getAnnotations.mock.calls.length).toBe(drawn);
   });
 });

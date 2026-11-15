@@ -67,6 +67,10 @@ export function useLinkLayer({
   labels,
 }: LinkLayerInput) {
   const linkLayerRef = useRef<HTMLDivElement>(null);
+  // Read when links are named, not a reason to draw the layer again: an app's inline `labels`
+  // object is new on every render
+  const labelsRef = useRef(labels);
+  labelsRef.current = labels;
 
   useEffect(() => {
     const container = linkLayerRef.current;
@@ -115,7 +119,7 @@ export function useLinkLayer({
         } as unknown as Parameters<NonNullable<typeof layer>['render']>[0]);
 
         if (!cancelled) {
-          await nameLinks(container, annotations, document, labels);
+          await nameLinks(container, annotations, document, labelsRef.current);
         }
       })
       .catch(() => {});
@@ -124,7 +128,7 @@ export function useLinkLayer({
       cancelled = true;
       container.replaceChildren();
     };
-  }, [pdfjs, document, pageNumber, scale, near, linkService, labels, rotation]);
+  }, [pdfjs, document, pageNumber, scale, near, linkService, rotation]);
 
   return linkLayerRef;
 }
