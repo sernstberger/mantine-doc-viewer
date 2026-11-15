@@ -31,6 +31,7 @@ import { PdfRotation, rotateSize } from './render-page';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
 import { useReadingProgress } from './use-reading-progress';
+import { useAutoAdvance } from './use-auto-advance';
 import { useLinkService } from './use-link-service';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePresentation } from './use-presentation';
@@ -151,6 +152,13 @@ export function PdfView() {
     scrollToPage(page);
     withAnnouncement && announce(labels.pageOf(page, numPages));
   };
+  useAutoAdvance({
+    autoAdvance: ready && !presenting && !editing ? context.autoAdvance : undefined,
+    currentPage,
+    numPages,
+    layout,
+    goToPage: (page) => goToPage(page, false),
+  });
   const rotate = () => setRotation(nextRotation);
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));

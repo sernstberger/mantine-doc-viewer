@@ -51,7 +51,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Swap the document without remounting**, keeping zoom and scroll (Markbook)
 - [x] **Reading progress** (`onReadingProgress`, `onReachEnd`, `resetReadingProgress`): the fraction
       of each page seen, a reached-the-end signal, a reading position (Haven, Field Report)
-- [ ] **Kiosk**: `idleTimeout` and `onIdle` to reset, and an auto-advance attract mode (Atrium)
+- [x] **Kiosk** (`idleTimeout`, `onIdle`, `autoAdvance`): reset when idle, and an auto-advance attract
+      mode (Atrium)
 - [ ] **Locale prop** for the number formats the viewer shows (Atrium)
 
 ## 4. Polish

@@ -32,6 +32,7 @@ import {
 } from './controller';
 import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
+import { DocViewerAutoAdvance, useIdleTimeout } from './kiosk';
 import classes from './DocViewer.module.css';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
@@ -271,6 +272,24 @@ export interface DocViewerProps
    */
   renderPageOverlay?: DocViewerRenderPageOverlay;
 
+  /**
+   * Time in ms without a touch, key press, mouse move or wheel turn after which the viewer counts
+   * as idle and `onIdle` is called. For a kiosk: send the next visitor back to the start. The
+   * whole page is watched, not only the viewer
+   */
+  idleTimeout?: number;
+
+  /** Called when the viewer has been idle for `idleTimeout` ms, and again after each time it was used and left alone. Use it to go back to the first page and reset the zoom, and `controllerRef.resetReadingProgress()` */
+  onIdle?: () => void;
+
+  /**
+   * Plays a PDF: shows the next page every `interval` ms, with `loop` to start over after the
+   * last page. With `idleTimeout` it plays only while the viewer is idle, so it starts after
+   * `onIdle` and stops at the next touch; without it, it plays all the time. Two-page layouts
+   * turn a spread at a time
+   */
+  autoAdvance?: DocViewerAutoAdvance;
+
   /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
@@ -418,6 +437,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     codeHighlightProps,
     toolbarSection,
     renderPageOverlay,
+    idleTimeout,
+    onIdle,
+    autoAdvance,
     withToolbar,
     toolbarControls,
     pageBackground,
@@ -468,6 +490,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
 
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
   const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
+  const idle = useIdleTimeout(idleTimeout, onIdle);
+  const playing = autoAdvance && (idleTimeout === undefined || idle) ? autoAdvance : undefined;
   const controller = useControllerRegistry(controllerRef);
   const fullscreen = useFullscreenElement<HTMLDivElement>();
   const rootRef = useMergedRef(ref, fullscreen.ref);
@@ -526,6 +550,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         toolbarControls,
         toolbarSection,
         renderPageOverlay,
+        autoAdvance: playing,
         pdfWorkerSrc,
         pdfOptions,
         maxCanvasPixels: maxCanvasPixels!,

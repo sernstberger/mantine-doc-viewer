@@ -9,6 +9,7 @@ export type {
   DocViewerControl,
   DocViewerVariant,
 } from './DocViewer/DocViewer';
+export type { DocViewerAutoAdvance } from './DocViewer/kiosk';
 export type { DocViewerResponsive } from './DocViewer/responsive';
 export { detectDocType } from './DocViewer/detect-doc-type';
 export type { DocType, DetectDocTypeInput } from './DocViewer/detect-doc-type';

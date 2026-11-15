@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
+import type { DocViewerAutoAdvance } from './kiosk';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import type { DocViewerSizeConfig } from './sizes';
@@ -27,6 +28,9 @@ export interface DocViewerContextValue {
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
+
+  /** Set while the viewer should play: `autoAdvance`, once the viewer is idle when `idleTimeout` is set */
+  autoAdvance: DocViewerAutoAdvance | undefined;
   pdfWorkerSrc: string | undefined;
   pdfOptions: PdfLoadOptions | undefined;
   maxCanvasPixels: number;
