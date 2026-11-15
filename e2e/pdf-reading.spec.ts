@@ -1,6 +1,14 @@
 // Reading a PDF in a real layout: scroll positions, zoom anchoring and highlights that jsdom cannot see
 import type { Page } from '@playwright/test';
-import { openPdf, pageIndicator, pdfPage, pdfPages, visibleShare, zoomLevel } from './support/doc';
+import {
+  openPdf,
+  pageIndicator,
+  pdfPage,
+  pdfPages,
+  visibleShare,
+  resetZoom,
+  zoomLevel,
+} from './support/doc';
 import { expect, scrollMetrics, scrollTo, test } from './support/story';
 
 const percent = async (page: Page) =>
@@ -67,7 +75,7 @@ test.describe('page indicator and navigation', () => {
 test.describe('zoom', () => {
   test('zoom in, out and reset change the level', async ({ page }) => {
     await openPdf(page, 'docviewer--pdf');
-    await zoomLevel(page).click();
+    await resetZoom(page);
     await expect(zoomLevel(page)).toHaveText('100%');
 
     await page.getByRole('button', { name: 'Zoom in' }).click();
@@ -78,13 +86,13 @@ test.describe('zoom', () => {
     await page.getByRole('button', { name: 'Zoom out' }).click();
     await expect.poll(() => percent(page)).toBeLessThan(100);
 
-    await zoomLevel(page).click();
+    await resetZoom(page);
     await expect(zoomLevel(page)).toHaveText('100%');
   });
 
   test('zooming keeps the page being read in view', async ({ page }) => {
     await openPdf(page, 'docviewer--pdf');
-    await zoomLevel(page).click();
+    await resetZoom(page);
     await expect(zoomLevel(page)).toHaveText('100%');
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(pageIndicator(page)).toHaveText('Page 2 of 3');
@@ -99,7 +107,7 @@ test.describe('zoom', () => {
 
   test('Ctrl+wheel zooms and keeps the page being read in view', async ({ page }) => {
     await openPdf(page, 'docviewer--pdf');
-    await zoomLevel(page).click();
+    await resetZoom(page);
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(pageIndicator(page)).toHaveText('Page 2 of 3');
     await expect.poll(reading(page, 2)).toBe(true);

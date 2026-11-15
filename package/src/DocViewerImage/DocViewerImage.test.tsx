@@ -152,7 +152,8 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
       'false'
     );
 
-    await userEvent.click(screen.getByRole('button', { name: /Reset zoom to 100%/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom 125%' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: '100%' }));
     expect(image).toHaveStyle({ width: '800px' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));

@@ -15,7 +15,7 @@ function loadImage() {
   fireEvent.load(image);
 }
 
-const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ });
+const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ });
 
 /** A viewer whose zoom the app holds, and changes with its own "Set zoom" button */
 function ControlledViewer({

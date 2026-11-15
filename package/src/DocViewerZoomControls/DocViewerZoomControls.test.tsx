@@ -39,9 +39,9 @@ describe('mantine-doc-viewer/DocViewerZoomControls', () => {
     error: 'DocViewer.Root component was not found in the tree',
   });
 
-  it('zooms in, out and back to 100% through the store', () => {
+  it('zooms in, out and back to 100% through the store, without the menu', () => {
     const { Zoom, setZoom } = setup();
-    render(<Zoom />);
+    render(<Zoom withMenu={false} />);
     expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('150%');
 
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));

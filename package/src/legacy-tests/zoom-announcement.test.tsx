@@ -32,7 +32,7 @@ describe('zoom announcements', () => {
     mockPdf();
     render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} />);
     const region = await screen.findByRole('region', { name: 'report.pdf' });
-    const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ }).textContent;
+    const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
     const spoken: string[] = [];
     const observer = new MutationObserver(() => spoken.push(said()));
     observer.observe(status(), { childList: true, characterData: true, subtree: true });

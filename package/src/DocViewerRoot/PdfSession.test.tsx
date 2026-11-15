@@ -492,7 +492,7 @@ describe('DocViewer PDF', () => {
       expect(onPageChange).toHaveBeenLastCalledWith(3);
 
       act(() => controller.current!.setZoom(2));
-      expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('200%');
+      expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('200%');
       expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
 
       act(() => controller.current!.setZoom('fit'));
@@ -524,7 +524,7 @@ describe('DocViewer PDF', () => {
         />
       );
       expect(await screen.findByText('3 / 3')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('150%');
+      expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('150%');
     });
 
     it('opens search with a query through controllerRef', async () => {
@@ -992,7 +992,7 @@ describe('DocViewer PDF', () => {
     mockPdf();
     render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} />);
     const region = await screen.findByRole('region', { name: 'report.pdf' });
-    const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ }).textContent;
+    const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
 
     region.focus();
     await userEvent.keyboard('+');

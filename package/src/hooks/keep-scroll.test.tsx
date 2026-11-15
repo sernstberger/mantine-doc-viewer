@@ -140,7 +140,7 @@ describe('keepView', () => {
     const { rerender } = render(<DocViewer src="/a.pdf" {...props} />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
-    const zoom = screen.getByRole('button', { name: /Reset zoom/ }).textContent;
+    const zoom = screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
     const body = screen.getAllByRole('region')[0] as HTMLElement;
     scrollTo(body, 500);
 
@@ -151,7 +151,7 @@ describe('keepView', () => {
     );
     scrollTo(body, 0);
     await waitFor(() => expect(body.scrollTop).toBe(500));
-    expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent(zoom!);
+    expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent(zoom!);
     expect(getDocument).toHaveBeenCalledTimes(2);
   });
 });

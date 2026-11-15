@@ -47,5 +47,11 @@ export async function visibleShare(locator: Locator) {
   });
 }
 
-/** The zoom button's percentage, "160%" */
-export const zoomLevel = (page: Page) => page.getByRole('button', { name: /Reset zoom to 100%/ });
+/** The zoom level, "160%", which opens the menu of zoom presets */
+export const zoomLevel = (page: Page) => page.getByRole('button', { name: /^Zoom \d+%$/ });
+
+/** Zooms to 100% from the zoom level menu */
+export async function resetZoom(page: Page) {
+  await zoomLevel(page).click();
+  await page.getByRole('menuitem', { name: '100%', exact: true }).click();
+}

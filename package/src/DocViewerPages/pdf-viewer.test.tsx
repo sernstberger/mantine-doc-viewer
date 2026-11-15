@@ -84,7 +84,7 @@ describe('controller', () => {
       />
     );
     await screen.findAllByRole('group', { name: PAGES });
-    const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ }).textContent;
+    const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
 
     await act(async () => controller.current!.zoomIn());
     expect(zoomLevel()).toBe('125%');
@@ -167,7 +167,7 @@ describe('navigation', () => {
     expect(screen.queryByRole('textbox', { name: 'Search document' })).not.toBeInTheDocument();
 
     fireEvent.wheel(region, { deltaY: -100 });
-    expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('100%');
+    expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('100%');
   });
 
   it('stays on the page a presentation ended on while the layout settles', async () => {

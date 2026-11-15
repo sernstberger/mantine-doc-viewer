@@ -1,6 +1,6 @@
 // The image view in a real layout: zoom and drag-to-pan need scroll sizes jsdom does not have
 import type { Page } from '@playwright/test';
-import { firstLoad, zoomLevel } from './support/doc';
+import { firstLoad, resetZoom, zoomLevel } from './support/doc';
 import { expect, openStory, test } from './support/story';
 
 const stage = (page: Page) => page.getByRole('region', { name: 'sample-image.svg' });
@@ -18,7 +18,7 @@ const percent = async (page: Page) =>
 
 /** Zooms until the image is larger than the view, so that it can be dragged */
 async function zoomUntilPannable(page: Page) {
-  await zoomLevel(page).click();
+  await resetZoom(page);
   await expect(zoomLevel(page)).toHaveText('100%');
   const zoomIn = page.getByRole('button', { name: 'Zoom in' });
 
@@ -38,7 +38,7 @@ test('zoom in, out, reset and fit', async ({ page }) => {
   await expect.poll(() => percent(page)).toBeGreaterThan(fitted);
   await expect(fit(page)).toHaveAttribute('aria-pressed', 'false');
 
-  await zoomLevel(page).click();
+  await resetZoom(page);
   await expect(zoomLevel(page)).toHaveText('100%');
 
   await page.getByRole('button', { name: 'Zoom out' }).click();

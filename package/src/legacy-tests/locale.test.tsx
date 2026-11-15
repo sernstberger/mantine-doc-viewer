@@ -40,7 +40,7 @@ describe('locale', () => {
     Object.defineProperty(image, 'naturalWidth', { value: 80 });
     Object.defineProperty(image, 'naturalHeight', { value: 40 });
     fireEvent.load(image);
-    expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent(/^125\s%$/);
+    expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent(/^125\s%$/);
   });
 
   it('shows the page count of a PDF in the locale', async () => {

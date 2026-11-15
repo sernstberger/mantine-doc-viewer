@@ -28,10 +28,10 @@ describe('DocViewer features', () => {
     loadImage();
 
     expect(onDocumentLoad).toHaveBeenCalledWith({ type: 'image', width: 800, height: 400 });
-    expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('100%');
+    expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('100%');
 
     act(() => controller.current!.zoomIn());
-    expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('125%');
+    expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('125%');
 
     act(() => controller.current!.rotate());
     expect(screen.getByRole('img', { hidden: true }).style.transform).toContain('rotate(90deg)');
