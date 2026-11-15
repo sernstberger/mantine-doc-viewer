@@ -25,6 +25,7 @@ import { DocViewerToolbar } from './DocViewerToolbar';
 import { DocViewerBody, DocViewerRenderer, useDocViewer } from './renderers';
 import { useTextDocument } from './text/use-text-document';
 import { DocViewerLoading, DocViewerMessage } from './views/MessageView';
+import c from './DocViewer.customized.story.module.css';
 
 export default { title: 'DocViewer/Customized' };
 
@@ -54,7 +55,7 @@ export function ContractReview() {
   const [draft, setDraft] = useState('');
 
   return (
-    <Group align="stretch" wrap="nowrap" p="md" gap="md">
+    <Group className={c.ledgerScope} align="stretch" wrap="nowrap" p="md" gap="lg">
       <DocViewer
         src="/sample-50.pdf"
         fileName="Master services agreement.pdf"
@@ -72,24 +73,44 @@ export function ContractReview() {
           );
         }}
         defaultThumbnailsOpened
-        color="indigo"
-        radius="md"
+        color="#b08d57"
+        matchColor="#f3d9a4"
+        activeMatchColor="#b08d57"
+        thumbnailWidth={96}
         withFullscreen={false}
         style={{ flex: 1 }}
-        h="85vh"
+        h="calc(100vh - 2rem)"
         // Pages follow the Mantine colour scheme too, inverted in dark mode
         pageColorScheme="auto"
-        styles={{
-          toolbar: { borderBottomColor: 'var(--mantine-color-indigo-light)' },
+        classNames={{
+          root: c.ledgerRoot,
+          toolbar: c.ledgerToolbar,
+          title: c.ledgerTitle,
+          control: c.ledgerControl,
+          pageIndicator: c.ledgerPageIndicator,
+          body: c.ledgerBody,
+          page: c.ledgerPage,
+          thumbnails: c.ledgerThumbnails,
+          thumbnail: c.ledgerThumbnail,
+          thumbnailImage: c.ledgerThumbnailImage,
+          thumbnailLabel: c.ledgerThumbnailLabel,
+          search: c.ledgerSearch,
         }}
         toolbarSection={
           <Group gap="xs" wrap="nowrap">
-            <Badge color={STATUS_COLORS[status]} variant="light" style={{ flexShrink: 0 }}>
+            <Badge
+              color={STATUS_COLORS[status]}
+              variant="filled"
+              radius={0}
+              style={{ flexShrink: 0 }}
+            >
               {status}
             </Badge>
             <Button
               size="compact-xs"
-              variant="default"
+              radius={0}
+              color="#b08d57"
+              c="#1d2a44"
               disabled={status === 'approved'}
               onClick={() => setStatus('approved')}
             >
@@ -99,11 +120,9 @@ export function ContractReview() {
         }
       />
 
-      <Stack w={320} gap="sm">
-        <Paper withBorder p="sm">
-          <Text fw={600} size="sm" mb="xs">
-            Jump to section
-          </Text>
+      <Stack w={320} gap="md">
+        <Paper className={c.ledgerPanel} p="sm">
+          <Text className={c.ledgerHeading}>Jump to section</Text>
           {sections.map((section) => (
             <NavLink
               key={section.page}
@@ -140,14 +159,12 @@ export function ContractReview() {
           </Group>
         </Group>
 
-        <Paper withBorder p="sm" style={{ flex: 1, minHeight: 0 }}>
-          <Text fw={600} size="sm" mb="xs">
-            Comments
-          </Text>
+        <Paper className={c.ledgerPanel} p="sm" style={{ flex: 1, minHeight: 0 }}>
+          <Text className={c.ledgerHeading}>Comments</Text>
           <ScrollArea h={260}>
             <Stack gap="xs">
               {comments.map((comment) => (
-                <Card key={comment.id} withBorder padding="xs">
+                <Card key={comment.id} withBorder radius={0} padding="xs" bg="transparent">
                   <Text size="xs" c="dimmed">
                     {/* MISSING: anchoring comments to a position on the page (page overlay slot / coordinates -> scroll) */}
                     <Button
@@ -202,47 +219,59 @@ export function ContractReview() {
 
 export function EmbeddedArticle() {
   return (
-    <Container size="sm" py="xl">
-      <Title order={1} mb="md">
-        What we learned from fifty pages of specs
-      </Title>
-      <Text mb="lg">
-        The first thing we noticed is that nobody reads the appendix. Here is the first page of the
-        report as published, embedded straight into the article:
-      </Text>
+    <Box className={c.magazineScope}>
+      <Container size="sm" py={64}>
+        <Text className={c.magazineKicker}>Field notes · Engineering</Text>
+        <Title order={1} className={c.magazineHeadline}>
+          What we learned from fifty pages of specs
+        </Title>
+        <Text className={c.magazineLead} mb="lg" inherit>
+          The first thing we noticed is that nobody reads the appendix. Here is the report as
+          published, laid straight into the article like prints on a desk. Hover a page to
+          straighten it.
+        </Text>
 
-      <DocViewer
-        src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        withToolbar={false}
-        radius={0}
-        // `h` is required: the viewer has no auto height.
-        // MISSING: `height="auto"` / `autoHeight` so the viewer grows to the pages and the article scrolls instead.
-        h={620}
-        defaultZoom="fit"
-        // No border, no grey background, no shadows
-        variant="plain"
-        pageBackground="transparent"
-      />
+        <DocViewer
+          src="/sample.pdf"
+          pdfWorkerSrc={pdfWorkerSrc}
+          withToolbar={false}
+          radius={0}
+          // `h` is required: the viewer has no auto height.
+          // MISSING: `height="auto"` / `autoHeight` so the viewer grows to the pages and the article scrolls instead.
+          h={620}
+          defaultZoom="fit"
+          // No border, no grey background, no shadows
+          variant="plain"
+          pageGap="xl"
+          classNames={{
+            root: c.magazineRoot,
+            body: c.magazineBody,
+            pages: c.magazinePages,
+            page: c.magazinePage,
+          }}
+        />
 
-      <Text mt="lg" mb="lg">
-        Charts work too, and an image gets the same treatment:
-      </Text>
+        <blockquote className={c.magazinePullQuote}>
+          “Every spec had an appendix. Not one reviewer opened it.”
+        </blockquote>
 
-      <DocViewer
-        src="/sample-image.svg"
-        withToolbar={false}
-        h={320}
-        styles={{
-          root: { border: 0, background: 'transparent' },
-          body: { background: 'transparent' },
-        }}
-      />
-      {/* MISSING: with no toolbar there is no way to open the file full screen / zoom for readers; a floating overlay button (`withOverlayControls`) */}
-      <Text mt="lg" c="dimmed" size="sm">
-        Figure 1. Sample image.
-      </Text>
-    </Container>
+        <Text mb="xl" inherit>
+          Charts work too, and an image gets the same treatment, framed like a print:
+        </Text>
+
+        <figure className={c.magazineFigure}>
+          <DocViewer
+            src="/sample-image.svg"
+            withToolbar={false}
+            variant="plain"
+            h={320}
+            classNames={{ root: c.magazineRoot, body: c.magazineFigureBody }}
+          />
+          {/* MISSING: with no toolbar there is no way to open the file full screen / zoom for readers; a floating overlay button (`withOverlayControls`) */}
+          <figcaption className={c.magazineCaption}>Figure 1. Sample image.</figcaption>
+        </figure>
+      </Container>
+    </Box>
   );
 }
 
@@ -252,18 +281,19 @@ export function EmbeddedArticle() {
 
 export function MobileCompact() {
   return (
-    <Box p="md" bg="var(--mantine-color-gray-2)" mih="100vh">
-      <Box w={375} mx="auto" style={{ borderRadius: 24, overflow: 'hidden' }}>
+    <Box className={c.glassScope}>
+      <Box className={c.glassPhone}>
         <DocViewer
           src="/sample-50.pdf"
           fileName="Boarding pass.pdf"
           pdfWorkerSrc={pdfWorkerSrc}
-          size="xs"
-          radius={0}
+          // Bigger touch targets on a real phone, compact in a desktop window showing the mock-up
+          size={{ base: 'md', sm: 'xs' }}
+          color="violet"
           defaultThumbnailsOpened
           defaultThumbnailsPosition="bottom"
-          thumbnailWidth={72}
-          pageGap="xs"
+          thumbnailWidth={{ base: 64, sm: 72 }}
+          pageGap={{ base: 'sm', sm: 'md' }}
           withPrint={false}
           withFullscreen={false}
           // Only what fits a phone
@@ -275,10 +305,20 @@ export function MobileCompact() {
             presentation: false,
             search: false,
           }}
-          // MISSING: pinch-to-zoom on touch (only buttons are available) and a `touch` friendly tap-to-toggle toolbar.
-          // MISSING: responsive props (`size={{ base: 'xs', sm: 'sm' }}`) so the same element adapts to the viewport.
+          classNames={{
+            root: c.glassRoot,
+            toolbar: c.glassToolbar,
+            title: c.glassTitle,
+            control: c.glassControl,
+            pageIndicator: c.glassPageIndicator,
+            body: c.glassBody,
+            page: c.glassPage,
+            thumbnails: c.glassThumbnails,
+            thumbnail: c.glassThumbnail,
+            thumbnailImage: c.glassThumbnailImage,
+          }}
+          // MISSING: a tap-to-toggle toolbar for touch screens.
           // MISSING: `thumbnailsPosition` as a responsive value (left on desktop, bottom on phones).
-          h={560}
         />
       </Box>
     </Box>
@@ -354,15 +394,15 @@ export function BrandedKiosk() {
   const controller = useRef<DocViewerController>(null);
 
   return (
-    <Box bg="var(--mantine-color-grape-9)" p="xl" mih="100vh">
-      <Group justify="space-between" mb="md">
-        <Title order={2} c="white">
+    <Box className={c.neonScope}>
+      <Group justify="space-between" mb="xl">
+        <Title order={1} className={c.neonHeading}>
           Museum der Zukunft
         </Title>
         <Button
           size="lg"
-          color="grape"
-          variant="white"
+          radius="xl"
+          className={c.neonButton}
           onClick={() => controller.current?.toggleFullscreen()}
         >
           Vollbild
@@ -393,12 +433,22 @@ export function BrandedKiosk() {
         h="80vh"
         // Presentation feel: dark stage, warm pages.
         pageBackground="#fffaf2"
-        styles={{ body: { background: 'var(--mantine-color-grape-8)' }, root: { border: 0 } }}
+        // A public screen has no keyboard
+        toolbarControls={{ search: false, info: false, editPages: false }}
+        classNames={{
+          root: c.neonRoot,
+          toolbar: c.neonToolbar,
+          title: c.neonTitle,
+          control: c.neonControl,
+          body: c.neonBody,
+          page: c.neonPage,
+          thumbnails: c.neonThumbnails,
+          thumbnail: c.neonThumbnail,
+          thumbnailImage: c.neonThumbnailImage,
+        }}
         // MISSING: kiosk behaviours: `autoAdvance={{ interval: 15000 }}` (slideshow), `idleTimeout` + `onIdle` to reset to page 1 / zoom fit,
-        //          `defaultFullscreen` / `fullscreen` controlled prop (browsers need a gesture, but the app should own the state),
-        //          `withSearch={false}` / hide controls a public screen has no keyboard for, and a `touch` swipe-to-turn-page.
-        // MISSING: labels for `markdownView`, `tooLarge` etc. are required in `labels` type only as Partial, fine, but there is no
-        //          locale prop for number / date formats used by the viewer.
+        //          a controlled `fullscreen` prop (browsers need a gesture, but the app should own the state), and swipe-to-turn-page.
+        // MISSING: a locale prop for the number formats the viewer uses.
       />
     </Box>
   );
@@ -498,27 +548,31 @@ export function FileManagerPreview() {
   };
 
   return (
-    <Stack p="md" gap="sm">
-      <Group gap="xs">
-        <Button size="xs" variant="default" onClick={() => controller.current?.download()}>
+    <Stack className={c.brutalScope} gap="lg">
+      <Group gap="sm">
+        <Button size="xs" className={c.brutalButton} onClick={() => controller.current?.download()}>
           Download {selected.name}
         </Button>
-        <Button size="xs" variant="default" onClick={() => controller.current?.print()}>
+        <Button size="xs" className={c.brutalButton} onClick={() => controller.current?.print()}>
           Print
         </Button>
-        <Button size="xs" variant="default" onClick={() => controller.current?.toggleFullscreen()}>
+        <Button
+          size="xs"
+          className={c.brutalButton}
+          onClick={() => controller.current?.toggleFullscreen()}
+        >
           Full screen
         </Button>
         {/* MISSING: `controller.canPrint` / `controller.type`: print does nothing for some types, the app cannot know to disable the button */}
         <ActionIcon
-          variant="subtle"
+          className={c.brutalButton}
           aria-label="Zoom in"
           onClick={() => controller.current?.zoomIn()}
         >
           +
         </ActionIcon>
         <ActionIcon
-          variant="subtle"
+          className={c.brutalButton}
           aria-label="Zoom out"
           onClick={() => controller.current?.zoomOut()}
         >
@@ -526,10 +580,11 @@ export function FileManagerPreview() {
         </ActionIcon>
       </Group>
 
-      <Group align="stretch" wrap={isNarrow ? 'wrap' : 'nowrap'} gap="md">
-        <Paper withBorder w={isNarrow ? '100%' : 240} p="xs">
+      <Group align="stretch" wrap={isNarrow ? 'wrap' : 'nowrap'} gap="xl">
+        <Paper className={c.brutalBox} w={isNarrow ? '100%' : 240} p={0}>
           {FILES.map((file) => (
             <NavLink
+              className={c.brutalFile}
               key={file.name}
               label={file.name}
               description={file.kind}
@@ -551,6 +606,17 @@ export function FileManagerPreview() {
             withPrint={false}
             withFullscreen={false}
             h="70vh"
+            radius={0}
+            color="dark"
+            classNames={{
+              root: `${c.brutalBox} ${c.brutalRoot}`,
+              toolbar: c.brutalToolbar,
+              title: c.brutalTitle,
+              control: c.brutalControl,
+              body: c.brutalBody,
+              page: c.brutalPage,
+              text: c.brutalText,
+            }}
             onDocumentLoad={(info) =>
               setStatus(
                 `Loaded ${selected.name} (${info.type}${info.numPages ? `, ${info.numPages} pages` : ''}${info.width ? `, ${info.width}x${info.height}px` : ''})`
@@ -560,7 +626,7 @@ export function FileManagerPreview() {
               setStatus(`Failed to load ${selected.name}: ${error.message}`)
             }
           />
-          <Text size="xs" c="dimmed" role="status">
+          <Text className={c.brutalStatus} role="status" mt="xs" w="fit-content">
             {status}
           </Text>
           {/* MISSING: onDocumentLoad gives no byte size / mime / title metadata (PDF info dictionary, text length, line count) for the status line */}

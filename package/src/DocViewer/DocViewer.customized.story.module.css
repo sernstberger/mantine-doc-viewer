@@ -1,0 +1,594 @@
+/*
+ * Five heavily styled versions of DocViewer. Each uses only the public Styles API parts
+ * (classNames), their data attributes and --doc-viewer-* variables: no internal class names.
+ * Toolbar buttons are Mantine ActionIcons, so themes set background and color on `control`.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* 1. Ledger: navy and gold, serif type, a desk of lined paper                 */
+/* -------------------------------------------------------------------------- */
+
+.ledgerScope {
+  --ledger-ink: light-dark(#1d2a44, #d9cfb8);
+  --ledger-navy: #1d2a44;
+  --ledger-gold: #b08d57;
+  --ledger-cream: light-dark(#f7f3ea, #161c2b);
+  --ledger-desk: light-dark(#e9e2d0, #0e1320);
+  --ledger-rule: light-dark(#c9bfa6, #2c3550);
+
+  min-height: 100vh;
+  background: var(--ledger-desk);
+  color: var(--ledger-ink);
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+}
+
+.ledgerRoot {
+  border: 1px solid var(--ledger-navy);
+  border-radius: 0;
+  background: var(--ledger-cream);
+  box-shadow: 10px 10px 0 -1px var(--ledger-rule);
+  font-family: inherit;
+}
+
+.ledgerToolbar {
+  min-height: 56px;
+  border-bottom: 3px double var(--ledger-gold);
+  background: var(--ledger-navy);
+  color: #f7f3ea;
+}
+
+.ledgerTitle {
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.ledgerControl {
+  border-radius: 0;
+  background: transparent;
+  color: #f7f3ea;
+
+  &:hover {
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  &[data-pressed] {
+    background: var(--ledger-gold);
+    color: var(--ledger-navy);
+  }
+}
+
+.ledgerPageIndicator {
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
+
+.ledgerBody {
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      color-mix(in srgb, var(--ledger-rule) 45%, transparent) 28px
+    ),
+    var(--ledger-desk);
+}
+
+.ledgerPage {
+  outline: 1px solid var(--ledger-rule);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--ledger-navy) 18%, transparent);
+}
+
+.ledgerThumbnails {
+  border-right: 1px solid var(--ledger-rule);
+  background: var(--ledger-cream);
+}
+
+.ledgerThumbnail {
+  border-radius: 0;
+  color: var(--ledger-ink);
+
+  &[data-active] {
+    background: transparent;
+  }
+
+  &[data-active] > .ledgerThumbnailImage {
+    border-color: var(--ledger-gold);
+    box-shadow: 0 0 0 3px var(--ledger-gold);
+  }
+}
+
+.ledgerThumbnailImage {
+  border-color: var(--ledger-rule);
+}
+
+.ledgerThumbnailLabel {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+}
+
+.ledgerSearch {
+  border-bottom: 1px solid var(--ledger-rule);
+  background: var(--ledger-cream);
+}
+
+.ledgerPanel {
+  border: 1px solid var(--ledger-navy);
+  border-radius: 0;
+  background: var(--ledger-cream);
+  color: var(--ledger-ink);
+  font-family: inherit;
+}
+
+.ledgerHeading {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 3px double var(--ledger-gold);
+  font-variant: small-caps;
+  letter-spacing: 0.1em;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2. Magazine: an editorial page, PDF pages laid on it like loose prints      */
+/* -------------------------------------------------------------------------- */
+
+.magazineScope {
+  --magazine-paper: light-dark(#fbf7f0, #1b1916);
+  --magazine-ink: light-dark(#231f1a, #ece4d6);
+  --magazine-accent: #d9480f;
+
+  min-height: 100vh;
+  background: var(--magazine-paper);
+  color: var(--magazine-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.magazineKicker {
+  color: var(--magazine-accent);
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.magazineHeadline {
+  margin: 0.25rem 0 1.5rem;
+  font-family: inherit;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.magazineLead::first-letter {
+  float: left;
+  margin: 0.1em 0.1em 0 0;
+  color: var(--magazine-accent);
+  font-size: 4.2em;
+  line-height: 0.8;
+}
+
+.magazineRoot {
+  background: transparent;
+}
+
+.magazineBody {
+  background: transparent;
+}
+
+.magazinePages {
+  padding-block: 2rem;
+}
+
+.magazinePage {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.15),
+    0 22px 40px -18px rgb(0 0 0 / 0.45);
+  rotate: -1.2deg;
+  transition: rotate 200ms ease;
+
+  &:nth-child(even) {
+    rotate: 1deg;
+  }
+
+  &:hover {
+    rotate: 0deg;
+  }
+}
+
+.magazineFigure {
+  margin: 0;
+  padding: 14px 14px 0;
+  background: white;
+  box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.5);
+  rotate: 1.5deg;
+}
+
+.magazineFigureBody {
+  background: transparent;
+}
+
+.magazineCaption {
+  padding: 0.6rem 0 0.9rem;
+  color: #555;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+}
+
+.magazinePullQuote {
+  margin: 2.5rem 0;
+  padding: 0 0 0 1.25rem;
+  border-left: 4px solid var(--magazine-accent);
+  font-size: 1.6rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. Glass: a phone on a gradient, frosted toolbar at the bottom              */
+/* -------------------------------------------------------------------------- */
+
+.glassScope {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 20% 15%, #ffd6a5 0, transparent 45%),
+    radial-gradient(circle at 85% 80%, #a5b4fc 0, transparent 50%), #f0e6ff;
+}
+
+.glassPhone {
+  position: relative;
+  width: 375px;
+  max-width: 100%;
+  height: 720px;
+  padding: 12px;
+  border-radius: 52px;
+  background: #111;
+  box-shadow:
+    0 0 0 2px #333,
+    0 40px 80px -30px rgb(40 20 80 / 0.6);
+
+  /* The camera notch */
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    top: 22px;
+    left: 50%;
+    width: 110px;
+    height: 30px;
+    border-radius: 20px;
+    background: #111;
+    translate: -50% 0;
+  }
+}
+
+.glassRoot {
+  height: 100%;
+  border: 0;
+  border-radius: 40px;
+  background: linear-gradient(160deg, #ff9a8b 0%, #a18cd1 55%, #6a82fb 100%);
+}
+
+/* The toolbar moves below the pages, where a thumb can reach it */
+.glassToolbar {
+  order: 1;
+  margin: 0 12px 14px;
+  border: 1px solid rgb(255 255 255 / 0.5);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.28);
+  backdrop-filter: blur(18px) saturate(1.6);
+  color: white;
+}
+
+.glassTitle {
+  display: none;
+}
+
+.glassControl {
+  border-radius: 999px;
+  background: transparent;
+  color: white;
+
+  &:hover {
+    background: rgb(255 255 255 / 0.25);
+  }
+
+  &[data-pressed] {
+    background: white;
+    color: #6a5acd;
+  }
+}
+
+.glassPageIndicator {
+  font-weight: 600;
+}
+
+.glassBody {
+  padding-top: 48px;
+  background: transparent;
+}
+
+.glassPage {
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 18px 30px -16px rgb(40 20 80 / 0.55);
+}
+
+.glassThumbnails {
+  margin: 0 12px 8px;
+  border: 0;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.glassThumbnail {
+  border-radius: 12px;
+  color: white;
+
+  &[data-active] {
+    background: rgb(255 255 255 / 0.3);
+    color: white;
+  }
+
+  &[data-active] > .glassThumbnailImage {
+    border-color: white;
+    box-shadow: 0 0 0 2px white;
+  }
+}
+
+.glassThumbnailImage {
+  border: 0;
+  border-radius: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. Neon: a museum at night, glowing pill toolbar over a dark stage          */
+/* -------------------------------------------------------------------------- */
+
+.neonScope {
+  --neon-glow: #e599f7;
+  --neon-hot: #f06595;
+
+  min-height: 100vh;
+  padding: 2rem;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgb(174 62 201 / 0.55), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgb(240 101 149 / 0.25), transparent 50%), #0b0614;
+  color: white;
+}
+
+.neonHeading {
+  margin: 0;
+  background: linear-gradient(90deg, var(--neon-glow), var(--neon-hot));
+  background-clip: text;
+  color: transparent;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.neonButton {
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: 0 0 24px -6px var(--neon-glow);
+  color: white;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+
+  &:hover {
+    background: rgb(255 255 255 / 0.12);
+  }
+}
+
+.neonRoot {
+  border: 0;
+  background: transparent;
+}
+
+.neonToolbar {
+  margin: 0 auto 1rem;
+  padding-inline: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 40px -12px var(--neon-glow);
+  color: white;
+}
+
+.neonTitle {
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.neonControl {
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(255 255 255 / 0.8);
+
+  &:hover {
+    background: rgb(255 255 255 / 0.1);
+    box-shadow: 0 0 18px -2px var(--neon-glow);
+    color: white;
+  }
+
+  &[data-pressed] {
+    background: linear-gradient(135deg, #ae3ec9, var(--neon-hot));
+    box-shadow: 0 0 22px -2px var(--neon-hot);
+    color: white;
+  }
+}
+
+.neonBody {
+  border-radius: 24px;
+  background: transparent;
+}
+
+.neonPage {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    0 30px 80px -20px rgb(190 75 219 / 0.7);
+}
+
+.neonThumbnails {
+  border: 0;
+  background: transparent;
+}
+
+.neonThumbnail {
+  color: rgb(255 255 255 / 0.5);
+
+  &:hover {
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  &[data-active] {
+    background: transparent;
+    color: white;
+  }
+
+  &[data-active] > .neonThumbnailImage {
+    border-color: var(--neon-glow);
+    box-shadow: 0 0 20px 0 var(--neon-glow);
+    opacity: 1;
+  }
+}
+
+.neonThumbnailImage {
+  border: 0;
+  border-radius: 6px;
+  opacity: 0.45;
+  transition: opacity 150ms ease;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 5. Brutalist: a file manager in yellow and black, thick borders, monospace  */
+/* -------------------------------------------------------------------------- */
+
+.brutalScope {
+  --brutal-ink: light-dark(#000, #ffe600);
+  --brutal-paper: light-dark(#fff, #000);
+  --brutal-accent: light-dark(#ffe600, #222);
+
+  min-height: 100vh;
+  padding: 1.5rem;
+  background:
+    radial-gradient(
+        circle,
+        color-mix(in srgb, var(--brutal-ink) 25%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 18px 18px,
+    var(--brutal-paper);
+  color: var(--brutal-ink);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.brutalBox {
+  border: 3px solid var(--brutal-ink);
+  border-radius: 0;
+  background: var(--brutal-paper);
+  box-shadow: 8px 8px 0 var(--brutal-ink);
+}
+
+.brutalButton {
+  border: 2px solid var(--brutal-ink);
+  border-radius: 0;
+  background: var(--brutal-accent);
+  box-shadow: 3px 3px 0 var(--brutal-ink);
+  color: var(--brutal-ink);
+  font-family: inherit;
+  text-transform: uppercase;
+  transition: translate 80ms;
+
+  &:hover {
+    background: var(--brutal-accent);
+    translate: -2px -2px;
+    box-shadow: 5px 5px 0 var(--brutal-ink);
+  }
+
+  &:active {
+    translate: 3px 3px;
+    box-shadow: none;
+  }
+}
+
+.brutalFile {
+  border-bottom: 2px solid var(--brutal-ink);
+  border-radius: 0;
+  color: var(--brutal-ink);
+  font-family: inherit;
+
+  &[data-active] {
+    background: var(--brutal-ink);
+    color: var(--brutal-paper);
+  }
+}
+
+.brutalRoot {
+  font-family: inherit;
+}
+
+.brutalToolbar {
+  border-bottom: 3px solid var(--brutal-ink);
+  background: var(--brutal-accent);
+  color: var(--brutal-ink);
+}
+
+.brutalTitle {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.brutalControl {
+  border: 2px solid var(--brutal-ink);
+  border-radius: 0;
+  background: var(--brutal-paper);
+  color: var(--brutal-ink);
+
+  &:hover {
+    background: var(--brutal-paper);
+    box-shadow: 2px 2px 0 var(--brutal-ink);
+    translate: -1px -1px;
+  }
+
+  &[data-pressed] {
+    background: var(--brutal-ink);
+    color: var(--brutal-paper);
+  }
+}
+
+.brutalBody {
+  background: var(--brutal-paper);
+}
+
+.brutalPage {
+  border: 2px solid var(--brutal-ink);
+  box-shadow: 6px 6px 0 var(--brutal-ink);
+}
+
+.brutalText {
+  font-family: inherit;
+}
+
+.brutalStatus {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 2px solid var(--brutal-ink);
+  background: var(--brutal-accent);
+  color: var(--brutal-ink);
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
