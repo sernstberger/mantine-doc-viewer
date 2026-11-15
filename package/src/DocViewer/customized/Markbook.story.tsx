@@ -4,7 +4,10 @@ import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/cor
 import { DocViewer } from '../DocViewer';
 import classes from './Markbook.module.css';
 
-export default { title: 'DocViewer/Apps/Markbook (teacher grading)' };
+export default {
+  title: 'DocViewer/Apps/Markbook (teacher grading)',
+  parameters: { layout: 'fullscreen' },
+};
 
 type Score = 1 | 2 | 3 | 4;
 
@@ -92,6 +95,9 @@ const NOTE_ANCHORS: { page: number; top: number; bottom: number }[] = [
   // Language: the paragraph on how students treat each other
   { page: 1, top: 542, bottom: 676 },
 ];
+
+/** The essays the margin notes were placed on: the anchors above follow Mia's paragraphs */
+const NOTED_ESSAYS = ['okafor'];
 
 const STUDENTS: Student[] = [
   {
@@ -350,8 +356,8 @@ export function Markbook() {
         </div>
 
         <DocViewer
-          // The same PDF stands in for every student's submission; the query makes each a document of its own
-          src={`/stories/essay.pdf?student=${student.id}`}
+          // Each student handed in an essay of their own (scripts/story-pdfs/essay.ts)
+          src={`/stories/essay-${student.id}.pdf`}
           // Next student opens the next essay at the same zoom and scroll position
           keepView
           fileName={`${student.name}, persuasive essay.pdf`}
@@ -390,7 +396,8 @@ export function Markbook() {
             CRITERIA.map((criterion, criterionIndex) => {
               const anchor = NOTE_ANCHORS[criterionIndex];
               const note = scoredNotes[criterionIndex];
-              if (anchor.page !== pageNumber || !note) {
+              // The notes are lined up with Mia's paragraphs, so they only go on her essay
+              if (!NOTED_ESSAYS.includes(student.id) || anchor.page !== pageNumber || !note) {
                 return null;
               }
               return (
