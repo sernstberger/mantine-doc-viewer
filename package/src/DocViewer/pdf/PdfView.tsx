@@ -1,15 +1,15 @@
 import { ActionIcon, CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRegisterController } from '../controller';
-import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
+import type { DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from '../DocViewer.context';
 import { DocViewerTooltip, useControlProps } from '../controls';
 import { MarkupIcon } from '../icons';
 import { useKeepScroll } from '../keep-scroll';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { printPdfBytes } from '../print';
-import { clampZoom, zoomIn, zoomOut } from '../zoom';
+import { zoomIn, zoomOut } from '../zoom';
 import {
   clampPage,
   computeFitPageScale,
@@ -21,19 +21,11 @@ import {
 } from './geometry';
 import { getRegionProps } from '../a11y';
 import { formatNumber } from '../format';
-import { saveBytes } from '../files';
-import {
-  buildExtractRequest,
-  getEditedFileName,
-  initialOrder,
-  movePage,
-  removeSelected,
-} from './page-edits';
-import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
+import { getImageKeyAction } from '../views/image-zoom';
 import { PdfControls } from './PdfControls';
 import { PdfMarkupBar } from './PdfMarkupBar';
 import { getResolvedOutline } from './PdfOutline';
-import { PdfPageEditor, PdfSaveReason } from './PdfPageEditor';
+import { PdfPageEditor } from './PdfPageEditor';
 import { PdfPage } from './PdfPage';
 import { PdfSearchBar } from './PdfSearchBar';
 import { PdfStatus } from './PdfStatus';
@@ -43,6 +35,11 @@ import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
 import { useReadingProgress } from './use-reading-progress';
 import { useAutoAdvance } from './use-auto-advance';
+import { useEditedDocument, usePdfEdits } from './use-pdf-edits';
+import { useKeepPageOnLayout, usePageLayout } from './use-page-layout';
+import { usePresentationRestore } from './use-presentation-restore';
+import { useSpreads } from './use-spreads';
+import { useWheelZoom } from './use-wheel-zoom';
 import { useLinkService } from './use-link-service';
 import { useMarkup } from './use-markup';
 import { usePdfLayers } from './use-pdf-layers';
@@ -52,14 +49,7 @@ import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
 import { getPointOffset } from './page-points';
-import {
-  fitsAcross,
-  getSpreadIndex,
-  getSpreads,
-  getTurnTarget,
-  type PageTurnDirection,
-  resolvePageTurning,
-} from './spreads';
+import { fitsAcross, resolvePageTurning } from './spreads';
 import { usePageTurning } from './use-page-turning';
 import { usePagesGutter } from './use-pages-gutter';
 import { usePassageHighlight } from './use-passage-highlight';
@@ -80,40 +70,24 @@ function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
   return columnGap;
 }
 
-/** How long after a presentation the page it ended on is kept in view while the layout settles, in ms */
-const RESTORE_SETTLE_TIME = 600;
-
 export function PdfView() {
   const context = useDocViewerContext();
   const { getStyles, labels, controller, events, defaultPageLayout } = context;
   const title = useDocumentTitle();
   const show = useShowControl();
   const controlProps = useControlProps();
-  // Page editing makes a new document, which the viewer then shows instead of `src`
-  const [editing, setEditing] = useState(false);
-  const [editedData, setEditedData] = useState<Uint8Array | null>(null);
-  // With keepView the view is not remounted for a new src, but edits belong to the old document
-  const [editedSrc, setEditedSrc] = useState(context.src);
-  if (editedSrc !== context.src) {
-    setEditedSrc(context.src);
-    setEditedData(null);
-    setEditing(false);
-  }
+  const { editing, setEditing, editedData, setEditedData } = useEditedDocument(context.src);
   const state = usePdfDocument(context.src, context.pdfWorkerSrc, context.pdfOptions, editedData);
   const ready = state.status === 'ready' ? state : null;
   const document = ready?.document ?? null;
   const numPages = document?.numPages ?? 0;
 
   const [zoom, setZoom] = useState<PdfZoom>(() => toPdfZoom(context.defaultZoom));
-  // The layout the app controls, else the one the reader picked, else the (responsive) default
-  const [pickedLayout, setPickedLayout] = useState<DocViewerPageLayout | null>(null);
-  const layout = context.pageLayout ?? pickedLayout ?? defaultPageLayout ?? 'single';
-  const setLayout = (next: DocViewerPageLayout) => {
-    if (next !== layout) {
-      setPickedLayout(next);
-      events.onPageLayoutChange(next);
-    }
-  };
+  const { layout, setLayout } = usePageLayout({
+    controlled: context.pageLayout,
+    defaultLayout: defaultPageLayout,
+    onChange: events.onPageLayoutChange,
+  });
   const [rotation, setRotation] = useState<PdfRotation>(0);
   const [thumbnailsOpened, setThumbnailsOpened] = useState(
     context.defaultThumbnailsOpened ?? false
@@ -172,14 +146,7 @@ export function PdfView() {
     viewport,
     progress.sample
   );
-  // A new layout moves every page: jump back to the page being read
-  const shownLayout = useRef(layout);
-  useLayoutEffect(() => {
-    if (shownLayout.current !== layout) {
-      shownLayout.current = layout;
-      scrollToPage(currentPage, 0, true);
-    }
-  }, [layout, currentPage, scrollToPage]);
+  useKeepPageOnLayout(layout, currentPage, scrollToPage);
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
   const textLayers = useTextLayers();
@@ -253,13 +220,14 @@ export function PdfView() {
   });
   const rotate = () => setRotation(nextRotation);
 
-  // Spreads: the pages side by side in two-page layouts, single pages in the others
-  const spreads = useMemo(() => getSpreads(layout, numPages), [layout, numPages]);
-  const spreadIndex = getSpreadIndex(spreads, currentPage);
-  const turn = (direction: PageTurnDirection) => {
-    const target = getTurnTarget(spreads, currentPage, direction);
-    target && goToPage(target);
-  };
+  const { turn, goToSpread } = useSpreads({
+    layout,
+    numPages,
+    currentPage,
+    ready: !!ready,
+    goToPage,
+    onSpreadChange: events.onSpreadChange,
+  });
   const turning = resolvePageTurning(context.withPageTurning);
   const swipeable =
     turning.swipe && fitsAcross({ layout, scale, pageWidth: pageSize.width, columnGap, bodyWidth });
@@ -271,17 +239,6 @@ export function PdfView() {
   });
   const setBodyNode = useMergedRef(setBodyRef, pageTurning.ref);
 
-  const spreadReported = useRef('');
-  useEffect(() => {
-    if (!ready) {
-      return;
-    }
-    const pages = spreads[spreadIndex];
-    if (pages.join() !== spreadReported.current) {
-      spreadReported.current = pages.join();
-      events.onSpreadChange(spreadIndex + 1, pages);
-    }
-  }, [ready, spreads, spreadIndex, events]);
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
   };
@@ -289,10 +246,7 @@ export function PdfView() {
   useRegisterController(controller, {
     goToPage: (page, options) =>
       ready && goToPage(clampPage(page, numPages), true, options?.top, options?.behavior),
-    goToSpread: (spread) => {
-      const pages = spreads[clampPage(spread, spreads.length) - 1];
-      pages && goToPage(pages[0]);
-    },
+    goToSpread,
     nextSpread: () => turn(1),
     previousSpread: () => turn(-1),
     highlight: (target) => ready && passage.highlight(target),
@@ -327,111 +281,22 @@ export function PdfView() {
   // The page a presentation ended on is restored below, after this has run
   useZoomAnchor(scrollRoot, scale, !presenting && !viewport, resumeScroll);
 
-  // After a presentation, stay on the page it ended on instead of the top of the document.
-  // The toolbar and thumbnails come back and the fitted scale changes a moment later, so the
-  // page is scrolled to again whenever the scale changes until things settle
-  const presentedPage = useRef(0);
-  const restorePage = useRef(0);
-  if (presenting) {
-    presentedPage.current = currentPage;
-  }
-  useEffect(() => {
-    if (presenting || !presentedPage.current) {
-      return undefined;
-    }
+  usePresentationRestore(presenting, currentPage, scale, scrollToPage);
 
-    restorePage.current = presentedPage.current;
-    presentedPage.current = 0;
-    const timeout = window.setTimeout(() => {
-      restorePage.current = 0;
-    }, RESTORE_SETTLE_TIME);
-    return () => window.clearTimeout(timeout);
-  }, [presenting]);
+  const { savePdf, saveMarkup, reorderPages, deletePage, showEdited } = usePdfEdits({
+    document,
+    numPages,
+    editedData,
+    setEditedData,
+    scrollToPage,
+    announce,
+    labels,
+    onSave: context.onSave,
+    fileName: context.fileName,
+    markup,
+  });
 
-  useEffect(() => {
-    const page = restorePage.current;
-    if (page && !presenting) {
-      const frame = requestAnimationFrame(() => scrollToPage(page));
-      return () => cancelAnimationFrame(frame);
-    }
-    return undefined;
-  }, [presenting, scale, scrollToPage]);
-
-  const savePdf = async (bytes: Uint8Array, reason: PdfSaveReason, pages: number[]) => {
-    if (context.onSave) {
-      await context.onSave(bytes, { reason, pages });
-    } else {
-      const suffixes = { extract: 'pages', annotate: 'annotated' } as Record<string, string>;
-      const suffix = suffixes[reason] ?? 'edited';
-      saveBytes(bytes, getEditedFileName(context.fileName, suffix), 'application/pdf');
-    }
-  };
-
-  /** Writes the marks into the PDF and saves it, with the pages that have marks */
-  const saveMarkup = async () => {
-    if (!document || markup.marks.length === 0) {
-      return;
-    }
-    const bytes = await markup.save(document);
-    const pages = [...new Set(markup.marks.map((mark) => mark.page))].sort((a, b) => a - b);
-    await savePdf(bytes, 'annotate', pages);
-    announce(labels.markupSaved);
-  };
-
-  /** Moves a page by dragging its thumbnail: the viewer shows the reordered document */
-  const reorderPages = async (page: number, toIndex: number) => {
-    const order = movePage(initialOrder(numPages), page, toIndex);
-    const bytes = (await ready!.document.extractPages(buildExtractRequest(order))) as Uint8Array;
-    showEdited(bytes, toIndex + 1);
-    announce(labels.pageMoved(page, toIndex + 1));
-    // Only an app that saves edits hears about it; a drag never starts a download
-    await context.onSave?.(bytes, { reason: 'reorder', pages: order });
-  };
-
-  /** Removes a page with its thumbnail's delete button: the viewer shows the shorter document */
-  const deletePage = async (page: number) => {
-    // Thumbnails only offer delete while there are two pages or more
-    const order = removeSelected(initialOrder(numPages), new Set([page]));
-    const bytes = (await ready!.document.extractPages(buildExtractRequest(order))) as Uint8Array;
-    showEdited(bytes, Math.min(page, order.length));
-    announce(labels.pagesRemoved(1));
-    await context.onSave?.(bytes, { reason: 'delete', pages: order });
-  };
-
-  // An edited document starts at its first page, or where a dragged page landed. The effect
-  // waits for the new document: right after the bytes change, the old one is still loaded
-  const pageAfterEdit = useRef(1);
-  const replacedDocument = useRef<unknown>(null);
-  const showEdited = (bytes: Uint8Array, page = 1) => {
-    pageAfterEdit.current = page;
-    replacedDocument.current = ready?.document;
-    setEditedData(bytes);
-  };
-  useEffect(() => {
-    if (editedData && ready && ready.document !== replacedDocument.current) {
-      scrollToPage(pageAfterEdit.current);
-      replacedDocument.current = ready.document;
-    }
-    // Only when a new edited document is ready
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editedData, ready?.document]);
-
-  // Pinch on a trackpad arrives as a wheel event with ctrlKey set; Ctrl+wheel zooms too
-  const scaleRef = useRef(scale);
-  scaleRef.current = scale;
-  useEffect(() => {
-    if (!scrollRoot || presenting) {
-      return undefined;
-    }
-    const onWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || event.metaKey) {
-        event.preventDefault();
-        setZoom(clampZoom(getWheelScale(scaleRef.current, event.deltaY)));
-      }
-    };
-    scrollRoot.addEventListener('wheel', onWheel, { passive: false });
-    return () => scrollRoot.removeEventListener('wheel', onWheel);
-  }, [scrollRoot, presenting]);
+  useWheelZoom(scrollRoot, !presenting, scale, setZoom);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const target = presenting ? getPresentationTarget(event.key, currentPage, numPages) : null;
