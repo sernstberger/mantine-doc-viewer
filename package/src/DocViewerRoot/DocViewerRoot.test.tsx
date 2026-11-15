@@ -252,7 +252,7 @@ describe('extension slots', () => {
 });
 
 describe('render counts', () => {
-  const countPageRenders = () => jest.fn((_info: { pageNumber: number }) => null);
+  const countPageRenders = () => jest.fn((_info: { page: number }) => null);
 
   it('renders no page and no unrelated subscriber when the store page changes', async () => {
     const [store, actions] = createDocViewer();

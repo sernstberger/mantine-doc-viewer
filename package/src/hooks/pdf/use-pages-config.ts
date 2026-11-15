@@ -19,10 +19,11 @@ export interface PdfPagesRegistry {
   subscribe: (listener: () => void) => () => void;
 }
 
-/** The context the PDF session hooks read: the Root context with the reading events of the pages */
-export type PdfPagesContextValue = DocViewerContextValue & {
-  events: Required<DocViewerEvents> & Required<DocViewerPagesEvents>;
-};
+/** The context the PDF session hooks read: the Root context with the options and reading events of the pages */
+export type PdfPagesContextValue = DocViewerContextValue &
+  PdfPagesConfig & {
+    events: Required<DocViewerEvents> & Required<DocViewerPagesEvents>;
+  };
 
 export function createPagesRegistry(): PdfPagesRegistry {
   const listeners = new Set<() => void>();
@@ -89,8 +90,7 @@ export function usePagesRegistration(config: PdfPagesConfig, handlers: DocViewer
 
 /**
  * The context the PDF session hooks read, with the page turning, scroll behaviour and reading
- * events of the mounted `DocViewer.Pages` in place of the ones `DocViewer` hands Root. The same
- * object while nothing it is made from changes
+ * events of the mounted `DocViewer.Pages`. The same object while nothing it is made from changes
  */
 export function usePagesContext(
   context: DocViewerContextValue,
@@ -113,9 +113,9 @@ export function usePagesContext(
   return useMemo(
     () => ({
       ...context,
-      withPageTurning: config.withPageTurning ?? context.withPageTurning,
-      withScrollSnap: config.withScrollSnap ?? context.withScrollSnap,
-      withScroll: config.withScroll ?? context.withScroll,
+      withPageTurning: config.withPageTurning,
+      withScrollSnap: config.withScrollSnap,
+      withScroll: config.withScroll,
       events: pagesEvents,
     }),
     [context, config, pagesEvents]

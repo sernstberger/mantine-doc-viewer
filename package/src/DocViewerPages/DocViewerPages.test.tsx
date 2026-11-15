@@ -28,7 +28,7 @@ beforeAll(async () => {
 const TestContainer = createContextContainer(DocViewerPages, ReadyRoot);
 
 const defaultProps: DocViewerPagesProps = {
-  renderPageOverlay: ({ pageNumber }) => <span>Overlay {pageNumber}</span>,
+  renderPageOverlay: ({ page }) => <span>Overlay {page}</span>,
 };
 
 const pagesLoaded = (container: HTMLElement) => loaded(container, NUM_PAGES);
@@ -143,7 +143,7 @@ describe('DocViewerPages props', () => {
   it('shows the overlay of each page', async () => {
     const { container } = render(
       <LoadedRoot>
-        <DocViewerPages renderPageOverlay={({ pageNumber }) => <b>Overlay {pageNumber}</b>} />
+        <DocViewerPages renderPageOverlay={({ page }) => <b>Overlay {page}</b>} />
       </LoadedRoot>
     );
     await pagesLoaded(container);

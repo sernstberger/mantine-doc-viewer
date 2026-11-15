@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -8,6 +8,7 @@ import {
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import classes from '../DocViewer.module.css';
 import { ImageView } from './ImageView';
 
@@ -34,7 +35,8 @@ export type DocViewerImageFactory = Factory<{
 
 /** Image view with its toolbar: zoom, pan, rotate and print */
 export const DocViewerImage = factory<DocViewerImageFactory>((_props) => {
-  const props = useProps('DocViewerImage', null, _props);
+  const layout = use(DocViewerLayoutContext);
+  const props = useProps('DocViewerImage', null, mergePartProps(layout.imageProps, _props));
   useDocViewerContext();
   return <ImageView {...props} />;
 });

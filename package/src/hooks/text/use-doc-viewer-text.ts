@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { formatNumber } from '../../utils/format';
 
+export const DEFAULT_MAX_TEXT_SIZE = 2_000_000;
+
 export type DocViewerTextState =
   | { status: 'loading' }
   | { status: 'ready'; text: string; size: number; mimeType: string | undefined }

@@ -174,27 +174,6 @@ describe('DocViewer', () => {
     expect(screen.getByText('Custom view')).toBeInTheDocument();
     expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
   });
-
-  it('sets the part CSS variables from the part props', () => {
-    const { container } = render(
-      <DocViewer
-        src="/files/archive.zip"
-        pagesProps={{ gap: 'xl', matchColor: 'grape', activeMatchColor: 'red' }}
-        thumbnailsProps={{ width: 80 }}
-      />
-    );
-    const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
-    expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe('var(--mantine-spacing-xl)');
-    expect(root.style.getPropertyValue('--doc-viewer-match-color')).toBe(
-      'var(--mantine-color-grape-filled)'
-    );
-    expect(root.style.getPropertyValue('--doc-viewer-active-match-color')).toBe(
-      'var(--mantine-color-red-filled)'
-    );
-    expect(root.style.getPropertyValue('--doc-viewer-thumbnails-width')).toBe(
-      'calc(5rem * var(--mantine-scale))'
-    );
-  });
 });
 
 describe('DocViewer.Root', () => {

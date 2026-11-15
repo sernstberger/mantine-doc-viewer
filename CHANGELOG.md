@@ -9,8 +9,9 @@ Components
 
 - `DocViewer` is the simple form: toolbar, document and thumbnails for the file type, configured
   with `toolbarControls`, `withToolbar`, `withOverlayControls` and the part props `toolbarProps`,
-  `pagesProps`, `thumbnailsProps`, `searchProps`, `imageProps` and `textProps`. Children replace the
-  default layout.
+  `pagesProps`, `thumbnailsProps`, `searchProps`, `imageProps` and `textProps`. The part props are
+  instance props of the part, so they win over theme `defaultProps`, and they also reach a part
+  composed in children. Children replace the default layout.
 - `DocViewer.Root` holds the shared state (`src`, `type`, `mimeType`, `fileName`, `keepView`,
   `locale`, `labels`, `store`, `extensions`, `size`, `radius`, `color`, `autosize`, `pageBackground`,
   `pageColorScheme`, `defaultThumbnailsOpened`, `defaultThumbnailsPosition`, and the value / default /
@@ -42,14 +43,15 @@ Adapters
 State and control
 
 - Every viewer has a store (`@mantine/store`): `useDocViewer()` / `createDocViewer()` return
-  `[store, actions]`, `useDocViewerStore(store)` reads state, `createDocViewerStore` and
-  `docViewerActions` are the building blocks. Pass it as `store` to read or drive a viewer from
-  outside: `goToPage`, `goToSpread`, `nextSpread` / `previousSpread({ loop })`, `setZoom`, `zoomIn`,
-  `zoomOut`, `setPageLayout`, `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`,
+  `[store, actions]`, `useDocViewerStore(store)` reads state, `createDocViewerStore` creates a
+  bare store. Pass it as `store` to read or drive a viewer from outside: `goToPage`, `goToSpread`,
+  `nextSpread` / `previousSpread({ loop })`, `setZoom`, `zoomIn`, `zoomOut`, `setPageLayout`, `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`,
   `setThumbnailsPosition`, `togglePresentation`, `highlight`, `clearHighlight`, `getOutline`,
   `getBytes`, `getPageCanvas`, `print`, `download`, `toggleFullscreen`, `resetReadingProgress`.
   State includes `type`, `status`, `canPrint`, `spread`, `thumbnailsOpened` and
-  `thumbnailsPosition`. `useDocViewerView` and `useDocViewerContext` serve custom parts.
+  `thumbnailsPosition`. `useDocViewerView` and `useDocViewerContext` serve custom parts: the
+  context hook returns `src`, `type`, `fileName`, `title`, `labels`, `store`, `getStyles` and
+  `controlProps` (`UseDocViewerContextReturnValue`).
 - `onZoomChange(zoom, { scale })` fires for every request, also when `zoom` is controlled.
 
 Subpaths
@@ -71,7 +73,8 @@ Reading
   links, document info, attachments, layers, password protected files, zoom including `fit-page`,
   anchored zoom, rotation, page layouts and spreads, built-in page turning, scroll snap,
   presentation mode, reading progress (`onReadingProgress`, `onReachEnd` on `Pages`),
-  `renderPageOverlay`, `onTextSelect(text, { page, rects })`, `onLinkClick`
+  `renderPageOverlay({ page, width, height, scale, rotation })`, `onTextSelect(text, { page, rects })`,
+  `onLinkClick`
 - Images: fit, zoom, pinch, rotate, drag to pan
 - Text, code, JSON and markdown (`maxSize`, `language`, `codeHighlightProps`)
 - Print, download, full screen, `keepView`, `autosize` for a viewer that grows with its content

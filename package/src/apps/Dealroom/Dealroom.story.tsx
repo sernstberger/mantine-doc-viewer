@@ -789,9 +789,9 @@ export function Dealroom() {
               onTextSelect: (text, { page: selectedPage, rects }) =>
                 setQuote({ text, page: selectedPage, rects }),
               // Open comments are pinned in the right margin beside their clause; risks in orange
-              renderPageOverlay: ({ pageNumber, scale }) =>
+              renderPageOverlay: ({ page, scale }) =>
                 openThreads
-                  .filter((thread) => thread.page === pageNumber && thread.top !== undefined)
+                  .filter((thread) => thread.page === page && thread.top !== undefined)
                   .map((thread) => (
                     <button
                       key={thread.id}

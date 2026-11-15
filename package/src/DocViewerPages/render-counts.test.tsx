@@ -26,7 +26,7 @@ const countingLabels = { thumbnailLabel: thumbnailRenders };
 const NUM_PAGES = 12;
 
 function countPageRenders() {
-  return jest.fn((_info: { pageNumber: number }) => null);
+  return jest.fn((_info: { page: number }) => null);
 }
 
 async function allTextLayersRendered(container: HTMLElement) {
@@ -105,10 +105,10 @@ describe('page renders', () => {
           <TestDocViewer
             src="/files/report.pdf"
             pagesProps={{
-              renderPageOverlay: ({ pageNumber }) => (
+              renderPageOverlay: ({ page }) => (
                 <span>
                   {mark}
-                  {pageNumber}
+                  {page}
                 </span>
               ),
             }}
@@ -159,7 +159,7 @@ describe('page renders', () => {
 function rendersSince(mock: jest.Mock, from: number) {
   return mock.mock.calls
     .slice(from)
-    .map(([info]) => (typeof info === 'number' ? info : (info.pageNumber as number)))
+    .map(([info]) => (typeof info === 'number' ? info : (info.page as number)))
     .sort((a, b) => a - b);
 }
 

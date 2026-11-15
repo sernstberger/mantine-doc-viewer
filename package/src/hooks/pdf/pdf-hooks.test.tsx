@@ -503,8 +503,6 @@ function makeContext(overrides: Record<string, unknown> = {}) {
       pagesLabel: 'Pages',
       pageOfLabel: (n: number, total: number) => `Page ${n} of ${total}`,
     },
-    thumbnailWidth: 100,
-    maxCanvasPixels: 2 ** 24,
     ...overrides,
   } as any;
 }
@@ -717,7 +715,7 @@ describe('PdfThumbnails', () => {
   });
 
   it('selects a thumbnail on click, at half size when horizontal', async () => {
-    const { onSelect, container } = await setup({ orientation: 'horizontal' });
+    const { onSelect, container } = await setup({ orientation: 'horizontal', width: 100 });
     await userEvent.click(screen.getByRole('option', { name: 'Thumbnail 2' }));
     expect(onSelect).toHaveBeenCalledWith(2);
     expect(container.querySelector('.thumbnailImage')).toHaveStyle({ width: '50px' });

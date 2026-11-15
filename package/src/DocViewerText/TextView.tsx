@@ -5,13 +5,13 @@ import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { printText } from '../utils/print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
-import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
+import { DEFAULT_MAX_TEXT_SIZE, useDocViewerText } from '../hooks/text/use-doc-viewer-text';
 import type { DocViewerTextProps } from './DocViewerText';
 
 export function TextView({ maxSize, vars, ...others }: DocViewerTextProps) {
   const { classNames, styles } = others;
-  const { getStyles, src, store, maxTextSize, fileName } = useDocViewerContext();
-  const state = useDocViewerText(src, maxSize ?? maxTextSize);
+  const { getStyles, src, store, fileName } = useDocViewerContext();
+  const state = useDocViewerText(src, maxSize ?? DEFAULT_MAX_TEXT_SIZE);
   const wrap = useDocViewerState(store, (current) => current.textWrap);
   useTextView('text', state, async () => {
     state.status === 'ready' && (await printText(state.text, fileName));

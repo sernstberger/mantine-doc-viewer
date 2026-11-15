@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { usePagesRegistration } from '../hooks/pdf/use-pages-config';
-import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import { MAX_CANVAS_PIXELS } from '../utils/render-page';
 import { PartStyles } from './PartStyles';
 import type { DocViewerPasswordInputProps, DocViewerReadingProgress } from '../doc-viewer.types';
@@ -118,7 +118,7 @@ export const DocViewerPages = factory<DocViewerPagesFactory>((_props) => {
     onReadingProgress,
     onReachEnd,
     ...others
-  } = useProps('DocViewerPages', { ...defaultProps, ...layout.pagesProps }, _props);
+  } = useProps('DocViewerPages', defaultProps, mergePartProps(layout.pagesProps, _props));
   const { getStyles } = useDocViewerContext();
   const theme = useMantineTheme();
   const session = usePdfSession();

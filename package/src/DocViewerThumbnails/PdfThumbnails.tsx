@@ -23,6 +23,8 @@ import {
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
+export const DEFAULT_THUMBNAILS_WIDTH = 112;
+
 export { getNextThumbnailPage, getThumbnailsPerView } from '../utils/thumbnail-keys';
 
 interface PdfThumbnailProps {
@@ -202,14 +204,14 @@ function PdfThumbnailsView({
   elementProps,
   rootRef,
 }: PdfThumbnailsProps) {
-  const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const actions = useThumbnailActions();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const mergedRef = useMergedRef(rootRef, setScrollRoot);
   const { onKeyDown, ...others } = elementProps ?? {};
 
   const horizontal = orientation === 'horizontal';
-  const base = railWidth ?? thumbnailWidth;
+  const base = railWidth ?? DEFAULT_THUMBNAILS_WIDTH;
   const width = horizontal ? Math.round(base / 2) : base;
   const { reorder, getItemState, select, deletePage, handleKeyDown } = useThumbnailsList({
     numPages: document.numPages,

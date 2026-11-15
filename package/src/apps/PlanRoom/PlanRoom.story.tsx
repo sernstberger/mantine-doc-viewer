@@ -277,8 +277,8 @@ export function PlanRoom() {
           ]}
           pagesProps={{
             gap: 'xl',
-            renderPageOverlay: ({ pageNumber, scale }) =>
-              RFIS.filter((rfi) => rfi.page === pageNumber).map((rfi) => (
+            renderPageOverlay: ({ page, scale }) =>
+              RFIS.filter((rfi) => rfi.page === page).map((rfi) => (
                 <Popover
                   key={rfi.number}
                   position="bottom-start"

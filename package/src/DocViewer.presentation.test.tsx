@@ -36,28 +36,13 @@ describe('DocViewer presentation', () => {
   describe('styling props', () => {
     it('sets CSS variables from props', () => {
       const { container } = render(
-        <TestDocViewer
-          src="/files/archive.zip"
-          size="lg"
-          color="teal"
-          pagesProps={{ gap: 'xl', matchColor: 'grape' }}
-          thumbnailsProps={{ width: 80 }}
-        />
+        <TestDocViewer src="/files/archive.zip" size="lg" color="teal" />
       );
       const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
 
       expect(root).toHaveAttribute('data-size', 'lg');
       expect(root.style.getPropertyValue('--doc-viewer-color')).toBe(
         'var(--mantine-color-teal-filled)'
-      );
-      expect(root.style.getPropertyValue('--doc-viewer-match-color')).toBe(
-        'var(--mantine-color-grape-filled)'
-      );
-      expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe(
-        'var(--mantine-spacing-xl)'
-      );
-      expect(root.style.getPropertyValue('--doc-viewer-thumbnails-width')).toBe(
-        'calc(5rem * var(--mantine-scale))'
       );
     });
 
@@ -182,14 +167,12 @@ describe('DocViewer presentation', () => {
           size="lg"
           color="red"
           pageBackground="gray"
-          pagesProps={{ matchColor: 'blue', activeMatchColor: 'green', gap: 'xl' }}
-          thumbnailsProps={{ width: 0 }}
         />
       );
       const root = container.querySelector('[data-doc-type]')!;
       expect(root).toHaveAttribute('data-page-color-scheme', 'dark');
       expect(root).toHaveAttribute('data-size', 'lg');
-      expect(root.getAttribute('style')).toContain('--doc-viewer-match-color');
+      expect(root.getAttribute('style')).toContain('--doc-viewer-color');
     });
 
     it('omits the colour scheme attribute for light pages and data-size for css sizes', () => {

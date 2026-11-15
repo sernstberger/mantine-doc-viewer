@@ -41,7 +41,7 @@ export function useImageView(alt: string | undefined) {
   const markZoom = useZoomAnnouncement(scale, announce);
   const rotate = () => setRotation(nextImageRotation);
   const onKeyDown = useImageKeys({ scale, zoomTo, rotate });
-  const imageAlt = alt ?? ctx.alt ?? fileName ?? labels.imageLabel;
+  const imageAlt = alt ?? fileName ?? labels.imageLabel;
   const print = () => printImage(src, imageAlt, fileName);
   useImageController({ ready: load.ready, scale, zoomTo, rotate, print });
   useEffect(() => updateDocViewerStateAction({ rotation }, store), [rotation, store]);

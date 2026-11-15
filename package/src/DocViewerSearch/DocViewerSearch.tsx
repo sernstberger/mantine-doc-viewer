@@ -12,7 +12,7 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { PartStyles } from '../DocViewerPages/PartStyles';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
 import { DocViewerToolbarContext } from '../DocViewerToolbar/toolbar-context';
-import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
@@ -92,7 +92,7 @@ function SearchBar({
 /** The PDF search bar, shown while search is open */
 export const DocViewerSearch = factory<DocViewerSearchFactory>((_props) => {
   const layout = use(DocViewerLayoutContext);
-  const props = useProps('DocViewerSearch', layout.searchProps ?? null, _props);
+  const props = useProps('DocViewerSearch', null, mergePartProps(layout.searchProps, _props));
   const { store } = useDocViewerContext();
   const opened = useDocViewerState(store, (state) => state.searchOpened);
   return opened ? <SearchBar {...props} /> : null;

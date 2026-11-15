@@ -181,7 +181,7 @@ describe('withPageTurning', () => {
       renderViewer({
         pagesProps: {
           withPageTurning: true,
-          renderPageOverlay: ({ pageNumber }) => <button type="button">Pin {pageNumber}</button>,
+          renderPageOverlay: ({ page }) => <button type="button">Pin {page}</button>,
         },
       });
       await pages();

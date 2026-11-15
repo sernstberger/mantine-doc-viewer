@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -10,6 +10,7 @@ import {
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import { CodeView, LazyView, MarkdownView } from '../DocViewerRoot/lazy-views';
 import classes from '../DocViewer.module.css';
 
@@ -33,7 +34,8 @@ export type DocViewerMarkdownFactory = Factory<{
 
 /** Markdown view with its toolbar; the source without a markdown adapter */
 export const DocViewerMarkdown = factory<DocViewerMarkdownFactory>((_props) => {
-  const props = useProps('DocViewerMarkdown', null, _props);
+  const { language, ...textProps } = use(DocViewerLayoutContext).textProps ?? {};
+  const props = useProps('DocViewerMarkdown', null, mergePartProps(textProps, _props));
   useDocViewerContext();
   const { markdown } = useDocViewerAdapters();
   return (

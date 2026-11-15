@@ -1,23 +1,14 @@
-import type { CodeHighlightProps } from '@mantine/code-highlight';
 import { createSafeContext, type GetStylesApi, type MantineColor } from '@mantine/core';
 import { createElement } from 'react';
 import type { DocViewerLabels } from './default-labels';
 import type { DocViewerPdfAdapter } from './DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import type { DocViewerRootFactory } from './DocViewerRoot/DocViewerRoot';
 import type { DocViewerStore } from './doc-viewer.store';
-import type {
-  DocViewerControl,
-  DocViewerPageLayout,
-  DocViewerPasswordInputProps,
-  DocViewerSearchInputProps,
-  DocViewerZoom,
-} from './doc-viewer.types';
+import type { DocViewerControl, DocViewerPageLayout, DocViewerZoom } from './doc-viewer.types';
 import type { ControllerImplementation, DocViewerEvents } from './hooks/use-controller-registry';
 import { useShallowStable } from './DocViewerRoot/use-shallow-stable';
 import type { DocViewerType } from './utils/get-doc-viewer-type';
-import type { DocViewerRenderPageOverlay } from './utils/page-overlay';
 import type { DocViewerSizeConfig } from './utils/sizes';
-import type { DocViewerPageTurning } from './utils/spreads';
 
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerRootFactory>;
@@ -27,24 +18,15 @@ export interface DocViewerContextValue {
   type: DocViewerType;
   mimeType: string | undefined;
   fileName: string | undefined;
-  alt: string | undefined;
   keepView: boolean | undefined;
   labels: DocViewerLabels;
   locale: string | undefined;
   autoHeight: boolean;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
-  renderPageOverlay: DocViewerRenderPageOverlay | undefined;
-  maxCanvasPixels: number;
   defaultPageLayout: DocViewerPageLayout | undefined;
   pageLayout: DocViewerPageLayout | undefined;
-  maxTextSize: number;
-  language: string | undefined;
   size: DocViewerSizeConfig;
   color: MantineColor | undefined;
-  thumbnailWidth: number;
-  searchInputProps: DocViewerSearchInputProps | undefined;
-  passwordInputProps: DocViewerPasswordInputProps | undefined;
-  codeHighlightProps: Omit<CodeHighlightProps, 'code' | 'language'> | undefined;
   controller: React.RefObject<ControllerImplementation>;
   events: Required<DocViewerEvents>;
   page: number | undefined;
@@ -52,9 +34,6 @@ export interface DocViewerContextValue {
   zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
   withFullscreen: boolean;
-  withPageTurning: boolean | DocViewerPageTurning | undefined;
-  withScrollSnap: boolean | undefined;
-  withScroll: boolean | undefined;
   fullscreen: boolean;
   toggleFullscreen: () => Promise<void>;
 }
@@ -69,10 +48,7 @@ export { useDocViewerContext };
  * (the controlled page, zoom, fullscreen, the toolbar's tap toggle), so a memoised page only
  * renders again when its own props change
  */
-export type DocViewerPageContextValue = Pick<
-  DocViewerContextValue,
-  'getStyles' | 'labels' | 'maxCanvasPixels' | 'renderPageOverlay' | 'thumbnailWidth'
->;
+export type DocViewerPageContextValue = Pick<DocViewerContextValue, 'getStyles' | 'labels'>;
 
 const [DocViewerPageProvider, useDocViewerPageContext] =
   createSafeContext<DocViewerPageContextValue>(
@@ -88,14 +64,8 @@ export function DocViewerProvider({
   value: DocViewerContextValue;
   children: React.ReactNode;
 }) {
-  const { getStyles, labels, maxCanvasPixels, renderPageOverlay, thumbnailWidth } = value;
-  const pageValue = useShallowStable({
-    getStyles,
-    labels,
-    maxCanvasPixels,
-    renderPageOverlay,
-    thumbnailWidth,
-  });
+  const { getStyles, labels } = value;
+  const pageValue = useShallowStable({ getStyles, labels });
   return createElement(
     DocViewerFullProvider,
     { value },

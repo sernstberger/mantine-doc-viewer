@@ -1,3 +1,4 @@
+import { filterProps } from '@mantine/core';
 import { createContext } from 'react';
 import type { DocViewerControl } from '../doc-viewer.types';
 import type { DocViewerImageProps } from '../DocViewerImage/DocViewerImage';
@@ -21,3 +22,12 @@ export interface DocViewerLayoutConfig {
 }
 
 export const DocViewerLayoutContext = createContext<DocViewerLayoutConfig>({});
+
+/**
+ * Props of a part with the ones `DocViewer` passes it (`pagesProps` and the like) under the part's
+ * own, given to `useProps` as instance props so that they win over theme `defaultProps`, as
+ * `closeButtonProps` of `Modal` do. A prop the part sets to `undefined` keeps the passed value
+ */
+export function mergePartProps<P extends object>(passed: Partial<P> | undefined, props: P): P {
+  return { ...passed, ...filterProps(props) } as P;
+}

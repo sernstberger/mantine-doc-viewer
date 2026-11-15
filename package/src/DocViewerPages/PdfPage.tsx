@@ -92,7 +92,7 @@ function PdfPageView({
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
   const { width, height } = baseSize ?? placeholderSize;
   const layerSize = { width, height, scale, rotation };
-  const overlay = renderPageOverlay?.({ pageNumber, ...layerSize });
+  const overlay = renderPageOverlay?.({ page: pageNumber, ...layerSize });
 
   return (
     <div

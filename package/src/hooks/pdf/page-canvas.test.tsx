@@ -41,9 +41,7 @@ function Preview({ document, near }: { document: any; near: boolean }) {
 }
 
 function withContext(children: React.ReactNode) {
-  return (
-    <DocViewerProvider value={{ maxCanvasPixels: 2 ** 24 } as any}>{children}</DocViewerProvider>
-  );
+  return <DocViewerProvider value={{} as any}>{children}</DocViewerProvider>;
 }
 
 beforeEach(() => {

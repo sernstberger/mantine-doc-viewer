@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
+import { DocViewerLayoutContext, mergePartProps } from '../DocViewerRoot/layout-context';
 import { CodeView, LazyView } from '../DocViewerRoot/lazy-views';
 import classes from '../DocViewer.module.css';
 
@@ -35,7 +36,8 @@ export type DocViewerCodeFactory = Factory<{
 
 /** Code view with its toolbar, highlighted with @mantine/code-highlight */
 export const DocViewerCode = factory<DocViewerCodeFactory>((_props) => {
-  const props = useProps('DocViewerCode', null, _props);
+  const layout = use(DocViewerLayoutContext);
+  const props = useProps('DocViewerCode', null, mergePartProps(layout.textProps, _props));
   useDocViewerContext();
   return (
     <LazyView>

@@ -8,13 +8,13 @@ const code = `
 import { Badge } from '@mantine/core';
 import { DocViewer, DocViewerPageOverlayInfo } from 'mantine-doc-viewer';
 
-function renderPageOverlay({ pageNumber, scale }: DocViewerPageOverlayInfo) {
+function renderPageOverlay({ page, scale }: DocViewerPageOverlayInfo) {
   return (
     <Badge
       color="red"
       style={{ position: 'absolute', top: 24 * scale, right: 24 * scale }}
     >
-      Comment on page {pageNumber}
+      Comment on page {page}
     </Badge>
   );
 }
@@ -30,10 +30,10 @@ function Demo() {
 }
 `;
 
-function renderPageOverlay({ pageNumber, scale }: DocViewerPageOverlayInfo) {
+function renderPageOverlay({ page, scale }: DocViewerPageOverlayInfo) {
   return (
     <Badge color="red" style={{ position: 'absolute', top: 24 * scale, right: 24 * scale }}>
-      Comment on page {pageNumber}
+      Comment on page {page}
     </Badge>
   );
 }
