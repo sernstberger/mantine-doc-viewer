@@ -41,6 +41,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
     toolbarSubtitle,
     renderToolbarTitle,
     withToolbar,
+    toolbarHidden,
     withPrint,
     withDownload,
     withFullscreen,
@@ -72,7 +73,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
   };
 
   return (
-    <div {...getStyles('toolbar')}>
+    <div {...getStyles('toolbar')} data-doc-viewer-toolbar data-hidden={toolbarHidden || undefined}>
       {toolbarStartSection && <div {...getStyles('toolbarStart')}>{toolbarStartSection}</div>}
       <div {...getStyles('heading')}>
         {show('title') && (

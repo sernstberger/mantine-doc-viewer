@@ -34,6 +34,7 @@ import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
+import { useTapToggle } from './use-tap-toggle';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
@@ -284,6 +285,13 @@ export interface DocViewerProps
    */
   renderPageOverlay?: DocViewerRenderPageOverlay;
 
+  /**
+   * Determines whether tapping the viewer with a finger hides and shows the toolbar, so a page can
+   * fill a phone, `false` by default. The toolbar is shown at first. Taps on buttons and links, and
+   * mouse clicks, do nothing
+   */
+  tapToggleToolbar?: boolean;
+
   /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
@@ -434,6 +442,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     toolbarSubtitle,
     renderToolbarTitle,
     renderPageOverlay,
+    tapToggleToolbar,
     withToolbar,
     toolbarControls,
     pageBackground,
@@ -480,6 +489,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     varsResolver,
   });
 
+  const tapToggle = useTapToggle(tapToggleToolbar);
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
   const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
   const controller = useControllerRegistry(controllerRef);
@@ -525,6 +535,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         alt,
         labels: resolvedLabels,
         withToolbar,
+        toolbarHidden: tapToggle.hidden,
         toolbarControls,
         toolbarSection,
         toolbarStartSection,
@@ -574,6 +585,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
           mod,
         ]}
         {...others}
+        {...tapToggle.handlers}
       >
         {/* Keyed so that zoom, rotation and search reset when the document changes */}
         <React.Fragment key={`${resolvedType}:${src}`}>

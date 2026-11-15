@@ -25,6 +25,7 @@ export interface DocViewerContextValue {
   alt: string | undefined;
   labels: DocViewerLabels;
   withToolbar: boolean | undefined;
+  toolbarHidden: boolean;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
   toolbarStartSection: React.ReactNode;

@@ -24,6 +24,10 @@
   background-color: var(--mantine-color-default);
 }
 
+.toolbar[data-hidden] {
+  display: none;
+}
+
 .toolbarStart {
   display: flex;
   flex-shrink: 0;
