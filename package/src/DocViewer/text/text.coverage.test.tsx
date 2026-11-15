@@ -74,6 +74,8 @@ describe('print while loading and when ready', () => {
       const { ref, unmount } = renderWithController((r) => (
         <DocViewer src={src} controllerRef={r} />
       ));
+      // The code and markdown views load on demand first
+      await act(async () => {});
       await act(async () => {
         await ref.current!.print();
       });

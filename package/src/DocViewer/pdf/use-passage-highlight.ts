@@ -4,8 +4,8 @@ import type { DocViewerHighlightTarget } from '../controller';
 import { ACTIVE_MATCH_HIGHLIGHT, addHighlightRanges } from './highlights';
 import { getPointOffset, type DocViewerPageRect } from './page-points';
 import type { PdfRotation } from './render-page';
-import { findMatches, getMatchRanges, getMatchSegments } from './search';
-import { useSearchablePages } from './use-pdf-search';
+import { findMatches, getMatchRanges, getMatchSegments, type SearchMatch } from './search';
+import { type SearchablePage, useSearchablePages } from './use-pdf-search';
 import { scrollRangeIntoView, type TextLayers } from './use-search-highlights';
 
 /** Space kept above boxes that are scrolled to, in px at 100% */
@@ -25,39 +25,28 @@ interface PassageHighlightInput {
   rotation: PdfRotation;
 }
 
+interface PassagePaintInput extends Pick<
+  PassageHighlightInput,
+  'textLayers' | 'scrollRoot' | 'viewport' | 'scrollToPage'
+> {
+  match: SearchMatch | undefined;
+  /** The text of the match's page */
+  page: SearchablePage | undefined;
+}
+
 /**
- * A passage marked from outside the viewer (`controller.highlight`): the first place a text is
- * found is painted as the active search match and scrolled to, boxes are returned for the pages to
- * draw. Only one passage is marked at a time
+ * Brings a new match into view, first its page and then the match itself, and paints it as the
+ * active search match: again whenever its page renders its text layer, or loses it
  */
-export function usePassageHighlight({
-  document,
+function usePassagePaint({
+  match,
+  page,
   textLayers: { layers, subscribe },
   scrollRoot,
   viewport,
   scrollToPage,
-  scale,
-  rotation,
-}: PassageHighlightInput) {
-  const [target, setTarget] = useState<DocViewerHighlightTarget | null>(null);
-  const textTarget = target && 'text' in target ? target : null;
-  const pages = useSearchablePages(document, !!textTarget);
+}: PassagePaintInput) {
   const pendingScroll = useRef(false);
-
-  const match = useMemo(() => {
-    if (!pages || !textTarget) {
-      return undefined;
-    }
-
-    return findMatches(
-      pages.map((page) => page.text),
-      textTarget.text,
-      { matchCase: textTarget.matchCase }
-    ).find((found) => !textTarget.page || found.pageNumber === textTarget.page);
-  }, [pages, textTarget]);
-
-  // A new document has other pages: the passage is gone
-  useEffect(() => setTarget(null), [document]);
 
   useEffect(() => {
     if (match) {
@@ -66,13 +55,11 @@ export function usePassageHighlight({
     }
   }, [match, scrollToPage]);
 
-  // Painted again whenever the match's page renders its text layer, or loses it
   useEffect(() => {
-    if (!match) {
+    if (!match || !page) {
       return undefined;
     }
 
-    const page = pages![match.pageNumber - 1];
     let remove = () => {};
     const paint = (pageNumber: number) => {
       if (pageNumber !== match.pageNumber) {
@@ -97,7 +84,49 @@ export function usePassageHighlight({
       unsubscribe();
       remove();
     };
-  }, [match, pages, layers, subscribe, scrollRoot, viewport]);
+  }, [match, page, layers, subscribe, scrollRoot, viewport]);
+}
+
+/**
+ * A passage marked from outside the viewer (`controller.highlight`): the first place a text is
+ * found is painted as the active search match and scrolled to, boxes are returned for the pages to
+ * draw. Only one passage is marked at a time
+ */
+export function usePassageHighlight({
+  document,
+  textLayers,
+  scrollRoot,
+  viewport,
+  scrollToPage,
+  scale,
+  rotation,
+}: PassageHighlightInput) {
+  const [target, setTarget] = useState<DocViewerHighlightTarget | null>(null);
+  const textTarget = target && 'text' in target ? target : null;
+  const pages = useSearchablePages(document, !!textTarget);
+  const match = useMemo(() => {
+    if (!pages || !textTarget) {
+      return undefined;
+    }
+
+    return findMatches(
+      pages.map((page) => page.text),
+      textTarget.text,
+      { matchCase: textTarget.matchCase }
+    ).find((found) => !textTarget.page || found.pageNumber === textTarget.page);
+  }, [pages, textTarget]);
+
+  // A new document has other pages: the passage is gone
+  useEffect(() => setTarget(null), [document]);
+
+  usePassagePaint({
+    match,
+    page: match && pages![match.pageNumber - 1],
+    textLayers,
+    scrollRoot,
+    viewport,
+    scrollToPage,
+  });
 
   const highlight = (next: DocViewerHighlightTarget) => {
     // A copy, so marking the same passage again scrolls to it again
