@@ -430,6 +430,23 @@ describe('useZoomAnchor', () => {
     expect(root.scrollTop).toBe(1250 - 300);
   });
 
+  it('stays at the start when the view shows the top of the first page', () => {
+    // The first fit when a document opens must not scroll into page 1
+    const { root, state } = pagesWithGap(1000);
+    root.scrollTop = 0;
+    const { rerender } = renderHook(
+      ({ scale }) => {
+        useLayoutEffect(() => {
+          state.scale = scale;
+        }, [scale]);
+        useZoomAnchor(root, scale, true);
+      },
+      { initialProps: { scale: 1 } }
+    );
+    rerender({ scale: 1.85 });
+    expect(root.scrollTop).toBe(0);
+  });
+
   it('anchors to the nearest page when the middle of the view is in a gap', () => {
     const { root, state } = pagesWithGap(1000);
     // Middle at 500, in the gap 100px below page 1 (which ends at 400)
@@ -449,7 +466,7 @@ describe('useZoomAnchor', () => {
     expect(root.scrollTop).toBe(1000 - 300);
   });
 
-  it('keeps the middle of the view when the scale changes', () => {
+  it('leaves the offset when there is no page to keep in view', () => {
     const root = document.createElement('div');
     const restore = defineOn(root, { clientHeight: () => 600, clientWidth: () => 400 });
     root.scrollTop = 1000;
@@ -460,16 +477,12 @@ describe('useZoomAnchor', () => {
     rerender({ scale: 2, enabled: false });
     rerender({ scale: 4, enabled: true });
     restore();
-    expect(root.scrollTop).toBe(Math.max(0, (1000 + 300) * 2 - 300));
+    expect(root.scrollTop).toBe(1000);
 
     const { rerender: other } = renderHook(({ r }) => useZoomAnchor(r, 1, true), {
       initialProps: { r: null as HTMLElement | null },
     });
     other({ r: null });
-    const { rerender: zero } = renderHook(({ scale }) => useZoomAnchor(root, scale, true), {
-      initialProps: { scale: 0 },
-    });
-    zero({ scale: 2 });
   });
 });
 

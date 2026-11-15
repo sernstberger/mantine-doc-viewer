@@ -1,15 +1,13 @@
 import { useLayoutEffect, useRef } from 'react';
 
-/** Scroll offset that keeps the same point of the document in the middle of the view after a zoom */
-export function getAnchoredScroll(scroll: number, viewSize: number, ratio: number) {
-  return Math.max(0, (scroll + viewSize / 2) * ratio - viewSize / 2);
-}
-
 /** The page under the middle of the view, and where in it the middle falls (0 is its top or left edge, 1 the other) */
 export interface ZoomAnchor {
   page: string;
   x: number;
   y: number;
+
+  /** The view shows the start of the first page: zooming keeps it there */
+  atStart?: boolean;
 }
 
 function getPages(scrollRoot: HTMLElement) {
@@ -25,6 +23,14 @@ function distanceTo(node: HTMLElement, x: number, y: number) {
 
 /** Finds the page under the middle of the view, or the nearest one when the middle is in a gap */
 export function getZoomAnchor(scrollRoot: HTMLElement): ZoomAnchor | null {
+  const first = getPages(scrollRoot).find((node) => node.offsetHeight > 0);
+  if (
+    first &&
+    scrollRoot.scrollTop <= first.offsetTop &&
+    scrollRoot.scrollLeft <= first.offsetLeft
+  ) {
+    return { page: first.dataset.pageNumber!, x: 0, y: 0, atStart: true };
+  }
   const x = scrollRoot.scrollLeft + scrollRoot.clientWidth / 2;
   const y = scrollRoot.scrollTop + scrollRoot.clientHeight / 2;
   let best: HTMLElement | null = null;
@@ -74,26 +80,24 @@ export function useZoomAnchor(
     previousScale.current = scale;
     const target = anchor.current;
     anchor.current = null;
-    if (!scrollRoot || !enabled || previous === scale || previous <= 0 || resumeScroll()) {
+    if (!scrollRoot || !enabled || previous === scale || resumeScroll()) {
       return;
     }
 
     const page =
       target && scrollRoot.querySelector<HTMLElement>(`[data-page-number="${target.page}"]`);
-    if (page) {
-      scrollRoot.scrollTop = Math.max(
-        0,
-        page.offsetTop + target.y * page.offsetHeight - scrollRoot.clientHeight / 2
-      );
-      scrollRoot.scrollLeft = Math.max(
-        0,
-        page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2
-      );
+    // No page to keep in view (none laid out yet, as when a document first fits), or the start in
+    // view: the padding before the first page does not scale, so leaving the offset is right
+    if (!page || target.atStart) {
       return;
     }
-
-    const ratio = scale / previous;
-    scrollRoot.scrollTop = getAnchoredScroll(scrollRoot.scrollTop, scrollRoot.clientHeight, ratio);
-    scrollRoot.scrollLeft = getAnchoredScroll(scrollRoot.scrollLeft, scrollRoot.clientWidth, ratio);
+    scrollRoot.scrollTop = Math.max(
+      0,
+      page.offsetTop + target.y * page.offsetHeight - scrollRoot.clientHeight / 2
+    );
+    scrollRoot.scrollLeft = Math.max(
+      0,
+      page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2
+    );
   }, [scrollRoot, scale, enabled, resumeScroll]);
 }
