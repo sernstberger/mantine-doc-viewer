@@ -168,3 +168,12 @@ export function getMostVisiblePage(boxes: VisibleBox[], view: Box) {
   });
   return best;
 }
+
+/** The document's pages are in place in the scroll area */
+export function isLaidOut(
+  ready: unknown,
+  scrollRoot: HTMLElement | null,
+  pages: HTMLElement | null
+) {
+  return !!(ready && scrollRoot && pages);
+}

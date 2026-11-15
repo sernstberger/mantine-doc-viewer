@@ -139,3 +139,13 @@ export function usePdfDocument(
 
   return state;
 }
+
+/** Logs why the worker failed, as that is a setup mistake for the developer, not the reader */
+export function useLogWorkerError(state: PdfDocumentState) {
+  useEffect(() => {
+    if (state.status === 'error' && state.reason === 'worker') {
+      // eslint-disable-next-line no-console
+      console.error(state.error.message);
+    }
+  }, [state]);
+}

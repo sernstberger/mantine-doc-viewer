@@ -159,7 +159,7 @@ function PdfThumbnail({
   );
 }
 
-interface PdfThumbnailsProps {
+export interface PdfThumbnailsProps {
   document: PDFDocumentProxy;
   placeholderSize: PdfPageSize;
   currentPage: number;
