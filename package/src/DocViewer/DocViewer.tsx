@@ -35,6 +35,7 @@ import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
+import type { DocViewerPageTurning } from './pdf/spreads';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
@@ -222,7 +223,7 @@ export interface DocViewerProps
   /** Props passed to the CodeHighlight that shows code files and markdown source */
   codeHighlightProps?: Omit<CodeHighlightProps, 'code' | 'language'>;
 
-  /** Ref to the viewer's actions: `goToPage`, `setZoom`, `print`, `toggleFullscreen` and more */
+  /** Ref to the viewer's actions: `goToPage`, `goToSpread`, `setZoom`, `print`, `toggleFullscreen` and more */
   controllerRef?: React.Ref<DocViewerController>;
 
   /** Page of a PDF to show, counted from 1. The viewer scrolls to it whenever it changes; use with `onPageChange` */
@@ -237,6 +238,17 @@ export interface DocViewerProps
    * in two-page layouts, in the view. Images fit the whole view with either
    */
   defaultZoom?: DocViewerZoom;
+
+  /**
+   * Determines whether PDF pages turn by spread, like a book: a click or tap on the left or right
+   * edge of the view, a sideways swipe, or Arrow left, Arrow right, Page up and Page down from
+   * anywhere on the page (the keys page turner pedals send). `true` turns all of them on; pass
+   * `{ swipe: false }` and the like to leave some out. `false` by default
+   */
+  withPageTurning?: boolean | DocViewerPageTurning;
+
+  /** Determines whether scrolling a PDF stops at the start of each page, or of each spread in two-page layouts, `false` by default */
+  withScrollSnap?: boolean;
 
   /** Determines whether readers can reorder, remove and extract PDF pages (in the page editor, and by dragging thumbnails), `false` by default. Edits make a new document; the original file is not changed */
   withPageEditing?: boolean;
@@ -435,10 +447,13 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withDownload,
     withFullscreen,
     withPageEditing,
+    withPageTurning,
+    withScrollSnap,
     onSave,
     onDocumentLoad,
     onDocumentError,
     onPageChange,
+    onSpreadChange,
     onZoomChange,
     onLinkClick,
     mod,
@@ -491,6 +506,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handleDocumentLoad = useCallbackRef(onDocumentLoad);
   const handleDocumentError = useCallbackRef(onDocumentError);
   const handlePageChange = useCallbackRef(onPageChange);
+  const handleSpreadChange = useCallbackRef(onSpreadChange);
   const handleZoomChange = useCallbackRef(onZoomChange);
   const handleLinkClick = useCallbackRef(onLinkClick);
   const events = useMemo(
@@ -498,10 +514,18 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       onDocumentLoad: handleDocumentLoad,
       onDocumentError: handleDocumentError,
       onPageChange: handlePageChange,
+      onSpreadChange: handleSpreadChange,
       onZoomChange: handleZoomChange,
       onLinkClick: handleLinkClick,
     }),
-    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+    [
+      handleDocumentLoad,
+      handleDocumentError,
+      handlePageChange,
+      handleSpreadChange,
+      handleZoomChange,
+      handleLinkClick,
+    ]
   );
 
   return (
@@ -540,6 +564,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withDownload,
         withFullscreen,
         withPageEditing,
+        withPageTurning,
+        withScrollSnap,
         onSave,
         fullscreen: fullscreen.fullscreen,
         toggleFullscreen: fullscreen.toggle,

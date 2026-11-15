@@ -1,7 +1,7 @@
 /*
  * Stand: a sheet music reader on a tablet. The score is the whole screen; the chrome (a thin
- * translucent strip and invisible page edges) steps back. The story owns its colours and does
- * not follow the Mantine colour scheme, because a music stand is dim on purpose.
+ * translucent strip, and the viewer's invisible page-turn edges) steps back. The story owns its
+ * colours and does not follow the Mantine colour scheme, because a music stand is dim on purpose.
  */
 
 .stage {
@@ -256,7 +256,6 @@
 .body {
   background: transparent;
   scrollbar-width: none;
-  scroll-snap-type: y proximity;
 
   &:focus-visible {
     outline: 2px solid var(--stand-brass);
@@ -269,61 +268,8 @@
 }
 
 .page {
-  scroll-snap-align: start;
-  scroll-margin-top: 6px;
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.35) inset,
     0 18px 40px -10px rgb(10 3 8 / 0.65),
     0 2px 6px rgb(10 3 8 / 0.4);
-}
-
-/* ------------------------------- page turn zones ------------------------------ */
-
-/* Big invisible targets down both edges; a faint chevron shows on hover and keyboard focus */
-.turn {
-  position: absolute;
-  z-index: 3;
-  top: 34px;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  width: clamp(56px, 11%, 140px);
-  padding: 0 14px;
-  border: 0;
-  background: transparent;
-  color: var(--stand-brass);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 160ms;
-  -webkit-tap-highlight-color: transparent;
-
-  &[data-side='previous'] {
-    left: 0;
-    justify-content: flex-start;
-    background: linear-gradient(90deg, rgb(210 168 90 / 0.16), transparent);
-  }
-
-  &[data-side='next'] {
-    right: 0;
-    justify-content: flex-end;
-    background: linear-gradient(270deg, rgb(210 168 90 / 0.16), transparent);
-  }
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    opacity: 1;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--stand-brass);
-    outline-offset: -4px;
-  }
-
-  &:disabled {
-    cursor: default;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 }

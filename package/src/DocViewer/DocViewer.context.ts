@@ -14,6 +14,7 @@ import {
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
+import type { DocViewerPageTurning } from './pdf/spreads';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import type { DocViewerSizeConfig } from './sizes';
 
@@ -51,6 +52,8 @@ export interface DocViewerContextValue {
   withDownload: boolean | undefined;
   withFullscreen: boolean | undefined;
   withPageEditing: boolean | undefined;
+  withPageTurning: boolean | DocViewerPageTurning | undefined;
+  withScrollSnap: boolean | undefined;
   onSave:
     | ((
         bytes: Uint8Array,

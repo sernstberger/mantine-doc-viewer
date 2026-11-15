@@ -15,6 +15,18 @@ export interface DocViewerController {
   /** Scrolls a PDF to a page, counted from 1 */
   goToPage: (page: number) => void;
 
+  /**
+   * Scrolls a PDF to a spread, counted from 1: the pages shown side by side in two-page
+   * layouts (1-2, 3-4 or, with a cover, 1, 2-3), a single page in other layouts
+   */
+  goToSpread: (spread: number) => void;
+
+  /** Turns a PDF to the next spread, or the next page outside two-page layouts */
+  nextSpread: () => void;
+
+  /** Turns a PDF back to the previous spread, or the previous page outside two-page layouts */
+  previousSpread: () => void;
+
   /** Sets the zoom of a PDF or image */
   setZoom: (zoom: DocViewerZoom) => void;
   zoomIn: () => void;
@@ -78,6 +90,9 @@ export interface DocViewerEvents {
   onDocumentLoad?: (info: DocViewerLoadInfo) => void;
   onDocumentError?: (error: Error) => void;
   onPageChange?: (page: number) => void;
+
+  /** Called when the PDF spread in view changes, with its number counted from 1 and its pages, for example `[4, 5]` */
+  onSpreadChange?: (spread: number, pages: number[]) => void;
   onZoomChange?: (scale: number, fitted: boolean) => void;
 
   /** Called when a web link in a PDF is clicked, before it opens in a new tab. Call `event.preventDefault()` to stop it */
@@ -99,6 +114,9 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
     controllerRef,
     () => ({
       goToPage: call('goToPage'),
+      goToSpread: call('goToSpread'),
+      nextSpread: call('nextSpread'),
+      previousSpread: call('previousSpread'),
       setZoom: call('setZoom'),
       zoomIn: call('zoomIn'),
       zoomOut: call('zoomOut'),

@@ -1,6 +1,6 @@
 import { ActionIcon } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController, DocViewerOutlineItem } from '../controller';
 import classes from './Stand.module.css';
@@ -53,9 +53,6 @@ const SETLIST: Piece[] = [
   },
 ];
 
-/** The first page of the spread a page is on: spreads are 1-2, 3-4, 5-6 */
-const spreadStart = (page: number) => page - ((page - 1) % 2);
-
 /**
  * A pianist reads a nocturne on a tablet on the music stand: the score is the whole screen, the
  * toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.
@@ -64,39 +61,10 @@ export function Stand() {
   const [drawer, setDrawer] = useState<boolean | null>(null);
   // Closed on arrival: the score takes the whole screen until the setlist is asked for
   const drawerOpened = drawer ?? false;
-  const [page, setPage] = useState(1);
-  const [numPages, setNumPages] = useState(0);
+  // The pages on the stand, so the setlist can mark the section being played
+  const [spread, setSpread] = useState([1, 2]);
   const [sections, setSections] = useState<DocViewerOutlineItem[]>([]);
   const controller = useRef<DocViewerController>(null);
-
-  const first = spreadStart(page);
-  const last = Math.min(first + 1, numPages || first + 1);
-  const turn = useCallback(
-    (direction: 1 | -1) => {
-      const target = spreadStart(page) + direction * 2;
-      if (target >= 1 && target <= (numPages || 1)) {
-        controller.current?.goToPage(target);
-      }
-    },
-    [page, numPages]
-  );
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.altKey || event.ctrlKey || event.metaKey) {
-        return;
-      }
-      if (event.key === 'ArrowRight' || event.key === 'PageDown') {
-        event.preventDefault();
-        turn(1);
-      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
-        event.preventDefault();
-        turn(-1);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [turn]);
 
   return (
     <div className={classes.stage} data-drawer={drawerOpened || undefined}>
@@ -130,9 +98,7 @@ export function Stand() {
                         type="button"
                         className={classes.section}
                         data-active={
-                          section.page !== null && section.page >= first && section.page <= last
-                            ? true
-                            : undefined
+                          (section.page !== null && spread.includes(section.page)) || undefined
                         }
                         onClick={() => section.page && controller.current?.goToPage(section.page)}
                       >
@@ -149,7 +115,7 @@ export function Stand() {
           ))}
         </ol>
 
-        <div className={classes.hint}>Tap the page edges or use the arrow keys to turn.</div>
+        <div className={classes.hint}>Tap the page edges, swipe, or press the pedal to turn.</div>
       </aside>
 
       <main className={classes.reader}>
@@ -198,11 +164,12 @@ export function Stand() {
             print: false,
             download: false,
           }}
-          onDocumentLoad={(info) => {
-            setNumPages(info.numPages ?? 0);
-            controller.current?.getOutline().then(setSections);
-          }}
-          onPageChange={setPage}
+          // Spreads turn from the screen edges, a swipe, or a Bluetooth pedal (it sends arrow keys),
+          // and scrolling stops on whole spreads
+          withPageTurning
+          withScrollSnap
+          onDocumentLoad={() => controller.current?.getOutline().then(setSections)}
+          onSpreadChange={(_spread, pages) => setSpread(pages)}
           tooltipProps={{ openDelay: 600, position: 'bottom' }}
           classNames={{
             root: classes.root,
@@ -215,47 +182,8 @@ export function Stand() {
             page: classes.page,
           }}
           // MISSING: a slot in the toolbar for the app's own buttons (the setlist toggle floats over it instead).
-          // MISSING: built-in page turning for spreads (tap zones, swipe, pedal keys); the zones below are app code
-          // MISSING: a scroll snap or goToSpread: the viewer scrolls by page and does not know about spreads.
           // MISSING: pencil annotations for fingering and bowing, saved with the piece.
         />
-
-        <button
-          type="button"
-          className={classes.turn}
-          data-side="previous"
-          aria-label="Previous page"
-          disabled={first <= 1}
-          onClick={() => turn(-1)}
-        >
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
-            <path
-              d="M17 6l-8 8 8 8"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={classes.turn}
-          data-side="next"
-          aria-label="Next page"
-          disabled={numPages > 0 && last >= numPages}
-          onClick={() => turn(1)}
-        >
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
-            <path
-              d="M11 6l8 8-8 8"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
       </main>
     </div>
   );

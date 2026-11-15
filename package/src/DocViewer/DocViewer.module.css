@@ -50,6 +50,25 @@
   :where([data-doc-type='image']) > & {
     min-height: 240px;
   }
+
+  /* withScrollSnap: scrolling stops at a page, or a spread, the way goToPage leaves it */
+  &[data-scroll-snap='y'] {
+    scroll-snap-type: y mandatory;
+  }
+
+  &[data-scroll-snap='x'] {
+    scroll-snap-type: x mandatory;
+  }
+
+  &[data-scroll-snap] > .pages > .page {
+    scroll-snap-align: start;
+    scroll-margin: 12px;
+  }
+
+  /* withPageTurning: sideways swipes turn pages, so the browser only scrolls up and down */
+  &[data-swipe] {
+    touch-action: pan-y pinch-zoom;
+  }
 }
 
 .imageStage {

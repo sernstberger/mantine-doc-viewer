@@ -1,6 +1,6 @@
 import { CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
@@ -38,6 +38,15 @@ import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
 import { useSearchHighlights } from './use-search-highlights';
+import {
+  fitsAcross,
+  getSpreadIndex,
+  getSpreads,
+  getTurnTarget,
+  type PageTurnDirection,
+  resolvePageTurning,
+} from './spreads';
+import { usePageTurning } from './use-page-turning';
 import { toPdfZoom, type PdfZoom } from './zoom';
 
 /** Gap between two pages side by side, read from the CSS since `pageGap` sets it */
@@ -146,12 +155,48 @@ export function PdfView() {
     withAnnouncement && announce(labels.pageOf(page, numPages));
   };
   const rotate = () => setRotation(nextRotation);
+
+  // Spreads: the pages side by side in two-page layouts, single pages in the others
+  const spreads = useMemo(() => getSpreads(layout, numPages), [layout, numPages]);
+  const spreadIndex = getSpreadIndex(spreads, currentPage);
+  const turn = (direction: PageTurnDirection) => {
+    const target = getTurnTarget(spreads, currentPage, direction);
+    target && goToPage(target);
+  };
+  const turning = resolvePageTurning(context.withPageTurning);
+  const swipeable =
+    turning.swipe && fitsAcross({ layout, scale, pageWidth: pageSize.width, columnGap, bodyWidth });
+  const pageTurning = usePageTurning({
+    options: turning,
+    active: !!ready && !presenting,
+    swipeable,
+    turn,
+  });
+  const setBodyNode = useMergedRef(setBodyRef, pageTurning.ref);
+
+  const spreadReported = useRef('');
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const pages = spreads[spreadIndex];
+    if (pages.join() !== spreadReported.current) {
+      spreadReported.current = pages.join();
+      events.onSpreadChange(spreadIndex + 1, pages);
+    }
+  }, [ready, spreads, spreadIndex, events]);
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
   };
 
   useRegisterController(controller, {
     goToPage: (page) => ready && goToPage(clampPage(page, numPages)),
+    goToSpread: (spread) => {
+      const pages = spreads[clampPage(spread, spreads.length) - 1];
+      pages && goToPage(pages[0]);
+    },
+    nextSpread: () => turn(1),
+    previousSpread: () => turn(-1),
     setZoom: (next) => setZoom(toPdfZoom(next)),
     zoomIn: () => setZoom(zoomIn(scale)),
     zoomOut: () => setZoom(zoomOut(scale)),
@@ -379,12 +424,28 @@ export function PdfView() {
       >
         {thumbnailsLayout.first && thumbnails}
         <div
-          ref={setBodyRef}
+          ref={setBodyNode}
           {...getStyles('body')}
-          {...getRegionProps(!!ready, title, 'Control+F Meta+F Plus Minus 0')}
+          {...getRegionProps(
+            !!ready,
+            title,
+            turning.keys
+              ? 'Control+F Meta+F Plus Minus 0 ArrowLeft ArrowRight PageUp PageDown'
+              : 'Control+F Meta+F Plus Minus 0'
+          )}
+          data-scroll-snap={
+            context.withScrollSnap && !presenting
+              ? layout === 'horizontal'
+                ? 'x'
+                : 'y'
+              : undefined
+          }
+          data-swipe={(swipeable && !presenting) || undefined}
           onKeyDown={handleKeyDown}
-          // In a presentation a click shows the next page
-          onClick={presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : undefined}
+          // In a presentation a click shows the next page; otherwise the edges may turn pages
+          onClick={
+            presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : pageTurning.onClick
+          }
         >
           <PdfStatus state={state} />
 

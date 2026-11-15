@@ -32,8 +32,9 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       embedded viewer (Field Report)
 - [ ] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
       cause a horizontal scrollbar (Proofline)
-- [ ] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
-      zones, swipe, pedal keys) (Stand, Atrium)
+- [x] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
+      zones, swipe, pedal keys) (Stand, Atrium): `goToSpread`, `nextSpread`, `previousSpread`,
+      `onSpreadChange`, `withScrollSnap`, `withPageTurning`
 - [ ] **Compact page editor bar**: a Styles API part for its buttons, and an icon-only variant for
       phones (Scanbox)
 
