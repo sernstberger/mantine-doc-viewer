@@ -25,7 +25,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
       (Field Report)
 - [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
-- [ ] **Controlled `fullscreen` prop** (Atrium)
+- [x] **Controlled `fullscreen` prop** (Atrium): `fullscreen` and `onFullscreenChange`
 - [x] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate): `thumbnailsPosition` takes `{ base, sm }` values
 - [ ] **Tap-to-toggle toolbar** on touch screens, so a page can fill a phone (Gate)
 - [ ] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an

@@ -21,7 +21,7 @@ import {
   useStyles,
 } from '@mantine/core';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import { useCallbackRef, useFullscreenElement, useMergedRef } from '@mantine/hooks';
+import { useCallbackRef, useMergedRef } from '@mantine/hooks';
 import React, { useMemo } from 'react';
 import {
   DocViewerController,
@@ -34,6 +34,7 @@ import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
+import { useControlledFullscreen } from './use-controlled-fullscreen';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
@@ -257,6 +258,17 @@ export interface DocViewerProps
   /** Determines whether the toolbar has a full screen button, `true` by default */
   withFullscreen?: boolean;
 
+  /**
+   * Determines whether the viewer is full screen, for a controlled state. Use with
+   * `onFullscreenChange`. Browsers only allow full screen after a click or key press, so set it
+   * from an event handler. When a request is refused, or the reader presses Escape,
+   * `onFullscreenChange` reports what really happened
+   */
+  fullscreen?: boolean;
+
+  /** Called when the viewer enters or leaves full screen, by the toolbar, the controller, `fullscreen` or the browser */
+  onFullscreenChange?: (fullscreen: boolean) => void;
+
   /** Renderers for file types the viewer does not show itself, such as CSV, checked in order before the built-in views */
   renderers?: DocViewerRenderer[];
 
@@ -434,6 +446,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withPrint,
     withDownload,
     withFullscreen,
+    fullscreen: fullscreenProp,
+    onFullscreenChange,
     withPageEditing,
     onSave,
     onDocumentLoad,
@@ -473,7 +487,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
   const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
   const controller = useControllerRegistry(controllerRef);
-  const fullscreen = useFullscreenElement<HTMLDivElement>();
+  const fullscreen = useControlledFullscreen(fullscreenProp, onFullscreenChange);
   const rootRef = useMergedRef(ref, fullscreen.ref);
 
   const resolvedFileName = fileName ?? getFileName(src);
