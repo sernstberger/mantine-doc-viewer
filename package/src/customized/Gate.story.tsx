@@ -2,17 +2,28 @@ import {
   createTheme,
   MantineProvider,
   SegmentedControl,
+  useMatches,
   type MantineColorsTuple,
+  type MantineSize,
 } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useState } from 'react';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
 import classes from './Gate.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Gate (airline app)',
   // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 // Seabright navy, so anything Mantine draws for the viewer (focus rings, pressed states) is on brand
@@ -115,7 +126,10 @@ function SunIcon() {
  * tap away is the receipt for the expense report.
  */
 export function Gate() {
-  const controllerRef = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
+  const size = useMatches<MantineSize>({ base: 'md', sm: 'xs' });
+  const gap = useMatches<MantineSize>({ base: 'sm', sm: 'xs' });
+  const thumbnailWidth = useMatches({ base: 64, sm: 56 });
   const [page, setPage] = useState(1);
   const view = page === 1 ? PASS : RECEIPT;
 
@@ -179,7 +193,7 @@ export function Gate() {
               <SegmentedControl
                 fullWidth
                 value={view}
-                onChange={(value) => controllerRef.current?.goToPage(value === PASS ? 1 : 2)}
+                onChange={(value) => viewer.goToPage(value === PASS ? 1 : 2)}
                 data={[
                   { value: PASS, label: 'Boarding pass' },
                   { value: RECEIPT, label: 'Receipt' },
@@ -196,22 +210,21 @@ export function Gate() {
             <DocViewer
               src="/stories/boarding-pass.pdf"
               fileName="SB 482 boarding pass.pdf"
-              pdfWorkerSrc={pdfWorkerSrc}
-              controllerRef={controllerRef}
+              store={store}
               onPageChange={setPage}
               // Phone first: big touch targets, tighter on the wider screens that show this mock-up
-              size={{ base: 'md', sm: 'xs' }}
-              pageGap={{ base: 'sm', sm: 'xs' }}
-              thumbnailWidth={{ base: 64, sm: 56 }}
+              size={size}
+              pagesProps={{ gap }}
+              thumbnailsProps={{ width: thumbnailWidth }}
               radius={0}
               color="#0B2545"
               defaultThumbnailsOpened
               // Always under the pass. On a wide screen the app is drawn inside a phone frame, and a
               // responsive value would follow the window rather than the phone and squeeze the pass
-              thumbnailsPosition="bottom"
-              withFullscreen={false}
+              defaultThumbnailsPosition="bottom"
               // Only what fits a phone at the gate
               toolbarControls={{
+                fullscreen: false,
                 print: false,
                 title: false,
                 thumbnails: false,
@@ -223,7 +236,8 @@ export function Gate() {
                 presentation: false,
                 search: false,
               }}
-              tooltipProps={{ disabled: true }}
+              // A tap on the pass hides the toolbar so the barcode fills the phone, another brings it back
+              toolbarProps={{ toggleOnTap: true, tooltipProps: { disabled: true } }}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -238,8 +252,6 @@ export function Gate() {
                 thumbnailImage: classes.thumbnailImage,
                 thumbnailLabel: classes.thumbnailLabel,
               }}
-              // A tap on the pass hides the toolbar so the barcode fills the phone, another brings it back
-              tapToggleToolbar
               // MISSING: a way to keep the screen awake and at full brightness while the pass is shown; that is the host app's job.
             />
 

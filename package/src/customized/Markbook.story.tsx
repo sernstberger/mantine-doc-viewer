@@ -1,13 +1,22 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
 import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { DocViewer } from '../../../test-utils/render-legacy';
 import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../scripts/story-pdfs/essays/layout';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from '../index';
 import classes from './Markbook.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Markbook (teacher grading)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 type Score = 1 | 2 | 3 | 4;
@@ -353,15 +362,12 @@ export function Markbook() {
           // Next student opens the next essay at the same zoom and scroll position
           keepView
           fileName={`${student.name}, persuasive essay.pdf`}
-          pdfWorkerSrc={pdfWorkerSrc}
           size="xs"
           color="blue"
           radius="md"
-          pageGap="md"
           defaultZoom="fit"
-          matchColor="yellow"
-          withFullscreen={false}
           toolbarControls={{
+            fullscreen: false,
             print: false,
             download: false,
             rotate: false,
@@ -384,46 +390,49 @@ export function Markbook() {
             page: classes.page,
           }}
           // The red pen: each scored criterion's note is written in the margin beside its paragraph
-          renderPageOverlay={({ pageNumber, scale }) =>
-            CRITERIA.map((criterion, criterionIndex) => {
-              const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
-              const note = scoredNotes[criterionIndex];
-              if (!anchor || anchor.page !== pageNumber || !note) {
-                return null;
-              }
-              return (
-                <div
-                  key={`${student.id}-${criterion.name}-${note}`}
-                  className={classes.penMark}
-                  style={
-                    {
-                      top: anchor.top * scale,
-                      height: (anchor.bottom - anchor.top) * scale,
-                      width: 66 * scale,
-                      '--mb-scale': scale,
-                    } as React.CSSProperties
-                  }
-                >
-                  <p className={classes.penNote}>
-                    <VisuallyHidden>{criterion.name}: </VisuallyHidden>
-                    {note}
-                  </p>
-                  <svg
-                    className={classes.penBracket}
-                    viewBox="0 0 10 100"
-                    preserveAspectRatio="none"
-                    aria-hidden
+          pagesProps={{
+            gap: 'md',
+            matchColor: 'yellow',
+            renderPageOverlay: ({ pageNumber, scale }) =>
+              CRITERIA.map((criterion, criterionIndex) => {
+                const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
+                const note = scoredNotes[criterionIndex];
+                if (!anchor || anchor.page !== pageNumber || !note) {
+                  return null;
+                }
+                return (
+                  <div
+                    key={`${student.id}-${criterion.name}-${note}`}
+                    className={classes.penMark}
+                    style={
+                      {
+                        top: anchor.top * scale,
+                        height: (anchor.bottom - anchor.top) * scale,
+                        width: 66 * scale,
+                        '--mb-scale': scale,
+                      } as React.CSSProperties
+                    }
                   >
-                    <path
-                      d="M2 1 C7 2 6 6 6 12 L6.6 44 C6.8 48 8 50 9.5 50 C8 50 6.8 52 6.6 56 L6 88 C6 94 7 98 2 99"
-                      pathLength={1}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
-                </div>
-              );
-            })
-          }
+                    <p className={classes.penNote}>
+                      <VisuallyHidden>{criterion.name}: </VisuallyHidden>
+                      {note}
+                    </p>
+                    <svg
+                      className={classes.penBracket}
+                      viewBox="0 0 10 100"
+                      preserveAspectRatio="none"
+                      aria-hidden
+                    >
+                      <path
+                        d="M2 1 C7 2 6 6 6 12 L6.6 44 C6.8 48 8 50 9.5 50 C8 50 6.8 52 6.6 56 L6 88 C6 94 7 98 2 99"
+                        pathLength={1}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  </div>
+                );
+              }),
+          }}
         />
       </main>
 

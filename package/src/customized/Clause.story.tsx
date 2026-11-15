@@ -1,12 +1,21 @@
 import { Button, SegmentedControl, Textarea } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
 import classes from './Clause.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Clause (contract redlining)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 type Kind = 'plain' | 'ins' | 'del';
@@ -218,7 +227,7 @@ const TOOLBAR_CONTROLS = {
   info: false,
   fullscreen: false,
 };
-const TOOLTIP_PROPS = { openDelay: 400 };
+const TOOLBAR_PROPS = { tooltipProps: { openDelay: 400 } };
 const VIEWER_CLASSES = {
   root: classes.root,
   toolbar: classes.toolbar,
@@ -302,7 +311,7 @@ function Redline({ segs }: { segs: Seg[] }) {
  * The app owns its light palette, it does not follow the Mantine colour scheme.
  */
 export function Clause() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [selected, setSelected] = useState(1);
   const [statuses, setStatuses] = useState<Record<number, Status>>(() =>
     Object.fromEntries(CHANGED.map((clause) => [clause.number, 'pending' as Status]))
@@ -334,7 +343,7 @@ export function Clause() {
     setPane('document');
     const target = CLAUSES.find((item) => item.number === number)!;
     // A little above the clause, so its first line is not under the toolbar
-    controller.current?.goToPage(target.page, { top: Math.max(target.span[0] - 24, 0) });
+    viewer.goToPage(target.page, { top: Math.max(target.span[0] - 24, 0) });
   };
 
   const nextOpen = useMemo(() => {
@@ -460,50 +469,50 @@ export function Clause() {
           <DocViewer
             src="/stories/nda.pdf"
             fileName="Mutual NDA, version 3.pdf"
-            pdfWorkerSrc={pdfWorkerSrc}
-            controllerRef={controller}
+            store={store}
             size="xs"
             color="#152238"
             radius={0}
-            pageGap="md"
             onPageChange={handlePageChange}
             toolbarControls={TOOLBAR_CONTROLS}
-            tooltipProps={TOOLTIP_PROPS}
+            toolbarProps={TOOLBAR_PROPS}
             classNames={VIEWER_CLASSES}
             // A rail beside each changed clause, in the colour of its answer: select it from the page
-            renderPageOverlay={({ pageNumber, scale }) =>
-              CHANGED.filter((item) => item.page === pageNumber).map((item) => {
-                const itemStatus = statuses[item.number];
-                const [top, bottom] = item.span;
-                const active = item.number === selected || undefined;
-                const box = { top: top * scale, height: (bottom - top) * scale };
-                return (
-                  <React.Fragment key={item.number}>
-                    <div
-                      className={classes.wash}
-                      data-status={itemStatus}
-                      data-active={active}
-                      style={{ ...box, left: 70 * scale, width: (612 - 140) * scale }}
-                    />
-                    <button
-                      type="button"
-                      className={classes.rail}
-                      data-status={itemStatus}
-                      data-active={active}
-                      aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
-                      aria-pressed={item.number === selected}
-                      onClick={() => {
-                        setSelected(item.number);
-                        setPane('clause');
-                      }}
-                      style={{ ...box, left: 44 * scale, width: 22 * scale }}
-                    >
-                      <StatusDot status={itemStatus} />
-                    </button>
-                  </React.Fragment>
-                );
-              })
-            }
+            pagesProps={{
+              gap: 'md',
+              renderPageOverlay: ({ pageNumber, scale }) =>
+                CHANGED.filter((item) => item.page === pageNumber).map((item) => {
+                  const itemStatus = statuses[item.number];
+                  const [top, bottom] = item.span;
+                  const active = item.number === selected || undefined;
+                  const box = { top: top * scale, height: (bottom - top) * scale };
+                  return (
+                    <React.Fragment key={item.number}>
+                      <div
+                        className={classes.wash}
+                        data-status={itemStatus}
+                        data-active={active}
+                        style={{ ...box, left: 70 * scale, width: (612 - 140) * scale }}
+                      />
+                      <button
+                        type="button"
+                        className={classes.rail}
+                        data-status={itemStatus}
+                        data-active={active}
+                        aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
+                        aria-pressed={item.number === selected}
+                        onClick={() => {
+                          setSelected(item.number);
+                          setPane('clause');
+                        }}
+                        style={{ ...box, left: 44 * scale, width: 22 * scale }}
+                      >
+                        <StatusDot status={itemStatus} />
+                      </button>
+                    </React.Fragment>
+                  );
+                }),
+            }}
             // MISSING: reading the PDF's tracked changes as data (author, range, text) so the clause list would not need to repeat them.
           />
         </main>

@@ -1,12 +1,27 @@
-import { Button, Checkbox, Switch, Textarea } from '@mantine/core';
+import { Button, Checkbox, Switch, Textarea, useMatches } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useEffect, useState } from 'react';
+import {
+  createPdfJsAdapter,
+  DocViewer,
+  DocViewerAdapterProvider,
+  useDocViewer,
+  type DocViewerPageLayout,
+} from '../index';
 import classes from './Proofline.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Proofline (print proof approval)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 const CHECKS = [
@@ -145,7 +160,9 @@ function formatNow() {
  * The story owns its colours: a green cutting mat and a white job ticket, in light and dark.
  */
 export function Proofline() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
+  // One page at a time on a phone, the two sides together from Mantine's sm (48em) up
+  const pageLayout = useMatches<DocViewerPageLayout>({ base: 'single', sm: 'two-page' });
   const [checked, setChecked] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [outcome, setOutcome] = useState<Outcome>(null);
@@ -197,19 +214,15 @@ export function Proofline() {
           <DocViewer
             src="/stories/menu-proof.pdf"
             fileName="Little Wren menu, proof 2.pdf"
-            pdfWorkerSrc={pdfWorkerSrc}
-            controllerRef={controller}
+            store={store}
             size="xs"
             radius={0}
             color="gray"
             // A proof shows true colours, whatever the colour scheme
             pageColorScheme="light"
-            // One page at a time on a phone, the two sides together from Mantine's sm (48em) up
-            defaultPageLayout={{ base: 'single', sm: 'two-page' }}
+            pageLayout={pageLayout}
             defaultZoom="fit"
-            // Room between the pages for the crop marks and the labels
-            pageGap={56}
-            tooltipProps={{ openDelay: 400, position: 'bottom' }}
+            toolbarProps={{ tooltipProps: { openDelay: 400, position: 'bottom' } }}
             toolbarControls={{
               print: false,
               download: false,
@@ -233,14 +246,18 @@ export function Proofline() {
               page: classes.page,
             }}
             // Proof marks and the slug line: drawn over each page, outside the PDF, so they can be hidden
-            renderPageOverlay={({ pageNumber, scale, height }) => (
-              <>
-                {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
-                <span className={classes.slug} style={{ top: height * scale + 22 }}>
-                  {SLUGS[pageNumber - 1]}
-                </span>
-              </>
-            )}
+            pagesProps={{
+              // Room between the pages for the crop marks and the labels
+              gap: 56,
+              renderPageOverlay: ({ pageNumber, scale, height }) => (
+                <>
+                  {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
+                  <span className={classes.slug} style={{ top: height * scale + 22 }}>
+                    {SLUGS[pageNumber - 1]}
+                  </span>
+                </>
+              ),
+            }}
           />
           <div className={classes.legendBar}>
             <Switch
@@ -338,7 +355,7 @@ export function Proofline() {
                     <button
                       type="button"
                       className={classes.link}
-                      onClick={() => controller.current?.goToPage(2)}
+                      onClick={() => viewer.goToPage(2)}
                     >
                       Show on the back
                     </button>

@@ -1,23 +1,38 @@
 import { Button, Group, Stack, Table, Text as MantineText } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
+import { createPageEditorExtension } from './editor';
 import {
-  type DocViewerController,
+  createPdfJsAdapter,
+  createReactMarkdownAdapter,
   DocViewer,
-  DocViewerRenderer,
-} from '../../test-utils/render-legacy';
-import { DocViewerToolbar } from './DocViewerToolbar/DocViewerToolbar';
-import { DocViewerBody } from './DocViewerBody/DocViewerBody';
-import { useDocViewerText } from './hooks/text/use-doc-viewer-text';
-import { DocViewerLoading } from './DocViewerLoading/DocViewerLoading';
-import { DocViewerMessage } from './DocViewerMessage/DocViewerMessage';
+  DocViewerAdapterProvider,
+  useDocViewer,
+  useDocViewerContext,
+  useDocViewerText,
+} from './index';
 
-export default { title: 'DocViewer' };
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+const pdfAdapterWithoutWorker = createPdfJsAdapter(() => import('pdfjs-dist'));
+const markdownAdapter = createReactMarkdownAdapter(() =>
+  Promise.all([import('react-markdown'), import('remark-gfm')])
+);
+
+export default {
+  title: 'DocViewer',
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
+};
 
 export function Pdf() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.pdf" pdfWorkerSrc={pdfWorkerSrc} h={600} />
+      <DocViewer src="/sample.pdf" h={600} />
     </div>
   );
 }
@@ -25,7 +40,7 @@ export function Pdf() {
 export function PdfWithThumbnails() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
+      <DocViewer src="/sample.pdf" defaultThumbnailsOpened h={600} />
     </div>
   );
 }
@@ -35,7 +50,6 @@ export function PdfThumbnailsBottom() {
     <div style={{ padding: 40 }}>
       <DocViewer
         src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
         defaultThumbnailsOpened
         defaultThumbnailsPosition="bottom"
         h={600}
@@ -47,12 +61,7 @@ export function PdfThumbnailsBottom() {
 function LongPdf({ pages }: { pages: number }) {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer
-        src={`/sample-${pages}.pdf`}
-        pdfWorkerSrc={pdfWorkerSrc}
-        defaultThumbnailsOpened
-        h={700}
-      />
+      <DocViewer src={`/sample-${pages}.pdf`} defaultThumbnailsOpened h={700} />
     </div>
   );
 }
@@ -66,16 +75,13 @@ export function Styled() {
     <div style={{ padding: 40 }}>
       <DocViewer
         src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
         defaultThumbnailsOpened
         size="md"
         color="teal"
-        matchColor="grape"
-        activeMatchColor="red"
-        pageGap="xl"
-        thumbnailWidth={80}
         radius="lg"
-        tooltipProps={{ position: 'bottom', withArrow: true }}
+        pagesProps={{ gap: 'xl', matchColor: 'grape', activeMatchColor: 'red' }}
+        thumbnailsProps={{ width: 80 }}
+        toolbarProps={{ tooltipProps: { position: 'bottom', withArrow: true } }}
         h={600}
       />
     </div>
@@ -84,9 +90,11 @@ export function Styled() {
 
 export function PdfWithoutWorker() {
   return (
-    <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.pdf" h={300} />
-    </div>
+    <DocViewerAdapterProvider pdf={pdfAdapterWithoutWorker}>
+      <div style={{ padding: 40 }}>
+        <DocViewer src="/sample.pdf" h={300} />
+      </div>
+    </DocViewerAdapterProvider>
   );
 }
 
@@ -96,7 +104,7 @@ PdfWithoutWorker.parameters = { e2e: { allowConsole: [/pdf\.js worker is not con
 export function PdfLoadError() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/missing.pdf" pdfWorkerSrc={pdfWorkerSrc} h={300} />
+      <DocViewer src="/missing.pdf" h={300} />
     </div>
   );
 }
@@ -162,7 +170,7 @@ export function Text() {
 export function TextTooLarge() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.log" maxTextSize={100} h={300} />
+      <DocViewer src="/sample.log" textProps={{ maxSize: 100 }} h={300} />
     </div>
   );
 }
@@ -176,7 +184,7 @@ export function Unsupported() {
 }
 
 export function Controlled() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState('');
 
@@ -189,17 +197,13 @@ export function Controlled() {
         <Button size="xs" variant="default" onClick={() => setPage(50)}>
           Last page
         </Button>
-        <Button size="xs" variant="default" onClick={() => controller.current?.setZoom(1)}>
+        <Button size="xs" variant="default" onClick={() => viewer.setZoom(1)}>
           100%
         </Button>
-        <Button
-          size="xs"
-          variant="default"
-          onClick={() => controller.current?.openSearch('page 7')}
-        >
+        <Button size="xs" variant="default" onClick={() => viewer.openSearch('page 7')}>
           Search "page 7"
         </Button>
-        <Button size="xs" variant="default" onClick={() => controller.current?.print()}>
+        <Button size="xs" variant="default" onClick={() => viewer.print()}>
           Print
         </Button>
         <MantineText size="sm">
@@ -208,8 +212,7 @@ export function Controlled() {
       </Group>
       <DocViewer
         src="/sample-50.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        controllerRef={controller}
+        store={store}
         page={page}
         onPageChange={setPage}
         onZoomChange={(next, { scale }) =>
@@ -224,12 +227,7 @@ export function Controlled() {
 export function TwoPages() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer
-        src="/sample-50.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        defaultPageLayout="two-page-cover"
-        h={600}
-      />
+      <DocViewer src="/sample-50.pdf" defaultPageLayout="two-page-cover" h={600} />
     </div>
   );
 }
@@ -247,18 +245,19 @@ function parseCsv(text: string) {
     );
 }
 
-function CsvView({ src }: { src: string }) {
+function CsvView() {
+  const { src } = useDocViewerContext();
   const state = useDocViewerText(src, 2_000_000);
 
   return (
     <>
-      <DocViewerToolbar />
-      <DocViewerBody focusable={state.status === 'ready'}>
-        {state.status === 'loading' && <DocViewerLoading />}
+      <DocViewer.Toolbar />
+      <DocViewer.Body focusable={state.status === 'ready'}>
+        {state.status === 'loading' && <DocViewer.Loading />}
         {state.status !== 'loading' && state.status !== 'ready' && (
-          <DocViewerMessage withDownload error>
+          <DocViewer.Message withDownload error>
             This file could not be loaded
-          </DocViewerMessage>
+          </DocViewer.Message>
         )}
         {state.status === 'ready' && (
           <Table striped withTableBorder bg="var(--mantine-color-body)">
@@ -282,20 +281,17 @@ function CsvView({ src }: { src: string }) {
             </Table.Tbody>
           </Table>
         )}
-      </DocViewerBody>
+      </DocViewer.Body>
     </>
   );
 }
 
-const csvRenderer: DocViewerRenderer = {
-  test: (file) => file.mimeType === 'text/csv' || !!file.fileName?.endsWith('.csv'),
-  render: (file) => <CsvView src={file.src} />,
-};
-
 export function CustomRenderer() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.csv" renderers={[csvRenderer]} h={400} />
+      <DocViewer src="/sample.csv" h={400}>
+        <CsvView />
+      </DocViewer>
     </div>
   );
 }
@@ -310,12 +306,15 @@ export function PageEditing() {
       </MantineText>
       <DocViewer
         src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        withPageEditing
+        extensions={[
+          createPageEditorExtension({
+            onDocumentChange: (bytes, { reason, pages }) =>
+              setSaved(`${reason}: ${bytes.length} bytes, pages ${pages.join(', ')}`),
+            onExtract: (bytes, { pages }) =>
+              setSaved(`extract: ${bytes.length} bytes, pages ${pages.join(', ')}`),
+          }),
+        ]}
         defaultThumbnailsOpened
-        onSave={(bytes, { reason, pages }) =>
-          setSaved(`${reason}: ${bytes.length} bytes, pages ${pages.join(', ')}`)
-        }
         h={600}
       />
     </Stack>
@@ -330,10 +329,9 @@ export function Plain() {
       </MantineText>
       <DocViewer
         src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
         variant="plain"
         withToolbar={false}
-        pageGap="sm"
+        pagesProps={{ gap: 'sm' }}
         h={500}
       />
     </div>
@@ -343,13 +341,7 @@ export function Plain() {
 export function DarkPages() {
   return (
     <div style={{ padding: 40, background: 'var(--mantine-color-dark-7)' }}>
-      <DocViewer
-        src="/sample-50.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        pageColorScheme="dark"
-        defaultThumbnailsOpened
-        h={600}
-      />
+      <DocViewer src="/sample-50.pdf" pageColorScheme="dark" defaultThumbnailsOpened h={600} />
     </div>
   );
 }
@@ -359,7 +351,6 @@ export function TrimmedToolbar() {
     <div style={{ padding: 40, width: 420 }}>
       <DocViewer
         src="/sample.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
         size="xs"
         toolbarControls={{
           rotate: false,

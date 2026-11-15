@@ -3,12 +3,21 @@ import { useElementSize, useHotkeys, useReducedMotion } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
 import classes from './Leaf.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Leaf (book reader)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 /*
@@ -159,7 +168,7 @@ function makeFace(
   return face;
 }
 
-/** Copies a page the viewer has drawn (controller.getPageCanvas), or null when it is not drawn yet */
+/** Copies a page the viewer has drawn (viewer.getPageCanvas), or null when it is not drawn yet */
 function snapshot(source: HTMLCanvasElement | null) {
   if (!source || source.width === 0) {
     return null;
@@ -207,7 +216,7 @@ function spreadSides(first: number, total: number) {
  * taps on the edges, a swipe or the arrow keys turn the page over with a flip.
  */
 export function Leaf() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const reduceMotion = useReducedMotion();
   const { ref: deskRef, width: deskWidth, height: deskHeight } = useElementSize();
   const roomRef = useRef<HTMLDivElement>(null);
@@ -347,7 +356,7 @@ export function Leaf() {
     const overlay = overlayRef.current;
     const currentNode = pageElement(fromSides.right ?? fromSides.left!);
     if (!room || !overlay || !currentNode) {
-      controller.current?.goToPage(to);
+      viewer.goToPage(to);
       return;
     }
 
@@ -367,7 +376,7 @@ export function Leaf() {
     const rightSlot = slot(open ? spine : box.left);
     const copy = (number: number | null) =>
       number !== null && number >= 1 && number <= total
-        ? snapshot(controller.current?.getPageCanvas(number) ?? null)
+        ? snapshot(viewer.getPageCanvas(number) ?? null)
         : null;
     const rightSide = open ? 'right' : 'single';
     /** A page lying open, or the inside of a cover where there is none */
@@ -392,7 +401,7 @@ export function Leaf() {
       [under.left, under.right].some((number) => number !== null && !copy(number));
     if (!still && missing) {
       // Not drawn yet (a long jump, a slow device): turn without the flip
-      controller.current?.goToPage(to);
+      viewer.goToPage(to);
       return;
     }
 
@@ -426,7 +435,7 @@ export function Leaf() {
       );
       setTurning('fade');
       // The overlay covers the view: jump straight there underneath it
-      controller.current?.goToPage(to, { behavior: 'instant' });
+      viewer.goToPage(to, { behavior: 'instant' });
       whenSettled(to, top, () => {
         // Held at 0 until the overlay is emptied, so the old pages do not come back for a frame
         const fade = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
@@ -476,7 +485,7 @@ export function Leaf() {
 
     // The viewer jumps to the new page underneath, hidden while the overlay plays
     setTurning('flip');
-    controller.current?.goToPage(to, { behavior: 'instant' });
+    viewer.goToPage(to, { behavior: 'instant' });
 
     const easing = 'cubic-bezier(0.32, 0.08, 0.24, 1)';
     const angles = forward ? [0, -180] : [-180, 0];
@@ -548,7 +557,7 @@ export function Leaf() {
     setTurning('jump');
     window.setTimeout(
       () => {
-        controller.current?.goToPage(target);
+        viewer.goToPage(target);
         whenSettled(target, top, () => {
           setTurning(null);
           busy.current = false;
@@ -681,23 +690,19 @@ export function Leaf() {
               <DocViewer
                 src={BOOK.src}
                 fileName={BOOK.title}
-                pdfWorkerSrc={pdfWorkerSrc}
-                controllerRef={controller}
+                store={store}
                 withToolbar={false}
                 variant="plain"
                 radius={0}
-                pageGap={0}
                 pageBackground="var(--leaf-paper)"
                 // The app picks one page or an open book from the window; the page stays when it changes.
                 // A book opens on page 1 alone on the right, so odd pages are always right-hand pages
                 pageLayout={spread ? 'two-page-cover' : 'single'}
                 defaultZoom="fit-page"
-                // The app turns the pages
-                withScroll={false}
                 onDocumentLoad={(info) => {
                   setNumPages(info.numPages ?? 0);
-                  controller.current
-                    ?.getOutline()
+                  viewer
+                    .getOutline()
                     .then((items) =>
                       setChapters(
                         items
@@ -707,13 +712,18 @@ export function Leaf() {
                     );
                 }}
                 onPageChange={setPage}
-                // The gutter: pages darken a little towards the spine
-                renderPageOverlay={({ pageNumber }) => (
-                  <div
-                    className={classes.gutter}
-                    data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
-                  />
-                )}
+                pagesProps={{
+                  gap: 0,
+                  // The app turns the pages
+                  withScroll: false,
+                  // The gutter: pages darken a little towards the spine
+                  renderPageOverlay: ({ pageNumber }) => (
+                    <div
+                      className={classes.gutter}
+                      data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
+                    />
+                  ),
+                }}
                 classNames={{
                   root: classes.viewer,
                   body: classes.body,

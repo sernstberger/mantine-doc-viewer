@@ -1,14 +1,31 @@
-import { Button, createTheme, MantineProvider, type MantineColorsTuple } from '@mantine/core';
+import {
+  Button,
+  createTheme,
+  MantineProvider,
+  useMatches,
+  type MantineColorsTuple,
+  type MantineSize,
+} from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useEffect, useState } from 'react';
+import { createPageEditorExtension } from '../editor';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
 import { saveBytes } from '../utils/files';
 import classes from './Scanbox.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Scanbox (phone scanner)',
   // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 // Scanbox teal, so the page editor's own buttons (Save, Done) match the app
@@ -87,7 +104,10 @@ function StatusBar() {
  * reorder or drop the ones that do not belong, then export.
  */
 export function Scanbox() {
-  const controllerRef = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
+  const size = useMatches<MantineSize>({ base: 'md', sm: 'sm' });
+  const gap = useMatches<MantineSize>({ base: 'lg', sm: 'md' });
+  const thumbnailWidth = useMatches({ base: 96, sm: 88 });
   const [name, setName] = useState('March expenses');
   const [pages, setPages] = useState(5);
   const [toast, setToast] = useState<string | null>(null);
@@ -131,12 +151,11 @@ export function Scanbox() {
             <DocViewer
               src="/stories/receipts.pdf"
               fileName={fileName}
-              pdfWorkerSrc={pdfWorkerSrc}
-              controllerRef={controllerRef}
+              store={store}
               // Phone first: big touch targets, a tighter toolbar on wider screens
-              size={{ base: 'md', sm: 'sm' }}
-              pageGap={{ base: 'lg', sm: 'md' }}
-              thumbnailWidth={{ base: 96, sm: 88 }}
+              size={size}
+              pagesProps={{ gap }}
+              thumbnailsProps={{ width: thumbnailWidth }}
               radius={0}
               color="#00A38C"
               defaultThumbnailsOpened
@@ -144,11 +163,33 @@ export function Scanbox() {
               // A camera roll: swipe sideways through the receipts, each one fitted to the height
               defaultPageLayout="horizontal"
               defaultZoom="fit"
-              withPageEditing
-              // A phone has no room for words on the editor's buttons
-              compactPageEditor
-              withFullscreen={false}
+              extensions={[
+                createPageEditorExtension({
+                  // A phone has no room for words on the editor's buttons
+                  compact: true,
+                  onDocumentChange: (bytes, { reason, pages: saved }) => {
+                    setPages(saved.length);
+                    setToast(
+                      reason === 'delete'
+                        ? 'Page deleted'
+                        : `Saved ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`
+                    );
+                  },
+                  onExtract: (_bytes, { pages: saved }) => {
+                    setPages(saved.length);
+                    setToast(`Extracted ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}`);
+                  },
+                  labels: {
+                    moveEarlierLabel: 'Earlier',
+                    moveLaterLabel: 'Later',
+                    deletePagesLabel: 'Delete',
+                    extractPagesLabel: 'Extract',
+                    savePagesLabel: 'Save',
+                  },
+                }),
+              ]}
               toolbarControls={{
+                fullscreen: false,
                 print: false,
                 download: false,
                 title: false,
@@ -161,24 +202,7 @@ export function Scanbox() {
                 search: false,
               }}
               onDocumentLoad={(info) => setPages(info.numPages ?? 5)}
-              onSave={(bytes, { reason, pages: saved }) => {
-                setPages(saved.length);
-                setToast(
-                  reason === 'extract'
-                    ? `Extracted ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}`
-                    : reason === 'delete'
-                      ? 'Page deleted'
-                      : `Saved ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`
-                );
-              }}
-              labels={{
-                moveEarlierLabel: 'Earlier',
-                moveLaterLabel: 'Later',
-                deletePagesLabel: 'Delete',
-                extractPagesLabel: 'Extract',
-                savePagesLabel: 'Save',
-              }}
-              tooltipProps={{ disabled: true }}
+              toolbarProps={{ tooltipProps: { disabled: true } }}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -208,7 +232,7 @@ export function Scanbox() {
                 fullWidth
                 onClick={async () => {
                   // The bytes as shown, after any deleted, moved or extracted pages
-                  const bytes = await controllerRef.current?.getBytes();
+                  const bytes = await viewer.getBytes();
                   if (bytes) {
                     saveBytes(bytes, fileName, 'application/pdf');
                     setToast(`Exported ${formatSize(bytes.length)}`);

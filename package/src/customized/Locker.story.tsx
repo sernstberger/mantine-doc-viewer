@@ -1,22 +1,35 @@
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  type DocViewerController,
+  createPdfJsAdapter,
+  createReactMarkdownAdapter,
   DocViewer,
-  DocViewerRenderer,
+  DocViewerAdapterProvider,
   useDocViewer,
-} from '../../../test-utils/render-legacy';
-import type { DocViewerLoadInfo } from '../hooks/use-controller-registry';
-import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
-import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
-import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
-import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
+  useDocViewerContext,
+  useDocViewerStore,
+  useDocViewerText,
+  type DocViewerLoadInfo,
+  type DocViewerState,
+} from '../index';
 import classes from './Locker.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+const markdownAdapter = createReactMarkdownAdapter(() =>
+  Promise.all([import('react-markdown'), import('remark-gfm')])
+);
 
 export default {
   title: 'DocViewer/Apps/Locker (cloud drive preview)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 /* -------------------------------------------------------------------------- */
@@ -265,18 +278,18 @@ function parseCsv(text: string) {
 
 const isNumber = (cell: string) => cell !== '' && !Number.isNaN(Number(cell));
 
-function CsvView({ src }: { src: string }) {
-  // A custom renderer reports load / error itself, the built-in views do it for the built-in types only
-  const { onLoad, onError } = useDocViewer();
+function CsvView() {
+  // A custom view reports load / error itself, the built-in views do it for the built-in types only
+  const { src, events } = useDocViewerContext();
   const state = useDocViewerText(src, 2_000_000);
 
   useEffect(() => {
     if (state.status === 'ready') {
-      onLoad({ type: 'text' });
+      events.onDocumentLoad({ type: 'text' });
     } else if (state.status === 'error') {
-      onError(state.error);
+      events.onDocumentError(state.error);
     }
-  }, [state, onLoad, onError]);
+  }, [state, events]);
 
   const rows = state.status === 'ready' ? parseCsv(state.text) : [];
   const numeric = rows[0]?.map((_, index) => rows.slice(1).every((row) => isNumber(row[index])));
@@ -284,12 +297,12 @@ function CsvView({ src }: { src: string }) {
   return (
     <>
       {/* The sheet has no tools: no toolbar, the app header already names the file */}
-      <DocViewerBody focusable={state.status === 'ready'}>
-        {state.status === 'loading' && <DocViewerLoading />}
+      <DocViewer.Body focusable={state.status === 'ready'}>
+        {state.status === 'loading' && <DocViewer.Loading />}
         {(state.status === 'error' || state.status === 'too-large') && (
-          <DocViewerMessage withDownload error>
+          <DocViewer.Message withDownload error>
             This file could not be loaded
-          </DocViewerMessage>
+          </DocViewer.Message>
         )}
         {state.status === 'ready' && (
           <table className={classes.sheet}>
@@ -319,22 +332,15 @@ function CsvView({ src }: { src: string }) {
             </tbody>
           </table>
         )}
-      </DocViewerBody>
+      </DocViewer.Body>
     </>
   );
 }
 
-const csvRenderer: DocViewerRenderer = {
-  test: (file) => file.mimeType === 'text/csv' || !!file.fileName?.endsWith('.csv'),
-  render: (file) => <CsvView src={file.src} />,
-};
-
-// Defined once: inline objects would be new on every render
-const RENDERERS = [csvRenderer];
-
 // The app has its own download, print and full screen buttons, and its own title
 // A preview pane is narrow: keep reading controls, leave layout, presentation and info to the full viewer
 const TOOLBAR_CONTROLS = {
+  fullscreen: false,
   print: false,
   download: false,
   title: false,
@@ -344,6 +350,7 @@ const TOOLBAR_CONTROLS = {
   editPages: false,
 };
 const TOOLTIP_PROPS = { openDelay: 400, position: 'bottom' as const };
+const TOOLBAR_PROPS = { tooltipProps: TOOLTIP_PROPS };
 const VIEWER_CLASSES = {
   root: classes.viewer,
   toolbar: classes.viewerToolbar,
@@ -364,20 +371,14 @@ const VIEWER_CLASSES = {
 /* App                                                                        */
 /* -------------------------------------------------------------------------- */
 
-interface LoadState {
-  id: string;
-  info?: DocViewerLoadInfo;
-  error?: string;
-}
-
-function describe(file: DriveFile, state: LoadState | null) {
-  if (!state || state.id !== file.id) {
-    return { status: 'loading', text: 'Loading preview' };
-  }
-  if (state.error) {
+function describe(status: DocViewerState['status']) {
+  if (status === 'error') {
     return { status: 'error', text: 'Preview unavailable' };
   }
-  return { status: 'ready', text: 'Preview ready' };
+  if (status === 'ready') {
+    return { status: 'ready', text: 'Preview ready' };
+  }
+  return { status: 'loading', text: 'Loading preview' };
 }
 
 /** Size as the viewer measured it, for the files whose size it knows: PDFs and text */
@@ -406,14 +407,14 @@ function dimensions(info: DocViewerLoadInfo | undefined) {
  * print from the app's own buttons through the controller.
  */
 export function Locker() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
+  const { status: loadStatus, info, canPrint } = useDocViewerStore(store);
   const [selectedId, setSelectedId] = useState(FILES[0].id);
-  const [load, setLoad] = useState<LoadState | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const selected = FILES.find((file) => file.id === selectedId)!;
-  const { status, text } = describe(selected, load);
-  const facts = load?.id === selected.id ? dimensions(load.info) : null;
-  const measured = load?.id === selected.id ? measuredSize(load.info) : null;
+  const { status, text } = describe(loadStatus);
+  const facts = dimensions(info ?? undefined);
+  const measured = measuredSize(info ?? undefined);
 
   useEffect(() => {
     if (!toast) {
@@ -565,7 +566,7 @@ export function Locker() {
                 className={classes.action}
                 aria-label="Download"
                 onClick={() => {
-                  controller.current?.download();
+                  viewer.download();
                   setToast(`Downloading ${selected.name}`);
                 }}
               >
@@ -577,9 +578,9 @@ export function Locker() {
                 className={classes.action}
                 aria-label="Print"
                 // Spreadsheets and other files the viewer cannot print leave the button off
-                disabled={!controller.current?.canPrint}
+                disabled={!canPrint}
                 onClick={() => {
-                  void controller.current?.print();
+                  void viewer.print();
                 }}
               >
                 {ICONS.print}
@@ -590,7 +591,7 @@ export function Locker() {
                 className={classes.action}
                 aria-label="Full screen"
                 onClick={() => {
-                  void controller.current?.toggleFullscreen();
+                  void viewer.toggleFullscreen();
                 }}
               >
                 {ICONS.expand}
@@ -603,22 +604,18 @@ export function Locker() {
           <DocViewer
             src={selected.src}
             fileName={selected.name}
-            pdfWorkerSrc={pdfWorkerSrc}
-            controllerRef={controller}
-            renderers={RENDERERS}
+            store={store}
             color={KIND_VIEWER_COLOR[selected.kind]}
             size="sm"
             radius={0}
             variant="plain"
             // The app has its own download, print and full screen buttons
-            withFullscreen={false}
             toolbarControls={TOOLBAR_CONTROLS}
-            tooltipProps={TOOLTIP_PROPS}
+            toolbarProps={TOOLBAR_PROPS}
             classNames={VIEWER_CLASSES}
-            onDocumentLoadStart={() => setLoad(null)}
-            onDocumentLoad={(info) => setLoad({ id: selected.id, info })}
-            onDocumentError={(error) => setLoad({ id: selected.id, error: error.message })}
-          />
+          >
+            {selected.name.endsWith('.csv') ? <CsvView /> : null}
+          </DocViewer>
         </div>
 
         <footer className={classes.details}>
@@ -637,7 +634,7 @@ export function Locker() {
               <ActionIcon
                 className={classes.action}
                 aria-label="Zoom out"
-                onClick={() => controller.current?.zoomOut()}
+                onClick={() => viewer.zoomOut()}
               >
                 {ICONS.zoomOut}
               </ActionIcon>
@@ -646,7 +643,7 @@ export function Locker() {
               <ActionIcon
                 className={classes.action}
                 aria-label="Zoom in"
-                onClick={() => controller.current?.zoomIn()}
+                onClick={() => viewer.zoomIn()}
               >
                 {ICONS.zoomIn}
               </ActionIcon>
