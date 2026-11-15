@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { DocViewer } from '../../../../test-utils/render-legacy';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
-import type { DocViewerMark } from '../../utils/markup';
+import type { DocViewerMark } from '../../DocViewerMarkup/utils/markup';
 
 /**
  * Counts thumbnail and page tile renders: each names itself with its label once per render. One

@@ -1,12 +1,13 @@
 import { Textarea, VisuallyHidden } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
-import { useDocViewerPageContext } from '../doc-viewer.context';
+import { useDocViewerPageContext } from '../../doc-viewer.context';
+import type { DocViewerMarkupLabels } from '../default-labels';
 import type { DocViewerMark } from '../utils/markup';
 import { getFontStyle, type TextDraft } from '../utils/markup-draft';
 
 /** Text boxes already on the page */
-export function PdfMarkupTexts({ marks, scale }: { marks: DocViewerMark[]; scale: number }) {
+export function MarkupTexts({ marks, scale }: { marks: DocViewerMark[]; scale: number }) {
   const { getStyles } = useDocViewerPageContext();
 
   return (
@@ -33,7 +34,8 @@ export function PdfMarkupTexts({ marks, scale }: { marks: DocViewerMark[]; scale
   );
 }
 
-interface PdfMarkupTextInputProps {
+interface MarkupTextInputProps {
+  labels: DocViewerMarkupLabels;
   textDraft: TextDraft;
   setTextDraft: (draft: TextDraft | null) => void;
   commitText: () => void;
@@ -44,7 +46,8 @@ interface PdfMarkupTextInputProps {
 }
 
 /** The text box being typed */
-export function PdfMarkupTextInput({
+export function MarkupTextInput({
+  labels,
   textDraft,
   setTextDraft,
   commitText,
@@ -52,8 +55,8 @@ export function PdfMarkupTextInput({
   scale,
   fontSize,
   color,
-}: PdfMarkupTextInputProps) {
-  const { getStyles, labels } = useDocViewerPageContext();
+}: MarkupTextInputProps) {
+  const { getStyles } = useDocViewerPageContext();
 
   return (
     <Textarea
@@ -87,9 +90,15 @@ export function PdfMarkupTextInput({
  * The page's marks for screen readers, which skip the drawing: a hidden list beside the markup
  * layer (not in it, since the layer is an application where screen readers pass keys through)
  */
-export function PdfMarkList({ pageNumber, marks }: { pageNumber: number; marks: DocViewerMark[] }) {
-  const { labels } = useDocViewerPageContext();
-
+export function MarkList({
+  pageNumber,
+  marks,
+  labels,
+}: {
+  pageNumber: number;
+  marks: DocViewerMark[];
+  labels: DocViewerMarkupLabels;
+}) {
   return (
     <VisuallyHidden role="list" aria-label={labels.pageMarksLabel(pageNumber, marks.length)}>
       {marks.map((mark) => {

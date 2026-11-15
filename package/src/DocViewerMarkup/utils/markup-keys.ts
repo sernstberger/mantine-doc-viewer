@@ -1,7 +1,7 @@
 import { clamp } from '@mantine/hooks';
 import { type DocViewerMarkPoint, type DocViewerMarkupTool, toPagePoint } from './markup';
 import { type Draft, isStrokeTool } from './markup-draft';
-import type { PdfRotation } from './render-page';
+import type { PdfRotation } from '../../utils/render-page';
 
 /** How far an arrow key moves the keyboard cursor, in PDF points */
 export const MARKUP_KEY_STEP = 10;
@@ -77,7 +77,6 @@ function getMoveAction(
     clamp(caret[0] + dx * MARKUP_KEY_STEP, 0, width),
     clamp(caret[1] + dy * MARKUP_KEY_STEP, 0, height),
   ];
-  // Shift+arrow starts a mark at the cursor, like extending a text selection
   const startsHere = shiftKey && tool !== 'text' ? [caret] : null;
   const draft = state.draft ?? startsHere;
   return { type: 'move', caret: next, draft: draft && extendDraft(tool, draft, next) };

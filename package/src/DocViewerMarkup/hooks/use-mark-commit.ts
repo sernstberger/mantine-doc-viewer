@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react';
-import {
-  createMarkId,
-  DocViewerStrokeMark,
-  MIN_MARK_SIZE,
-  rectFromPoints,
-} from '../../utils/markup';
-import { type Draft, isStrokeTool, makeMark } from '../../utils/markup-draft';
+import { createMarkId, DocViewerStrokeMark, MIN_MARK_SIZE, rectFromPoints } from '../utils/markup';
+import { type Draft, isStrokeTool, makeMark } from '../utils/markup-draft';
 import type { MarkupLayerInput } from './use-markup';
 
 /** Writes a finished drag or stroke into the marks; the function it returns says whether a mark was added */
@@ -15,7 +10,6 @@ export function useMarkCommit({
   marks,
 }: Pick<MarkupLayerInput, 'pageNumber' | 'markup' | 'marks'>) {
   const { tool } = markup;
-  // The signature being written: strokes join it until the reader picks another tool
   const signature = useRef<string | null>(null);
   useEffect(() => {
     signature.current = null;

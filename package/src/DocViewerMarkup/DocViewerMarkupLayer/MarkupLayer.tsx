@@ -1,15 +1,15 @@
 import React from 'react';
-import { useDocViewerPageContext } from '../doc-viewer.context';
-import { DocViewerMark, getMarkLines, toPathData } from '../utils/markup';
-import { getOverlayStyle } from '../utils/page-overlay';
-import { PdfMarkupTextInput, PdfMarkupTexts } from './PdfMarkupText';
-import type { PdfRotation } from '../utils/render-page';
-import { useMarkupDrawing } from '../hooks/pdf/use-markup-drawing';
-import { useMarkupKeyboard } from '../hooks/pdf/use-markup-keyboard';
-import type { PdfLayerMarkup } from '../hooks/pdf/use-markup';
-import { useTextDraft } from '../hooks/pdf/use-text-draft';
+import { useDocViewerPageContext } from '../../doc-viewer.context';
+import { getOverlayStyle } from '../../utils/page-overlay';
+import type { PdfRotation } from '../../utils/render-page';
+import type { PdfLayerMarkup } from '../hooks/use-markup';
+import { useMarkupDrawing } from '../hooks/use-markup-drawing';
+import { useMarkupKeyboard } from '../hooks/use-markup-keyboard';
+import { useTextDraft } from '../hooks/use-text-draft';
+import { type DocViewerMark, getMarkLines, toPathData } from '../utils/markup';
+import { MarkupTextInput, MarkupTexts } from './MarkupText';
 
-interface PdfMarkupLayerProps {
+interface MarkupLayerProps {
   pageNumber: number;
   numPages: number;
 
@@ -57,7 +57,7 @@ function MarkShape({ mark, scale }: { mark: DocViewerMark; scale: number }) {
 }
 
 /** Marks on one PDF page, and drawing new ones with the current markup tool */
-export function PdfMarkupLayer({
+export function MarkupLayer({
   pageNumber,
   numPages,
   tabStop,
@@ -67,7 +67,7 @@ export function PdfMarkupLayer({
   rotation,
   markup,
   marks,
-}: PdfMarkupLayerProps) {
+}: MarkupLayerProps) {
   const { getStyles } = useDocViewerPageContext();
   const { tool } = markup;
   const input = { pageNumber, width, height, scale, rotation, markup, marks };
@@ -99,7 +99,6 @@ export function PdfMarkupLayer({
         ))}
         {draftMark && <MarkShape mark={draftMark} scale={scale} />}
         {caret && (
-          // The keyboard cursor, shown while the layer has keyboard focus
           <g data-markup-caret stroke={markup.getColor(tool!)}>
             <line
               x1={caret[0] * scale - 6}
@@ -117,11 +116,12 @@ export function PdfMarkupLayer({
         )}
       </svg>
 
-      <PdfMarkupTexts marks={marks} scale={scale} />
+      <MarkupTexts marks={marks} scale={scale} />
 
       {textDraft && (
-        <PdfMarkupTextInput
+        <MarkupTextInput
           {...text}
+          labels={markup.labels}
           textDraft={textDraft}
           scale={scale}
           fontSize={markup.fontSize}

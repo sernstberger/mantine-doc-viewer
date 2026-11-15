@@ -39,7 +39,7 @@ import type {
   DocViewerThumbnailsPosition,
 } from '../package/src/doc-viewer.types';
 import { getDocViewerType, type DocViewerType } from '../package/src/utils/get-doc-viewer-type';
-import type { DocViewerMark, DocViewerMarkupTool } from '../package/src/utils/markup';
+import type { DocViewerMark, DocViewerMarkupTool } from '../package/src/markup';
 import type { DocViewerRenderPageOverlay } from '../package/src/utils/page-overlay';
 import type { DocViewerPageRect } from '../package/src/utils/page-points';
 import type { DocViewerPageTurning } from '../package/src/utils/spreads';

@@ -1,5 +1,3 @@
-import type { DocViewerMarkupTool } from './utils/markup';
-
 /** Text shown or read out by the viewer, override any of it with the `labels` prop to translate it */
 export interface DocViewerLabels {
   /** Name used when the file has no name, for the title and the screen reader name of the viewer */
@@ -108,29 +106,6 @@ export interface DocViewerLabels {
   matchCaseLabel: string;
   wholeWordsLabel: string;
   matchAccentsLabel: string;
-
-  /** Toolbar button that opens the markup bar, and the bar's screen reader name */
-  markupLabel: string;
-  markupToolLabels: Record<DocViewerMarkupTool, string>;
-  undoMarkLabel: string;
-  saveMarkupLabel: string;
-  closeMarkupLabel: string;
-  /** Screen reader name of the box a text mark is typed into */
-  markupTextLabel: string;
-  /** How to add or cancel the text being typed, read after the text box's name */
-  markupTextKeysLabel: string;
-  markupSavedLabel: string;
-  /** Screen reader name of a page while a markup tool is picked, where keys place marks */
-  markupLayerLabel: (tool: string, page: number) => string;
-  /** How to place marks with the keyboard, read after the page's markup name */
-  markupKeysLabel: string;
-  markStartedLabel: (tool: string) => string;
-  markAddedLabel: (tool: string) => string;
-  markCancelledLabel: string;
-  /** Screen reader name of the hidden list of a page's marks */
-  pageMarksLabel: (page: number, count: number) => string;
-  /** A text mark in that list, after the tool's name */
-  textMarkLabel: (tool: string, text: string) => string;
 
   wrapLinesLabel: string;
   doNotWrapLinesLabel: string;
@@ -253,30 +228,6 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   matchCaseLabel: 'Match case',
   wholeWordsLabel: 'Whole words',
   matchAccentsLabel: 'Match accents',
-  markupLabel: 'Markup',
-  markupToolLabels: {
-    highlight: 'Highlight',
-    pen: 'Pen',
-    text: 'Text box',
-    rectangle: 'Rectangle',
-    ellipse: 'Ellipse',
-    cloud: 'Cloud',
-    signature: 'Signature',
-  },
-  undoMarkLabel: 'Undo',
-  saveMarkupLabel: 'Save',
-  closeMarkupLabel: 'Close markup',
-  markupTextLabel: 'Text box text',
-  markupTextKeysLabel: 'Control or Command with Enter adds the text, Escape cancels.',
-  markupSavedLabel: 'Markup saved',
-  markupLayerLabel: (tool, page) => `${tool} on page ${page}`,
-  markupKeysLabel:
-    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels. Page Up and Page Down go to the previous and next page.',
-  markStartedLabel: (tool) => `${tool} started`,
-  markAddedLabel: (tool) => `${tool} added`,
-  markCancelledLabel: 'Mark cancelled',
-  pageMarksLabel: (page, count) => `Page ${page}: ${count} ${count === 1 ? 'mark' : 'marks'}`,
-  textMarkLabel: (tool, text) => `${tool}: ${text}`,
 
   wrapLinesLabel: 'Wrap lines',
   doNotWrapLinesLabel: 'Do not wrap lines',
@@ -299,7 +250,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   notSupportedYetLabel: (type) => `Preview for ${type} files is not available yet`,
 };
 
-const NESTED_LABELS = ['propertyNameLabels', 'markupToolLabels'] as const;
+const NESTED_LABELS = ['propertyNameLabels'] as const;
 
 /** Labels with `overrides` laid over `defaults`; the nested records are merged one level deep */
 export function mergeLabels(

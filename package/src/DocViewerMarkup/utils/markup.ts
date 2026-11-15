@@ -1,6 +1,6 @@
 import { toRgba } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import type { PdfRotation } from './render-page';
+import type { PdfRotation } from '../../utils/render-page';
 
 /** Markup tools a reader can draw with on PDF pages */
 export type DocViewerMarkupTool =
@@ -129,7 +129,6 @@ export function rectFromPoints(
 }
 
 function cloudOutline({ x, y, width, height }: DocViewerMarkRect): DocViewerMarkPoint[] {
-  // Scallops about 14pt wide, a whole number of them along each side
   const corners: DocViewerMarkPoint[] = [
     [x, y],
     [x + width, y],
@@ -142,7 +141,6 @@ function cloudOutline({ x, y, width, height }: DocViewerMarkRect): DocViewerMark
     const [bx, by] = corners[(side + 1) % 4];
     const length = Math.hypot(bx - ax, by - ay);
     const count = Math.max(1, Math.round(length / 14));
-    // Outward normal of the side, for a clockwise outline in screen coordinates
     const nx = (by - ay) / (length || 1);
     const ny = -(bx - ax) / (length || 1);
 
@@ -348,9 +346,18 @@ export async function saveMarkedDocument(document: PDFDocumentProxy, marks: DocV
     }
     return await document.saveDocument();
   } finally {
-    // The marks stay on screen as the viewer's own layer; the loaded document is left as it was
     keys.forEach((key) => storage.remove(key));
   }
+}
+
+/** The pages that have marks, in page order */
+export function getMarkedPages(marks: DocViewerMark[]) {
+  return [...new Set(marks.map((mark) => mark.page))].sort((a, b) => a - b);
+}
+
+/** Name of the downloaded marked up PDF: `report.pdf` is saved as `report-annotated.pdf` */
+export function getAnnotatedFileName(fileName: string | undefined) {
+  return `${(fileName ?? 'document.pdf').replace(/\.pdf$/i, '')}-annotated.pdf`;
 }
 
 let nextId = 0;

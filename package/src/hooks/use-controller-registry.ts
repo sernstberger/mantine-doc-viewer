@@ -8,7 +8,7 @@ import type {
   DocViewerZoom,
 } from '../doc-viewer.types';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
-import type { DocViewerMarkupTool } from '../utils/markup';
+import type { DocViewerMarkupTool } from '../DocViewerMarkup/utils/markup';
 import type { DocViewerPageRect } from '../utils/page-points';
 
 export type {

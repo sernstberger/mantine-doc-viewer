@@ -1,4 +1,4 @@
-import { MantineColor, parseThemeColor, useMantineTheme } from '@mantine/core';
+import { parseThemeColor, useMantineTheme } from '@mantine/core';
 import { useCallbackRef, useUncontrolled } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useMemo, useRef, useState } from 'react';
@@ -7,48 +7,11 @@ import {
   DocViewerMarkupTool,
   MARKUP_TOOLS,
   saveMarkedDocument,
-} from '../../utils/markup';
-import { groupMarksByPage } from '../../utils/marks-by-page';
+} from '../utils/markup';
+import { groupMarksByPage } from '../utils/marks-by-page';
 import type { PdfRotation } from '../../utils/render-page';
-
-/** Props of the viewer for drawing on PDF pages and saving the marks into the PDF */
-export interface DocViewerMarkupProps {
-  /** Determines whether the toolbar has a markup button that opens the markup bar, `false` by default */
-  withMarkup?: boolean;
-
-  /** Tools in the markup bar, in that order. All are shown by default */
-  markupTools?: DocViewerMarkupTool[];
-
-  /**
-   * Markup tool readers draw with on PDF pages, for a controlled tool. `null` means no tool: pages
-   * scroll and text can be selected. Works without `withMarkup`, for apps with their own buttons
-   */
-  markupTool?: DocViewerMarkupTool | null;
-
-  /** Markup tool when a PDF opens, `null` (no tool) by default */
-  defaultMarkupTool?: DocViewerMarkupTool | null;
-
-  /** Called when the reader picks a markup tool, or `null` when they put it down */
-  onMarkupToolChange?: (tool: DocViewerMarkupTool | null) => void;
-
-  /** Marks on PDF pages, for controlled markup. Each mark is placed in page coordinates (PDF points from the page's top-left) */
-  markup?: DocViewerMark[];
-
-  /** Marks on PDF pages when a PDF opens, none by default */
-  defaultMarkup?: DocViewerMark[];
-
-  /** Called with all marks whenever the reader draws, types or undoes a mark */
-  onMarkupChange?: (marks: DocViewerMark[]) => void;
-
-  /** Key of `theme.colors` or any valid CSS color for new marks. Highlights are `'yellow'` and other marks `'red'` by default */
-  markupColor?: MantineColor;
-
-  /** Line width of new pen marks, shapes and signatures in PDF points, `2` by default */
-  markupWidth?: number;
-
-  /** Font size of new text boxes in PDF points, `14` by default */
-  markupFontSize?: number;
-}
+import type { DocViewerMarkupLabels } from '../default-labels';
+import type { DocViewerMarkupOptions } from '../markup-extension';
 
 const DEFAULT_WIDTH = 2;
 const DEFAULT_FONT_SIZE = 14;
@@ -59,6 +22,9 @@ const DEFAULT_FONT_SIZE = 14;
  */
 export interface PdfLayerMarkup {
   tool: DocViewerMarkupTool | null;
+
+  /** Text of the markup tools, with the extension's `labels` laid over the defaults */
+  labels: DocViewerMarkupLabels;
 
   /** Colour of a new mark made with a tool, resolved from the theme to a CSS color */
   getColor: (tool: DocViewerMarkupTool) => string;
@@ -150,7 +116,8 @@ function useLayerFocus(scrollToPage: (pageNumber: number) => void) {
 }
 
 interface LayerMarkupInput {
-  props: DocViewerMarkupProps;
+  options: DocViewerMarkupOptions;
+  labels: DocViewerMarkupLabels;
   tool: DocViewerMarkupTool | null;
   marks: DocViewerMark[];
   setMarks: (marks: DocViewerMark[]) => void;
@@ -160,7 +127,8 @@ interface LayerMarkupInput {
 
 /** The layers' part of the markup: stable while the tool and its settings are */
 function useLayerMarkup({
-  props,
+  options,
+  labels,
   tool,
   marks,
   setMarks,
@@ -168,23 +136,23 @@ function useLayerMarkup({
   scrollToPage,
 }: LayerMarkupInput): PdfLayerMarkup {
   const theme = useMantineTheme();
-  // Read the marks when called, so the functions stay the same while marks are added
   const addMark = useCallbackRef((mark: DocViewerMark) => setMarks([...marks, mark]));
   const replaceMark = useCallbackRef((mark: DocViewerMark, next: DocViewerMark) =>
     setMarks(marks.map((item) => (item === mark ? next : item)))
   );
   const { registerLayer, focusPage } = useLayerFocus(scrollToPage);
-  const { markupColor, markupWidth, markupFontSize } = props;
+  const { color: markupColor, width, fontSize } = options;
 
   return useMemo(
     () => ({
       tool,
+      labels,
       getColor: (forTool: DocViewerMarkupTool) => {
         const color = markupColor ?? (forTool === 'highlight' ? 'yellow' : 'red');
         return parseThemeColor({ color, theme }).value;
       },
-      width: markupWidth ?? DEFAULT_WIDTH,
-      fontSize: markupFontSize ?? DEFAULT_FONT_SIZE,
+      width: width ?? DEFAULT_WIDTH,
+      fontSize: fontSize ?? DEFAULT_FONT_SIZE,
       announce,
       addMark,
       replaceMark,
@@ -193,10 +161,11 @@ function useLayerMarkup({
     }),
     [
       tool,
+      labels,
       theme,
       markupColor,
-      markupWidth,
-      markupFontSize,
+      width,
+      fontSize,
       announce,
       addMark,
       replaceMark,
@@ -216,29 +185,35 @@ function useMarksByPage(marks: DocViewerMark[]) {
 }
 
 /** The markup state pages draw with; the same object until something in it changes, so pages can skip renders */
-export function useMarkup(
-  props: DocViewerMarkupProps,
-  announce: (message: string) => void,
-  scrollToPage: (pageNumber: number) => void
-): PdfMarkup {
+export function useMarkup({
+  options,
+  labels,
+  announce,
+  scrollToPage,
+}: {
+  options: DocViewerMarkupOptions;
+  labels: DocViewerMarkupLabels;
+  announce: (message: string) => void;
+  scrollToPage: (pageNumber: number) => void;
+}): PdfMarkup {
   const [tool, changeTool] = useUncontrolled<DocViewerMarkupTool | null>({
-    value: props.markupTool,
-    defaultValue: props.defaultMarkupTool,
+    value: options.tool,
+    defaultValue: options.defaultTool,
     finalValue: null,
-    onChange: props.onMarkupToolChange,
+    onChange: options.onToolChange,
   });
   const [marks, changeMarks] = useUncontrolled<DocViewerMark[]>({
-    value: props.markup,
-    defaultValue: props.defaultMarkup,
+    value: options.value,
+    defaultValue: options.defaultValue,
     finalValue: [],
-    onChange: props.onMarkupChange,
+    onChange: options.onChange,
   });
   const setTool = useCallbackRef(changeTool);
   const setMarks = useCallbackRef(changeMarks);
   const [saving, setSaving] = useState(false);
-  const layer = useLayerMarkup({ props, tool, marks, setMarks, announce, scrollToPage });
+  const layer = useLayerMarkup({ options, labels, tool, marks, setMarks, announce, scrollToPage });
   const marksByPage = useMarksByPage(marks);
-  const { markupTools } = props;
+  const { tools } = options;
 
   return useMemo(() => {
     const save = async (document: PDFDocumentProxy) => {
@@ -251,7 +226,7 @@ export function useMarkup(
     };
 
     return {
-      tools: markupTools ?? MARKUP_TOOLS,
+      tools: tools ?? MARKUP_TOOLS,
       tool,
       setTool,
       marks,
@@ -262,5 +237,5 @@ export function useMarkup(
       layer,
       marksByPage,
     };
-  }, [tool, setTool, marks, setMarks, saving, markupTools, layer, marksByPage]);
+  }, [tool, setTool, marks, setMarks, saving, tools, layer, marksByPage]);
 }

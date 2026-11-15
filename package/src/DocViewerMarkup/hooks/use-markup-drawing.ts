@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { DocViewerMark, toPagePoint } from '../../utils/markup';
-import { type Draft, makeMark, type TextDraft } from '../../utils/markup-draft';
+import { DocViewerMark, toPagePoint } from '../utils/markup';
+import { type Draft, makeMark, type TextDraft } from '../utils/markup-draft';
 import type { MarkupLayerInput } from './use-markup';
 import { useMarkCommit } from './use-mark-commit';
 
@@ -52,7 +52,6 @@ export function useMarkupDrawing({
       return;
     }
 
-    // Keeps the stroke going when the pointer leaves the page
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setDraft([[x, y]]);
   };
