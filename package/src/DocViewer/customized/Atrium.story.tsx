@@ -196,7 +196,7 @@ export function Atrium() {
         <button
           type="button"
           className={classes.turn}
-          aria-label="Vorherige Seite"
+          aria-label="Vorherige Doppelseite"
           disabled={spread.number <= 1}
           onClick={() => controller.current?.previousSpread()}
         >
@@ -252,7 +252,7 @@ export function Atrium() {
         <button
           type="button"
           className={classes.turn}
-          aria-label="Nächste Seite"
+          aria-label="Nächste Doppelseite"
           disabled={spreadCount > 0 && spread.number >= spreadCount}
           onClick={() => controller.current?.nextSpread()}
         >
