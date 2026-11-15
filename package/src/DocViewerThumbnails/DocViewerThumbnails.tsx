@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -7,8 +7,14 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
+import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
+import { updateDocViewerStateAction } from '../doc-viewer.store';
+import { DEFAULT_THUMBNAILS_WIDTH } from '../DocViewerRoot/doc-viewer-context-value';
+import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
+import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { getThumbnailsLayout } from '../utils/geometry';
 import classes from '../DocViewer.module.css';
 import { PdfThumbnails } from './PdfThumbnails';
@@ -32,28 +38,73 @@ export type DocViewerThumbnailsFactory = Factory<{
   compound: true;
 }>;
 
-/** PDF page thumbnails, shown while they are opened on a loaded document that is not presented */
-export const DocViewerThumbnails = factory<DocViewerThumbnailsFactory>((_props) => {
-  useProps('DocViewerThumbnails', null, _props);
-  useDocViewerContext();
-  const session = usePdfSession();
-  const ready = session?.loaded.ready;
-  if (!session || !ready || !session.view.thumbnailsPanel.opened || session.view.presenting) {
+const defaultProps = {
+  width: DEFAULT_THUMBNAILS_WIDTH,
+} satisfies Partial<DocViewerThumbnailsProps>;
+
+type ThumbnailsRailProps = Omit<DocViewerThumbnailsProps, 'width'> & { width: number };
+
+/** The strip of a loaded document, reading the session for what the thumbnails draw from */
+function ThumbnailsRail({
+  classNames,
+  className,
+  style,
+  styles,
+  vars,
+  ref,
+  width,
+  ...others
+}: ThumbnailsRailProps) {
+  const session = useReadyPdfSession();
+  const { store } = useDocViewerContext();
+  const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
+  const select = useCallbackRef((page: number) => session?.position.goToPage(page, false));
+  const stylesOptions = useShallowStable({ className, style, classNames, styles });
+  const elementProps = useShallowStable(others);
+  if (!session) {
     return null;
   }
 
-  const { view, position, content } = session;
+  const { ready } = session.loaded;
   return (
     <PdfThumbnails
-      document={ready.document}
-      placeholderSize={ready.firstPageSize}
-      orientation={getThumbnailsLayout(view.thumbnailsPanel.position).orientation}
-      currentPage={position.currentPage}
-      rotation={view.rotation}
-      layers={content.layers}
-      onSelect={(page) => position.goToPage(page, false)}
+      document={ready!.document}
+      placeholderSize={ready!.firstPageSize}
+      orientation={getThumbnailsLayout(position).orientation}
+      currentPage={session.position.currentPage}
+      rotation={session.view.rotation}
+      layers={session.content.layers}
+      onSelect={select}
+      width={width}
+      stylesOptions={stylesOptions}
+      elementProps={elementProps}
+      rootRef={ref}
     />
   );
+}
+
+/** PDF page thumbnails, shown while they are opened on a loaded document that is not presented */
+export const DocViewerThumbnails = factory<DocViewerThumbnailsFactory>((_props) => {
+  const layout = use(DocViewerLayoutContext);
+  const { width, ...props } = useProps(
+    'DocViewerThumbnails',
+    { ...defaultProps, ...layout.thumbnailsProps },
+    _props
+  );
+  const { store } = useDocViewerContext();
+  const opened = useDocViewerState(store, (state) => state.thumbnailsOpened);
+  const presenting = useDocViewerState(store, (state) => state.presenting);
+
+  useIsomorphicEffect(() => {
+    updateDocViewerStateAction({ thumbnailsAvailable: true }, store);
+    return () => updateDocViewerStateAction({ thumbnailsAvailable: false }, store);
+  }, [store]);
+
+  if (!opened || presenting) {
+    return null;
+  }
+
+  return <ThumbnailsRail {...props} width={width!} />;
 });
 
 DocViewerThumbnails.classes = classes;

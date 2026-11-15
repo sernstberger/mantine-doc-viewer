@@ -1,4 +1,5 @@
 import { act, render as rtlRender, renderHook, screen } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { render } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import * as pdfjs from 'pdfjs-dist';
@@ -510,7 +511,9 @@ function makeContext(overrides: Record<string, unknown> = {}) {
 
 function withContext(overrides?: Record<string, unknown>) {
   return ({ children }: { children: React.ReactNode }) => (
-    <DocViewerProvider value={makeContext(overrides)}>{children}</DocViewerProvider>
+    <MantineProvider env="test">
+      <DocViewerProvider value={makeContext(overrides)}>{children}</DocViewerProvider>
+    </MantineProvider>
   );
 }
 

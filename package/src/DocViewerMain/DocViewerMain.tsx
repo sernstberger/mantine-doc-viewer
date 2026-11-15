@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Box,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
@@ -11,7 +12,6 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerPages } from '../DocViewerPages/DocViewerPages';
 import { DocViewerPresentationControls } from '../DocViewerPresentationControls/DocViewerPresentationControls';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
-import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { getThumbnailsLayout } from '../utils/geometry';
@@ -45,30 +45,40 @@ function useExtensionScreen() {
  * order the thumbnails position needs. While an extension mode is on it shows that screen instead
  */
 export const DocViewerMain = factory<DocViewerMainFactory>((_props) => {
-  const { children } = useProps('DocViewerMain', null, _props);
-  const { getStyles } = useDocViewerContext();
-  const session = usePdfSession();
+  const { classNames, className, style, styles, vars, children, ...others } = useProps(
+    'DocViewerMain',
+    null,
+    _props
+  );
+  const { getStyles, store, type, pdfAdapter } = useDocViewerContext();
+  const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
+  const presenting = useDocViewerState(store, (state) => state.presenting);
+  const ready = useDocViewerState(store, (state) => state.status === 'ready');
   const Screen = useExtensionScreen();
-  if (!session) {
+  if (type !== 'pdf' || !pdfAdapter) {
     return null;
   }
-  if (Screen && session.loaded.ready) {
+  if (Screen && ready) {
     return <Screen />;
   }
 
-  const { presenting, thumbnailsPanel } = session.view;
-  const { first } = getThumbnailsLayout(thumbnailsPanel.position);
+  const { first } = getThumbnailsLayout(position);
   return (
-    <div
-      {...getStyles('main')}
-      data-thumbnails-position={thumbnailsPanel.position}
+    <Box
+      {...getStyles('main', { className, style, classNames, styles })}
+      data-thumbnails-position={position}
       data-presenting={presenting || undefined}
+      {...others}
     >
-      {first && <DocViewerThumbnails />}
-      {children ?? <DocViewerPages />}
-      {!first && <DocViewerThumbnails />}
-      {presenting && <DocViewerPresentationControls />}
-    </div>
+      {children ?? (
+        <>
+          {first && <DocViewerThumbnails />}
+          <DocViewerPages />
+          {!first && <DocViewerThumbnails />}
+          {presenting && <DocViewerPresentationControls />}
+        </>
+      )}
+    </Box>
   );
 });
 

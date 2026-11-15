@@ -1,3 +1,4 @@
+import { Box, BoxProps, ElementProps, type GetStylesApiOptions, rem } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useCallbackRef, useMergedRef } from '@mantine/hooks';
 import React, { use, useMemo, useState } from 'react';
@@ -32,6 +33,7 @@ interface PdfThumbnailProps {
   rotation: PdfRotation;
   layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
+  width: number;
   scrollRoot: HTMLElement | null;
   reorder: ReorderList;
   dragState: ReorderItemState;
@@ -48,16 +50,15 @@ function PdfThumbnailView({
   rotation,
   layers,
   orientation,
+  width,
   scrollRoot,
   reorder,
   dragState,
   onSelect,
   actions,
 }: PdfThumbnailProps) {
-  const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const horizontal = orientation === 'horizontal';
-  // Half size in the strip above or below the pages
-  const width = horizontal ? Math.round(thumbnailWidth / 2) : thumbnailWidth;
   const { ref, near } = useNearViewport<HTMLDivElement>(
     scrollRoot,
     horizontal ? '0px 100%' : '100% 0px'
@@ -127,6 +128,16 @@ export interface PdfThumbnailsProps {
   layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   onSelect: (pageNumber: number) => void;
+
+  /** Width of a thumbnail in a side rail, half of it in a strip above or below the pages */
+  width?: number;
+
+  /** className, style, classNames and styles of the `thumbnails` element */
+  stylesOptions?: GetStylesApiOptions;
+
+  /** Other props of the `thumbnails` element */
+  elementProps?: BoxProps & ElementProps<'div'>;
+  rootRef?: React.Ref<HTMLDivElement>;
 }
 
 /** The thumbnail actions of the extensions, the same array while the extensions are */
@@ -145,8 +156,7 @@ function useThumbnailActions() {
  * The thumbnails strip. An extension's setup can make thumbnails drag to reorder and delete pages
  * (PdfThumbnailEditsContext); its thumbnail actions show on each thumbnail
  */
-
-export function PdfThumbnails({
+function PdfThumbnailsView({
   document,
   placeholderSize,
   currentPage,
@@ -154,14 +164,22 @@ export function PdfThumbnails({
   layers,
   orientation,
   onSelect,
+  width: railWidth,
+  stylesOptions,
+  elementProps,
+  rootRef,
 }: PdfThumbnailsProps) {
-  const { getStyles, labels } = useDocViewerPageContext();
+  const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
   const edits = use(PdfThumbnailEditsContext);
   const actions = useThumbnailActions();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
+  const mergedRef = useMergedRef(rootRef, setScrollRoot);
+  const { onKeyDown, ...others } = elementProps ?? {};
 
   const numPages = document.numPages;
   const horizontal = orientation === 'horizontal';
+  const base = railWidth ?? thumbnailWidth;
+  const width = horizontal ? Math.round(base / 2) : base;
   const order = useMemo(
     () => Array.from({ length: numPages }, (_, index) => index + 1),
     [numPages]
@@ -191,15 +209,20 @@ export function PdfThumbnails({
     // Focus moves between the options (roving tabindex: the current page is the tab stop), so
     // the listbox itself does not take focus, as in the ARIA listbox pattern
     // eslint-disable-next-line jsx-a11y/interactive-supports-focus
-    <div
-      ref={setScrollRoot}
-      {...getStyles('thumbnails')}
+    <Box
+      ref={mergedRef}
+      {...getStyles('thumbnails', stylesOptions)}
+      __vars={{ '--doc-viewer-thumbnails-width': railWidth ? rem(railWidth) : undefined }}
+      {...others}
       role="listbox"
       aria-label={labels.pagesLabel}
       aria-orientation={horizontal ? 'horizontal' : 'vertical'}
       aria-keyshortcuts={deletePage ? 'Delete Backspace' : undefined}
       data-orientation={orientation}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        handleKeyDown(event);
+      }}
     >
       {Array.from({ length: document.numPages }, (_, index) => (
         <PdfThumbnail
@@ -211,6 +234,7 @@ export function PdfThumbnails({
           rotation={rotation}
           layers={layers}
           orientation={orientation}
+          width={width}
           scrollRoot={scrollRoot}
           reorder={reorder}
           dragState={getItemState(index + 1, index)}
@@ -218,6 +242,9 @@ export function PdfThumbnails({
           actions={actions}
         />
       ))}
-    </div>
+    </Box>
   );
 }
+
+/** Memoised: a zoom or a scroll that does not change the current page leaves the strip alone */
+export const PdfThumbnails = React.memo(PdfThumbnailsView);
