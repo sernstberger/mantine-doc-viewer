@@ -16,7 +16,7 @@
     "build": "rollup -c rollup.config.mjs && tsx scripts/generate-dts && tsx scripts/prepare-css",
     "format:test": "oxfmt -c oxfmt.config.mjs --check \"**/*.{ts,tsx,css}\"",
     "format:write": "oxfmt -c oxfmt.config.mjs --write \"**/*.{ts,tsx,css}\"",
-    "typecheck": "tsc --noEmit && cd docs && npm run typecheck",
+    "typecheck": "tsc --noEmit && tsx scripts/generate-dts && cd docs && npm run typecheck",
     "lint": "npm run oxlint && npm run stylelint",
     "oxlint": "oxlint -c oxlint.config.mjs .",
     "stylelint": "stylelint '**/*.css' --cache",
