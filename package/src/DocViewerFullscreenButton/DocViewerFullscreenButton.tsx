@@ -1,5 +1,5 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
@@ -7,8 +7,16 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { FullscreenButton } from '../DocViewerToolbar/ToolbarParts';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import {
+  DocViewerTooltip,
+  useControlProps,
+  useFullscreenAvailable,
+} from '../DocViewerToolbar/DocViewerTooltip';
+import { FullscreenExitIcon, FullscreenIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerFullscreenButtonStylesNames = 'control';
@@ -28,9 +36,34 @@ export type DocViewerFullscreenButtonFactory = Factory<{
 
 /** Shows the viewer full screen, or leaves full screen; nothing where the browser has no full screen */
 export const DocViewerFullscreenButton = factory<DocViewerFullscreenButtonFactory>((_props) => {
-  useProps('DocViewerFullscreenButton', null, _props);
-  useDocViewerContext();
-  return <FullscreenButton />;
+  const { classNames, className, style, styles, vars, ...others } = useProps(
+    'DocViewerFullscreenButton',
+    null,
+    _props
+  );
+  const { store, labels } = useDocViewerContext();
+  const fullscreen = useDocViewerState(store, (state) => state.fullscreen);
+  const show = useShowControl();
+  const available = useFullscreenAvailable();
+  const controlProps = useControlProps();
+
+  if (!show('fullscreen') || !available) {
+    return null;
+  }
+
+  return (
+    <DocViewerTooltip label={fullscreen ? labels.exitFullscreenLabel : labels.fullscreenLabel}>
+      <ActionIcon
+        {...controlProps(fullscreen, { className, style, classNames, styles })}
+        aria-label={labels.fullscreenLabel}
+        aria-pressed={fullscreen}
+        onClick={() => docViewerActions.toggleFullscreen(store)}
+        {...others}
+      >
+        {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
 });
 
 DocViewerFullscreenButton.classes = classes;

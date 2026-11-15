@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Box,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
@@ -7,8 +8,7 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
-import { DocViewerProvider, useDocViewerContext } from '../doc-viewer.context';
-import { ToolbarHeading } from '../DocViewerToolbar/ToolbarParts';
+import { useDocumentTitle, useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerTitleStylesNames = 'heading' | 'title' | 'subtitle';
@@ -31,18 +31,30 @@ export type DocViewerTitleFactory = Factory<{
 
 /** The file name, or a custom title, and a subtitle */
 export const DocViewerTitle = factory<DocViewerTitleFactory>((_props) => {
-  const { title, subtitle } = useProps('DocViewerTitle', null, _props);
+  const { classNames, className, style, styles, vars, title, subtitle, ...others } = useProps(
+    'DocViewerTitle',
+    null,
+    _props
+  );
   const ctx = useDocViewerContext();
-  const value = {
-    ...ctx,
-    toolbarTitle: title ?? ctx.toolbarTitle,
-    toolbarSubtitle: subtitle ?? ctx.toolbarSubtitle,
-  };
+  const show = useShowControl();
+  const documentTitle = useDocumentTitle();
+  const stylesApiProps = { classNames, styles };
+  const resolvedSubtitle = subtitle ?? ctx.toolbarSubtitle;
+
+  if (!show('title')) {
+    return null;
+  }
 
   return (
-    <DocViewerProvider value={value}>
-      <ToolbarHeading />
-    </DocViewerProvider>
+    <Box {...ctx.getStyles('heading', { className, style, classNames, styles })} {...others}>
+      <span {...ctx.getStyles('title', stylesApiProps)}>
+        {title ?? ctx.toolbarTitle ?? documentTitle}
+      </span>
+      {resolvedSubtitle && (
+        <span {...ctx.getStyles('subtitle', stylesApiProps)}>{resolvedSubtitle}</span>
+      )}
+    </Box>
   );
 });
 

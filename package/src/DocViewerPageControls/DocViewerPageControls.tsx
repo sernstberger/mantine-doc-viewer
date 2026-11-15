@@ -1,15 +1,24 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  Group,
+  Text,
   useProps,
+  VisuallyHidden,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
-import { PageNavigationControl } from '../DocViewerToolbar/PdfNavigationControls';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
+import { softDisabled } from '../utils/a11y';
+import { formatNumber } from '../utils/format';
+import { ChevronDownIcon, ChevronUpIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerPageControlsStylesNames = 'pageIndicator' | 'control';
@@ -24,20 +33,56 @@ export type DocViewerPageControlsFactory = Factory<{
   compound: true;
 }>;
 
-/** Previous and next page buttons and the page number of a PDF */
+/** Previous and next page buttons around the page number of a PDF */
 export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_props) => {
-  useProps('DocViewerPageControls', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
-  if (!session) {
+  const { classNames, className, style, styles, vars, ...others } = useProps(
+    'DocViewerPageControls',
+    null,
+    _props
+  );
+  const { store, getStyles, labels, locale } = useDocViewerContext();
+  const ready = useReadyDocument(PDF_ONLY);
+  const page = useDocViewerState(store, (state) => state.page);
+  const numPages = useDocViewerState(store, (state) => state.numPages);
+  const show = useShowControl();
+  const controlProps = useControlProps();
+  const stylesApiProps = { classNames, styles };
+  const goToPage = (target: number) => docViewerActions.goToPage(target, undefined, store);
+
+  if (!ready || !show('pages')) {
     return null;
   }
+
   return (
-    <PageNavigationControl
-      currentPage={session.position.currentPage}
-      numPages={session.loaded.numPages}
-      onPage={session.position.goToPage}
-    />
+    <Group gap={2} wrap="nowrap" className={className} style={style} {...others}>
+      <DocViewerTooltip label={labels.previousPageLabel}>
+        <ActionIcon
+          {...controlProps(false, stylesApiProps)}
+          aria-label={labels.previousPageLabel}
+          {...softDisabled(page <= 1, () => goToPage(page - 1))}
+        >
+          <ChevronUpIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
+      <Text
+        {...getStyles('pageIndicator', stylesApiProps)}
+        title={labels.pageOfLabel(page, numPages)}
+      >
+        <span aria-hidden>
+          {formatNumber(page, locale)} / {formatNumber(numPages, locale)}
+        </span>
+        <VisuallyHidden>{labels.pageOfLabel(page, numPages)}</VisuallyHidden>
+      </Text>
+      <DocViewerTooltip label={labels.nextPageLabel}>
+        <ActionIcon
+          {...controlProps(false, stylesApiProps)}
+          aria-label={labels.nextPageLabel}
+          {...softDisabled(page >= numPages, () => goToPage(page + 1))}
+        >
+          <ChevronDownIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
+    </Group>
   );
 });
 

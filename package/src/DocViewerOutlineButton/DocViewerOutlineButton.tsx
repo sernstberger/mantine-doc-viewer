@@ -1,15 +1,23 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  GetStylesApiOptions,
+  Popover,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
+import { useDisclosure } from '@mantine/hooks';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
+import { PdfOutline, usePdfOutline } from '../DocViewerOutline/PdfOutline';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
-import { OutlineControl } from '../DocViewerToolbar/PdfPanelControls';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { OutlineIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerOutlineButtonStylesNames = 'control' | 'dropdown';
@@ -24,16 +32,89 @@ export type DocViewerOutlineButtonFactory = Factory<{
   compound: true;
 }>;
 
-/** Opens the outline of a PDF in a popover */
-export const DocViewerOutlineButton = factory<DocViewerOutlineButtonFactory>((_props) => {
-  useProps('DocViewerOutlineButton', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
-  if (!session) {
+interface OutlinePopoverProps {
+  document: PDFDocumentProxy;
+  stylesApiProps: GetStylesApiOptions;
+  buttonProps: Omit<
+    DocViewerOutlineButtonProps,
+    'classNames' | 'className' | 'style' | 'styles' | 'vars'
+  >;
+}
+
+function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopoverProps) {
+  const { store, getStyles, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const outline = usePdfOutline(document);
+  const [opened, popover] = useDisclosure(false);
+
+  if (!outline || outline.length === 0) {
     return null;
   }
+
   return (
-    <OutlineControl document={session.loaded.ready!.document} onPage={session.position.goToPage} />
+    <Popover
+      opened={opened}
+      onChange={popover.set}
+      position="bottom-end"
+      shadow="md"
+      withinPortal={false}
+      trapFocus
+      returnFocus
+    >
+      <Popover.Target>
+        <DocViewerTooltip label={labels.outlineLabel}>
+          <ActionIcon
+            {...controlProps(opened, stylesApiProps)}
+            aria-label={labels.outlineLabel}
+            aria-expanded={opened}
+            onClick={popover.toggle}
+            {...buttonProps}
+          >
+            <OutlineIcon />
+          </ActionIcon>
+        </DocViewerTooltip>
+      </Popover.Target>
+      <Popover.Dropdown
+        p={4}
+        {...getStyles('dropdown', {
+          classNames: stylesApiProps.classNames,
+          styles: stylesApiProps.styles,
+        })}
+      >
+        <PdfOutline
+          document={document}
+          items={outline}
+          onSelect={(page) => {
+            popover.close();
+            docViewerActions.goToPage(page, undefined, store);
+          }}
+        />
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+/** Opens the outline of a PDF in a popover, renders nothing when the PDF has no outline */
+export const DocViewerOutlineButton = factory<DocViewerOutlineButtonFactory>((_props) => {
+  const { classNames, className, style, styles, vars, ...others } = useProps(
+    'DocViewerOutlineButton',
+    null,
+    _props
+  );
+  useDocViewerContext();
+  const session = useReadyPdfSession();
+  const show = useShowControl();
+
+  if (!session || !show('outline')) {
+    return null;
+  }
+
+  return (
+    <OutlinePopover
+      document={session.loaded.ready!.document}
+      stylesApiProps={{ className, style, classNames, styles }}
+      buttonProps={others}
+    />
   );
 });
 

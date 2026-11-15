@@ -250,7 +250,8 @@ describe('DocViewer.Root', () => {
           subtitle="Draft 4"
           controls={{ download: false }}
           tooltipProps={{ disabled: true }}
-        >
+        />
+        <DocViewerToolbar>
           <span>Child</span>
         </DocViewerToolbar>
         <DocViewerTitle title="Other" subtitle="Sub" />
@@ -266,17 +267,14 @@ describe('DocViewer.Root', () => {
     expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
   });
 
-  it('prints through the store from the print button part', async () => {
-    const [store] = createDocViewer();
+  it('has no print button for a document that cannot be printed', () => {
     render(
-      <DocViewerRoot src="/files/archive.zip" store={store}>
+      <DocViewerRoot src="/files/archive.zip">
         <DocViewerToolbar />
         <DocViewerPrintButton />
       </DocViewerRoot>
     );
-    for (const button of screen.getAllByRole('button', { name: 'Print' })) {
-      await userEvent.click(button);
-    }
+    expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
   });
 });
 
@@ -295,7 +293,7 @@ describe('PDF parts', () => {
         />
       </Providers>
     );
-    expect(await screen.findAllByRole('button', { name: 'Rotate' })).toHaveLength(2);
+    expect(await screen.findAllByRole('button', { name: 'Rotate' })).toHaveLength(3);
     expect(screen.getAllByRole('button', { name: 'Edit pages' }).length).toBeGreaterThan(0);
     expect(await screen.findAllByRole('navigation', { name: 'Outline' })).not.toHaveLength(0);
 
