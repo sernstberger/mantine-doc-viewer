@@ -1,0 +1,77 @@
+import React, { useState } from 'react';
+import { DocViewerMark, toPagePoint } from './markup';
+import { type Draft, makeMark, type TextDraft } from './markup-draft';
+import type { MarkupLayerInput } from './markup-layer-input';
+import { useMarkCommit } from './use-mark-commit';
+
+interface DrawingInput extends MarkupLayerInput {
+  textDraft: TextDraft | null;
+  setTextDraft: (draft: TextDraft | null) => void;
+  commitText: () => void;
+}
+
+/** Drawing with the current tool: the drag or stroke in progress and its pointer handlers */
+export function useMarkupDrawing({
+  pageNumber,
+  width,
+  height,
+  scale,
+  rotation,
+  markup,
+  textDraft,
+  setTextDraft,
+  commitText,
+}: DrawingInput) {
+  const { tool } = markup;
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const commit = useMarkCommit({ pageNumber, markup });
+
+  const getPoint = (event: React.PointerEvent<HTMLDivElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    return toPagePoint(
+      event.clientX - box.left,
+      event.clientY - box.top,
+      width,
+      height,
+      scale,
+      rotation
+    );
+  };
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!tool || event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    const [x, y] = getPoint(event);
+
+    if (tool === 'text') {
+      textDraft && commitText();
+      setTextDraft({ x, y, text: '' });
+      return;
+    }
+
+    // Keeps the stroke going when the pointer leaves the page
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setDraft([[x, y]]);
+  };
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    draft && setDraft([...draft, getPoint(event)]);
+  };
+
+  const onPointerUp = () => {
+    draft && commit(draft);
+    setDraft(null);
+  };
+
+  const draftMark: DocViewerMark | null =
+    draft && tool
+      ? makeMark(tool, 'draft', pageNumber, markup.getColor(tool), markup.width, draft)
+      : null;
+
+  return {
+    draftMark,
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: () => setDraft(null) },
+  };
+}
