@@ -50,7 +50,7 @@ interface PdfPageProps {
   markup?: PdfMarkup;
 }
 
-export function PdfPage({
+function PdfPageView({
   numPages,
   rotation = 0,
   placeholderSize,
@@ -115,3 +115,9 @@ export function PdfPage({
     </div>
   );
 }
+
+/**
+ * Memoised: a long document has a PdfPage per page, and only the pages whose props change (the
+ * current page moving does not change any) need to render again
+ */
+export const PdfPage = React.memo(PdfPageView);

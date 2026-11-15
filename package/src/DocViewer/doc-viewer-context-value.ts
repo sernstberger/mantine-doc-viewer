@@ -1,6 +1,7 @@
 import type { DocViewerProps } from './DocViewer';
 import type { DocViewerContextValue } from './DocViewer.context';
 import { DOC_VIEWER_SIZES } from './sizes';
+import { useShallowStable } from './use-shallow-stable';
 import type { useDocViewerSession } from './use-doc-viewer-session';
 import type { useResolvedProps } from './use-resolved-props';
 
@@ -81,4 +82,15 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     fullscreen: session.fullscreen.fullscreen,
     toggleFullscreen: session.fullscreen.toggle,
   };
+}
+
+/**
+ * The context value, the same object while every field (and every markup prop) is the same: each
+ * page and thumbnail reads the context, so a new object would render all of them again whenever
+ * the viewer or its parent renders
+ */
+export function useDocViewerContextValue(parts: DocViewerContextParts): DocViewerContextValue {
+  const value = buildDocViewerContextValue(parts);
+  const markup = useShallowStable(value.markup);
+  return useShallowStable({ ...value, markup });
 }

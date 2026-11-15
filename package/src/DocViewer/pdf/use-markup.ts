@@ -1,7 +1,7 @@
 import { MantineColor, parseThemeColor, useMantineTheme } from '@mantine/core';
-import { useUncontrolled } from '@mantine/hooks';
+import { useCallbackRef, useUncontrolled } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DocViewerMark, DocViewerMarkupTool, MARKUP_TOOLS, saveMarkedDocument } from './markup';
 
 /** Props of the viewer for drawing on PDF pages and saving the marks into the PDF */
@@ -68,47 +68,64 @@ export interface PdfMarkup {
   save: (document: PDFDocumentProxy) => Promise<Uint8Array>;
 }
 
+/** The markup state pages draw with; the same object until something in it changes, so pages can skip renders */
 export function useMarkup(props: DocViewerMarkupProps): PdfMarkup {
   const theme = useMantineTheme();
-  const [tool, setTool] = useUncontrolled<DocViewerMarkupTool | null>({
+  const [tool, changeTool] = useUncontrolled<DocViewerMarkupTool | null>({
     value: props.markupTool,
     defaultValue: props.defaultMarkupTool,
     finalValue: null,
     onChange: props.onMarkupToolChange,
   });
-  const [marks, setMarks] = useUncontrolled<DocViewerMark[]>({
+  const [marks, changeMarks] = useUncontrolled<DocViewerMark[]>({
     value: props.markup,
     defaultValue: props.defaultMarkup,
     finalValue: [],
     onChange: props.onMarkupChange,
   });
+  const setTool = useCallbackRef(changeTool);
+  const setMarks = useCallbackRef(changeMarks);
   const [saving, setSaving] = useState(false);
+  const { markupTools, markupColor, markupWidth, markupFontSize } = props;
 
-  const getColor = (forTool: DocViewerMarkupTool) => {
-    const color = props.markupColor ?? (forTool === 'highlight' ? 'yellow' : 'red');
-    return parseThemeColor({ color, theme }).value;
-  };
+  return useMemo(() => {
+    const getColor = (forTool: DocViewerMarkupTool) => {
+      const color = markupColor ?? (forTool === 'highlight' ? 'yellow' : 'red');
+      return parseThemeColor({ color, theme }).value;
+    };
 
-  const save = async (document: PDFDocumentProxy) => {
-    setSaving(true);
-    try {
-      return await saveMarkedDocument(document, marks);
-    } finally {
-      setSaving(false);
-    }
-  };
+    const save = async (document: PDFDocumentProxy) => {
+      setSaving(true);
+      try {
+        return await saveMarkedDocument(document, marks);
+      } finally {
+        setSaving(false);
+      }
+    };
 
-  return {
-    tools: props.markupTools ?? MARKUP_TOOLS,
+    return {
+      tools: markupTools ?? MARKUP_TOOLS,
+      tool,
+      setTool,
+      marks,
+      setMarks,
+      getColor,
+      width: markupWidth ?? DEFAULT_WIDTH,
+      fontSize: markupFontSize ?? DEFAULT_FONT_SIZE,
+      undo: () => setMarks(marks.slice(0, -1)),
+      saving,
+      save,
+    };
+  }, [
+    theme,
     tool,
     setTool,
     marks,
     setMarks,
-    getColor,
-    width: props.markupWidth ?? DEFAULT_WIDTH,
-    fontSize: props.markupFontSize ?? DEFAULT_FONT_SIZE,
-    undo: () => setMarks(marks.slice(0, -1)),
     saving,
-    save,
-  };
+    markupTools,
+    markupColor,
+    markupWidth,
+    markupFontSize,
+  ]);
 }

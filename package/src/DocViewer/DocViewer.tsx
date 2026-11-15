@@ -24,7 +24,7 @@ import type { CodeHighlightProps } from '@mantine/code-highlight';
 import React from 'react';
 import type { DocViewerController, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocType } from './detect-doc-type';
-import { buildDocViewerContextValue } from './doc-viewer-context-value';
+import { useDocViewerContextValue } from './doc-viewer-context-value';
 import { getRootProps } from './doc-viewer-root-props';
 import { DocViewerProvider } from './DocViewer.context';
 import type { DocViewerAutoAdvance } from './kiosk';
@@ -527,16 +527,17 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     vars,
     varsResolver,
     attributes,
+    // The same function while the styles are the same, so the context value can stay the same
+    stable: true,
   });
 
   const session = useDocViewerSession(props);
   const events = useDocViewerEvents(props, session.type);
   const others = getRootProps(props);
+  const value = useDocViewerContextValue({ props, getStyles, resolved, session, events });
 
   return (
-    <DocViewerProvider
-      value={buildDocViewerContextValue({ props, getStyles, resolved, session, events })}
-    >
+    <DocViewerProvider value={value}>
       <Box
         ref={session.rootRef}
         {...getStyles('root')}
