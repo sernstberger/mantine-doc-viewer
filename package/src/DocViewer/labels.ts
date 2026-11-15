@@ -87,6 +87,8 @@ export interface DocViewerLabels {
   previousPage: string;
   nextPage: string;
   pageOf: (page: number, total: number) => string;
+  /** Read inside a page that has no text layer, such as a scanned page */
+  pageHasNoText: string;
   /** Screen reader name of a page thumbnail */
   thumbnail: (page: number) => string;
   /** Screen reader name of a link inside a PDF that goes to another page */
@@ -223,6 +225,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   previousPage: 'Previous page',
   nextPage: 'Next page',
   pageOf: (page, total) => `Page ${page} of ${total}`,
+  pageHasNoText: 'No text on this page',
   thumbnail: (page) => `Page ${page}`,
   linkToPage: (page) => `Go to page ${page}`,
 
