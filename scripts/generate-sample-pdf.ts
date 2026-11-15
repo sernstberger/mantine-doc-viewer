@@ -30,7 +30,8 @@ function pageContent(pageNumber: number, total: number) {
   ].join('\n');
 }
 
-function buildPdf(totalPages: number) {
+/** Writes a PDF; `chapterLength` adds an outline (bookmarks) with a chapter every that many pages */
+function buildPdf(totalPages: number, chapterLength = 0) {
   const objects: string[] = [];
   const add = (body: string) => objects.push(body) && objects.length;
 
@@ -40,9 +41,12 @@ function buildPdf(totalPages: number) {
   const bold = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
   const pageIds: number[] = [];
 
+  // Page dictionaries first and content streams after them, as many PDF writers do. pdf.js reads
+  // every page dictionary when a document opens, so grouping them keeps that to the start of the
+  // file and lets range requests skip the content of pages that are not shown
+  const firstContentId = objects.length + totalPages + 1;
   for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
-    const stream = pageContent(pageNumber, totalPages);
-    const content = add(`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`);
+    const content = firstContentId + pageNumber - 1;
     pageIds.push(
       add(
         `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Contents ${content} 0 R /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> >> >>`
@@ -50,7 +54,35 @@ function buildPdf(totalPages: number) {
     );
   }
 
-  objects[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R >>`;
+  for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
+    const stream = pageContent(pageNumber, totalPages);
+    add(`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`);
+  }
+
+  let outlines = '';
+  if (chapterLength > 0) {
+    const root = add('');
+    const chapters = Array.from(
+      { length: Math.ceil(totalPages / chapterLength) },
+      (_, index) => index * chapterLength
+    );
+    const itemIds = chapters.map((_, index) => objects.length + index + 1);
+    chapters.forEach((firstPage, index) => {
+      const links = [
+        index > 0 ? `/Prev ${itemIds[index - 1]} 0 R` : '',
+        index < chapters.length - 1 ? `/Next ${itemIds[index + 1]} 0 R` : '',
+      ].join(' ');
+      const title = `Chapter ${index + 1}: pages ${firstPage + 1}-${Math.min(firstPage + chapterLength, totalPages)}`;
+      add(
+        `<< /Title (${title}) /Parent ${root} 0 R ${links} /Dest [${pageIds[firstPage]} 0 R /Fit] >>`
+      );
+    });
+    objects[root - 1] =
+      `<< /Type /Outlines /First ${itemIds[0]} 0 R /Last ${itemIds[itemIds.length - 1]} 0 R /Count ${itemIds.length} >>`;
+    outlines = ` /Outlines ${root} 0 R`;
+  }
+
+  objects[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R${outlines} >>`;
   objects[pages - 1] =
     `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${totalPages} >>`;
 
@@ -68,15 +100,15 @@ function buildPdf(totalPages: number) {
   return output;
 }
 
-const SAMPLES: [fileName: string, pages: number][] = [
+const SAMPLES: [fileName: string, pages: number, chapterLength?: number][] = [
   ['sample.pdf', 3],
-  ['sample-50.pdf', 50],
+  ['sample-50.pdf', 50, 10],
   ['sample-500.pdf', 500],
   ['sample-1000.pdf', 1000],
 ];
 
-SAMPLES.forEach(([fileName, pages]) => {
+SAMPLES.forEach(([fileName, pages, chapterLength]) => {
   const outputPath = path.join(process.cwd(), 'docs/public', fileName);
-  fs.writeFileSync(outputPath, buildPdf(pages));
+  fs.writeFileSync(outputPath, buildPdf(pages, chapterLength));
   signale.success(`Wrote ${outputPath}`);
 });

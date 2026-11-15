@@ -1,9 +1,10 @@
-import { ActionIcon, Group, Tooltip, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Group, UnstyledButton } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from './DocViewer.context';
 import { MinusIcon, PlusIcon } from './icons';
 import { MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from './zoom';
-import { softDisabled, TOOLTIP_EVENTS } from './a11y';
+import { softDisabled } from './a11y';
+import { DocViewerTooltip, useControlProps } from './controls';
 
 interface ZoomControlsProps {
   /** Scale currently applied, including a fitted scale */
@@ -26,19 +27,19 @@ export function ZoomControls({
   onFit,
 }: ZoomControlsProps) {
   const { getStyles, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
 
   return (
     <Group gap={2} wrap="nowrap">
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.zoomOut}>
+      <DocViewerTooltip label={labels.zoomOut}>
         <ActionIcon
-          variant="subtle"
-          color="gray"
+          {...controlProps()}
           aria-label={labels.zoomOut}
           {...softDisabled(scale <= MIN_ZOOM + 0.001, () => onZoom(zoomOut(scale)))}
         >
           <MinusIcon />
         </ActionIcon>
-      </Tooltip>
+      </DocViewerTooltip>
       <UnstyledButton
         {...getStyles('zoomLevel')}
         onClick={() => onZoom(1)}
@@ -47,27 +48,25 @@ export function ZoomControls({
       >
         {Math.round(scale * 100)}%
       </UnstyledButton>
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.zoomIn}>
+      <DocViewerTooltip label={labels.zoomIn}>
         <ActionIcon
-          variant="subtle"
-          color="gray"
+          {...controlProps()}
           aria-label={labels.zoomIn}
           {...softDisabled(scale >= MAX_ZOOM - 0.001, () => onZoom(zoomIn(scale)))}
         >
           <PlusIcon />
         </ActionIcon>
-      </Tooltip>
-      <Tooltip events={TOOLTIP_EVENTS} label={fitLabel}>
+      </DocViewerTooltip>
+      <DocViewerTooltip label={fitLabel}>
         <ActionIcon
-          variant={fitted ? 'light' : 'subtle'}
-          color="gray"
+          {...controlProps(fitted)}
           aria-label={fitLabel}
           aria-pressed={fitted}
           onClick={onFit}
         >
           {fitIcon}
         </ActionIcon>
-      </Tooltip>
+      </DocViewerTooltip>
     </Group>
   );
 }

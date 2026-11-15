@@ -5,6 +5,7 @@ import type { PdfJsModule } from './load-pdfjs';
 import { renderPageToCanvas } from './render-page';
 import { getPageTextContent } from './text-content';
 import { useNearViewport } from './use-near-viewport';
+import { useReleasePage } from './use-release-page';
 import type { PdfPageSize } from './use-pdf-document';
 
 interface PdfPageProps {
@@ -59,7 +60,7 @@ export function PdfPage({
   registerPage,
   onTextLayer,
 }: PdfPageProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, maxCanvasPixels } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
@@ -88,7 +89,7 @@ export function PdfPage({
 
       const { width, height } = page.getViewport({ scale: 1 });
       setSize({ width, height });
-      renderTask = renderPageToCanvas(page, canvas, scale);
+      renderTask = renderPageToCanvas(page, canvas, scale, maxCanvasPixels);
 
       renderTask.promise.then(
         () => !cancelled && setRendered(true),
@@ -100,7 +101,7 @@ export function PdfPage({
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [document, pageNumber, scale, near]);
+  }, [document, pageNumber, scale, near, maxCanvasPixels]);
 
   useEffect(() => {
     const container = textLayerRef.current;
@@ -142,6 +143,7 @@ export function PdfPage({
   }, [pdfjs, document, pageNumber, scale, near, onTextLayer]);
 
   useSelectingClass(textLayerRef);
+  useReleasePage(document, pageNumber, near);
 
   const pageSize = size ?? placeholderSize;
 

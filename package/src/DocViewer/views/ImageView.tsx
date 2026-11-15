@@ -1,14 +1,16 @@
-import { ActionIcon, Tooltip } from '@mantine/core';
+import { ActionIcon } from '@mantine/core';
 import { useElementSize, useMergedRef } from '@mantine/hooks';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useRegisterController } from '../controller';
 import { DocViewerToolbar } from '../DocViewerToolbar';
+import { printImage } from '../print';
 import { FitScreenIcon, RotateIcon } from '../icons';
 import { clampZoom, zoomIn, zoomOut } from '../zoom';
 import { ZoomControls } from '../ZoomControls';
 import { getImageFitScale, getRotatedSize, ImageRotation, Size } from './image-fit';
 import { DocViewerLoading, DocViewerMessage } from './MessageView';
-import { TOOLTIP_EVENTS } from '../a11y';
+import { DocViewerTooltip, useControlProps } from '../controls';
 
 type ImageZoom = number | 'fit';
 
@@ -89,11 +91,13 @@ function useDragToPan(stage: HTMLDivElement | null) {
 }
 
 export function ImageView() {
-  const { getStyles, src, fileName, alt, labels } = useDocViewerContext();
+  const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom } =
+    useDocViewerContext();
+  const controlProps = useControlProps();
   const title = useDocumentTitle();
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState(false);
-  const [zoom, setZoom] = useState<ImageZoom>('fit');
+  const [zoom, setZoom] = useState<ImageZoom>(defaultZoom);
   const [rotation, setRotation] = useState<ImageRotation>(0);
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const [overflowing, setOverflowing] = useState(false);
@@ -180,6 +184,31 @@ export function ImageView() {
   }, []);
 
   const ready = naturalSize !== null && !failed;
+  const rotate = () => setRotation((current) => ((current + 90) % 360) as ImageRotation);
+  const imageAlt = alt ?? fileName ?? labels.image;
+  const print = () => printImage(src, imageAlt, fileName);
+
+  useEffect(() => {
+    if (naturalSize && !failed) {
+      events.onDocumentLoad({ type: 'image', ...naturalSize });
+    }
+  }, [naturalSize, failed, events]);
+
+  useEffect(() => {
+    failed && events.onDocumentError(new Error(`Image could not be loaded: ${src}`));
+  }, [failed, events, src]);
+
+  useEffect(() => {
+    ready && events.onZoomChange(scale, zoom === 'fit');
+  }, [ready, scale, zoom, events]);
+
+  useRegisterController(controller, {
+    setZoom: (next) => zoomTo(next),
+    zoomIn: () => zoomTo(zoomIn(scale)),
+    zoomOut: () => zoomTo(zoomOut(scale)),
+    rotate,
+    print,
+  });
   const frameSize = naturalSize ? getRotatedSize(naturalSize, rotation) : null;
 
   const controls = ready && (
@@ -192,22 +221,17 @@ export function ImageView() {
         onZoom={zoomTo}
         onFit={() => zoomTo('fit')}
       />
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.rotate}>
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label={labels.rotate}
-          onClick={() => setRotation((current) => ((current + 90) % 360) as ImageRotation)}
-        >
+      <DocViewerTooltip label={labels.rotate}>
+        <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={rotate}>
           <RotateIcon />
         </ActionIcon>
-      </Tooltip>
+      </DocViewerTooltip>
     </>
   );
 
   return (
     <>
-      <DocViewerToolbar>{controls}</DocViewerToolbar>
+      <DocViewerToolbar onPrint={ready ? print : undefined}>{controls}</DocViewerToolbar>
       <div {...getStyles('body')}>
         <div
           ref={stageRef}
@@ -232,7 +256,7 @@ export function ImageView() {
                 <img
                   ref={checkLoaded}
                   src={src}
-                  alt={alt ?? fileName ?? labels.image}
+                  alt={imageAlt}
                   draggable={false}
                   onLoad={(event) => {
                     const { naturalWidth, naturalHeight } = event.currentTarget;

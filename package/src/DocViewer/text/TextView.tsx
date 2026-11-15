@@ -1,33 +1,39 @@
-import { ActionIcon, Tooltip } from '@mantine/core';
+import { ActionIcon } from '@mantine/core';
 import React, { useState } from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { WrapIcon } from '../icons';
+import { printText } from '../print';
 import { TextStatus } from './TextStatus';
+import { useTextView } from './use-text-view';
 import { useTextDocument } from './use-text-document';
-import { TOOLTIP_EVENTS } from '../a11y';
+import { DocViewerTooltip, useControlProps } from '../controls';
 
 export function TextView() {
   const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
   const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const [wrap, setWrap] = useState(true);
+  const { fileName } = useDocViewerContext();
+  const onPrint = useTextView('text', state, async () => {
+    state.status === 'ready' && (await printText(state.text, fileName));
+  });
 
   return (
     <>
-      <DocViewerToolbar>
+      <DocViewerToolbar onPrint={onPrint}>
         {state.status === 'ready' && (
-          <Tooltip events={TOOLTIP_EVENTS} label={wrap ? labels.doNotWrapLines : labels.wrapLines}>
+          <DocViewerTooltip label={wrap ? labels.doNotWrapLines : labels.wrapLines}>
             <ActionIcon
-              variant={wrap ? 'light' : 'subtle'}
-              color="gray"
+              {...controlProps(wrap)}
               aria-label={labels.wrapLines}
               aria-pressed={wrap}
               onClick={() => setWrap((current) => !current)}
             >
               <WrapIcon />
             </ActionIcon>
-          </Tooltip>
+          </DocViewerTooltip>
         )}
       </DocViewerToolbar>
       <div

@@ -4,12 +4,7 @@ import { useDocViewerContext } from '../DocViewer.context';
 import { renderPageToCanvas } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import { useNearViewport } from './use-near-viewport';
-
-/** Width of thumbnail images in px, in the side rail */
-export const THUMBNAIL_WIDTH = 112;
-
-/** Width of thumbnail images in px, in the strip above or below the pages */
-export const STRIP_THUMBNAIL_WIDTH = 56;
+import { useReleasePage } from './use-release-page';
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
@@ -32,10 +27,11 @@ function PdfThumbnail({
   scrollRoot,
   onSelect,
 }: PdfThumbnailProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, thumbnailWidth, maxCanvasPixels } = useDocViewerContext();
   const horizontal = orientation === 'horizontal';
-  const width = horizontal ? STRIP_THUMBNAIL_WIDTH : THUMBNAIL_WIDTH;
-  const { ref, near } = useNearViewport<HTMLButtonElement>(
+  // Half size in the strip above or below the pages
+  const width = horizontal ? Math.round(thumbnailWidth / 2) : thumbnailWidth;
+  const { ref, near } = useNearViewport<HTMLDivElement>(
     scrollRoot,
     horizontal ? '0px 100%' : '100% 0px'
   );
@@ -58,7 +54,7 @@ function PdfThumbnail({
 
       const { width: pageWidth, height } = page.getViewport({ scale: 1 });
       setSize({ width: pageWidth, height });
-      renderTask = renderPageToCanvas(page, canvas, width / pageWidth);
+      renderTask = renderPageToCanvas(page, canvas, width / pageWidth, maxCanvasPixels);
       renderTask.promise.catch(() => {});
     });
 
@@ -66,7 +62,9 @@ function PdfThumbnail({
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [document, pageNumber, near, width]);
+  }, [document, pageNumber, near, width, maxCanvasPixels]);
+
+  useReleasePage(document, pageNumber, near);
 
   // Keep the active thumbnail visible, scrolling only the sidebar
   useEffect(() => {
@@ -94,16 +92,17 @@ function PdfThumbnail({
   const pageSize = size ?? placeholderSize;
 
   return (
-    <button
+    <div
       ref={ref}
-      type="button"
       {...getStyles('thumbnail')}
-      onClick={() => onSelect(pageNumber)}
-      // One tab stop for the whole list, arrow keys move between pages
+      role="option"
+      aria-selected={active}
+      aria-label={labels.thumbnail(pageNumber)}
+      // One tab stop for the whole list: the current page. Arrow keys move from there
       tabIndex={active ? 0 : -1}
-      aria-label={labels.goToPage(pageNumber)}
-      aria-current={active ? 'page' : undefined}
+      data-page-number={pageNumber}
       data-active={active || undefined}
+      onClick={() => onSelect(pageNumber)}
     >
       <span
         {...getStyles('thumbnailImage', {
@@ -112,8 +111,10 @@ function PdfThumbnail({
       >
         {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       </span>
-      <span {...getStyles('thumbnailLabel')}>{pageNumber}</span>
-    </button>
+      <span {...getStyles('thumbnailLabel')} aria-hidden>
+        {pageNumber}
+      </span>
+    </div>
   );
 }
 
@@ -135,29 +136,56 @@ export function PdfThumbnails({
   const { getStyles, labels } = useDocViewerContext();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
 
+  const numPages = document.numPages;
+  const horizontal = orientation === 'horizontal';
+
+  // Listbox keys, with selection following focus: moving to a thumbnail shows its page
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button'));
-    const index = buttons.indexOf(event.target as HTMLButtonElement);
+    const root = event.currentTarget;
+    const option = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
+    const page = Number(option?.dataset.pageNumber);
+    if (!page) {
+      return;
+    }
+
+    // Page Up and Page Down move by the number of thumbnails that fit in the rail
+    const size = horizontal ? option!.offsetWidth : option!.offsetHeight;
+    const perView = Math.max(
+      1,
+      Math.floor((horizontal ? root.clientWidth : root.clientHeight) / (size || 1))
+    );
     const next = {
-      ArrowDown: index + 1,
-      ArrowRight: index + 1,
-      ArrowUp: index - 1,
-      ArrowLeft: index - 1,
-      Home: 0,
-      End: buttons.length - 1,
+      ArrowDown: page + 1,
+      ArrowRight: page + 1,
+      ArrowUp: page - 1,
+      ArrowLeft: page - 1,
+      PageDown: page + perView,
+      PageUp: page - perView,
+      Home: 1,
+      End: numPages,
     }[event.key];
 
-    if (index !== -1 && next !== undefined && buttons[next]) {
-      event.preventDefault();
-      buttons[next].focus();
+    if (next === undefined) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onSelect(page);
+      }
+      return;
     }
+
+    event.preventDefault();
+    const target = Math.min(Math.max(next, 1), numPages);
+    onSelect(target);
+    root.querySelector<HTMLElement>(`[data-page-number="${target}"]`)?.focus();
   };
 
   return (
-    <nav
+    <div
       ref={setScrollRoot}
       {...getStyles('thumbnails')}
+      role="listbox"
       aria-label={labels.pages}
+      aria-orientation={horizontal ? 'horizontal' : 'vertical'}
       data-orientation={orientation}
       onKeyDown={handleKeyDown}
     >
@@ -173,6 +201,6 @@ export function PdfThumbnails({
           onSelect={onSelect}
         />
       ))}
-    </nav>
+    </div>
   );
 }

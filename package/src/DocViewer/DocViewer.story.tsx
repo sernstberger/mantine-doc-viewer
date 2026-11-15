@@ -1,6 +1,12 @@
+import { Button, Group, Stack, Table, Text as MantineText } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import type { DocViewerController } from './controller';
 import { DocViewer } from './DocViewer';
+import { DocViewerToolbar } from './DocViewerToolbar';
+import { DocViewerBody, DocViewerRenderer } from './renderers';
+import { useTextDocument } from './text/use-text-document';
+import { DocViewerLoading, DocViewerMessage } from './views/MessageView';
 
 export default { title: 'DocViewer' };
 
@@ -50,6 +56,27 @@ function LongPdf({ pages }: { pages: number }) {
 export const Pdf50Pages = () => <LongPdf pages={50} />;
 export const Pdf500Pages = () => <LongPdf pages={500} />;
 export const Pdf1000Pages = () => <LongPdf pages={1000} />;
+
+export function Styled() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer
+        src="/sample.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        defaultThumbnailsOpened
+        size="md"
+        color="teal"
+        matchColor="grape"
+        activeMatchColor="red"
+        pageGap="xl"
+        thumbnailWidth={80}
+        radius="lg"
+        tooltipProps={{ position: 'bottom', withArrow: true }}
+        h={600}
+      />
+    </div>
+  );
+}
 
 export function PdfWithoutWorker() {
   return (
@@ -135,6 +162,131 @@ export function Unsupported() {
   return (
     <div style={{ padding: 40 }}>
       <DocViewer src="/files/archive.zip" h={300} />
+    </div>
+  );
+}
+
+export function Controlled() {
+  const controller = useRef<DocViewerController>(null);
+  const [page, setPage] = useState(1);
+  const [zoom, setZoom] = useState('');
+
+  return (
+    <Stack p={40} gap="sm">
+      <Group gap="xs">
+        <Button size="xs" variant="default" onClick={() => setPage(1)}>
+          First page
+        </Button>
+        <Button size="xs" variant="default" onClick={() => setPage(50)}>
+          Last page
+        </Button>
+        <Button size="xs" variant="default" onClick={() => controller.current?.setZoom(1)}>
+          100%
+        </Button>
+        <Button
+          size="xs"
+          variant="default"
+          onClick={() => controller.current?.openSearch('page 7')}
+        >
+          Search "page 7"
+        </Button>
+        <Button size="xs" variant="default" onClick={() => controller.current?.print()}>
+          Print
+        </Button>
+        <MantineText size="sm">
+          Page {page}, zoom {zoom}
+        </MantineText>
+      </Group>
+      <DocViewer
+        src="/sample-50.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        controllerRef={controller}
+        page={page}
+        onPageChange={setPage}
+        onZoomChange={(scale, fitted) =>
+          setZoom(`${Math.round(scale * 100)}%${fitted ? ' (fit)' : ''}`)
+        }
+        h={600}
+      />
+    </Stack>
+  );
+}
+
+export function TwoPages() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer
+        src="/sample-50.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        defaultPageLayout="two-page-cover"
+        h={600}
+      />
+    </div>
+  );
+}
+
+/** Splits CSV text into rows, with quoted fields */
+function parseCsv(text: string) {
+  return text
+    .trim()
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .match(/("([^"]|"")*"|[^,]*)(,|$)/g)!
+        .slice(0, -1)
+        .map((cell) => cell.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))
+    );
+}
+
+function CsvView({ src }: { src: string }) {
+  const state = useTextDocument(src, 2_000_000);
+
+  return (
+    <>
+      <DocViewerToolbar />
+      <DocViewerBody focusable={state.status === 'ready'}>
+        {state.status === 'loading' && <DocViewerLoading />}
+        {state.status !== 'loading' && state.status !== 'ready' && (
+          <DocViewerMessage withDownload error>
+            This file could not be loaded
+          </DocViewerMessage>
+        )}
+        {state.status === 'ready' && (
+          <Table striped withTableBorder bg="var(--mantine-color-body)">
+            <Table.Thead>
+              <Table.Tr>
+                {parseCsv(state.text)[0].map((cell, index) => (
+                  <Table.Th key={index}>{cell}</Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {parseCsv(state.text)
+                .slice(1)
+                .map((row, rowIndex) => (
+                  <Table.Tr key={rowIndex}>
+                    {row.map((cell, index) => (
+                      <Table.Td key={index}>{cell}</Table.Td>
+                    ))}
+                  </Table.Tr>
+                ))}
+            </Table.Tbody>
+          </Table>
+        )}
+      </DocViewerBody>
+    </>
+  );
+}
+
+const csvRenderer: DocViewerRenderer = {
+  test: (file) => file.mimeType === 'text/csv' || !!file.fileName?.endsWith('.csv'),
+  render: (file) => <CsvView src={file.src} />,
+};
+
+export function CustomRenderer() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.csv" renderers={[csvRenderer]} h={400} />
     </div>
   );
 }

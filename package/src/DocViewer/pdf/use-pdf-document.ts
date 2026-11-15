@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { useEffect, useState } from 'react';
+import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
+import { useEffect, useRef, useState } from 'react';
 import { loadPdfJs, PdfJsModule, PdfWorkerNotConfiguredError } from './load-pdfjs';
 
 export interface PdfPageSize {
@@ -9,12 +10,34 @@ export interface PdfPageSize {
 
 export type PdfDocumentState =
   | { status: 'loading' }
+  | { status: 'password'; incorrect: boolean; submit: (password: string) => void }
   | { status: 'error'; error: Error; reason: 'worker' | 'load' }
   | { status: 'ready'; pdfjs: PdfJsModule; document: PDFDocumentProxy; firstPageSize: PdfPageSize };
 
+export type PdfLoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
+
+/**
+ * Only the parts of the file needed for the pages on screen are downloaded, when the server
+ * supports range requests. pdf.js otherwise keeps fetching the whole file in the background.
+ * Searching still reads every page
+ */
+export const DEFAULT_PDF_LOAD_OPTIONS: PdfLoadOptions = {
+  disableAutoFetch: true,
+  // pdf.js only stops pre-fetching when streaming is off too
+  disableStream: true,
+};
+
 /** Loads a PDF and the size of its first page, which is used as the placeholder size for every page */
-export function usePdfDocument(src: string, workerSrc: string | undefined): PdfDocumentState {
+export function usePdfDocument(
+  src: string,
+  workerSrc: string | undefined,
+  options?: PdfLoadOptions
+): PdfDocumentState {
   const [state, setState] = useState<PdfDocumentState>({ status: 'loading' });
+
+  // Read when a document starts loading, so a new options object every render does not reload it
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     let cancelled = false;
@@ -27,8 +50,27 @@ export function usePdfDocument(src: string, workerSrc: string | undefined): PdfD
           return;
         }
 
-        const task = pdfjs.getDocument({ url: src });
+        const task = pdfjs.getDocument({
+          ...DEFAULT_PDF_LOAD_OPTIONS,
+          ...optionsRef.current,
+          url: src,
+        });
         destroy = () => task.destroy();
+
+        // pdf.js asks again with reason 2 when the password was wrong
+        task.onPassword = (updatePassword: (password: string) => void, reason: number) => {
+          if (!cancelled) {
+            setState({
+              status: 'password',
+              incorrect: reason === 2,
+              submit: (password) => {
+                setState({ status: 'loading' });
+                updatePassword(password);
+              },
+            });
+          }
+        };
+
         const document = await task.promise;
         const firstPage = await document.getPage(1);
         const { width, height } = firstPage.getViewport({ scale: 1 });

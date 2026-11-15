@@ -102,3 +102,42 @@ export const WrapIcon = (props: IconProps) => (
     <path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4M4 18h5M15 16l-2 2 2 2" />
   </Icon>
 );
+
+export const PrintIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+    <rect x="7" y="14" width="10" height="7" rx="1" />
+  </Icon>
+);
+
+export const FullscreenIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+  </Icon>
+);
+
+export const FullscreenExitIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+  </Icon>
+);
+
+export const OutlineIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
+  </Icon>
+);
+
+export const TwoPagesIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3" y="4" width="8" height="16" rx="1" />
+    <rect x="13" y="4" width="8" height="16" rx="1" />
+  </Icon>
+);
+
+export const LockIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="5" y="11" width="14" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </Icon>
+);

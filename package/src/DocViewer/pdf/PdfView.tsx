@@ -1,36 +1,36 @@
-import {
-  ActionIcon,
-  Group,
-  Popover,
-  SegmentedControl,
-  Text,
-  Tooltip,
-  VisuallyHidden,
-} from '@mantine/core';
+import { ActionIcon, Group, Popover, SegmentedControl, Text, VisuallyHidden } from '@mantine/core';
 import { useDebouncedValue, useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
-import type { DocViewerThumbnailsPosition } from '../DocViewer';
+import { useRegisterController } from '../controller';
+import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
+import { printPdfBytes } from '../print';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
   FitWidthIcon,
+  OutlineIcon,
+  TwoPagesIcon,
   PanelPositionIcon,
   SearchIcon,
   SidebarIcon,
 } from '../icons';
 import { DocViewerLoading, DocViewerMessage } from '../views/MessageView';
 import { ACTIVE_MATCH_HIGHLIGHT, addHighlightRanges, MATCH_HIGHLIGHT } from './highlights';
+import { PdfOutline, usePdfOutline } from './PdfOutline';
 import { PdfPage } from './PdfPage';
+import { PdfPassword } from './PdfPassword';
 import { PdfSearchBar } from './PdfSearchBar';
 import { PdfThumbnails } from './PdfThumbnails';
 import { getMatchRanges, getMatchSegments } from './search';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearch } from './use-pdf-search';
 import { ZoomControls } from '../ZoomControls';
+import { clampZoom, zoomIn, zoomOut } from '../zoom';
 import { getFitWidthScale, PdfZoom } from './zoom';
-import { softDisabled, TOOLTIP_EVENTS } from '../a11y';
+import { softDisabled } from '../a11y';
+import { DocViewerTooltip, useControlProps } from '../controls';
 
 /** Space left above a page when scrolling to it */
 const PAGE_SCROLL_OFFSET = 12;
@@ -205,15 +205,28 @@ export function PdfView() {
     getStyles,
     src,
     pdfWorkerSrc,
+    pdfOptions,
     defaultThumbnailsOpened,
     thumbnailsPosition,
     defaultThumbnailsPosition,
     onThumbnailsPositionChange,
     labels,
+    size,
+    controller,
+    events,
+    page,
+    defaultPage,
+    defaultZoom,
+    defaultPageLayout,
   } = useDocViewerContext();
+  const controlProps = useControlProps();
   const title = useDocumentTitle();
-  const state = usePdfDocument(src, pdfWorkerSrc);
-  const [zoom, setZoom] = useState<PdfZoom>('fit-width');
+  const state = usePdfDocument(src, pdfWorkerSrc, pdfOptions);
+  const [zoom, setZoom] = useState<PdfZoom>(defaultZoom === 'fit' ? 'fit-width' : defaultZoom);
+  const [layout, setLayout] = useState<DocViewerPageLayout>(defaultPageLayout ?? 'single');
+  const twoPages = layout !== 'single';
+  const [pagesNode, setPagesNode] = useState<HTMLDivElement | null>(null);
+  const [columnGap, setColumnGap] = useState(16);
   const { ref: bodyRef, width: bodyWidth } = useElementSize<HTMLDivElement>();
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const { currentPage, registerPage, scrollToPage } = useCurrentPage(scrollRoot);
@@ -242,14 +255,29 @@ export function PdfView() {
 
   const ready = state.status === 'ready' ? state : null;
   const numPages = ready?.document.numPages ?? 0;
+  // Two pages side by side fit their combined width, with the gap between them
   const scale = ready
     ? zoom === 'fit-width'
-      ? getFitWidthScale(bodyWidth, ready.firstPageSize.width)
+      ? twoPages
+        ? getFitWidthScale(bodyWidth - columnGap, ready.firstPageSize.width * 2)
+        : getFitWidthScale(bodyWidth, ready.firstPageSize.width)
       : zoom
     : 1;
 
-  const goToPage = (pageNumber: number) => {
+  useEffect(() => {
+    if (pagesNode && twoPages) {
+      setColumnGap(parseFloat(getComputedStyle(pagesNode).columnGap) || 0);
+    }
+  }, [pagesNode, twoPages]);
+
+  const outline = usePdfOutline(ready?.document ?? null);
+  const [outlineOpened, setOutlineOpened] = useState(false);
+
+  const goToPage = (pageNumber: number, announce = true) => {
     scrollToPage(pageNumber);
+    if (!announce) {
+      return;
+    }
     // Alternates an invisible character, so the same page is read out again when moved to again
     setPageAnnouncement(
       (current) =>
@@ -317,6 +345,67 @@ export function PdfView() {
     requestAnimationFrame(() => searchToggleRef.current?.focus());
   };
 
+  const print = async () => {
+    if (ready) {
+      await printPdfBytes(await ready.document.getData());
+    }
+  };
+
+  // Events
+  useEffect(() => {
+    if (ready) {
+      events.onDocumentLoad({ type: 'pdf', numPages: ready.document.numPages });
+    } else if (state.status === 'error') {
+      events.onDocumentError(state.error);
+    }
+  }, [state, ready, events]);
+
+  const pageReported = useRef(0);
+  useEffect(() => {
+    if (ready && currentPage !== pageReported.current) {
+      pageReported.current = currentPage;
+      events.onPageChange(currentPage);
+    }
+  }, [ready, currentPage, events]);
+
+  useEffect(() => {
+    ready && events.onZoomChange(scale, zoom === 'fit-width');
+  }, [ready, scale, zoom, events]);
+
+  // `defaultPage` once the pages are laid out, then `page` whenever it changes
+  const initialPage = page ?? defaultPage;
+  useEffect(() => {
+    if (ready && scrollRoot && pagesNode && initialPage && initialPage > 1) {
+      scrollToPage(Math.min(initialPage, ready.document.numPages));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, scrollRoot, pagesNode]);
+
+  useEffect(() => {
+    if (ready && page && page !== pageReported.current) {
+      scrollToPage(Math.min(Math.max(page, 1), ready.document.numPages));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  useRegisterController(controller, {
+    goToPage: (pageNumber) =>
+      ready && goToPage(Math.min(Math.max(Math.round(pageNumber), 1), numPages)),
+    setZoom: (next) => setZoom(next === 'fit' ? 'fit-width' : clampZoom(next)),
+    zoomIn: () => setZoom(zoomIn(scale)),
+    zoomOut: () => setZoom(zoomOut(scale)),
+    openSearch: (nextQuery) => {
+      if (!ready) {
+        return;
+      }
+      nextQuery !== undefined && setQuery(nextQuery);
+      openSearch();
+    },
+    closeSearch: () => searchOpened && closeSearch(),
+    toggleThumbnails: (opened) => setThumbnailsOpened((current) => opened ?? !current),
+    print,
+  });
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (ready && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
       event.preventDefault();
@@ -333,33 +422,29 @@ export function PdfView() {
 
   const controls = ready && (
     <>
-      <Tooltip
-        events={TOOLTIP_EVENTS}
-        label={thumbnailsOpened ? labels.hidePages : labels.showPages}
-      >
+      <DocViewerTooltip label={thumbnailsOpened ? labels.hidePages : labels.showPages}>
         <ActionIcon
-          variant={thumbnailsOpened ? 'light' : 'subtle'}
-          color="gray"
+          {...controlProps(thumbnailsOpened)}
           aria-label={labels.pageThumbnails}
           aria-pressed={thumbnailsOpened}
           onClick={() => setThumbnailsOpened((opened) => !opened)}
         >
           <SidebarIcon />
         </ActionIcon>
-      </Tooltip>
+      </DocViewerTooltip>
 
       {thumbnailsOpened && (
         <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
           <Popover.Target>
-            <Tooltip events={TOOLTIP_EVENTS} label={labels.thumbnailsPosition}>
-              <ActionIcon variant="subtle" color="gray" aria-label={labels.thumbnailsPosition}>
+            <DocViewerTooltip label={labels.thumbnailsPosition}>
+              <ActionIcon {...controlProps()} aria-label={labels.thumbnailsPosition}>
                 <PanelPositionIcon />
               </ActionIcon>
-            </Tooltip>
+            </DocViewerTooltip>
           </Popover.Target>
           <Popover.Dropdown p={4}>
             <SegmentedControl
-              size="xs"
+              size={size.input}
               value={position}
               onChange={(value) => setPosition(value as DocViewerThumbnailsPosition)}
               aria-label={labels.thumbnailsPosition}
@@ -373,33 +458,27 @@ export function PdfView() {
       )}
 
       <Group gap={2} wrap="nowrap">
-        <Tooltip events={TOOLTIP_EVENTS} label={labels.previousPage}>
+        <DocViewerTooltip label={labels.previousPage}>
           <ActionIcon
-            variant="subtle"
-            color="gray"
+            {...controlProps()}
             aria-label={labels.previousPage}
             {...softDisabled(currentPage <= 1, () => goToPage(currentPage - 1))}
           >
             <ChevronUpIcon />
           </ActionIcon>
-        </Tooltip>
-        <Text
-          size="sm"
-          {...getStyles('pageIndicator')}
-          title={labels.pageOf(currentPage, numPages)}
-        >
+        </DocViewerTooltip>
+        <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
           {currentPage} / {numPages}
         </Text>
-        <Tooltip events={TOOLTIP_EVENTS} label={labels.nextPage}>
+        <DocViewerTooltip label={labels.nextPage}>
           <ActionIcon
-            variant="subtle"
-            color="gray"
+            {...controlProps()}
             aria-label={labels.nextPage}
             {...softDisabled(currentPage >= numPages, () => goToPage(currentPage + 1))}
           >
             <ChevronDownIcon />
           </ActionIcon>
-        </Tooltip>
+        </DocViewerTooltip>
       </Group>
 
       <ZoomControls
@@ -411,10 +490,63 @@ export function PdfView() {
         onFit={() => setZoom('fit-width')}
       />
 
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.search}>
+      <DocViewerTooltip label={labels.twoPages}>
         <ActionIcon
-          variant={searchOpened ? 'light' : 'subtle'}
-          color="gray"
+          {...controlProps(twoPages)}
+          aria-label={labels.twoPages}
+          aria-pressed={twoPages}
+          onClick={() =>
+            setLayout((current) =>
+              current !== 'single'
+                ? 'single'
+                : defaultPageLayout === 'two-page-cover'
+                  ? 'two-page-cover'
+                  : 'two-page'
+            )
+          }
+        >
+          <TwoPagesIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
+
+      {outline && outline.length > 0 && (
+        <Popover
+          opened={outlineOpened}
+          onChange={setOutlineOpened}
+          position="bottom-end"
+          shadow="md"
+          withinPortal={false}
+          trapFocus
+          returnFocus
+        >
+          <Popover.Target>
+            <DocViewerTooltip label={labels.outline}>
+              <ActionIcon
+                {...controlProps(outlineOpened)}
+                aria-label={labels.outline}
+                aria-expanded={outlineOpened}
+                onClick={() => setOutlineOpened((opened) => !opened)}
+              >
+                <OutlineIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+          </Popover.Target>
+          <Popover.Dropdown p={4}>
+            <PdfOutline
+              document={ready.document}
+              items={outline}
+              onSelect={(pageNumber) => {
+                setOutlineOpened(false);
+                goToPage(pageNumber);
+              }}
+            />
+          </Popover.Dropdown>
+        </Popover>
+      )}
+
+      <DocViewerTooltip label={labels.search}>
+        <ActionIcon
+          {...controlProps(searchOpened)}
           ref={searchToggleRef}
           aria-label={labels.search}
           aria-pressed={searchOpened}
@@ -422,7 +554,7 @@ export function PdfView() {
         >
           <SearchIcon />
         </ActionIcon>
-      </Tooltip>
+      </DocViewerTooltip>
     </>
   );
 
@@ -432,13 +564,14 @@ export function PdfView() {
       placeholderSize={ready.firstPageSize}
       currentPage={currentPage}
       orientation={horizontalThumbnails ? 'horizontal' : 'vertical'}
-      onSelect={goToPage}
+      // Screen readers already read the selected thumbnail, so no page announcement as well
+      onSelect={(pageNumber) => goToPage(pageNumber, false)}
     />
   );
 
   return (
     <>
-      <DocViewerToolbar>{controls}</DocViewerToolbar>
+      <DocViewerToolbar onPrint={ready ? print : undefined}>{controls}</DocViewerToolbar>
       {ready && searchOpened && (
         <PdfSearchBar
           inputRef={searchInputRef}
@@ -466,6 +599,10 @@ export function PdfView() {
         >
           {state.status === 'loading' && <DocViewerLoading />}
 
+          {state.status === 'password' && (
+            <PdfPassword incorrect={state.incorrect} onSubmit={state.submit} />
+          )}
+
           {state.status === 'error' && (
             <DocViewerMessage withDownload error>
               {state.reason === 'worker' ? labels.pdfWorkerMissing : labels.pdfError}
@@ -473,7 +610,7 @@ export function PdfView() {
           )}
 
           {ready && (
-            <div {...getStyles('pages')}>
+            <div ref={setPagesNode} {...getStyles('pages')} data-layout={layout}>
               {Array.from({ length: numPages }, (_, index) => (
                 <PdfPage
                   key={index + 1}

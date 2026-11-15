@@ -83,6 +83,122 @@ function Demo() {
 }
 ```
 
+## Two pages and outline
+
+The two pages button shows pages side by side. Set `defaultPageLayout` to open that way, with
+`'two-page-cover'` for books and magazines, where the first page is on its own like a cover.
+
+PDFs with bookmarks get an outline button that lists them; choosing one scrolls to its page.
+
+```tsx
+<DocViewer src="/magazine.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultPageLayout="two-page-cover" />
+```
+
+## Print, download and full screen
+
+The toolbar has print, download and full screen buttons. Turn them off with `withPrint`,
+`withDownload` and `withFullscreen`. PDFs print with the browser's own PDF printing, images and
+text from a page with only the document on it. Full screen is not offered in browsers that do
+not support it, such as iPhone Safari.
+
+## Password protected PDFs
+
+The viewer asks for the password of a protected PDF, and says when it is wrong. To pass a
+password you already have, use `pdfOptions={{ password }}`.
+
+## Events and controller
+
+```tsx
+import { useRef, useState } from 'react';
+import { DocViewer, DocViewerController } from 'mantine-doc-viewer';
+
+function Demo() {
+  const controller = useRef<DocViewerController>(null);
+  const [page, setPage] = useState(1);
+
+  return (
+    <>
+      <button onClick={() => controller.current?.openSearch('invoice')}>Find invoice</button>
+      <DocViewer
+        src="/report.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        controllerRef={controller}
+        page={page}
+        onPageChange={setPage}
+        onDocumentLoad={({ numPages }) => console.log(`${numPages} pages`)}
+      />
+    </>
+  );
+}
+```
+
+| Prop | Description |
+| --- | --- |
+| `onDocumentLoad` | Called with `{ type, numPages }` for PDFs and `{ type, width, height }` for images |
+| `onDocumentError` | Called with the error when a document cannot be loaded |
+| `onPageChange` | Called with the PDF page that takes up most of the view |
+| `onZoomChange` | Called with the scale (1 is 100%) and whether it is fitted |
+| `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
+| `defaultZoom` | A scale, or `'fit'` (the default) |
+| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`, `print`, `download` and `toggleFullscreen` |
+
+## Other file types
+
+Add file types with `renderers`. A renderer's `test` gets `{ src, fileName, mimeType, type }`
+and its `render` returns the view. `DocViewerToolbar`, `DocViewerBody`, `DocViewerMessage`,
+`DocViewerLoading` and `useTextDocument` give it the same toolbar, scroll area, messages and
+size limit as the built-in views:
+
+```tsx
+import {
+  DocViewer,
+  DocViewerBody,
+  DocViewerLoading,
+  DocViewerRenderer,
+  DocViewerToolbar,
+  useTextDocument,
+} from 'mantine-doc-viewer';
+
+function CsvView({ src }: { src: string }) {
+  const state = useTextDocument(src, 2_000_000);
+  return (
+    <>
+      <DocViewerToolbar />
+      <DocViewerBody focusable={state.status === 'ready'}>
+        {state.status === 'ready' ? <CsvTable text={state.text} /> : <DocViewerLoading />}
+      </DocViewerBody>
+    </>
+  );
+}
+
+const csvRenderer: DocViewerRenderer = {
+  test: (file) => file.mimeType === 'text/csv' || !!file.fileName?.endsWith('.csv'),
+  render: (file) => <CsvView src={file.src} />,
+};
+
+<DocViewer src="/data.csv" renderers={[csvRenderer]} />;
+```
+
+## Large documents
+
+- Only pages near the view are drawn. Pages further away give back their canvas, text layer and
+  the memory pdf.js holds for them.
+- Only the parts of the file needed for the pages on screen are downloaded, when the server
+  supports range requests. Searching reads every page, so it downloads the rest.
+- A page canvas is kept under 16.7 million pixels (Safari's limit). Beyond that, zoomed pages are
+  drawn at a lower resolution instead of going blank. Change it with `maxCanvasPixels`.
+- Use `pdfOptions` for anything else pdf.js `getDocument` accepts, for example `password`,
+  `withCredentials`, `httpHeaders` or `cMapUrl`. Some signed storage URLs do not support range
+  requests; set `disableRange: true` for those.
+
+```tsx
+<DocViewer
+  src={signedUrl}
+  pdfWorkerSrc={pdfWorkerSrc}
+  pdfOptions={{ disableRange: true, withCredentials: true }}
+/>
+```
+
 ## Text, code and markdown
 
 Text, code and markdown files are downloaded with `fetch`, so `src` must allow it (same origin or
@@ -142,6 +258,44 @@ const theme = createTheme({
 });
 ```
 
+## Styling
+
+Like core Mantine components, DocViewer takes props that set CSS variables, and every part can
+be styled with the Styles API (`classNames`, `styles`, `vars` and `unstyled`).
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  size="md"
+  color="teal"
+  matchColor="grape"
+  activeMatchColor="red"
+  pageGap="xl"
+  thumbnailWidth={80}
+  radius="lg"
+  tooltipProps={{ position: 'bottom', withArrow: true }}
+/>
+```
+
+- `size` (`xs` to `xl`, `sm` by default) sets the toolbar height, buttons, inputs and text.
+- `color` is used for pressed toolbar buttons, the current thumbnail and focus outlines.
+- `matchColor` and `activeMatchColor` colour PDF search matches.
+- `pageGap` and `thumbnailWidth` set the space between PDF pages and the thumbnail size.
+- `tooltipProps` are passed to every toolbar tooltip, `codeHighlightProps` to the CodeHighlight
+  that shows code and markdown source.
+- `--doc-viewer-page-background` sets the background of PDF pages, for example a dimmer white in
+  dark mode.
+- Every toolbar button has the `control` selector, with `data-pressed` and `data-disabled`.
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  classNames={{ control: 'my-toolbar-button', toolbar: 'my-toolbar' }}
+  vars={() => ({ root: { '--doc-viewer-page-background': 'var(--mantine-color-gray-0)' } })}
+/>
+```
+
 ## Accessibility
 
 - Screen readers read PDF pages from their text layer. Each page is a group named "Page 2 of 3".
@@ -151,7 +305,9 @@ const theme = createTheme({
 - The page buttons and thumbnails announce the new page, and search announces the match count.
   Load errors are announced as alerts.
 - Links in markdown that open a new tab say so to screen readers.
-- Thumbnails are one tab stop: arrow keys, Home and End move between pages.
+- Thumbnails are a listbox with one tab stop on the current page. Arrow keys, Page Up, Page Down,
+  Home and End move to another thumbnail and show its page; screen readers read "Page 3, 3 of 50,
+  selected".
 - Buttons that become unavailable, such as Next page on the last page, keep focus.
 - Search announces the active match and its page once results settle.
 - In Windows high contrast mode, pressed toggle buttons get an outline.

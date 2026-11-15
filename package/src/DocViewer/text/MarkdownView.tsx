@@ -6,7 +6,9 @@ import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerMessage } from '../views/MessageView';
 import { importMarkdown, MarkdownModule } from './import-markdown';
 import { getFencedCode, HastNode, rehypeHeadingIds, resolveMarkdownUrl } from './markdown-utils';
+import { printHtml, printText } from '../print';
 import { TextStatus } from './TextStatus';
+import { useTextView } from './use-text-view';
 import { useTextDocument } from './use-text-document';
 
 function useMarkdownModule() {
@@ -107,7 +109,7 @@ function MarkdownPreview({ text }: { text: string }) {
   const { Markdown, remarkGfm, defaultUrlTransform } = module;
 
   return (
-    <Typography ref={rootRef} {...getStyles('markdown')}>
+    <Typography ref={rootRef} {...getStyles('markdown')} data-markdown>
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHeadingIds]}
@@ -124,17 +126,28 @@ function MarkdownPreview({ text }: { text: string }) {
 }
 
 export function MarkdownView() {
-  const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
+  const { getStyles, src, maxTextSize, labels, size, codeHighlightProps } = useDocViewerContext();
   const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
+  const { fileName } = useDocViewerContext();
+  const bodyRef = useRef<HTMLDivElement>(null);
+  // Prints what is shown: the rendered markdown, or its source
+  const onPrint = useTextView('markdown', state, async () => {
+    const rendered = bodyRef.current?.querySelector('.mantine-Typography-root, [data-markdown]');
+    if (mode === 'preview' && rendered) {
+      await printHtml(rendered.innerHTML, fileName);
+    } else if (state.status === 'ready') {
+      await printText(state.text, fileName);
+    }
+  });
 
   return (
     <>
-      <DocViewerToolbar>
+      <DocViewerToolbar onPrint={onPrint}>
         {state.status === 'ready' && (
           <SegmentedControl
-            size="xs"
+            size={size.input}
             value={mode}
             onChange={(value) => setMode(value as 'preview' | 'source')}
             data={[
@@ -146,6 +159,7 @@ export function MarkdownView() {
         )}
       </DocViewerToolbar>
       <div
+        ref={bodyRef}
         {...getStyles('body')}
         tabIndex={state.status === 'ready' ? 0 : undefined}
         role={state.status === 'ready' ? 'region' : undefined}
@@ -160,7 +174,11 @@ export function MarkdownView() {
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...getStyles('code')}
+            {...codeHighlightProps}
+            {...getStyles('code', {
+              className: codeHighlightProps?.className,
+              style: codeHighlightProps?.style,
+            })}
           />
         )}
       </div>

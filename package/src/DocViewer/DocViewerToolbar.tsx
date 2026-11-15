@@ -1,21 +1,61 @@
-import { ActionIcon, Tooltip } from '@mantine/core';
-import React from 'react';
+import { ActionIcon } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import { DocViewerTooltip, useControlProps } from './controls';
 import { useDocumentTitle, useDocViewerContext } from './DocViewer.context';
-import { DownloadIcon } from './icons';
-import { TOOLTIP_EVENTS } from './a11y';
+import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
 
-interface DocViewerToolbarProps {
+export interface DocViewerToolbarProps {
   /** Controls specific to the document type, for example, PDF paging and zoom */
   children?: React.ReactNode;
+
+  /** Prints the document, the print button is shown when it is set */
+  onPrint?: () => Promise<void> | void;
 }
 
-export function DocViewerToolbar({ children }: DocViewerToolbarProps) {
-  const { getStyles, fileName, src, toolbarSection, withToolbar, labels } = useDocViewerContext();
+/** Full screen is not available in some browsers (iPhone Safari) and inside iframes without permission */
+function useFullscreenAvailable() {
+  const [available, setAvailable] = useState(false);
+  useEffect(() => setAvailable(!!document.fullscreenEnabled), []);
+  return available;
+}
+
+export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
+  const {
+    getStyles,
+    fileName,
+    src,
+    toolbarSection,
+    withToolbar,
+    withPrint,
+    withDownload,
+    withFullscreen,
+    fullscreen,
+    toggleFullscreen,
+    labels,
+  } = useDocViewerContext();
+  const controlProps = useControlProps();
   const title = useDocumentTitle();
+  const fullscreenAvailable = useFullscreenAvailable();
+  const [printing, setPrinting] = useState(false);
 
   if (!withToolbar) {
     return null;
   }
+
+  const print = async () => {
+    if (!onPrint || printing) {
+      return;
+    }
+    setPrinting(true);
+    try {
+      await onPrint();
+    } catch {
+      // The browser could not print from the viewer, open the file so it can be printed from there
+      window.open(src, '_blank', 'noopener,noreferrer');
+    } finally {
+      setPrinting(false);
+    }
+  };
 
   return (
     <div {...getStyles('toolbar')}>
@@ -23,21 +63,46 @@ export function DocViewerToolbar({ children }: DocViewerToolbarProps) {
       <div {...getStyles('controls')}>
         {children}
         {toolbarSection}
-        <Tooltip events={TOOLTIP_EVENTS} label={labels.download}>
-          <ActionIcon
-            component="a"
-            href={src}
-            download={fileName ?? true}
-            // Browsers ignore download for other origins and open the file instead, so not in place of the app
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="subtle"
-            color="gray"
-            aria-label={labels.download}
-          >
-            <DownloadIcon />
-          </ActionIcon>
-        </Tooltip>
+        {withPrint && onPrint && (
+          <DocViewerTooltip label={labels.print}>
+            <ActionIcon
+              {...controlProps()}
+              aria-label={labels.print}
+              loading={printing}
+              onClick={print}
+            >
+              <PrintIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        )}
+        {withDownload && (
+          <DocViewerTooltip label={labels.download}>
+            <ActionIcon
+              component="a"
+              href={src}
+              download={fileName ?? true}
+              // Browsers ignore download for other origins and open the file instead, so not in place of the app
+              target="_blank"
+              rel="noopener noreferrer"
+              {...controlProps()}
+              aria-label={labels.download}
+            >
+              <DownloadIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        )}
+        {withFullscreen && fullscreenAvailable && (
+          <DocViewerTooltip label={fullscreen ? labels.exitFullscreen : labels.fullscreen}>
+            <ActionIcon
+              {...controlProps(fullscreen)}
+              aria-label={labels.fullscreen}
+              aria-pressed={fullscreen}
+              onClick={() => toggleFullscreen()}
+            >
+              {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            </ActionIcon>
+          </DocViewerTooltip>
+        )}
       </div>
     </div>
   );

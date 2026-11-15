@@ -4,7 +4,9 @@ import React, { useMemo, useState } from 'react';
 import { getCodeLanguage } from '../detect-doc-type';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
+import { printText } from '../print';
 import { TextStatus } from './TextStatus';
+import { useTextView } from './use-text-view';
 import { useTextDocument } from './use-text-document';
 
 const NOT_JSON = Symbol('not-json');
@@ -25,7 +27,8 @@ function parseJson(text: string) {
 }
 
 export function CodeView() {
-  const { getStyles, src, fileName, language, maxTextSize, labels } = useDocViewerContext();
+  const { getStyles, src, fileName, language, maxTextSize, labels, size, codeHighlightProps } =
+    useDocViewerContext();
   const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
@@ -38,13 +41,16 @@ export function CodeView() {
   );
   const [mode, setMode] = useState<'tree' | 'code'>('tree');
   const showTree = json !== NOT_JSON && mode === 'tree';
+  const onPrint = useTextView('code', state, async () => {
+    text !== null && (await printText(text, fileName));
+  });
 
   return (
     <>
-      <DocViewerToolbar>
+      <DocViewerToolbar onPrint={onPrint}>
         {json !== NOT_JSON && (
           <SegmentedControl
-            size="xs"
+            size={size.input}
             value={mode}
             onChange={(value) => setMode(value as 'tree' | 'code')}
             data={[
@@ -72,7 +78,11 @@ export function CodeView() {
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...getStyles('code')}
+            {...codeHighlightProps}
+            {...getStyles('code', {
+              className: codeHighlightProps?.className,
+              style: codeHighlightProps?.style,
+            })}
           />
         )}
       </div>

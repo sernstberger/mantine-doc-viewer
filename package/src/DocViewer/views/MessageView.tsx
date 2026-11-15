@@ -2,7 +2,7 @@ import { Anchor, Loader, VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 
-interface DocViewerMessageProps {
+export interface DocViewerMessageProps {
   children: React.ReactNode;
   withDownload?: boolean;
 

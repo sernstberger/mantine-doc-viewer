@@ -1,9 +1,10 @@
-import { ActionIcon, CloseButton, TextInput, Tooltip, VisuallyHidden } from '@mantine/core';
+import { ActionIcon, CloseButton, TextInput, VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import type { DocViewerLabels } from '../labels';
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from '../icons';
-import { softDisabled, TOOLTIP_EVENTS } from '../a11y';
+import { softDisabled } from '../a11y';
+import { DocViewerTooltip, useControlProps } from '../controls';
 
 interface PdfSearchBarProps {
   inputRef: React.Ref<HTMLInputElement>;
@@ -50,7 +51,8 @@ function getAnnouncement(
 
 export function PdfSearchBar(props: PdfSearchBarProps) {
   const { inputRef, query, onQueryChange, matchCount, onNext, onPrevious, onClose } = props;
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, size } = useDocViewerContext();
+  const controlProps = useControlProps();
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -68,7 +70,7 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
     <div {...getStyles('search')} role="search">
       <TextInput
         ref={inputRef}
-        size="xs"
+        size={size.input}
         value={query}
         onChange={(event) => onQueryChange(event.currentTarget.value)}
         onKeyDown={handleKeyDown}
@@ -80,27 +82,30 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
       <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
       {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
       <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.previousMatch}>
+      <DocViewerTooltip label={labels.previousMatch}>
         <ActionIcon
-          variant="subtle"
-          color="gray"
+          {...controlProps()}
           aria-label={labels.previousMatch}
           {...softDisabled(matchCount === 0, onPrevious)}
         >
           <ChevronUpIcon />
         </ActionIcon>
-      </Tooltip>
-      <Tooltip events={TOOLTIP_EVENTS} label={labels.nextMatch}>
+      </DocViewerTooltip>
+      <DocViewerTooltip label={labels.nextMatch}>
         <ActionIcon
-          variant="subtle"
-          color="gray"
+          {...controlProps()}
           aria-label={labels.nextMatch}
           {...softDisabled(matchCount === 0, onNext)}
         >
           <ChevronDownIcon />
         </ActionIcon>
-      </Tooltip>
-      <CloseButton size="sm" aria-label={labels.closeSearch} onClick={onClose} />
+      </DocViewerTooltip>
+      <CloseButton
+        {...getStyles('control')}
+        size={size.control}
+        aria-label={labels.closeSearch}
+        onClick={onClose}
+      />
     </div>
   );
 }

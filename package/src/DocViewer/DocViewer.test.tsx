@@ -43,4 +43,42 @@ describe('DocViewer', () => {
     render(<DocViewer src="/files/photo.png" withToolbar={false} />);
     expect(screen.queryByText('photo.png')).not.toBeInTheDocument();
   });
+
+  describe('styling props', () => {
+    it('sets CSS variables from props', () => {
+      const { container } = render(
+        <DocViewer
+          src="/files/archive.zip"
+          size="lg"
+          color="teal"
+          matchColor="grape"
+          pageGap="xl"
+          thumbnailWidth={80}
+        />
+      );
+      const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
+
+      expect(root).toHaveAttribute('data-size', 'lg');
+      expect(root.style.getPropertyValue('--doc-viewer-color')).toBe(
+        'var(--mantine-color-teal-filled)'
+      );
+      expect(root.style.getPropertyValue('--doc-viewer-match-color')).toBe(
+        'var(--mantine-color-grape-filled)'
+      );
+      expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe(
+        'var(--mantine-spacing-xl)'
+      );
+      expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
+        'calc(5rem * var(--mantine-scale))'
+      );
+    });
+
+    it('gives toolbar buttons the control selector and classNames', () => {
+      render(<DocViewer src="/files/archive.zip" classNames={{ control: 'my-control' }} />);
+      expect(screen.getByRole('link', { name: 'Download' })).toHaveClass(
+        'mantine-DocViewer-control',
+        'my-control'
+      );
+    });
+  });
 });

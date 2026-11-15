@@ -8,6 +8,9 @@ export interface DocViewerLabels {
 
   download: string;
   downloadFile: string;
+  print: string;
+  fullscreen: string;
+  exitFullscreen: string;
   loading: string;
 
   zoomIn: string;
@@ -21,6 +24,13 @@ export interface DocViewerLabels {
   showPages: string;
   hidePages: string;
   pages: string;
+  outline: string;
+  noOutline: string;
+  twoPages: string;
+  passwordRequired: string;
+  passwordIncorrect: string;
+  password: string;
+  unlock: string;
   thumbnailsPosition: string;
   left: string;
   right: string;
@@ -29,7 +39,8 @@ export interface DocViewerLabels {
   previousPage: string;
   nextPage: string;
   pageOf: (page: number, total: number) => string;
-  goToPage: (page: number) => string;
+  /** Screen reader name of a page thumbnail */
+  thumbnail: (page: number) => string;
 
   search: string;
   searchDocument: string;
@@ -67,6 +78,9 @@ export const DEFAULT_LABELS: DocViewerLabels = {
 
   download: 'Download',
   downloadFile: 'Download file',
+  print: 'Print',
+  fullscreen: 'Full screen',
+  exitFullscreen: 'Exit full screen',
   loading: 'Loading document',
 
   zoomIn: 'Zoom in',
@@ -80,6 +94,13 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   showPages: 'Show pages',
   hidePages: 'Hide pages',
   pages: 'Pages',
+  outline: 'Outline',
+  noOutline: 'This document has no outline',
+  twoPages: 'Two pages',
+  passwordRequired: 'This PDF is protected with a password',
+  passwordIncorrect: 'The password is incorrect',
+  password: 'Password',
+  unlock: 'Open',
   thumbnailsPosition: 'Pages panel position',
   left: 'Left',
   right: 'Right',
@@ -88,7 +109,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   previousPage: 'Previous page',
   nextPage: 'Next page',
   pageOf: (page, total) => `Page ${page} of ${total}`,
-  goToPage: (page) => `Go to page ${page}`,
+  thumbnail: (page) => `Page ${page}`,
 
   search: 'Search',
   searchDocument: 'Search document',

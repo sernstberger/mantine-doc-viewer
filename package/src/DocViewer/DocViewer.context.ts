@@ -1,6 +1,19 @@
-import { createSafeContext, GetStylesApi } from '@mantine/core';
-import type { DocViewerFactory, DocViewerThumbnailsPosition } from './DocViewer';
+import type {
+  DocViewerFactory,
+  DocViewerPageLayout,
+  DocViewerThumbnailsPosition,
+} from './DocViewer';
+import type { CodeHighlightProps } from '@mantine/code-highlight';
+import {
+  createSafeContext,
+  type GetStylesApi,
+  type MantineColor,
+  type TooltipProps,
+} from '@mantine/core';
+import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
+import type { PdfLoadOptions } from './pdf/use-pdf-document';
+import type { DocViewerSizeConfig } from './sizes';
 
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerFactory>;
@@ -11,12 +24,30 @@ export interface DocViewerContextValue {
   withToolbar: boolean | undefined;
   toolbarSection: React.ReactNode;
   pdfWorkerSrc: string | undefined;
+  pdfOptions: PdfLoadOptions | undefined;
+  maxCanvasPixels: number;
   defaultThumbnailsOpened: boolean | undefined;
+  defaultPageLayout: DocViewerPageLayout | undefined;
   thumbnailsPosition: DocViewerThumbnailsPosition | undefined;
   defaultThumbnailsPosition: DocViewerThumbnailsPosition | undefined;
   onThumbnailsPositionChange: ((position: DocViewerThumbnailsPosition) => void) | undefined;
   maxTextSize: number;
   language: string | undefined;
+  size: DocViewerSizeConfig;
+  color: MantineColor | undefined;
+  thumbnailWidth: number;
+  tooltipProps: Omit<TooltipProps, 'label' | 'children'> | undefined;
+  codeHighlightProps: Omit<CodeHighlightProps, 'code' | 'language'> | undefined;
+  controller: React.RefObject<ControllerImplementation>;
+  events: Required<DocViewerEvents>;
+  page: number | undefined;
+  defaultPage: number | undefined;
+  defaultZoom: DocViewerZoom;
+  withPrint: boolean | undefined;
+  withDownload: boolean | undefined;
+  withFullscreen: boolean | undefined;
+  fullscreen: boolean;
+  toggleFullscreen: () => Promise<void>;
 }
 
 export const [DocViewerProvider, useDocViewerContext] = createSafeContext<DocViewerContextValue>(

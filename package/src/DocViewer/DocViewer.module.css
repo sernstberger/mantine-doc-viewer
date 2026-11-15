@@ -1,4 +1,9 @@
 .root {
+  --_color: var(--doc-viewer-color, var(--_color));
+  --_color-light: color-mix(in srgb, var(--_color) 15%, transparent);
+  --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
+  --_page-background: var(--doc-viewer-page-background, white);
+
   display: flex;
   flex-direction: column;
   min-height: 200px;
@@ -13,7 +18,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  min-height: 44px;
+  min-height: var(--doc-viewer-toolbar-height, 44px);
   padding-inline: var(--mantine-spacing-sm);
   border-bottom: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
@@ -25,7 +30,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--_font-size);
   font-weight: 500;
 }
 
@@ -38,7 +43,7 @@
   outline: none;
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
+    outline: 2px solid var(--_color);
     outline-offset: -2px;
   }
 
@@ -54,7 +59,7 @@
   outline: none;
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
+    outline: 2px solid var(--_color);
     outline-offset: -2px;
   }
 
@@ -115,7 +120,7 @@
   min-height: 160px;
   padding: var(--mantine-spacing-xl);
   color: var(--mantine-color-dimmed);
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--_font-size);
   text-align: center;
 }
 
@@ -133,6 +138,7 @@
 
 .pageIndicator {
   min-width: 56px;
+  font-size: var(--_font-size);
   text-align: center;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -142,7 +148,7 @@
   min-width: 48px;
   padding: 2px 4px;
   border-radius: var(--mantine-radius-sm);
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--_font-size);
   font-variant-numeric: tabular-nums;
   text-align: center;
 
@@ -156,7 +162,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--mantine-spacing-md);
+
+  &[data-layout='two-page'],
+  &[data-layout='two-page-cover'] {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    justify-content: center;
+    align-items: start;
+    column-gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
+  }
+
+  /* The first page on its own on the right, like a book cover */
+  &[data-layout='two-page-cover'] > :first-child {
+    grid-column: 2;
+  }
+
+  gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
   width: max-content;
   min-width: 100%;
   padding: var(--mantine-spacing-md) 16px;
@@ -168,7 +189,7 @@
 
   position: relative;
   flex-shrink: 0;
-  background-color: white;
+  background-color: var(--_page-background);
   box-shadow: var(--mantine-shadow-sm);
 }
 
@@ -283,15 +304,23 @@
 /* Search matches, painted with the CSS Custom Highlight API, see pdf/highlights.ts */
 ::highlight(mantine-doc-viewer-match) {
   color: transparent;
-  background-color: rgb(250 176 5 / 40%);
+  background-color: color-mix(
+    in srgb,
+    var(--doc-viewer-match-color, rgb(250 176 5)) 40%,
+    transparent
+  );
 }
 
 ::highlight(mantine-doc-viewer-active-match) {
   color: transparent;
-  background-color: rgb(253 126 20 / 65%);
+  background-color: color-mix(
+    in srgb,
+    var(--doc-viewer-active-match-color, rgb(253 126 20)) 65%,
+    transparent
+  );
 
   /* Tells the active match apart by more than its colour */
-  text-decoration: underline 2px rgb(217 72 15);
+  text-decoration: underline 2px var(--doc-viewer-active-match-color, rgb(217 72 15));
   text-underline-offset: 2px;
 }
 
@@ -331,7 +360,7 @@
   align-items: center;
   gap: var(--mantine-spacing-sm);
   flex-shrink: 0;
-  width: 152px;
+  width: calc(var(--doc-viewer-thumbnail-width, 112px) + 40px);
   padding: var(--mantine-spacing-sm) 0;
   overflow-y: auto;
   border-right: 1px solid var(--mantine-color-default-border);
@@ -377,13 +406,13 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
+    outline: 2px solid var(--_color);
     outline-offset: 1px;
   }
 
   &[data-active] {
     color: var(--mantine-color-text);
-    background-color: var(--mantine-primary-color-light);
+    background-color: var(--_color-light);
   }
 }
 
@@ -392,11 +421,11 @@
   display: block;
   overflow: hidden;
   border: 1px solid var(--mantine-color-default-border);
-  background-color: white;
+  background-color: var(--_page-background);
 
   [data-active] > & {
-    border-color: var(--mantine-primary-color-filled);
-    box-shadow: 0 0 0 1px var(--mantine-primary-color-filled);
+    border-color: var(--_color);
+    box-shadow: 0 0 0 1px var(--_color);
   }
 }
 
@@ -410,7 +439,7 @@
   padding: var(--mantine-spacing-md);
   min-height: 100%;
   font-family: var(--mantine-font-family-monospace);
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--_font-size);
   line-height: 1.55;
   white-space: pre;
   tab-size: 4;
@@ -438,4 +467,55 @@
   & img {
     max-width: 100%;
   }
+}
+
+.outline {
+  max-height: min(60vh, 420px);
+  min-width: 220px;
+  max-width: 340px;
+  overflow: auto;
+  font-size: var(--_font-size);
+}
+
+.outlineList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  & & {
+    padding-inline-start: var(--mantine-spacing-md);
+  }
+}
+
+.outlineItem {
+  display: block;
+  width: 100%;
+  padding: 4px var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-text);
+  font-size: inherit;
+  text-align: start;
+  text-decoration: none;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--_color);
+    outline-offset: -2px;
+  }
+}
+
+.password {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  width: min(320px, 100% - 2 * var(--mantine-spacing-md));
+  margin: var(--mantine-spacing-xl) auto;
+  padding: var(--mantine-spacing-lg);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-body);
 }

@@ -1,0 +1,115 @@
+import { useCallbackRef } from '@mantine/hooks';
+import { useEffect, useImperativeHandle, useRef } from 'react';
+import type { DocType } from './detect-doc-type';
+
+/** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
+export type DocViewerZoom = number | 'fit';
+
+/** Actions available through `controllerRef`. Actions that do not apply to the current document do nothing */
+export interface DocViewerController {
+  /** Scrolls a PDF to a page, counted from 1 */
+  goToPage: (page: number) => void;
+
+  /** Sets the zoom of a PDF or image */
+  setZoom: (zoom: DocViewerZoom) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+
+  /** Turns an image 90° clockwise */
+  rotate: () => void;
+
+  /** Opens PDF search, with `query` typed in when it is set */
+  openSearch: (query?: string) => void;
+  closeSearch: () => void;
+
+  /** Shows or hides PDF page thumbnails, toggles them when `opened` is not set */
+  toggleThumbnails: (opened?: boolean) => void;
+
+  /** Opens the browser print dialog for the document */
+  print: () => Promise<void>;
+
+  /** Downloads the document */
+  download: () => void;
+
+  /** Shows the viewer full screen, or leaves full screen */
+  toggleFullscreen: () => Promise<void>;
+}
+
+export interface DocViewerLoadInfo {
+  type: DocType;
+
+  /** Number of pages of a PDF */
+  numPages?: number;
+
+  /** Natural size of an image in px */
+  width?: number;
+  height?: number;
+}
+
+export interface DocViewerEvents {
+  onDocumentLoad?: (info: DocViewerLoadInfo) => void;
+  onDocumentError?: (error: Error) => void;
+  onPageChange?: (page: number) => void;
+  onZoomChange?: (scale: number, fitted: boolean) => void;
+}
+
+export type ControllerImplementation = Partial<DocViewerController>;
+
+/** Registry that views put their actions into, and that `controllerRef` reads from */
+export function useControllerRegistry(controllerRef: React.Ref<DocViewerController> | undefined) {
+  const implementation = useRef<ControllerImplementation>({});
+
+  const call =
+    <K extends keyof DocViewerController>(name: K) =>
+    (...args: Parameters<DocViewerController[K]>) =>
+      (implementation.current[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args);
+
+  useImperativeHandle(
+    controllerRef,
+    () => ({
+      goToPage: call('goToPage'),
+      setZoom: call('setZoom'),
+      zoomIn: call('zoomIn'),
+      zoomOut: call('zoomOut'),
+      rotate: call('rotate'),
+      openSearch: call('openSearch'),
+      closeSearch: call('closeSearch'),
+      toggleThumbnails: call('toggleThumbnails'),
+      print: async () => {
+        await implementation.current.print?.();
+      },
+      download: call('download'),
+      toggleFullscreen: async () => {
+        await implementation.current.toggleFullscreen?.();
+      },
+    }),
+    []
+  );
+
+  return implementation;
+}
+
+/** Puts a view's actions into the registry, always the latest ones, and takes them out on unmount */
+export function useRegisterController(
+  registry: React.RefObject<ControllerImplementation>,
+  actions: ControllerImplementation
+) {
+  const latest = useRef(actions);
+  latest.current = actions;
+
+  useEffect(() => {
+    const names = Object.keys(latest.current) as (keyof DocViewerController)[];
+    const current = registry.current;
+    names.forEach((name) => {
+      (current as Record<string, unknown>)[name] = (...args: unknown[]) =>
+        (latest.current[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args);
+    });
+
+    return () => names.forEach((name) => delete current[name]);
+    // Registered once per view; calls go through `latest`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registry]);
+}
+
+/** Stable callback that always calls the latest event prop */
+export const useEventProp = useCallbackRef;
