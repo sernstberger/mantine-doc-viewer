@@ -198,7 +198,11 @@ export function Haven() {
               {hint}
             </p>
 
-            <fieldset className={classes.sign} disabled={!readAll || signed} data-locked={!readAll || undefined}>
+            <fieldset
+              className={classes.sign}
+              disabled={!readAll || signed}
+              data-locked={!readAll || undefined}
+            >
               <TextInput
                 label="Type your full name to sign"
                 placeholder="Daniel Okafor"

@@ -14,7 +14,6 @@ const W = 260;
 const MARGIN_X = 22;
 const PAPER_X = MARGIN_X;
 const PAPER_W = W - MARGIN_X * 2;
-const CHAR = 4.8; // Courier at 8pt
 const INK = '#2b2a28';
 const FADED = '#6d6a64';
 

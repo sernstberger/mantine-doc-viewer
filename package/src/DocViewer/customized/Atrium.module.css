@@ -226,6 +226,12 @@
   scrollbar-width: none;
 }
 
+/* A kiosk shows one spread at a time: a screen's height between rows keeps the next spread
+   from peeking in under the current one */
+.pages {
+  row-gap: 100vh;
+}
+
 .page {
   box-shadow:
     0 0 0 1px rgb(243 241 234 / 0.28),

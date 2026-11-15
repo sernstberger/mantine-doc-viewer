@@ -25,11 +25,11 @@ const del = (value: string): Seg => ['del', value];
 
 /** Times-Roman advance widths for ASCII 32-126, per 1000 em */
 const TIMES = [
-  250, 333, 408, 500, 500, 833, 778, 180, 333, 333, 500, 564, 250, 333, 250, 278, 500, 500, 500, 500,
-  500, 500, 500, 500, 500, 500, 278, 278, 564, 564, 564, 444, 921, 722, 667, 667, 722, 611, 556, 722,
-  722, 333, 389, 722, 611, 889, 722, 722, 556, 722, 667, 556, 611, 722, 722, 944, 722, 722, 611, 333,
-  278, 333, 469, 500, 333, 444, 500, 444, 500, 444, 333, 500, 500, 278, 278, 500, 278, 778, 500, 500,
-  500, 500, 333, 389, 278, 500, 500, 722, 500, 500, 444, 480, 200, 480, 541,
+  250, 333, 408, 500, 500, 833, 778, 180, 333, 333, 500, 564, 250, 333, 250, 278, 500, 500, 500,
+  500, 500, 500, 500, 500, 500, 500, 278, 278, 564, 564, 564, 444, 921, 722, 667, 667, 722, 611,
+  556, 722, 722, 333, 389, 722, 611, 889, 722, 722, 556, 722, 667, 556, 611, 722, 722, 944, 722,
+  722, 611, 333, 278, 333, 469, 500, 333, 444, 500, 444, 500, 444, 333, 500, 500, 278, 278, 500,
+  278, 778, 500, 500, 500, 500, 333, 389, 278, 500, 500, 722, 500, 500, 444, 480, 200, 480, 541,
 ];
 
 function width(value: string, size: number) {
@@ -117,7 +117,9 @@ function redline(segs: Seg[], x: number, y: number, maxWidth: number, size = SIZ
     });
     if (changed) {
       // Change bar in the margin, as word processors draw it
-      ops.push(line(LEFT - 14, baseline - 3, LEFT - 14, baseline + size, { color: '#7a869a', width: 1.2 }));
+      ops.push(
+        line(LEFT - 14, baseline - 3, LEFT - 14, baseline + size, { color: '#7a869a', width: 1.2 })
+      );
     }
   });
   return { ops: ops.join('\n'), y: y - lines.length * LEADING };
@@ -146,7 +148,9 @@ const CLAUSES: Clause[] = [
         ),
         del('business plans,'),
         ins('pricing, formulations, specifications, forecasts, customer and supplier lists and'),
-        t('the terms of any proposed supply arrangement, and the fact that discussions are taking place.'),
+        t(
+          'the terms of any proposed supply arrangement, and the fact that discussions are taking place.'
+        ),
       ],
     ],
   },
@@ -184,7 +188,9 @@ const CLAUSES: Clause[] = [
         t(
           '(its "Representatives") who need to know it for the Purpose and who are bound by written obligations of confidentiality no less protective than this Agreement.'
         ),
-        del('The Receiving Party is responsible for any breach of this Agreement by its Representatives.'),
+        del(
+          'The Receiving Party is responsible for any breach of this Agreement by its Representatives.'
+        ),
         ins(
           'The Receiving Party is responsible for a breach by its Representatives only to the extent that it failed to take reasonable steps to prevent it.'
         ),
@@ -246,7 +252,9 @@ const CLAUSES: Clause[] = [
         t('On written request the Receiving Party shall'),
         del('promptly'),
         ins('within thirty (30) days'),
-        t('return or destroy all Confidential Information and certify in writing that it has done so'),
+        t(
+          'return or destroy all Confidential Information and certify in writing that it has done so'
+        ),
         ins(
           ', except that it may keep copies held in routine electronic back-ups or required by law, which remain subject to this Agreement'
         ),
@@ -304,7 +312,9 @@ const CLAUSES: Clause[] = [
         t(
           "This Agreement is the entire agreement between the parties on its subject and may be changed only in writing signed by both. Neither party may assign it without the other's written consent"
         ),
-        ins(', except to an affiliate or a successor to all or substantially all of its business, on written notice'),
+        ins(
+          ', except to an affiliate or a successor to all or substantially all of its business, on written notice'
+        ),
         t(
           '. A provision held unenforceable is severed and the rest of this Agreement continues. This Agreement may be signed in counterparts, including electronically.'
         ),
@@ -315,7 +325,11 @@ const CLAUSES: Clause[] = [
 
 function chrome(pageNumber: number): string[] {
   return [
-    text(LEFT, H - 46, 'Mutual Non-Disclosure Agreement', { size: 8.5, font: 'sans', color: MUTED }),
+    text(LEFT, H - 46, 'Mutual Non-Disclosure Agreement', {
+      size: 8.5,
+      font: 'sans',
+      color: MUTED,
+    }),
     text(RIGHT - 150, H - 46, 'Halden Labs / Northwind Supply', {
       size: 8.5,
       font: 'sans',
@@ -352,7 +366,13 @@ function buildPages(): StoryPage[] {
 
   // Page 1: title, parties, legend
   const p1 = pages[0];
-  p1.push(text(LEFT, H - 108, 'Mutual Non-Disclosure Agreement', { size: 20, font: 'serifBold', color: INK }));
+  p1.push(
+    text(LEFT, H - 108, 'Mutual Non-Disclosure Agreement', {
+      size: 20,
+      font: 'serifBold',
+      color: INK,
+    })
+  );
   let y = H - 132;
   const intro: Seg[][] = [
     [
@@ -362,7 +382,7 @@ function buildPages(): StoryPage[] {
     ],
     [
       t(
-        'The parties are discussing a supply arrangement for the packaging of Halden\'s cold-brew range and expect to share confidential information. They agree as follows.'
+        "The parties are discussing a supply arrangement for the packaging of Halden's cold-brew range and expect to share confidential information. They agree as follows."
       ),
     ],
   ];
@@ -374,12 +394,26 @@ function buildPages(): StoryPage[] {
   // Legend for the markup
   y -= 6;
   p1.push(rect(LEFT, y - 22, RIGHT - LEFT, 30, { fill: '#f3f5f8' }));
-  p1.push(text(LEFT + 10, y - 11, 'Markup from Northwind Supply:', { size: 8.5, font: 'sans', color: MUTED }));
+  p1.push(
+    text(LEFT + 10, y - 11, 'Markup from Northwind Supply:', {
+      size: 8.5,
+      font: 'sans',
+      color: MUTED,
+    })
+  );
   p1.push(text(LEFT + 148, y - 11, 'inserted text', { size: 9.5, font: 'serif', color: INS }));
-  p1.push(line(LEFT + 148, y - 13, LEFT + 148 + width('inserted text', 9.5), y - 13, { color: INS, width: 0.7 }));
+  p1.push(
+    line(LEFT + 148, y - 13, LEFT + 148 + width('inserted text', 9.5), y - 13, {
+      color: INS,
+      width: 0.7,
+    })
+  );
   p1.push(text(LEFT + 232, y - 11, 'deleted text', { size: 9.5, font: 'serif', color: DEL }));
   p1.push(
-    line(LEFT + 232, y - 8, LEFT + 232 + width('deleted text', 9.5), y - 8, { color: DEL, width: 0.7 })
+    line(LEFT + 232, y - 8, LEFT + 232 + width('deleted text', 9.5), y - 8, {
+      color: DEL,
+      width: 0.7,
+    })
   );
   y -= 52;
   cursor[1] = y;
@@ -396,10 +430,21 @@ function buildPages(): StoryPage[] {
   // Signature block on page 5
   const p5 = pages[4];
   let sy = cursor[5] - 20;
-  p5.push(text(LEFT, sy, 'Signed by the parties on the dates below.', { size: SIZE, font: 'serif', color: INK }));
+  p5.push(
+    text(LEFT, sy, 'Signed by the parties on the dates below.', {
+      size: SIZE,
+      font: 'serif',
+      color: INK,
+    })
+  );
   sy -= 56;
   const blocks = [
-    { x: LEFT, party: 'Halden Labs, Inc.', who: 'Name: Priya Raman', role: 'Title: General Counsel' },
+    {
+      x: LEFT,
+      party: 'Halden Labs, Inc.',
+      who: 'Name: Priya Raman',
+      role: 'Title: General Counsel',
+    },
     {
       x: LEFT + 250,
       party: 'Northwind Supply Ltd.',

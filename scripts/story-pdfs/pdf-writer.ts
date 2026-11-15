@@ -114,8 +114,12 @@ export function rect(
   options: { fill?: Color; stroke?: Color; lineWidth?: number } = {}
 ) {
   const ops: string[] = [];
-  if (options.fill) {ops.push(fill(options.fill));}
-  if (options.stroke) {ops.push(stroke(options.stroke), `${options.lineWidth ?? 1} w`);}
+  if (options.fill) {
+    ops.push(fill(options.fill));
+  }
+  if (options.stroke) {
+    ops.push(stroke(options.stroke), `${options.lineWidth ?? 1} w`);
+  }
   const paint = options.fill && options.stroke ? 'B' : options.fill ? 'f' : 'S';
   ops.push(`${x} ${y} ${width} ${height} re ${paint}`);
   return ops.join('\n');
@@ -150,8 +154,12 @@ export function ellipse(
     `${cx + rx * k} ${cy - ry} ${cx + rx} ${cy - ry * k} ${cx + rx} ${cy} c`,
   ].join(' ');
   const ops: string[] = [];
-  if (options.fill) {ops.push(fill(options.fill));}
-  if (options.stroke) {ops.push(stroke(options.stroke), `${options.lineWidth ?? 1} w`);}
+  if (options.fill) {
+    ops.push(fill(options.fill));
+  }
+  if (options.stroke) {
+    ops.push(stroke(options.stroke), `${options.lineWidth ?? 1} w`);
+  }
   const paint = options.fill && options.stroke ? 'B' : options.fill ? 'f' : 'S';
   return [...ops, `${path} ${paint}`].join('\n');
 }
@@ -169,14 +177,16 @@ export function paragraph(
   const lines: string[] = [];
   let current = '';
   words.forEach((word) => {
-    if ((`${current  } ${  word}`).trim().length > maxChars) {
+    if (`${current} ${word}`.trim().length > maxChars) {
       lines.push(current);
       current = word;
     } else {
-      current = (`${current  } ${  word}`).trim();
+      current = `${current} ${word}`.trim();
     }
   });
-  if (current) {lines.push(current);}
+  if (current) {
+    lines.push(current);
+  }
   const ops = lines.map((lineText, index) => text(x, y - index * leading, lineText, options));
   return { ops: ops.join('\n'), y: y - lines.length * leading };
 }

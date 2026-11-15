@@ -34,10 +34,16 @@ const CLAUSES: ClauseInfo[] = [
       segs: [
         ['plain', '...in connection with the Purpose, '],
         ['del', 'that is marked "confidential" or'],
-        ['ins', 'whether disclosed orally, in writing or by inspection of premises or samples, and'],
+        [
+          'ins',
+          'whether disclosed orally, in writing or by inspection of premises or samples, and',
+        ],
         ['plain', ' that a reasonable person would understand to be confidential... It includes '],
         ['del', 'business plans,'],
-        ['ins', 'pricing, formulations, specifications, forecasts, customer and supplier lists and'],
+        [
+          'ins',
+          'pricing, formulations, specifications, forecasts, customer and supplier lists and',
+        ],
         ['plain', ' the terms of any proposed supply arrangement...'],
       ],
       comment:
@@ -56,7 +62,10 @@ const CLAUSES: ClauseInfo[] = [
         ['plain', '...professional advisers '],
         ['ins', 'and subcontractors'],
         ['plain', ' (its "Representatives") who need to know it... '],
-        ['del', 'The Receiving Party is responsible for any breach of this Agreement by its Representatives.'],
+        [
+          'del',
+          'The Receiving Party is responsible for any breach of this Agreement by its Representatives.',
+        ],
         [
           'ins',
           'The Receiving Party is responsible for a breach by its Representatives only to the extent that it failed to take reasonable steps to prevent it.',
@@ -138,7 +147,8 @@ const CLAUSES: ClauseInfo[] = [
           'Neither party is liable to the other under this Agreement for indirect or consequential loss, or for loss of profit.',
         ],
       ],
-      comment: 'Our insurers need the injunction wording to match English practice, and the cap is standard for us.',
+      comment:
+        'Our insurers need the injunction wording to match English practice, and the cap is standard for us.',
       counter:
         'We will drop the bond waiver but not the exclusion of loss: a leak of a formulation is exactly consequential loss. Please remove the new last sentence.',
     },
@@ -167,7 +177,7 @@ const CLAUSES: ClauseInfo[] = [
     page: 5,
     change: {
       segs: [
-        ['plain', '...without the other\'s written consent'],
+        ['plain', "...without the other's written consent"],
         [
           'ins',
           ', except to an affiliate or a successor to all or substantially all of its business, on written notice',
@@ -224,12 +234,24 @@ function StatusDot({ status }: { status: Status | 'unchanged' }) {
     <span className={classes.dot} data-status={status} aria-hidden>
       {status === 'accepted' && (
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M2 5.2l2 2 4-4.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M2 5.2l2 2 4-4.6"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )}
       {status === 'countered' && (
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M3.6 2.4L1.6 4.4l2 2M2 4.4h4a2.4 2.4 0 010 4.8H4.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M3.6 2.4L1.6 4.4l2 2M2 4.4h4a2.4 2.4 0 010 4.8H4.6"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )}
     </span>
@@ -332,14 +354,21 @@ export function Clause() {
         <div className={classes.brand}>
           <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden>
             <rect width="22" height="22" rx="5" fill="#152238" />
-            <path d="M6.2 7.2h6.6M6.2 11h9.6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M6.2 7.2h6.6M6.2 11h9.6"
+              stroke="#fff"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
             <path d="M6.2 14.8h5" stroke="#5ec58b" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
           Clause
         </div>
         <div className={classes.matter}>
           <span className={classes.matterName}>Mutual NDA with Northwind Supply</span>
-          <span className={classes.version}>Version 3, sent by Northwind Supply on 12 November</span>
+          <span className={classes.version}>
+            Version 3, sent by Northwind Supply on 12 November
+          </span>
         </div>
         <div className={classes.progress}>
           <div className={classes.progressText}>
@@ -358,7 +387,11 @@ export function Clause() {
           disabled={!allResolved || approved}
           title={allResolved ? undefined : 'Answer every change first'}
         >
-          {approved ? 'Approved' : countered > 0 && allResolved ? 'Return v4 to Northwind' : 'Approve NDA'}
+          {approved
+            ? 'Approved'
+            : countered > 0 && allResolved
+              ? 'Return v4 to Northwind'
+              : 'Approve NDA'}
         </Button>
       </header>
 
@@ -384,7 +417,9 @@ export function Clause() {
                         {item.change ? (
                           <>
                             <span className={classes.plus}>+{count(item.change.segs, 'ins')}</span>
-                            <span className={classes.minus}>&minus;{count(item.change.segs, 'del')}</span>
+                            <span className={classes.minus}>
+                              &minus;{count(item.change.segs, 'del')}
+                            </span>
                           </>
                         ) : (
                           <span className={classes.untouched}>No changes</span>
@@ -444,8 +479,12 @@ export function Clause() {
                 <Redline segs={clause.change.segs} />
                 <p className={classes.comment}>{clause.change.comment}</p>
                 <div className={classes.legend}>
-                  <span className={classes.plus}>{plural(count(clause.change.segs, 'ins'), 'insertion')}</span>
-                  <span className={classes.minus}>{plural(count(clause.change.segs, 'del'), 'deletion')}</span>
+                  <span className={classes.plus}>
+                    {plural(count(clause.change.segs, 'ins'), 'insertion')}
+                  </span>
+                  <span className={classes.minus}>
+                    {plural(count(clause.change.segs, 'del'), 'deletion')}
+                  </span>
                 </div>
               </section>
 
@@ -460,7 +499,10 @@ export function Clause() {
                     maxRows={8}
                     value={replies[selected]}
                     onChange={(event) =>
-                      setReplies((current) => ({ ...current, [selected]: event.currentTarget.value }))
+                      setReplies((current) => ({
+                        ...current,
+                        [selected]: event.currentTarget.value,
+                      }))
                     }
                   />
                   <div className={classes.actions}>
@@ -501,7 +543,9 @@ export function Clause() {
                       className={classes.pushBack}
                       variant="default"
                       disabled={approved}
-                      onClick={() => setStatuses((current) => ({ ...current, [selected]: 'pending' }))}
+                      onClick={() =>
+                        setStatuses((current) => ({ ...current, [selected]: 'pending' }))
+                      }
                     >
                       Reopen
                     </Button>

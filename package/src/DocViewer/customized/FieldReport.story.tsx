@@ -79,17 +79,18 @@ function buildScatter() {
     })
     .join('');
 
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif">` +
-    `<rect width="${width}" height="${height}" fill="#fff"/>` +
-    grid +
-    `<line x1="${x(0)}" y1="${y(8.44)}" x2="${x(46)}" y2="${y(8.44 - 0.306 * 46)}" stroke="#0f1b2d" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round"/>` +
-    dots +
-    labelled +
-    ticks +
-    `<text x="${(left + width - right) / 2}" y="${height - 18}" text-anchor="middle" font-size="23" fill="#0f1b2d">Tree canopy, share of land</text>` +
-    `<text x="${left}" y="22" font-size="23" fill="#0f1b2d">Afternoon surface temperature vs city average, °F</text>` +
-    `</svg>`;
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="'IBM Plex Sans', Helvetica, Arial, sans-serif">`,
+    `<rect width="${width}" height="${height}" fill="#fff"/>`,
+    grid,
+    `<line x1="${x(0)}" y1="${y(8.44)}" x2="${x(46)}" y2="${y(8.44 - 0.306 * 46)}" stroke="#0f1b2d" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round"/>`,
+    dots,
+    labelled,
+    ticks,
+    `<text x="${(left + width - right) / 2}" y="${height - 18}" text-anchor="middle" font-size="23" fill="#0f1b2d">Tree canopy, share of land</text>`,
+    `<text x="${left}" y="22" font-size="23" fill="#0f1b2d">Afternoon surface temperature vs city average, °F</text>`,
+    `</svg>`,
+  ].join('');
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 

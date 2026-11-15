@@ -324,11 +324,6 @@ const SHORT_TITLES: Record<string, string> = {
 /** The signature page and Schedule 1 summary, always the last page */
 const SIGNATURE_TITLE = 'Signatures and order form';
 
-interface Placed {
-  page: number;
-  ops: string;
-}
-
 function chrome(page: number): string {
   return [
     text(LEFT, H - 52, 'Master services agreement', { size: 8.5, font: 'sans', color: MUTED }),

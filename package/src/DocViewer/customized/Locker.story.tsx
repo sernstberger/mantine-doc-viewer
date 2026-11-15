@@ -328,7 +328,14 @@ const csvRenderer: DocViewerRenderer = {
 const RENDERERS = [csvRenderer];
 
 // The app has its own download, print and full screen buttons, and its own title
-const TOOLBAR_CONTROLS = { title: false };
+// A preview pane is narrow: keep reading controls, leave layout, presentation and info to the full viewer
+const TOOLBAR_CONTROLS = {
+  title: false,
+  layout: false,
+  presentation: false,
+  info: false,
+  editPages: false,
+};
 const TOOLTIP_PROPS = { openDelay: 400, position: 'bottom' as const };
 const VIEWER_CLASSES = {
   root: classes.viewer,
