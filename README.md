@@ -11,13 +11,14 @@ and screen reader support.
 - **PDF** (pdf.js): search with match case, whole words and accents, thumbnails on any side,
   outline, clickable links, page layouts (single, two pages, cover, horizontal, wrapped),
   rotation, document info, attachments and layers, presentation mode, password protected files
-- **Page editing** (opt in): reorder, remove and extract pages, saved as a new PDF
+- **Page editing** (opt in, `mantine-doc-viewer/editor`): reorder, remove and extract pages, saved as a new PDF
+- **Markup** (opt in, `mantine-doc-viewer/markup`): highlight, text box, shapes and signature, saved into the PDF
 - **Images**: fit, zoom around the pointer, pinch, rotate, drag to pan
 - **Text, code, JSON and markdown**: highlighting with `@mantine/code-highlight`, a JSON tree,
   GitHub flavoured markdown rendered safely
 - **Large documents**: only pages near the view are drawn, and only the parts of a PDF on screen
   are downloaded when the server supports range requests
-- **Print, download and full screen**, a `controllerRef` with every action, and events for load,
+- **Print, download and full screen**, a store with state and every action (`useDocViewer`), and events for load,
   errors, page, zoom and links
 - **Customisable**: `size`, `color`, `variant="plain"`, dark pages, hideable toolbar controls,
   translatable labels, and renderers for other file types
@@ -26,7 +27,15 @@ and screen reader support.
 ## Installation
 
 ```bash
-npm install mantine-doc-viewer @mantine/core @mantine/hooks @mantine/code-highlight pdfjs-dist
+npm install mantine-doc-viewer @mantine/core @mantine/hooks @mantine/code-highlight
+```
+
+The engines are optional peer dependencies; install the ones you use:
+
+```bash
+npm install pdfjs-dist                  # PDFs
+npm install @cantoo/pdf-lib             # page editing and markup (the /editor and /markup subpaths)
+npm install react-markdown remark-gfm   # markdown
 ```
 
 Import the styles once, next to Mantine's:
@@ -64,13 +73,15 @@ function Demo() {
 }
 ```
 
-The file type comes from `mimeType`, the file name or the url. Images, text, code and markdown
-need nothing else. See the [documentation](https://sernstberger.github.io/mantine-doc-viewer/)
-for every prop, the Styles API, events and the controller.
+The file type comes from `mimeType`, the file name or the url. Images, text and code need no
+adapter. Markdown uses `createReactMarkdownAdapter(() => Promise.all([import('react-markdown'), import('remark-gfm')]))`
+in the same provider, and page editing and markup are extensions from `mantine-doc-viewer/editor`
+and `mantine-doc-viewer/markup`. See the [documentation](https://sernstberger.github.io/mantine-doc-viewer/)
+for every part and prop, the Styles API, events and the store.
 
 ## Requirements
 
-- Mantine 9.7 or newer, React 19.2 or newer, pdfjs-dist 6.5 or newer
+- Mantine 9.7 or newer, React 19.2 or newer, pdfjs-dist 6.5 or newer (optional, for PDFs)
 - Current versions of Chrome, Edge, Firefox and Safari. Search highlights use the CSS Custom
   Highlight API; where it is missing, search still finds and scrolls to matches.
 
