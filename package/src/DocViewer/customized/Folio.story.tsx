@@ -22,6 +22,7 @@ function formatSize(bytes: number) {
  */
 export function Folio() {
   const [toast, setToast] = useState<Toast | null>(null);
+  const [edited, setEdited] = useState(false);
 
   useEffect(() => {
     if (!toast) {
@@ -53,7 +54,8 @@ export function Folio() {
           defaultThumbnailsOpened
           withPageEditing
           // A native app writes back to the file; here the bytes only feed the notification
-          onSave={(bytes, { reason, pages }) =>
+          onSave={(bytes, { reason, pages }) => {
+            setEdited(true);
             setToast(
               reason === 'extract'
                 ? {
@@ -64,8 +66,10 @@ export function Folio() {
                     title: 'Saved',
                     text: `${pages.length} pages, ${formatSize(bytes.length)}`,
                   }
-            )
-          }
+            );
+          }}
+          // Like a macOS title bar: the name with a small line under it
+          toolbarSubtitle={edited ? 'Edited' : 'On this Mac'}
           // A document app opens files in place, there is nothing to download
           withDownload={false}
           tooltipProps={{ openDelay: 500, position: 'bottom' }}
@@ -73,6 +77,7 @@ export function Folio() {
             root: classes.root,
             toolbar: classes.toolbar,
             title: classes.title,
+            subtitle: classes.subtitle,
             control: classes.control,
             pageIndicator: classes.pageIndicator,
             zoomLevel: classes.zoomLevel,
@@ -90,7 +95,6 @@ export function Folio() {
           // MISSING: Delete in the thumbnail sidebar itself; reordering there works by dragging, deleting needs the page editor.
           // MISSING: markup tools (highlight, text box, shapes, signature): the annotations layer.
           // MISSING: rotating one page and saving it; rotate only turns the view of every page.
-          // MISSING: a subtitle slot next to the title ("Edited") without replacing the whole toolbar.
         />
 
         {toast && (

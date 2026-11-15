@@ -44,6 +44,7 @@ export function ZoomControls({
       </DocViewerTooltip>
       <UnstyledButton
         {...getStyles('zoomLevel')}
+        data-toolbar-toggle
         onClick={() => onZoom(1)}
         // The name starts with the visible text, for voice control
         aria-label={`${percent}, ${labels.resetZoom}`}

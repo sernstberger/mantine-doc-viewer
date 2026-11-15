@@ -1,8 +1,20 @@
-import { ActionIcon } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
-import { DocViewerTooltip, useControlProps } from './controls';
+import { ActionIcon, Toolbar } from '@mantine/core';
+import React, { useState } from 'react';
+import { DocViewerTooltip, useControlProps, useFullscreenAvailable } from './controls';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
 import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
+
+/** What `renderToolbarTitle` gets */
+export interface DocViewerToolbarTitleInfo {
+  /** The text the toolbar shows by default: the file name, or the `document` label without one */
+  title: string;
+
+  /** Name of the file, `undefined` for blob and data urls without a `fileName` */
+  fileName: string | undefined;
+}
+
+/** Renders the toolbar title in place of the file name, for example the current sheet of a set */
+export type DocViewerRenderToolbarTitle = (info: DocViewerToolbarTitleInfo) => React.ReactNode;
 
 export interface DocViewerToolbarProps {
   /** Controls specific to the document type, for example, PDF paging and zoom */
@@ -12,20 +24,17 @@ export interface DocViewerToolbarProps {
   onPrint?: () => Promise<void> | void;
 }
 
-/** Full screen is not available in some browsers (iPhone Safari) and inside iframes without permission */
-function useFullscreenAvailable() {
-  const [available, setAvailable] = useState(false);
-  useEffect(() => setAvailable(!!document.fullscreenEnabled), []);
-  return available;
-}
-
 export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
   const {
     getStyles,
     fileName,
     src,
     toolbarSection,
+    toolbarStartSection,
+    toolbarSubtitle,
+    renderToolbarTitle,
     withToolbar,
+    toolbarHidden,
     withPrint,
     withDownload,
     withFullscreen,
@@ -57,13 +66,20 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
   };
 
   return (
-    <div {...getStyles('toolbar')}>
-      {show('title') ? (
-        <span {...getStyles('title')}>{title}</span>
-      ) : (
-        <span {...getStyles('title')} />
-      )}
-      <div {...getStyles('controls')}>
+    <div {...getStyles('toolbar')} data-doc-viewer-toolbar data-hidden={toolbarHidden || undefined}>
+      {toolbarStartSection && <div {...getStyles('toolbarStart')}>{toolbarStartSection}</div>}
+      <div {...getStyles('heading')}>
+        {show('title') && (
+          <>
+            <span {...getStyles('title')}>
+              {renderToolbarTitle ? renderToolbarTitle({ title, fileName }) : title}
+            </span>
+            {toolbarSubtitle && <span {...getStyles('subtitle')}>{toolbarSubtitle}</span>}
+          </>
+        )}
+      </div>
+      {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
+      <Toolbar unstyled withBorder={false} aria-label={labels.toolbar} {...getStyles('controls')}>
         {children}
         {toolbarSection}
         {withPrint && show('print') && onPrint && (
@@ -106,7 +122,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
             </ActionIcon>
           </DocViewerTooltip>
         )}
-      </div>
+      </Toolbar>
     </div>
   );
 }

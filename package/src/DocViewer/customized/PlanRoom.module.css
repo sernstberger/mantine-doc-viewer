@@ -309,6 +309,12 @@
   letter-spacing: 0.01em;
 }
 
+.subtitle {
+  color: var(--plan-muted);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
 /* Big touch targets with a real fill, so they read as buttons on a bright site */
 .control {
   border: 1px solid var(--plan-line);

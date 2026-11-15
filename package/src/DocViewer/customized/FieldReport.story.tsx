@@ -181,8 +181,13 @@ export function FieldReport() {
               // `h` is required: the viewer has no auto height, so the figure is as tall as the plot is wide.
               // MISSING: `height="auto"` / `autoHeight` so the viewer grows to the pages and the article scrolls instead.
               h={496}
-              classNames={{ root: classes.root, body: classes.imageBody }}
-              // MISSING: with no toolbar there is no way to open the image full screen or zoom for readers; a floating overlay button (`withOverlayControls`).
+              // Readers can still zoom the plot or open it full screen, without a toolbar
+              withOverlayControls
+              classNames={{
+                root: classes.root,
+                body: classes.imageBody,
+                overlayControl: classes.figureControl,
+              }}
             />
           </div>
           <figcaption className={classes.caption}>

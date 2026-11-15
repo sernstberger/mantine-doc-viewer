@@ -233,7 +233,8 @@ export function Gate() {
                 thumbnailImage: classes.thumbnailImage,
                 thumbnailLabel: classes.thumbnailLabel,
               }}
-              // MISSING: a tap-to-toggle toolbar for touch screens, so the pass can fill the phone.
+              // A tap on the pass hides the toolbar so the barcode fills the phone, another brings it back
+              tapToggleToolbar
               // MISSING: `thumbnailsPosition` as a responsive value (left on desktop, bottom on phones).
               // MISSING: a way to keep the screen awake and at full brightness while the pass is shown; that is the host app's job.
             />

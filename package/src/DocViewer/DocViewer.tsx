@@ -38,6 +38,9 @@ import {
 import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
+import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
+import { useTapToggle } from './use-tap-toggle';
+import { OverlayControls } from './OverlayControls';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
@@ -55,8 +58,13 @@ import { UnsupportedView } from './views/UnsupportedView';
 export type DocViewerStylesNames =
   | 'root'
   | 'toolbar'
+  | 'toolbarStart'
+  | 'heading'
   | 'title'
+  | 'subtitle'
   | 'controls'
+  | 'overlayControls'
+  | 'overlayControl'
   | 'control'
   | 'body'
   | 'image'
@@ -279,6 +287,15 @@ export interface DocViewerProps
   /** Content displayed in the toolbar before the download button */
   toolbarSection?: React.ReactNode;
 
+  /** Content displayed at the start of the toolbar, before the title, for example a menu button. Styles API name: `toolbarStart` */
+  toolbarStartSection?: React.ReactNode;
+
+  /** Small text under the title, for example "Draft 4" or "Edited". Styles API name: `subtitle` */
+  toolbarSubtitle?: React.ReactNode;
+
+  /** Renders the title in place of the file name, for example the sheet that is open. Called with the file name and the default title */
+  renderToolbarTitle?: DocViewerRenderToolbarTitle;
+
   /**
    * Content laid over each PDF page, such as comment pins, review marks or proof boxes. It gets
    * the page number, the page size at 100% and the current `scale`: place content at
@@ -286,6 +303,20 @@ export interface DocViewerProps
    * when the reader rotates it. It lets clicks through to the page's text; its children take them
    */
   renderPageOverlay?: DocViewerRenderPageOverlay;
+
+  /**
+   * Determines whether tapping the viewer with a finger hides and shows the toolbar, so a page can
+   * fill a phone, `false` by default. The toolbar is shown at first. Taps on buttons and links, and
+   * mouse clicks, do nothing
+   */
+  tapToggleToolbar?: boolean;
+
+  /**
+   * Determines whether zoom and full screen buttons float over the top right of the document,
+   * for a viewer without a toolbar (`withToolbar={false}`), `false` by default. The buttons follow
+   * `withFullscreen`. Styles API names: `overlayControls` and `overlayControl`
+   */
+  withOverlayControls?: boolean;
 
   /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
@@ -435,7 +466,12 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     tooltipProps,
     codeHighlightProps,
     toolbarSection,
+    toolbarStartSection,
+    toolbarSubtitle,
+    renderToolbarTitle,
     renderPageOverlay,
+    tapToggleToolbar,
+    withOverlayControls,
     withToolbar,
     toolbarControls,
     pageBackground,
@@ -483,6 +519,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     varsResolver,
   });
 
+  const tapToggle = useTapToggle(tapToggleToolbar);
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
   const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
   const controller = useControllerRegistry(controllerRef);
@@ -547,8 +584,12 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         labels: resolvedLabels,
         locale,
         withToolbar,
+        toolbarHidden: tapToggle.hidden,
         toolbarControls,
         toolbarSection,
+        toolbarStartSection,
+        toolbarSubtitle,
+        renderToolbarTitle,
         renderPageOverlay,
         pdfWorkerSrc,
         pdfOptions,
@@ -593,11 +634,13 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
           mod,
         ]}
         {...others}
+        {...tapToggle.handlers}
       >
         {/* Keyed so that zoom, rotation and search reset when the document changes, unless the view is kept */}
         <React.Fragment key={keepView ? resolvedType : `${resolvedType}:${src}`}>
           {renderView({ src, fileName: resolvedFileName, mimeType, type: resolvedType }, renderers)}
         </React.Fragment>
+        {withOverlayControls && <OverlayControls />}
       </Box>
     </DocViewerProvider>
   );

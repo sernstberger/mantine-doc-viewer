@@ -4,6 +4,7 @@
   --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
   --_page-background: var(--doc-viewer-page-background, white);
 
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 200px;
@@ -24,14 +25,50 @@
   background-color: var(--mantine-color-default);
 }
 
-.title {
+.toolbar[data-hidden] {
+  display: none;
+}
+
+.overlayControls {
+  position: absolute;
+  z-index: 3;
+  top: var(--mantine-spacing-xs);
+  inset-inline-end: var(--mantine-spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbarStart {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.heading {
+  display: flex;
   flex: 1 1 8rem;
+  flex-direction: column;
+  justify-content: center;
   min-width: 0;
+}
+
+.title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--_font-size);
   font-weight: 500;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--_font-size) * 0.85);
+  line-height: 1.2;
 }
 
 .body {

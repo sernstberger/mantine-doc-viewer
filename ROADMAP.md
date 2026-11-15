@@ -20,15 +20,16 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 ## 2. Layout props
 
-- [ ] **Toolbar slots**: a subtitle under the title ("Edited", "Draft 4"), a left slot, and a title
-      render prop so the title can be the current sheet (Folio, Dealroom, Plan room, Stand)
+- [x] **Toolbar slots** (`toolbarSubtitle`, `toolbarStartSection`, `renderToolbarTitle`): a subtitle under the
+      title ("Edited", "Draft 4"), a left slot, and a title render prop so the title can be the current
+      sheet (Folio, Dealroom, Plan room, Stand)
 - [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
       (Field Report)
 - [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
 - [ ] **Controlled `fullscreen` prop** (Atrium)
 - [ ] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate)
-- [ ] **Tap-to-toggle toolbar** on touch screens, so a page can fill a phone (Gate)
-- [ ] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
+- [x] **Tap-to-toggle toolbar** (`tapToggleToolbar`) on touch screens, so a page can fill a phone (Gate)
+- [x] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
       embedded viewer (Field Report)
 - [ ] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
       cause a horizontal scrollbar (Proofline)
@@ -58,8 +59,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 - [x] Check search highlight colours in Safari and Firefox: WebKit and Firefox 159 (Playwright)
       draw default and custom `matchColor`/`activeMatchColor` like Chrome, active underline included
-- [ ] Swap the toolbar to Mantine's `Toolbar`, keeping soft-disabled buttons, per-control hiding
-      and the `control` Styles API part
+- [x] Swap the toolbar to Mantine's `Toolbar` (`controls` is now a `Toolbar`: one tab stop, arrow keys,
+      Home and End), keeping soft-disabled buttons, per-control hiding and the `control` Styles API part
 
 ## Probably out of scope (confirm before dropping)
 

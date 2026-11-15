@@ -140,7 +140,7 @@ describe('DocViewer PDF', () => {
     const { container } = render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-    fireEvent.keyDown(container.querySelector('[tabindex="0"]')!, { key: 'f', ctrlKey: true });
+    fireEvent.keyDown(container.querySelector('[role="region"]')!, { key: 'f', ctrlKey: true });
     const input = screen.getByRole('textbox', { name: 'Search document' });
 
     await userEvent.type(input, 'costs{Escape}');

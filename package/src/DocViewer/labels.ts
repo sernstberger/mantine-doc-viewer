@@ -2,6 +2,7 @@
 export interface DocViewerLabels {
   /** Name used when the file has no name, for the title and the screen reader name of the viewer */
   document: string;
+  toolbar: string;
 
   /** Alternative text of images when neither `alt` nor `fileName` is set */
   image: string;
@@ -119,6 +120,7 @@ export interface DocViewerLabels {
 
 export const DEFAULT_LABELS: DocViewerLabels = {
   document: 'Document',
+  toolbar: 'Document toolbar',
   image: 'Image',
 
   download: 'Download',
