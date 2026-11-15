@@ -16,7 +16,7 @@ export interface OutlineControlProps {
 }
 
 function OutlinePopover({ document, onPage }: OutlineControlProps) {
-  const { labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
   const controlProps = useControlProps();
   const outline = usePdfOutline(document);
   const [opened, popover] = useDisclosure(false);
@@ -46,7 +46,7 @@ function OutlinePopover({ document, onPage }: OutlineControlProps) {
           </ActionIcon>
         </DocViewerTooltip>
       </Popover.Target>
-      <Popover.Dropdown p={4}>
+      <Popover.Dropdown p={4} {...getStyles('dropdown')}>
         <PdfOutline
           document={document}
           items={outline}
@@ -73,7 +73,7 @@ export interface InfoControlProps {
 }
 
 function InfoPopover({ document, layers, onLayerChange }: InfoControlProps) {
-  const { labels, locale } = useDocViewerContext();
+  const { getStyles, labels, locale } = useDocViewerContext();
   const controlProps = useControlProps();
   const [opened, popover] = useDisclosure(false);
   const properties = usePdfProperties(document, opened, locale);
@@ -101,7 +101,7 @@ function InfoPopover({ document, layers, onLayerChange }: InfoControlProps) {
           </ActionIcon>
         </DocViewerTooltip>
       </Popover.Target>
-      <Popover.Dropdown>
+      <Popover.Dropdown {...getStyles('dropdown')}>
         <PdfDocumentInfo
           document={document}
           properties={properties}

@@ -72,6 +72,7 @@ export function PdfMarkupTextInput({
       {...getStyles('markupText', {
         style: { left: textDraft.x * scale, top: textDraft.y * scale },
       })}
+      classNames={{ input: getStyles('markupInput').className }}
       styles={{ input: getFontStyle(fontSize, color, scale) }}
       data-editing
     />

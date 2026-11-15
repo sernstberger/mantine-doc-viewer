@@ -80,7 +80,9 @@ export type DocViewerStylesNames =
   | 'highlight'
   | 'markupLayer'
   | 'markupText'
+  | 'markupInput'
   | 'markupBar'
+  | 'markupDivider'
   | 'search'
   | 'searchInput'
   | 'searchCount'
@@ -97,11 +99,16 @@ export type DocViewerStylesNames =
   | 'outlineList'
   | 'outlineItem'
   | 'password'
+  | 'passwordInput'
+  | 'passwordSubmit'
+  | 'viewMode'
+  | 'dropdown'
   | 'documentInfo'
   | 'properties'
   | 'presentationControls'
   | 'editor'
   | 'editorBar'
+  | 'editorTitle'
   | 'editorPages'
   | 'editorPage'
   | 'editorButton'
@@ -245,10 +252,10 @@ export interface DocViewerProps
   /** Key of `theme.colors` or any valid CSS color for pressed toolbar buttons, the current thumbnail and focus outlines, `theme.primaryColor` by default */
   color?: MantineColor;
 
-  /** Key of `theme.colors` or any valid CSS color of PDF search matches, `'yellow'` by default */
+  /** Key of `theme.colors` or any valid CSS color of PDF search matches, `theme.colors.yellow[6]` by default */
   matchColor?: MantineColor;
 
-  /** Key of `theme.colors` or any valid CSS color of the PDF search match that is currently selected, `'orange'` by default */
+  /** Key of `theme.colors` or any valid CSS color of the PDF search match that is currently selected, `theme.colors.orange[6]` by default (its underline is `orange[9]`) */
   activeMatchColor?: MantineColor;
 
   /** Key of `theme.spacing` or any valid CSS value for the space between PDF pages, `'md'` by default. Can differ per breakpoint */
@@ -540,16 +547,15 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       <Box
         ref={session.rootRef}
         {...getStyles('root')}
-        data-doc-type={session.type}
-        data-page-color-scheme={
-          props.pageColorScheme === 'light' ? undefined : props.pageColorScheme
-        }
         // Like core components: data-size for size keys, not for CSS values such as 5rem
         mod={[
           {
             size: isNumberLike(resolved.size) ? undefined : resolved.size,
             fullscreen: session.fullscreen.fullscreen,
             'auto-height': height === 'auto',
+            'doc-type': session.type,
+            'page-color-scheme':
+              props.pageColorScheme === 'light' ? undefined : props.pageColorScheme,
           },
           mod,
         ]}

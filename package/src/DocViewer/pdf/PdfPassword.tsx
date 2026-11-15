@@ -34,9 +34,15 @@ export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
         autoComplete="off"
         data-autofocus
         autoFocus
-        w="100%"
+        {...getStyles('passwordInput')}
       />
-      <Button type="submit" size={size.input} disabled={!password} fullWidth>
+      <Button
+        type="submit"
+        size={size.input}
+        disabled={!password}
+        fullWidth
+        {...getStyles('passwordSubmit')}
+      >
         {labels.unlock}
       </Button>
     </form>
