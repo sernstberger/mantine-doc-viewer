@@ -2,7 +2,9 @@ import React, { use } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerControl } from '../doc-viewer.types';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
-import { ImageView } from '../DocViewerImage/ImageView';
+import { DocViewerCode } from '../DocViewerCode/DocViewerCode';
+import { DocViewerImage } from '../DocViewerImage/DocViewerImage';
+import { DocViewerMarkdown } from '../DocViewerMarkdown/DocViewerMarkdown';
 import { DocViewerInfoButton } from '../DocViewerInfoButton/DocViewerInfoButton';
 import { DocViewerLayoutMenu } from '../DocViewerLayoutMenu/DocViewerLayoutMenu';
 import { DocViewerMain } from '../DocViewerMain/DocViewerMain';
@@ -13,14 +15,13 @@ import { DocViewerPresentationButton } from '../DocViewerPresentationButton/DocV
 import { DocViewerRotateButton } from '../DocViewerRotateButton/DocViewerRotateButton';
 import { DocViewerSearch } from '../DocViewerSearch/DocViewerSearch';
 import { DocViewerSearchButton } from '../DocViewerSearchButton/DocViewerSearchButton';
-import { TextView } from '../DocViewerText/TextView';
+import { DocViewerText } from '../DocViewerText/DocViewerText';
 import { DocViewerThumbnailsButton } from '../DocViewerThumbnailsButton/DocViewerThumbnailsButton';
 import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { DocViewerZoomControls } from '../DocViewerZoomControls/DocViewerZoomControls';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { useDocViewerExtensions } from './extensions-context';
 import { DocViewerLayoutContext } from './layout-context';
-import { CodeView, LazyView, MarkdownView } from './lazy-views';
 import { useReadyPdfSession } from './pdf-session-context';
 import { UnsupportedView } from './UnsupportedView';
 
@@ -88,21 +89,13 @@ function DocumentView() {
     case 'pdf':
       return adapters.pdf ? <DefaultPdfLayout /> : <UnsupportedView type="pdf" />;
     case 'image':
-      return <ImageView />;
+      return <DocViewerImage />;
     case 'text':
-      return <TextView />;
+      return <DocViewerText />;
     case 'code':
-      return (
-        <LazyView>
-          <CodeView />
-        </LazyView>
-      );
+      return <DocViewerCode />;
     case 'markdown':
-      return (
-        <LazyView>
-          {adapters.markdown ? <MarkdownView /> : <CodeView language="markdown" />}
-        </LazyView>
-      );
+      return <DocViewerMarkdown />;
     default:
       return <UnsupportedView type={type} />;
   }

@@ -382,3 +382,5 @@ export type {
   DocViewerVariant,
   DocViewerZoom,
 };
+export { useDocViewerView } from './hooks/view/use-doc-viewer-view.js';
+export type { UseDocViewerViewReturnValue } from './hooks/view/use-doc-viewer-view.js';
