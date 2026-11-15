@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "storybook", "runtimeExecutable": "npm", "runtimeArgs": ["run", "storybook", "--", "--no-open"], "port": 8271 },
+    { "name": "docs", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 9281 }
+  ]
+}
