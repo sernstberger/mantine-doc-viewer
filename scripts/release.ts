@@ -105,4 +105,7 @@ async function release() {
   );
 }
 
-release();
+release().catch((error) => {
+  signale.error(`Release failed: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+});

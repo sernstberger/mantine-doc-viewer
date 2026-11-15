@@ -17,14 +17,14 @@ export default {
       entryFileNames: '[name].mjs',
       dir: path.join(outputDir, 'esm'),
       preserveModules: true,
-      sourcemap: true,
+      sourcemap: false,
     },
     {
       format: 'cjs',
       entryFileNames: '[name].cjs',
       dir: path.join(outputDir, 'cjs'),
       preserveModules: true,
-      sourcemap: true,
+      sourcemap: false,
     },
   ],
   plugins: [
