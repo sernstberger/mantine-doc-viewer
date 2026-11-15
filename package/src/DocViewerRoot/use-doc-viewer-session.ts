@@ -22,7 +22,6 @@ interface DocViewerSessionInput {
   mimeType: string | undefined;
   fileName: string | undefined;
   labels: Partial<DocViewerLabels> | undefined;
-  extensionLabels: (Partial<DocViewerLabels> | undefined)[];
   fullscreen: boolean | undefined;
   onFullscreenChange: ((fullscreen: boolean) => void) | undefined;
   ref: React.Ref<HTMLDivElement> | undefined;
@@ -34,13 +33,7 @@ export function useDocViewerSession(input: DocViewerSessionInput) {
   const { src, type, mimeType, fileName, store } = input;
   const resolvedType = type ?? getDocViewerType({ src, mimeType, fileName });
   const labelsProp = useShallowStable(input.labels);
-  const extensionLabels = useShallowStable(
-    Object.assign({}, ...input.extensionLabels) as Partial<DocViewerLabels>
-  );
-  const resolvedLabels = useMemo(
-    () => mergeLabels(DEFAULT_LABELS, extensionLabels, labelsProp),
-    [labelsProp, extensionLabels]
-  );
+  const resolvedLabels = useMemo(() => mergeLabels(DEFAULT_LABELS, labelsProp), [labelsProp]);
   const controller = getControllerRegistry(store);
   const fullscreen = useControlledFullscreen(input.fullscreen, input.onFullscreenChange);
   const rootRef = useMergedRef(input.ref, fullscreen.ref);

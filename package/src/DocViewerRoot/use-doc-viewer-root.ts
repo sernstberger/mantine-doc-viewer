@@ -14,9 +14,7 @@ import {
   updateDocViewerStateAction,
   type DocViewerStore,
 } from '../doc-viewer.store';
-import type { DocViewerExtension } from '../doc-viewer.types';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
-import type { DocViewerLabels } from '../default-labels';
 import { useDocViewerContextValue } from './doc-viewer-context-value';
 import type { DocViewerRootFactory, DocViewerRootProps } from './DocViewerRoot';
 import { DocViewerLayoutContext, type DocViewerLayoutConfig } from './layout-context';
@@ -62,12 +60,6 @@ function useMissingPdfAdapterWarning(missing: boolean) {
 }
 
 /** Labels the extensions bring, from the `labels` option each of them takes */
-function getExtensionLabels(extensions: DocViewerExtension[] | undefined) {
-  return (extensions ?? []).map(
-    (extension) => (extension.options as { labels?: Partial<DocViewerLabels> } | undefined)?.labels
-  );
-}
-
 /** CSS variables of the parts, from the part props `DocViewer` passes through */
 function usePartVars(layout: DocViewerLayoutConfig) {
   const theme = useMantineTheme();
@@ -116,7 +108,6 @@ export function useDocViewerRoot(
     mimeType: props.mimeType,
     fileName: props.fileName,
     labels: props.labels,
-    extensionLabels: getExtensionLabels(props.extensions),
     fullscreen: props.fullscreen,
     onFullscreenChange: (value) => {
       updateDocViewerStateAction({ fullscreen: value }, store);

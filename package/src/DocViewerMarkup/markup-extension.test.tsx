@@ -63,7 +63,7 @@ describe('createMarkupExtension', () => {
               tool: 'pen',
               value: marks,
               onChange: () => {},
-              labels: { markupLabel: 'Markup' },
+              labels: { markupLabel: 'Markup', markupToolLabels: { pen: 'Pen' } },
             }}
           />
         </>
