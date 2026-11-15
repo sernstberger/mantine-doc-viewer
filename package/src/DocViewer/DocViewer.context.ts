@@ -31,6 +31,8 @@ export interface DocViewerContextValue {
   locale: string | undefined;
   withToolbar: boolean | undefined;
   toolbarHidden: boolean;
+  /** The viewer grows to its content and the window scrolls */
+  autoHeight: boolean;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
   toolbarStartSection: React.ReactNode;

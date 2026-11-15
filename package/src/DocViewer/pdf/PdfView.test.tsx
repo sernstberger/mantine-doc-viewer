@@ -271,6 +271,42 @@ describe('DocViewer PDF', () => {
       expect(container.querySelector('[data-thumbnails-position="bottom"]')).toBeInTheDocument();
     });
 
+    describe('responsive thumbnailsPosition', () => {
+      const { matchMedia } = window;
+
+      // Viewport between theme.breakpoints.sm and md
+      beforeEach(() => {
+        window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+          matches: /min-width: (36|48)em/.test(query),
+          media: query,
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+        }));
+      });
+
+      afterEach(() => {
+        window.matchMedia = matchMedia;
+      });
+
+      it('uses the side of the largest matching breakpoint', async () => {
+        mockPdf();
+        render(
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultThumbnailsOpened
+            thumbnailsPosition={{ base: 'bottom', sm: 'right' }}
+          />
+        );
+
+        const nav = await screen.findByRole('listbox', { name: 'Pages' });
+        await waitFor(() => expect(nav).toHaveAttribute('data-orientation', 'vertical'));
+        expect(document.querySelector('[data-thumbnails-position="right"]')).toBeInTheDocument();
+      });
+    });
+
     it('lets the reader move thumbnails and reports the change', async () => {
       mockPdf();
       const onChange = jest.fn();

@@ -178,8 +178,7 @@ export function FieldReport() {
               fileName="Tree canopy and surface temperature, Calder, summer 2026.svg"
               withToolbar={false}
               variant="plain"
-              // `h` is required: the viewer has no auto height, so the figure is as tall as the plot is wide.
-              // MISSING: `height="auto"` / `autoHeight` so the viewer grows to the pages and the article scrolls instead.
+              // An image has no pages to grow to, so the figure is as tall as the plot is wide
               h={496}
               // Readers can still zoom the plot or open it full screen, without a toolbar
               withOverlayControls
@@ -244,13 +243,13 @@ export function FieldReport() {
                 pageGap="lg"
                 pageBackground="white"
                 defaultZoom="fit"
-                h={640}
+                // As tall as the report: the article scrolls, not a window inside it
+                height="auto"
                 classNames={{
                   root: classes.root,
                   body: classes.reportBody,
                   page: classes.reportPage,
                 }}
-                // MISSING: `height="auto"` / `autoHeight`; the 640px window scrolls inside the article.
                 // MISSING: a "reading position" API beyond onPageChange, so the caption could say how far through the report the reader is.
               />
             </div>

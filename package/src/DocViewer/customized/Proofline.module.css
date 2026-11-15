@@ -180,9 +180,13 @@
   }
 }
 
-/* Room for the crop marks and the page labels around the pages */
+/*
+ * Room for the crop marks and the page labels around the pages. Fit to width reads this padding,
+ * so the marks at the sides never cause a horizontal scrollbar.
+ */
 .pages {
   padding-block: 40px 56px;
+  padding-inline: 48px;
 }
 
 .page {

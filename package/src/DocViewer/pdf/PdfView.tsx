@@ -39,6 +39,7 @@ import { useZoomAnchor } from './use-zoom-anchor';
 import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
+import { usePagesGutter } from './use-pages-gutter';
 import { useSearchHighlights } from './use-search-highlights';
 import type { PdfZoom } from './zoom';
 
@@ -98,6 +99,7 @@ export function PdfView() {
   const setBodyRef = useMergedRef(bodyRef, setScrollRoot);
 
   const columnGap = useColumnGap(pagesNode, isTwoPages(layout));
+  const gutter = usePagesGutter(pagesNode, bodyWidth);
   const pageSize = ready ? rotateSize(ready.firstPageSize, rotation) : { width: 0, height: 0 };
   const presentation = usePresentation({
     fullscreen: context.fullscreen,
@@ -105,6 +107,8 @@ export function PdfView() {
     body: scrollRoot,
   });
   const { presenting } = presentation;
+  // With height="auto" the window scrolls, except in full screen or a presentation, which have a fixed height
+  const viewport = !!context.autoHeight && !context.fullscreen && !presenting;
   const scale = !ready
     ? 1
     : presenting
@@ -117,11 +121,14 @@ export function PdfView() {
           columnGap,
           pageWidth: pageSize.width,
           pageHeight: pageSize.height,
+          gutter,
+          autoHeight: viewport,
         });
 
   const { currentPage, registerPage, scrollToPage } = useCurrentPage(
     scrollRoot,
-    layout === 'horizontal'
+    layout === 'horizontal',
+    viewport
   );
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
@@ -130,6 +137,7 @@ export function PdfView() {
     matches: search.matches,
     activeMatch: search.activeMatch,
     scrollRoot,
+    viewport,
     scrollToPage,
   });
   const pdfLayers = usePdfLayers(document);
@@ -187,7 +195,7 @@ export function PdfView() {
   });
 
   // The page a presentation ended on is restored below, after this has run
-  useZoomAnchor(scrollRoot, scale, !presenting);
+  useZoomAnchor(scrollRoot, scale, !presenting && !viewport);
 
   // After a presentation, stay on the page it ended on instead of the top of the document.
   // The toolbar and thumbnails come back and the fitted scale changes a moment later, so the
@@ -423,7 +431,7 @@ export function PdfView() {
                   rotation={rotation}
                   layers={layers}
                   placeholderSize={ready.firstPageSize}
-                  scrollRoot={scrollRoot}
+                  scrollRoot={viewport ? null : scrollRoot}
                   registerPage={registerPage}
                   linkService={linkService}
                   onTextLayer={onTextLayer}

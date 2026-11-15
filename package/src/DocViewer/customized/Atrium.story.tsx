@@ -157,11 +157,6 @@ export function Atrium() {
   // Zoom so that a whole spread is visible without scrolling, from the room the viewer has
   const { ref: readerRef, width, height } = useElementSize<HTMLDivElement>();
   useEffect(() => {
-    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-  useEffect(() => {
     if (numPages === 0) {
       return;
     }
@@ -216,7 +211,7 @@ export function Atrium() {
         <button
           type="button"
           className={classes.fullscreenButton}
-          onClick={() => controller.current?.toggleFullscreen()}
+          onClick={() => setFullscreen((current) => !current)}
         >
           Vollbild
         </button>
@@ -256,6 +251,9 @@ export function Atrium() {
             withPrint={false}
             // The guide links to its own pages; a link must never take the kiosk anywhere else
             onLinkClick={(_url, event) => event.preventDefault()}
+            // The band's Vollbild button and the viewer's own full screen button stay in step
+            fullscreen={fullscreen}
+            onFullscreenChange={setFullscreen}
             tooltipProps={TOOLTIP_PROPS}
             toolbarControls={TOOLBAR_CONTROLS}
             classNames={CLASS_NAMES}
@@ -263,7 +261,6 @@ export function Atrium() {
             //          (`autoAdvance={{ interval }}`) that plays the guide until someone touches the screen.
             // MISSING: swipe to turn the page; turning is an app button that calls goToPage, with the spread arithmetic done here.
             // MISSING: a zoom that fits the whole spread (width and height); 'fit' only fits the width, so the story computes it.
-            // MISSING: a controlled `fullscreen` prop; the story mirrors the state from the `fullscreenchange` event.
           />
         </div>
 

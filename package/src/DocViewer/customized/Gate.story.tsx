@@ -203,7 +203,8 @@ export function Gate() {
               radius={0}
               color="#0B2545"
               defaultThumbnailsOpened
-              defaultThumbnailsPosition="bottom"
+              // Left of the pass on the wider screens that show this mock-up, under it on a phone
+              thumbnailsPosition={{ base: 'bottom', sm: 'left' }}
               withPrint={false}
               withFullscreen={false}
               // Only what fits a phone at the gate
@@ -235,7 +236,6 @@ export function Gate() {
               }}
               // A tap on the pass hides the toolbar so the barcode fills the phone, another brings it back
               tapToggleToolbar
-              // MISSING: `thumbnailsPosition` as a responsive value (left on desktop, bottom on phones).
               // MISSING: a way to keep the screen awake and at full brightness while the pass is shown; that is the host app's job.
             />
 

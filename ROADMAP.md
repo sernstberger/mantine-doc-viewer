@@ -23,16 +23,16 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [x] **Toolbar slots** (`toolbarSubtitle`, `toolbarStartSection`, `renderToolbarTitle`): a subtitle under the
       title ("Edited", "Draft 4"), a left slot, and a title render prop so the title can be the current
       sheet (Folio, Dealroom, Plan room, Stand)
-- [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
-      (Field Report)
+- [x] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
+      (Field Report). PDFs, text and code grow; images keep a minimum height
 - [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
-- [ ] **Controlled `fullscreen` prop** (Atrium)
-- [ ] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate)
+- [x] **Controlled `fullscreen` prop** (Atrium): `fullscreen` and `onFullscreenChange`
+- [x] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate): `thumbnailsPosition` takes `{ base, sm }` values
 - [x] **Tap-to-toggle toolbar** (`tapToggleToolbar`) on touch screens, so a page can fill a phone (Gate)
 - [x] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
       embedded viewer (Field Report)
-- [ ] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
-      cause a horizontal scrollbar (Proofline)
+- [x] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
+      cause a horizontal scrollbar (Proofline): fit-to-width reads the padding of the `pages` element
 - [ ] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
       zones, swipe, pedal keys) (Stand, Atrium)
 - [ ] **Compact page editor bar**: a Styles API part for its buttons, and an icon-only variant for

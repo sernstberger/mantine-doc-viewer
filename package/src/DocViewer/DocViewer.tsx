@@ -21,12 +21,7 @@ import {
   useStyles,
 } from '@mantine/core';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import {
-  useCallbackRef,
-  useFullscreenElement,
-  useIsomorphicEffect,
-  useMergedRef,
-} from '@mantine/hooks';
+import { useCallbackRef, useIsomorphicEffect, useMergedRef } from '@mantine/hooks';
 import React, { useMemo } from 'react';
 import {
   DocViewerController,
@@ -42,6 +37,7 @@ import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import { useTapToggle } from './use-tap-toggle';
 import { OverlayControls } from './OverlayControls';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
+import { useControlledFullscreen } from './use-controlled-fullscreen';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
@@ -204,8 +200,8 @@ export interface DocViewerProps
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
 
-  /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position */
-  thumbnailsPosition?: DocViewerThumbnailsPosition;
+  /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position. Can differ per breakpoint, for example `{ base: 'bottom', sm: 'left' }` */
+  thumbnailsPosition?: DocViewerResponsive<DocViewerThumbnailsPosition>;
 
   /** Side that PDF page thumbnails are shown on at first, `'left'` by default. Readers can move them from the toolbar */
   defaultThumbnailsPosition?: DocViewerThumbnailsPosition;
@@ -281,6 +277,17 @@ export interface DocViewerProps
   /** Determines whether the toolbar has a full screen button, `true` by default */
   withFullscreen?: boolean;
 
+  /**
+   * Determines whether the viewer is full screen, for a controlled state. Use with
+   * `onFullscreenChange`. Browsers only allow full screen after a click or key press, so set it
+   * from an event handler. When a request is refused, or the reader presses Escape,
+   * `onFullscreenChange` reports what really happened
+   */
+  fullscreen?: boolean;
+
+  /** Called when the viewer enters or leaves full screen, by the toolbar, the controller, `fullscreen` or the browser */
+  onFullscreenChange?: (fullscreen: boolean) => void;
+
   /** Renderers for file types the viewer does not show itself, such as CSV, checked in order before the built-in views */
   renderers?: DocViewerRenderer[];
 
@@ -333,6 +340,15 @@ export interface DocViewerProps
 
   /** Determines whether the toolbar is displayed, `true` by default */
   withToolbar?: boolean;
+
+  /**
+   * Height of the viewer, a number in px or any CSS value; the viewer fills its parent by default
+   * when the parent has a height. `'auto'` makes the viewer as tall as its content, so the page
+   * scrolls instead of the viewer: a PDF shows all its pages, text and code show every line. Page
+   * tracking, `goToPage` and search then scroll the window. Images and custom renderers keep a
+   * minimum height. Full screen and presentations use the whole screen as usual
+   */
+  height?: 'auto' | (string & {}) | number;
 }
 
 export type DocViewerFactory = Factory<{
@@ -358,7 +374,11 @@ const defaultProps: Partial<DocViewerProps> = {
 };
 
 /** Props after responsive values are resolved for the current viewport */
-type ResolvedDocViewerProps = Omit<DocViewerProps, 'size' | 'pageGap' | 'thumbnailWidth'> & {
+type ResolvedDocViewerProps = Omit<
+  DocViewerProps,
+  'size' | 'pageGap' | 'thumbnailWidth' | 'thumbnailsPosition'
+> & {
+  thumbnailsPosition?: DocViewerThumbnailsPosition;
   size?: MantineSize;
   pageGap?: MantineSpacing;
   thumbnailWidth?: number;
@@ -473,6 +493,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     tapToggleToolbar,
     withOverlayControls,
     withToolbar,
+    height,
     toolbarControls,
     pageBackground,
     pageColorScheme,
@@ -484,6 +505,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withPrint,
     withDownload,
     withFullscreen,
+    fullscreen: fullscreenProp,
+    onFullscreenChange,
     withPageEditing,
     onSave,
     onDocumentLoadStart,
@@ -500,6 +523,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const resolvedSize = useResponsiveValue(size) ?? 'sm';
   const resolvedPageGap = useResponsiveValue(pageGap);
   const resolvedThumbnailWidth = useResponsiveValue(thumbnailWidth) ?? DEFAULT_THUMBNAIL_WIDTH;
+  const resolvedThumbnailsPosition = useResponsiveValue(thumbnailsPosition);
 
   const getStyles = useStyles<DocViewerFactory>({
     name: 'DocViewer',
@@ -509,6 +533,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       size: resolvedSize,
       pageGap: resolvedPageGap,
       thumbnailWidth: resolvedThumbnailWidth,
+      thumbnailsPosition: resolvedThumbnailsPosition,
     } satisfies ResolvedDocViewerProps,
     className,
     style,
@@ -523,7 +548,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
   const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
   const controller = useControllerRegistry(controllerRef);
-  const fullscreen = useFullscreenElement<HTMLDivElement>();
+  const fullscreen = useControlledFullscreen(fullscreenProp, onFullscreenChange);
   const rootRef = useMergedRef(ref, fullscreen.ref);
 
   const resolvedFileName = fileName ?? getFileName(src);
@@ -585,6 +610,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         locale,
         withToolbar,
         toolbarHidden: tapToggle.hidden,
+        autoHeight: height === 'auto',
         toolbarControls,
         toolbarSection,
         toolbarStartSection,
@@ -596,7 +622,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         maxCanvasPixels: maxCanvasPixels!,
         defaultThumbnailsOpened,
         defaultPageLayout,
-        thumbnailsPosition,
+        thumbnailsPosition: resolvedThumbnailsPosition,
         defaultThumbnailsPosition,
         onThumbnailsPositionChange,
         maxTextSize: maxTextSize!,
@@ -630,11 +656,13 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
           {
             size: isNumberLike(resolvedSize) ? undefined : resolvedSize,
             fullscreen: fullscreen.fullscreen,
+            'auto-height': height === 'auto',
           },
           mod,
         ]}
         {...others}
         {...tapToggle.handlers}
+        h={others.h ?? height}
       >
         {/* Keyed so that zoom, rotation and search reset when the document changes, unless the view is kept */}
         <React.Fragment key={keepView ? resolvedType : `${resolvedType}:${src}`}>

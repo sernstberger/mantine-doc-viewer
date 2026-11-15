@@ -11,8 +11,16 @@ const LONG_JUMP_SCREENS = 3;
 /** Longest a programmatic scroll is expected to take, used when `scrollend` is not supported */
 const SCROLL_SETTLE_TIMEOUT = 1000;
 
-/** Tracks which page takes up most of the scroll container, and scrolls to pages */
-export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = false) {
+/**
+ * Tracks which page takes up most of the scroll container, and scrolls to pages. With `viewport`
+ * the viewer has no scroll area of its own (`height="auto"`): the browser window scrolls, so the
+ * window is the view and pages are scrolled into it
+ */
+export function useCurrentPage(
+  scrollRoot: HTMLElement | null,
+  horizontal = false,
+  viewport = false
+) {
   const [currentPage, setCurrentPage] = useState(1);
   const pages = useRef(new Map<number, HTMLDivElement>());
   const visible = useRef(new Set<number>());
@@ -29,6 +37,7 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
     if (!scrollRoot || typeof IntersectionObserver === 'undefined') {
       return undefined;
     }
+    const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
 
     // Measured in pixels, not intersection ratios: a page zoomed to several times the
     // height of the viewer never reaches a ratio threshold, yet fills the whole view
@@ -49,7 +58,10 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
             right: rect.right,
           });
       });
-      const best = getMostVisiblePage(boxes, scrollRoot.getBoundingClientRect());
+      const view = viewport
+        ? { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
+        : scrollRoot.getBoundingClientRect();
+      const best = getMostVisiblePage(boxes, view);
       best && setCurrentPage(best);
     };
 
@@ -61,7 +73,7 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
         });
         update();
       },
-      { root: scrollRoot }
+      { root: viewport ? null : scrollRoot }
     );
     pages.current.forEach((node) => observer.current?.observe(node));
 
@@ -70,15 +82,15 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
-    scrollRoot.addEventListener('scroll', onScroll, { passive: true });
+    scroller.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       cancelAnimationFrame(frame);
-      scrollRoot.removeEventListener('scroll', onScroll);
+      scroller.removeEventListener('scroll', onScroll);
       observer.current?.disconnect();
       observer.current = null;
     };
-  }, [scrollRoot]);
+  }, [scrollRoot, viewport]);
 
   const registerPage = useCallback((page: number, node: HTMLDivElement | null) => {
     const previous = pages.current.get(page);
@@ -108,25 +120,39 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
       settleScroll.current?.();
       scrollTarget.current = page;
 
+      const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
       const settle = () => {
         window.clearTimeout(timeout);
-        scrollRoot.removeEventListener('scrollend', settle);
+        scroller.removeEventListener('scrollend', settle);
         scrollTarget.current = null;
         settleScroll.current = null;
       };
       const timeout = window.setTimeout(settle, SCROLL_SETTLE_TIMEOUT);
-      scrollRoot.addEventListener('scrollend', settle);
+      scroller.addEventListener('scrollend', settle);
       settleScroll.current = settle;
 
       // Long jumps are instant: scrolling smoothly past hundreds of pages would draw each one
-      const top = node.offsetTop - PAGE_SCROLL_OFFSET + offset;
-      const left = horizontal ? node.offsetLeft - PAGE_SCROLL_OFFSET : scrollRoot.scrollLeft;
+      const view = viewport
+        ? {
+            scrollTop: window.scrollY,
+            scrollLeft: window.scrollX,
+            clientHeight: window.innerHeight,
+            clientWidth: window.innerWidth,
+          }
+        : scrollRoot;
+      const pageTop = viewport ? node.getBoundingClientRect().top + window.scrollY : node.offsetTop;
+      const top = pageTop - PAGE_SCROLL_OFFSET + offset;
+      const pageLeft = node.offsetLeft - PAGE_SCROLL_OFFSET;
+      const left = horizontal && !viewport ? pageLeft : view.scrollLeft;
       const far =
-        Math.abs(top - scrollRoot.scrollTop) > scrollRoot.clientHeight * LONG_JUMP_SCREENS ||
-        Math.abs(left - scrollRoot.scrollLeft) > scrollRoot.clientWidth * LONG_JUMP_SCREENS;
-      scrollRoot.scrollTo({ top, left, behavior: far ? 'auto' : getScrollBehavior() });
+        Math.abs(top - view.scrollTop) > view.clientHeight * LONG_JUMP_SCREENS ||
+        Math.abs(left - view.scrollLeft) > view.clientWidth * LONG_JUMP_SCREENS;
+      const behavior = far ? 'auto' : getScrollBehavior();
+      scroller.scrollTo({ top, left, behavior });
+      // A row of pages is scrolled sideways inside the viewer, even when the window scrolls
+      viewport && horizontal && scrollRoot.scrollTo({ left: pageLeft, behavior });
     },
-    [scrollRoot, horizontal]
+    [scrollRoot, horizontal, viewport]
   );
 
   return { currentPage, registerPage, scrollToPage };

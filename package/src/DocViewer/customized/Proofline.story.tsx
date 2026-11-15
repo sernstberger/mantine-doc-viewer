@@ -241,7 +241,6 @@ export function Proofline() {
                 </span>
               </>
             )}
-            // MISSING: padding for the pages part that fit-to-width zoom knows about, so marks outside the page never cause a horizontal scrollbar.
           />
           <div className={classes.legendBar}>
             <Switch

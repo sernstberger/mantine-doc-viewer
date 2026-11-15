@@ -191,7 +191,7 @@
   }
 }
 
-/* Horizontal padding must match PAGES_GUTTER in pdf/zoom.ts */
+/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback) */
 .pages {
   display: flex;
   flex-direction: column;
@@ -802,6 +802,28 @@
 
   @media (pointer: coarse) {
     display: grid;
+  }
+}
+
+/*
+ * height="auto": the viewer is as tall as its content and the window scrolls. Full screen has a
+ * height of its own, so it scrolls inside the viewer as usual
+ */
+.root[data-auto-height]:not([data-fullscreen]) {
+  & .body {
+    flex: none;
+  }
+
+  /* Side rails stay in view while the pages scroll past */
+  & .main > .thumbnails:not([data-orientation='horizontal']) {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+  }
+
+  & .main > .thumbnails[data-orientation='horizontal'] {
+    max-height: none;
   }
 }
 

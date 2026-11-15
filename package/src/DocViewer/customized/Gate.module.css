@@ -302,6 +302,12 @@
   border: 0;
   background: #fff;
   box-shadow: 0 -1px 0 rgb(11 37 69 / 0.08);
+
+  /* A rail beside the pass on wider screens */
+  &[data-orientation='vertical'] {
+    padding: 16px 8px;
+    box-shadow: 1px 0 0 rgb(11 37 69 / 0.08);
+  }
 }
 
 .thumbnail {

@@ -17,9 +17,16 @@ export function useTextLayers() {
   return { layers: layers.current, version, onTextLayer };
 }
 
-/** Scrolls the container so that the range is in the middle of it */
-export function scrollRangeIntoView(container: HTMLElement, range: Range) {
+/** Scrolls the container so that the range is in the middle of it, or the window when there is no container */
+export function scrollRangeIntoView(container: HTMLElement | null, range: Range) {
   const rangeRect = range.getBoundingClientRect();
+  if (!container) {
+    window.scrollTo({
+      top: window.scrollY + rangeRect.top - window.innerHeight / 2 + rangeRect.height / 2,
+      behavior: getScrollBehavior(),
+    });
+    return;
+  }
   const containerRect = container.getBoundingClientRect();
   container.scrollTo({
     top:
@@ -43,6 +50,8 @@ interface SearchHighlightsInput {
   matches: SearchMatch[];
   activeMatch: SearchMatch | undefined;
   scrollRoot: HTMLElement | null;
+  /** The window scrolls instead of `scrollRoot` (`height="auto"`) */
+  viewport?: boolean;
   scrollToPage: (page: number) => void;
 }
 
@@ -56,6 +65,7 @@ export function useSearchHighlights({
   matches,
   activeMatch,
   scrollRoot,
+  viewport = false,
   scrollToPage,
 }: SearchHighlightsInput) {
   const { layers, version, onTextLayer } = useTextLayers();
@@ -98,11 +108,11 @@ export function useSearchHighlights({
 
     if (pendingScroll.current && activeRanges.length > 0 && scrollRoot) {
       pendingScroll.current = false;
-      scrollRangeIntoView(scrollRoot, activeRanges[0]);
+      scrollRangeIntoView(viewport ? null : scrollRoot, activeRanges[0]);
     }
 
     return () => cleanups.forEach((cleanup) => cleanup());
-  }, [pages, matches, activeMatch, layers, version, scrollRoot]);
+  }, [pages, matches, activeMatch, layers, version, scrollRoot, viewport]);
 
   return onTextLayer;
 }
