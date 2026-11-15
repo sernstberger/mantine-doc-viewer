@@ -2,7 +2,7 @@ import { useCallbackRef } from '@mantine/hooks';
 import React, { createContext, use, useMemo } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { useDocViewerExtensionOptions } from '../DocViewerRoot/extensions-context';
-import { getSaveHandler } from '../DocViewerRoot/get-save-handler';
+import { getSaveHandler } from './utils/get-save-handler';
 import {
   PdfThumbnailEditsContext,
   usePdfSession,
@@ -101,10 +101,7 @@ export function PageEditorSetup({ children }: { children: React.ReactNode }) {
   const editPagesRef = useReturnFocus(editing);
 
   const save = useCallbackRef<SaveEdit>(async (bytes, reason, pages) => {
-    await getSaveHandler({ editor: options, markup: undefined, fileName })?.(bytes, {
-      reason,
-      pages,
-    });
+    await getSaveHandler(options, fileName)(bytes, { reason, pages });
   });
   const open = useCallbackRef(() => {
     ready && setMode(EDIT_PAGES_MODE);

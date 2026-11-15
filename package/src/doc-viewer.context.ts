@@ -19,12 +19,6 @@ import type { DocViewerRenderPageOverlay } from './utils/page-overlay';
 import type { DocViewerSizeConfig } from './utils/sizes';
 import type { DocViewerPageTurning } from './utils/spreads';
 
-/** What happens to the bytes of a PDF the editor or the markup tools made */
-export type DocViewerSaveHandler = (
-  bytes: Uint8Array,
-  info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
-) => void | Promise<void>;
-
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerRootFactory>;
   store: DocViewerStore;
