@@ -8,7 +8,9 @@ import { usePageLayout } from './use-page-layout';
 import { usePagesGutter } from './use-pages-gutter';
 import { usePresentation } from './use-presentation';
 import { useThumbnailsPanel } from './use-thumbnails-panel';
-import { toPdfZoom, type PdfZoom } from './zoom';
+import type { DocViewerZoom } from '../controller';
+import { useZoomSetting } from '../use-zoom-setting';
+import { fromPdfZoom, toPdfZoom, type PdfZoom } from './zoom';
 
 /** The loaded state of a PDF, its document and its page count, as `getLoaded` gives them */
 export type PdfLoaded = ReturnType<typeof getLoaded>;
@@ -31,7 +33,6 @@ function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
  * area and its size, a presentation, and the scale all of that gives the pages
  */
 export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoaded['ready']) {
-  const [zoom, setZoom] = useState<PdfZoom>(() => toPdfZoom(context.defaultZoom));
   const { layout, setLayout } = usePageLayout({
     controlled: context.pageLayout,
     defaultLayout: context.defaultPageLayout,
@@ -55,22 +56,32 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
   });
   const { presenting } = presentation;
   const viewport = scrollsWindow(context.autoHeight, context.fullscreen, presenting);
-  const scale = getViewScale({
+  /** The scale a zoom gives the pages in the view as it is now */
+  const scaleOf = (setting: DocViewerZoom) =>
+    getViewScale({
+      ready: !!ready,
+      presenting,
+      pageSize,
+      zoom: toPdfZoom(setting),
+      layout,
+      bodyWidth,
+      bodyHeight,
+      columnGap,
+      gutter,
+      autoHeight: viewport,
+    });
+  const zoomSetting = useZoomSetting({
+    value: context.zoom,
+    defaultValue: context.defaultZoom,
     ready: !!ready,
-    presenting,
-    pageSize,
-    zoom,
-    layout,
-    bodyWidth,
-    bodyHeight,
-    columnGap,
-    gutter,
-    autoHeight: viewport,
+    scaleOf,
+    onZoomChange: context.events.onZoomChange,
   });
+  const { scale } = zoomSetting;
 
   return {
-    zoom,
-    setZoom,
+    zoom: toPdfZoom(zoomSetting.zoom),
+    setZoom: (zoom: PdfZoom) => zoomSetting.setZoom(fromPdfZoom(zoom)),
     layout,
     setLayout,
     rotation,

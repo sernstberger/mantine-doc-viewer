@@ -286,6 +286,13 @@ export interface DocViewerProps
   defaultZoom?: DocViewerZoom;
 
   /**
+   * Controlled zoom of a PDF or image, with `onZoomChange`: a scale where 1 is 100%, `'fit'` or
+   * `'fit-page'`, like `defaultZoom`. Zooming from the toolbar, keys, the wheel, a pinch or the
+   * controller is reported to `onZoomChange`, and shown once the app passes it back
+   */
+  zoom?: DocViewerZoom;
+
+  /**
    * Determines whether PDF pages turn by spread, like a book: a click or tap on the left or right
    * edge of the view, a sideways swipe, or Arrow left, Arrow right, Page up and Page down from
    * anywhere on the page (the keys page turner pedals send). `true` turns all of them on; pass

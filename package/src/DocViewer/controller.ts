@@ -196,7 +196,12 @@ export interface DocViewerEvents {
 
   /** Called when the PDF spread in view changes, with its number counted from 1 and its pages, for example `[4, 5]` */
   onSpreadChange?: (spread: number, pages: number[]) => void;
-  onZoomChange?: (scale: number, fitted: boolean) => void;
+  /**
+   * Called when the zoom of a PDF or image changes, with the zoom as `zoom` and `defaultZoom` take
+   * it (a scale, `'fit'` or `'fit-page'`) and the scale it gives, where 1 is 100%. A fitted zoom
+   * reports a new scale when the view is resized. Pass the zoom back as `zoom` to control it
+   */
+  onZoomChange?: (zoom: DocViewerZoom, details: { scale: number }) => void;
 
   /** Called when the reader picks a PDF page layout from the toolbar, or `setPageLayout` is called. Pass it back as `pageLayout` to control the layout */
   onPageLayoutChange?: (layout: DocViewerPageLayout) => void;

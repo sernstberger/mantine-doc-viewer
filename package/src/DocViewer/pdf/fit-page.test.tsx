@@ -33,7 +33,7 @@ describe('fit-page zoom', () => {
     );
 
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
-    expect(onZoomChange).toHaveBeenLastCalledWith(1, true);
+    expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: 1 });
     // The toolbar button fits the width, which is a different fit
     expect(screen.getByRole('button', { name: 'Fit to width' })).toHaveAttribute(
       'aria-pressed',
@@ -56,9 +56,9 @@ describe('fit-page zoom', () => {
     );
 
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
-    expect(onZoomChange).toHaveBeenLastCalledWith(2, false);
+    expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
     act(() => controller.current!.setZoom('fit-page'));
-    expect(onZoomChange).toHaveBeenLastCalledWith(1, true);
+    expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: 1 });
   });
 
   it('fits a whole image for fit-page', async () => {
@@ -77,10 +77,12 @@ describe('fit-page zoom', () => {
     Object.defineProperty(image, 'naturalHeight', { value: 600 });
     fireEvent.load(image);
 
-    await waitFor(() => expect(onZoomChange).toHaveBeenLastCalledWith(expect.any(Number), true));
+    await waitFor(() =>
+      expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: expect.any(Number) })
+    );
     act(() => controller.current!.setZoom(2));
-    expect(onZoomChange).toHaveBeenLastCalledWith(2, false);
+    expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
     act(() => controller.current!.setZoom('fit-page'));
-    expect(onZoomChange).toHaveBeenLastCalledWith(expect.any(Number), true);
+    expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: expect.any(Number) });
   });
 });

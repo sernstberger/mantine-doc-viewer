@@ -18,7 +18,16 @@ import { useImageLoad } from './use-image-load';
 import { useImageZoom } from './use-image-zoom';
 
 export function ImageView() {
-  const { getStyles, src, fileName, alt, labels, defaultZoom } = useDocViewerContext();
+  const {
+    getStyles,
+    src,
+    fileName,
+    alt,
+    labels,
+    zoom: zoomProp,
+    defaultZoom,
+    events,
+  } = useDocViewerContext();
   const title = useDocumentTitle();
   const [rotation, setRotation] = useState<ImageRotation>(0);
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
@@ -31,8 +40,11 @@ export function ImageView() {
   const fitScale = naturalSize ? getImageFitScale({ width, height }, naturalSize, rotation) : 1;
   const { zoom, scale, zoomTo, overflowing } = useImageZoom({
     stage,
+    zoom: zoomProp,
     defaultZoom,
     fitScale,
+    ready,
+    onZoomChange: events.onZoomChange,
     layoutKey: `${rotation}:${width}x${height}`,
     onZoom: () => markZoom(),
   });
@@ -41,7 +53,7 @@ export function ImageView() {
   const handleKeyDown = useImageKeys({ scale, zoomTo, rotate });
   const imageAlt = alt ?? fileName ?? labels.image;
   const print = () => printImage(src, imageAlt, fileName);
-  useImageController({ ready, scale, zoom, zoomTo, rotate, print });
+  useImageController({ ready, scale, zoomTo, rotate, print });
 
   return (
     <>

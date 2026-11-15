@@ -57,6 +57,7 @@ const OWN_PROP_NAMES = [
   'controllerRef',
   'page',
   'defaultPage',
+  'zoom',
   'defaultZoom',
   'withFullscreen',
   'fullscreen',

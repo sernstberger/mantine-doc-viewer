@@ -494,7 +494,7 @@ describe('DocViewer PDF', () => {
 
       act(() => controller.current!.setZoom(2));
       expect(screen.getByRole('button', { name: /Reset zoom/ })).toHaveTextContent('200%');
-      expect(onZoomChange).toHaveBeenLastCalledWith(2, false);
+      expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
 
       act(() => controller.current!.setZoom('fit'));
       expect(screen.getByRole('button', { name: 'Fit to width' })).toHaveAttribute(

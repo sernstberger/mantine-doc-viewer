@@ -65,6 +65,7 @@ export interface DocViewerContextValue {
   events: Required<DocViewerEvents>;
   page: number | undefined;
   defaultPage: number | undefined;
+  zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
   withFullscreen: boolean | undefined;
   withPageEditing: boolean | undefined;

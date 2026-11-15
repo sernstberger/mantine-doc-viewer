@@ -39,9 +39,9 @@ describe('withOverlayControls', () => {
     loadImage();
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
-    expect(onZoomChange).toHaveBeenLastCalledWith(1.25, false);
+    expect(onZoomChange).toHaveBeenLastCalledWith(1.25, { scale: 1.25 });
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
-    expect(onZoomChange).toHaveBeenLastCalledWith(1, false);
+    expect(onZoomChange).toHaveBeenLastCalledWith(1, { scale: 1 });
 
     await userEvent.click(screen.getByRole('button', { name: 'Full screen' }));
     expect(requestFullscreen).toHaveBeenCalled();

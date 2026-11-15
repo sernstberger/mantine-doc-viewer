@@ -264,13 +264,13 @@ function Demo() {
 | `onSave` | Called with the bytes of a PDF made by page editing |
 | `onDocumentError` | Called with the error when a document cannot be loaded |
 | `onPageChange` | Called with the PDF page that takes up most of the view |
-| `onZoomChange` | Called with the scale (1 is 100%) and whether it is fitted |
+| `onZoomChange` | Called with the zoom (a scale, `'fit'` or `'fit-page'`) and `{ scale }`, the scale it gives (1 is 100%). A fitted zoom reports a new scale when the view is resized |
 | `onReadingProgress` | Called with `{ seen, position, reachedEnd }` when how much of a PDF has been seen changes: the fraction seen of each page, how far the view is scrolled (0 to 1) and whether the end was reached |
 | `idleTimeout`, `onIdle` | For kiosks: `onIdle` is called when nothing was touched for `idleTimeout` ms, so the app can go back to the start |
 | `autoAdvance` | `{ interval, loop }`: plays a PDF page by page (a spread at a time in two-page layouts). With `idleTimeout` it plays only while idle |
 | `onReachEnd` | Called once when the bottom of the last page of a PDF is on screen |
 | `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
-| `defaultZoom` | A scale, or `'fit'` (the default) |
+| `zoom`, `defaultZoom` | A scale, `'fit'` (the default) or `'fit-page'`. `zoom` controls it: zooming from the toolbar, keys, wheel, pinch or controller goes to `onZoomChange`, and shows once you pass it back |
 | `fullscreen`, `onFullscreenChange` | Control full screen from your app. Set `fullscreen` from a click handler (browsers refuse it otherwise); `onFullscreenChange` reports what really happened, including Escape |
 | `controllerRef` | `goToPage`, `goToSpread`, `nextSpread`, `previousSpread`, `highlight`, `clearHighlight`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `setMarkupTool`, `saveMarkup`, `getOutline`, `getBytes`, `getPageCanvas`, `print`, `download`, `toggleFullscreen` and `resetReadingProgress`; `canPrint` and `type` to read |
 

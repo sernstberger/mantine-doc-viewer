@@ -12,6 +12,11 @@ export function toPdfZoom(zoom: DocViewerZoom): PdfZoom {
   return zoom === 'fit-page' ? zoom : clampZoom(zoom);
 }
 
+/** The zoom as props and events name it, for a PDF zoom */
+export function fromPdfZoom(zoom: PdfZoom): DocViewerZoom {
+  return zoom === 'fit-width' ? 'fit' : zoom;
+}
+
 /** Space kept around pages when the padding of the `pages` element cannot be read, 16px a side by default */
 export const PAGES_GUTTER = 32;
 

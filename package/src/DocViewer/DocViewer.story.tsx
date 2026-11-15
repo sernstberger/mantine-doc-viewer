@@ -203,8 +203,8 @@ export function Controlled() {
         controllerRef={controller}
         page={page}
         onPageChange={setPage}
-        onZoomChange={(scale, fitted) =>
-          setZoom(`${Math.round(scale * 100)}%${fitted ? ' (fit)' : ''}`)
+        onZoomChange={(next, { scale }) =>
+          setZoom(`${Math.round(scale * 100)}%${typeof next === 'number' ? '' : ` (${next})`}`)
         }
         h={600}
       />
