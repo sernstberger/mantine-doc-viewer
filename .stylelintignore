@@ -2,3 +2,4 @@ docs/.next
 docs/out
 package/dist
 coverage
+.claude
