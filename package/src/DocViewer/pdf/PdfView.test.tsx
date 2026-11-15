@@ -857,6 +857,10 @@ describe('DocViewer PDF', () => {
       first.focus();
       await userEvent.keyboard('{Alt>}{ArrowRight}{/Alt}');
       expect(order()).toEqual(['2', '1', '3']);
+      // Focus follows the page that moved
+      await waitFor(() =>
+        expect(screen.getByRole('option', { name: 'Page 1, position 2 of 3' })).toHaveFocus()
+      );
 
       await userEvent.keyboard('{End}{ }');
       expect(screen.getByRole('option', { name: 'Page 3, position 3 of 3' })).toHaveAttribute(
@@ -866,6 +870,10 @@ describe('DocViewer PDF', () => {
       await userEvent.keyboard('{Delete}');
       expect(order()).toEqual(['2', '1']);
       expect(screen.getByText(/1 page removed/)).toBeInTheDocument();
+      // Focus stays in the list when the focused page goes
+      await waitFor(() =>
+        expect(screen.getByRole('option', { name: 'Page 1, position 2 of 2' })).toHaveFocus()
+      );
 
       await userEvent.keyboard('{Control>}a{/Control}');
       expect(screen.getByText('2 selected')).toBeInTheDocument();

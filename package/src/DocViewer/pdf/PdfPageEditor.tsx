@@ -195,10 +195,11 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     },
   });
 
-  const focusIndex = (index: number) => {
-    const next = Math.min(Math.max(index, 0), order.length - 1);
+  /** Focus the page at this index of `pages` (the order on screen once a change has rendered) */
+  const focusIndex = (index: number, pages: PageOrder = order) => {
+    const next = Math.min(Math.max(index, 0), pages.length - 1);
     setFocusedIndex(next);
-    scrollRoot?.querySelector<HTMLElement>(`[data-page="${order[next]}"]`)?.focus();
+    scrollRoot?.querySelector<HTMLElement>(`[data-page="${pages[next]}"]`)?.focus();
   };
 
   const toggle = (page: number) =>
@@ -217,7 +218,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     setOrder(next);
     const moved = [...pages][0];
     announce(labels.pageMoved(moved, next.indexOf(moved) + 1));
-    requestAnimationFrame(() => focusIndex(next.indexOf(order[focusedIndex])));
+    requestAnimationFrame(() => focusIndex(next.indexOf(order[focusedIndex]), next));
   };
 
   const remove = () => {
@@ -228,7 +229,8 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     }
     setOrder(next);
     setSelected(new Set());
-    setFocusedIndex(Math.min(focusedIndex, next.length - 1));
+    // The focused page may be gone: keep keyboard focus in the list
+    requestAnimationFrame(() => focusIndex(focusedIndex, next));
     announce(labels.pagesRemoved(order.length - next.length));
   };
 
