@@ -10,7 +10,11 @@ import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
 import classes from './Gate.module.css';
 
-export default { title: 'DocViewer/Apps/Gate (airline app)' };
+export default {
+  title: 'DocViewer/Apps/Gate (airline app)',
+  // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
+  parameters: { layout: 'fullscreen' },
+};
 
 // Seabright navy, so anything Mantine draws for the viewer (focus rings, pressed states) is on brand
 const navy: MantineColorsTuple = [
@@ -203,8 +207,9 @@ export function Gate() {
               radius={0}
               color="#0B2545"
               defaultThumbnailsOpened
-              // Left of the pass on the wider screens that show this mock-up, under it on a phone
-              thumbnailsPosition={{ base: 'bottom', sm: 'left' }}
+              // Always under the pass. On a wide screen the app is drawn inside a phone frame, and a
+              // responsive value would follow the window rather than the phone and squeeze the pass
+              thumbnailsPosition="bottom"
               withPrint={false}
               withFullscreen={false}
               // Only what fits a phone at the gate
