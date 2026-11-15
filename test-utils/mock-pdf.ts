@@ -22,6 +22,10 @@ export function mockPdf({
   links = [] as unknown[],
   layers = [] as { id: string; name: string; visible: boolean }[],
   attachments = null as Map<string, { filename: string; description: string }> | null,
+  /** Size of the file that pdf.js reports through onProgress */
+  total = undefined as number | undefined,
+  /** Document information, or 'fail' when it cannot be read */
+  info = undefined as Record<string, unknown> | 'fail' | undefined,
 } = {}) {
   // One render mock shared by all pages, so tests can count renders across the document
   const page = {
@@ -59,14 +63,16 @@ export function mockPdf({
     getData: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70]))),
     extractPages: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70, 45]))),
     getMetadata: jest.fn(() =>
-      Promise.resolve({
-        info: {
-          Title: 'Quarterly report',
-          Author: 'Finance',
-          CreationDate: 'D:20240131120000Z',
-          PDFFormatVersion: '1.7',
-        },
-      })
+      info === 'fail'
+        ? Promise.reject(new Error('No metadata'))
+        : Promise.resolve({
+            info: info ?? {
+              Title: 'Quarterly report',
+              Author: 'Finance',
+              CreationDate: 'D:20240131120000Z',
+              PDFFormatVersion: '1.7',
+            },
+          })
     ),
     getDownloadInfo: jest.fn(() => Promise.resolve({ length: 2048 })),
     getAttachments: jest.fn(() => Promise.resolve(attachments)),
@@ -86,6 +92,7 @@ export function mockPdf({
       promise?: Promise<unknown>;
       destroy: jest.Mock;
       onPassword?: (update: (value: string) => void, reason: number) => void;
+      onProgress?: (progress: { loaded: number; total?: number }) => void;
     } = { destroy: jest.fn(() => Promise.resolve()) };
 
     // Like pdf.js, every load gives a new document object (sharing the mocks above)
@@ -95,7 +102,10 @@ export function mockPdf({
     task.promise = fail
       ? Promise.reject(new Error('Invalid PDF structure'))
       : !password
-        ? Promise.resolve(loaded)
+        ? Promise.resolve().then(() => {
+            task.onProgress?.({ loaded: total ?? 0, total });
+            return loaded;
+          })
         : new Promise((resolve) => {
             const ask = (reason: number) =>
               task.onPassword?.((value) => (value === password ? resolve(loaded) : ask(2)), reason);

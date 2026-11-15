@@ -1,6 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useState } from 'react';
 import { saveBytes } from '../files';
+import { formatDateTime, formatNumber } from '../format';
 import { formatFileSize } from '../text/use-text-document';
 
 export interface PdfProperty {
@@ -50,9 +51,10 @@ export function parsePdfDate(value: unknown): Date | null {
 }
 
 /** Page size in inches and millimetres, from PDF points */
-export function formatPageSize(width: number, height: number) {
-  const inches = (points: number) => Math.round((points / 72) * 100) / 100;
-  const millimetres = (points: number) => Math.round((points / 72) * 25.4);
+export function formatPageSize(width: number, height: number, locale?: string) {
+  const inches = (points: number) =>
+    formatNumber(Math.round((points / 72) * 100) / 100, locale, { maximumFractionDigits: 2 });
+  const millimetres = (points: number) => formatNumber(Math.round((points / 72) * 25.4), locale);
   return `${inches(width)} × ${inches(height)} in (${millimetres(width)} × ${millimetres(height)} mm)`;
 }
 
@@ -68,7 +70,12 @@ const INFO_KEYS: [PdfProperty['key'], string][] = [
 /** Properties worth showing, in a fixed order, leaving out empty ones */
 export function getPdfProperties(
   info: Record<string, unknown>,
-  details: { fileSize?: number; pageCount: number; pageSize?: { width: number; height: number } },
+  details: {
+    fileSize?: number;
+    pageCount: number;
+    pageSize?: { width: number; height: number };
+    locale?: string;
+  },
   formatDate: (date: Date) => string
 ): PdfProperty[] {
   const properties: PdfProperty[] = [];
@@ -81,17 +88,22 @@ export function getPdfProperties(
   created && add('created', formatDate(created));
   modified && add('modified', formatDate(modified));
   add('pdfVersion', info.PDFFormatVersion);
-  details.fileSize !== undefined && add('fileSize', formatFileSize(details.fileSize));
-  add('pageCount', String(details.pageCount));
+  details.fileSize !== undefined &&
+    add('fileSize', formatFileSize(details.fileSize, details.locale));
+  add('pageCount', formatNumber(details.pageCount, details.locale));
   details.pageSize &&
-    add('pageSize', formatPageSize(details.pageSize.width, details.pageSize.height));
+    add(
+      'pageSize',
+      formatPageSize(details.pageSize.width, details.pageSize.height, details.locale)
+    );
   return properties;
 }
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-
-export function usePdfProperties(document: PDFDocumentProxy | null, opened: boolean) {
+export function usePdfProperties(
+  document: PDFDocumentProxy | null,
+  opened: boolean,
+  locale?: string
+) {
   const [properties, setProperties] = useState<PdfProperty[] | null>(null);
 
   useEffect(() => {
@@ -112,8 +124,13 @@ export function usePdfProperties(document: PDFDocumentProxy | null, opened: bool
         setProperties(
           getPdfProperties(
             metadata.info as Record<string, unknown>,
-            { fileSize: download.length, pageCount: document.numPages, pageSize: viewport },
-            formatDate
+            {
+              fileSize: download.length,
+              pageCount: document.numPages,
+              pageSize: viewport,
+              locale,
+            },
+            (date) => formatDateTime(date, locale)
           )
         );
       }
@@ -122,7 +139,7 @@ export function usePdfProperties(document: PDFDocumentProxy | null, opened: bool
     return () => {
       cancelled = true;
     };
-  }, [document, opened, properties]);
+  }, [document, opened, properties, locale]);
 
   return properties;
 }

@@ -21,7 +21,12 @@ import {
   useStyles,
 } from '@mantine/core';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
-import { useCallbackRef, useFullscreenElement, useMergedRef } from '@mantine/hooks';
+import {
+  useCallbackRef,
+  useFullscreenElement,
+  useIsomorphicEffect,
+  useMergedRef,
+} from '@mantine/hooks';
 import React, { useMemo } from 'react';
 import {
   DocViewerController,
@@ -152,6 +157,17 @@ export interface DocViewerProps
 
   /** Alternative text for images, `fileName` by default */
   alt?: string;
+
+  /**
+   * Determines whether the viewer keeps zoom, rotation, page layout and scroll position when `src`
+   * changes to another document of the same type, for example a next button, `false` by default.
+   * Search, page edits and the loaded document itself still reset. Otherwise a new `src` starts the
+   * viewer afresh
+   */
+  keepView?: boolean;
+
+  /** BCP 47 language tag, such as `'de-DE'`, for the numbers and dates the viewer shows: zoom, page counts, file sizes and document properties. The browser's language by default. Text comes from `labels` */
+  locale?: string;
 
   /** Text shown or read out by the viewer, override any of it to translate the viewer */
   labels?: Partial<DocViewerLabels>;
@@ -396,7 +412,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     mimeType,
     fileName,
     alt,
+    keepView,
     labels,
+    locale,
     pdfWorkerSrc,
     pdfOptions,
     maxCanvasPixels,
@@ -432,6 +450,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withFullscreen,
     withPageEditing,
     onSave,
+    onDocumentLoadStart,
     onDocumentLoad,
     onDocumentError,
     onPageChange,
@@ -481,9 +500,11 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       link.click();
     },
     toggleFullscreen: () => fullscreen.toggle(),
+    getType: () => resolvedType,
   });
 
   // Stable, so views can call them from effects without re-running them
+  const handleDocumentLoadStart = useCallbackRef(onDocumentLoadStart);
   const handleDocumentLoad = useCallbackRef(onDocumentLoad);
   const handleDocumentError = useCallbackRef(onDocumentError);
   const handlePageChange = useCallbackRef(onPageChange);
@@ -491,23 +512,40 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handleLinkClick = useCallbackRef(onLinkClick);
   const events = useMemo(
     () => ({
+      onDocumentLoadStart: handleDocumentLoadStart,
       onDocumentLoad: handleDocumentLoad,
       onDocumentError: handleDocumentError,
       onPageChange: handlePageChange,
       onZoomChange: handleZoomChange,
       onLinkClick: handleLinkClick,
     }),
-    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+    [
+      handleDocumentLoadStart,
+      handleDocumentLoad,
+      handleDocumentError,
+      handlePageChange,
+      handleZoomChange,
+      handleLinkClick,
+    ]
   );
+
+  // A layout effect, so the start is reported before any view reports that it loaded
+  useIsomorphicEffect(() => {
+    handleDocumentLoadStart({ type: resolvedType, src });
+  }, [resolvedType, src, handleDocumentLoadStart]);
 
   return (
     <DocViewerProvider
       value={{
         getStyles,
         src,
+        type: resolvedType,
+        mimeType,
         fileName: resolvedFileName,
         alt,
+        keepView,
         labels: resolvedLabels,
+        locale,
         withToolbar,
         toolbarControls,
         toolbarSection,
@@ -556,8 +594,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         ]}
         {...others}
       >
-        {/* Keyed so that zoom, rotation and search reset when the document changes */}
-        <React.Fragment key={`${resolvedType}:${src}`}>
+        {/* Keyed so that zoom, rotation and search reset when the document changes, unless the view is kept */}
+        <React.Fragment key={keepView ? resolvedType : `${resolvedType}:${src}`}>
           {renderView({ src, fileName: resolvedFileName, mimeType, type: resolvedType }, renderers)}
         </React.Fragment>
       </Box>

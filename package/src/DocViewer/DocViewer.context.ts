@@ -11,6 +11,7 @@ import {
   type MantineColor,
   type TooltipProps,
 } from '@mantine/core';
+import type { DocType } from './detect-doc-type';
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
@@ -20,9 +21,13 @@ import type { DocViewerSizeConfig } from './sizes';
 export interface DocViewerContextValue {
   getStyles: GetStylesApi<DocViewerFactory>;
   src: string;
+  type: DocType;
+  mimeType: string | undefined;
   fileName: string | undefined;
   alt: string | undefined;
+  keepView: boolean | undefined;
   labels: DocViewerLabels;
+  locale: string | undefined;
   withToolbar: boolean | undefined;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;

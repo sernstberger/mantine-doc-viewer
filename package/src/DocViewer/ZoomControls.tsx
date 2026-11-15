@@ -1,6 +1,7 @@
 import { ActionIcon, Group, UnstyledButton } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from './DocViewer.context';
+import { formatPercent } from './format';
 import { MinusIcon, PlusIcon } from './icons';
 import { MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from './zoom';
 import { softDisabled } from './a11y';
@@ -26,7 +27,8 @@ export function ZoomControls({
   onZoom,
   onFit,
 }: ZoomControlsProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, locale } = useDocViewerContext();
+  const percent = formatPercent(scale, locale);
   const controlProps = useControlProps();
 
   return (
@@ -44,9 +46,9 @@ export function ZoomControls({
         {...getStyles('zoomLevel')}
         onClick={() => onZoom(1)}
         // The name starts with the visible text, for voice control
-        aria-label={`${Math.round(scale * 100)}%, ${labels.resetZoom}`}
+        aria-label={`${percent}, ${labels.resetZoom}`}
       >
-        {Math.round(scale * 100)}%
+        {percent}
       </UnstyledButton>
       <DocViewerTooltip label={labels.zoomIn}>
         <ActionIcon

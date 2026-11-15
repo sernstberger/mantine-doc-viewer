@@ -17,7 +17,7 @@ import { getRegionProps } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
 
 export function ImageView() {
-  const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom } =
+  const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom, mimeType } =
     useDocViewerContext();
   const controlProps = useControlProps();
   const show = useShowControl();
@@ -39,6 +39,9 @@ export function ImageView() {
     layoutKey: `${rotation}:${width}x${height}`,
   });
   const rotate = () => setRotation(nextImageRotation);
+
+  // With keepView the image is not remounted: a new src gets another try after a failure
+  useEffect(() => setFailed(false), [src]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const action = getImageKeyAction(event);
@@ -69,9 +72,9 @@ export function ImageView() {
 
   useEffect(() => {
     if (naturalSize && !failed) {
-      events.onDocumentLoad({ type: 'image', ...naturalSize });
+      events.onDocumentLoad({ type: 'image', ...naturalSize, mimeType });
     }
-  }, [naturalSize, failed, events]);
+  }, [naturalSize, failed, events, mimeType]);
 
   useEffect(() => {
     failed && events.onDocumentError(new Error(`Image could not be loaded: ${src}`));
@@ -87,6 +90,7 @@ export function ImageView() {
     zoomOut: () => zoomTo(zoomOut(scale)),
     rotate,
     print,
+    isPrintable: () => ready,
   });
   const frameSize = naturalSize ? getRotatedSize(naturalSize, rotation) : null;
 

@@ -418,7 +418,9 @@ describe('DocViewer PDF', () => {
         />
       );
       await waitFor(() =>
-        expect(onDocumentLoad).toHaveBeenCalledWith({ type: 'pdf', numPages: 3 })
+        expect(onDocumentLoad).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'pdf', numPages: 3 })
+        )
       );
 
       mockPdf({ fail: true });

@@ -5,7 +5,7 @@ import { formatFileSize, TextDocumentState } from './use-text-document';
 
 /** Loading, error and too-large messages shared by the text, code and markdown views */
 export function TextStatus({ state }: { state: TextDocumentState }) {
-  const { labels } = useDocViewerContext();
+  const { labels, locale } = useDocViewerContext();
 
   if (state.status === 'loading') {
     return <DocViewerLoading />;
@@ -14,7 +14,7 @@ export function TextStatus({ state }: { state: TextDocumentState }) {
   if (state.status === 'too-large') {
     return (
       <DocViewerMessage withDownload error>
-        {labels.tooLarge(formatFileSize(state.size))}
+        {labels.tooLarge(formatFileSize(state.size, locale))}
       </DocViewerMessage>
     );
   }

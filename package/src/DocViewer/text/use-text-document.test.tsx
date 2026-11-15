@@ -7,7 +7,14 @@ describe('useTextDocument', () => {
     mockFetch('hello world');
     const { result } = renderHook(() => useTextDocument('/notes.txt', 100));
     expect(result.current.status).toBe('loading');
-    await waitFor(() => expect(result.current).toEqual({ status: 'ready', text: 'hello world' }));
+    await waitFor(() =>
+      expect(result.current).toEqual({
+        status: 'ready',
+        text: 'hello world',
+        size: 11,
+        mimeType: undefined,
+      })
+    );
   });
 
   it('refuses files larger than the limit from the content-length header', async () => {
