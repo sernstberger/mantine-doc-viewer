@@ -1,11 +1,24 @@
 import { InstallScript } from './components/InstallScript/InstallScript';
+import partSelectors from './part-selectors.json';
 import * as demos from './demos';
 
 ## Installation
 
-<InstallScript packages="mantine-doc-viewer pdfjs-dist @mantine/code-highlight" />
+<InstallScript packages="mantine-doc-viewer" />
 
-After installation, import package styles at the root of your application:
+`mantine-doc-viewer` has no dependency on a PDF or markdown library. The engines that show those
+files are optional peer dependencies that your app installs and hands to the viewer through
+adapters, as `@mantine/code-highlight` does for syntax highlighters. Install what the files you
+show need:
+
+- `pdfjs-dist` to show PDF files
+- `@mantine/code-highlight` to show code, JSON and the source of markdown files
+- `react-markdown` and `remark-gfm` to render markdown files
+- `@cantoo/pdf-lib` for `mantine-doc-viewer/editor`, which writes page rotations into a PDF
+
+<InstallScript packages="pdfjs-dist @mantine/code-highlight react-markdown remark-gfm" />
+
+After installation import package styles at the root of your application:
 
 ```tsx
 import '@mantine/core/styles.css';
@@ -13,368 +26,266 @@ import '@mantine/code-highlight/styles.css';
 import 'mantine-doc-viewer/styles.css';
 ```
 
+The one `styles.css` covers the whole package, including `mantine-doc-viewer/editor` and
+`mantine-doc-viewer/markup`. Skip the `@mantine/code-highlight` import if you do not show code.
+
 ## Usage
 
-`DocViewer` works out the document type from `mimeType`, `fileName` or the `src` extension.
-PDF, image, plain text, code and markdown files are supported.
+`DocViewer` shows a PDF, image, plain text, code or markdown file from its `src`. The document type
+is detected from `mimeType`, `fileName` or the extension of `src`. Wrap your app in
+`MantineProvider`, and in `DocViewerAdapterProvider` with the engines you installed; see Adapters
+below for each of them:
+
+```tsx
+import '@mantine/core/styles.css';
+import '@mantine/code-highlight/styles.css';
+import 'mantine-doc-viewer/styles.css';
+
+import { MantineProvider } from '@mantine/core';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from 'mantine-doc-viewer';
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+const pdf = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc });
+
+function Demo() {
+  return (
+    <MantineProvider>
+      <DocViewerAdapterProvider pdf={pdf}>
+        <DocViewer src="/files/report.pdf" h={500} />
+      </DocViewerAdapterProvider>
+    </MantineProvider>
+  );
+}
+```
+
+Give the viewer a height with the `h` prop or from its parent: documents are scrolled and fitted
+inside the viewer, they do not make it grow. The demos on this page assume the providers above are
+mounted at the root of the page:
 
 <Demo data={demos.usage} />
 
-Give `DocViewer` a height with the `h` prop or from its parent: documents are scrolled and fitted
-inside the viewer, they do not make it grow.
+## Adapters
 
-## Switching documents
+PDF files are drawn with [pdf.js](https://mozilla.github.io/pdf.js/). `createPdfJsAdapter` takes a
+function that imports `pdfjs-dist`, so pdf.js is downloaded only when a PDF is opened, and the url
+of the pdf.js worker from the same `pdfjs-dist` version. Without `workerSrc` the adapter throws an
+error that names the missing worker, unless your app set `GlobalWorkerOptions.workerSrc` itself:
+
+```tsx
+// Vite
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+// Next.js, webpack 5 and other bundlers that support new URL()
+const workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+```
+
+The `options` of `createPdfJsAdapter` are passed to pdf.js `getDocument`, for example `password`,
+`withCredentials`, `httpHeaders`, `cMapUrl` or `disableRange` for signed storage urls that do not
+support range requests. Pass a function to set them per document:
+
+```tsx
+import { createPdfJsAdapter } from 'mantine-doc-viewer';
+
+const pdf = createPdfJsAdapter(() => import('pdfjs-dist'), {
+  workerSrc,
+  options: (src) => ({ withCredentials: src.startsWith('/api/'), disableRange: true }),
+});
+```
+
+Markdown files are rendered with `react-markdown` and `remark-gfm` through
+`createReactMarkdownAdapter`, which takes a function that imports both. Raw HTML in the file is not
+rendered, so untrusted files are safe to preview, and relative links and images are resolved
+against the url of the markdown file. The adapters are optional: without the PDF adapter a PDF
+shows a message with a download link, and without the markdown adapter a markdown file shows its
+source.
+
+```tsx
+import { createReactMarkdownAdapter, DocViewerAdapterProvider } from 'mantine-doc-viewer';
+
+const markdown = createReactMarkdownAdapter(() =>
+  Promise.all([import('react-markdown'), import('remark-gfm')])
+);
+
+<DocViewerAdapterProvider pdf={pdf} markdown={markdown}>
+  {children}
+</DocViewerAdapterProvider>;
+```
+
+Create the adapters once, outside of components, and nest providers to use different engines in
+one part of the app. Toggle the markdown adapter in the demo to see the fallback:
+
+<Demo data={demos.adapters} />
+
+Code and JSON are highlighted by `CodeHighlight` from `@mantine/code-highlight`, so colors come from
+the highlighting adapter of your app, the same setup as for `CodeHighlight` itself.
+
+## Document types
+
+`DocViewer` picks the view from the type of the document, and a toolbar that matches it. Set `type`
+when the url has no extension, for example a signed download link.
+
+- **PDF** pages with search, thumbnails, an outline, page layouts, rotation, document info and a
+  presentation mode
+- **Image** fitted to the viewer, never enlarged past its natural size, with zoom around the pointer
+  and rotation
+- **Plain text** in a monospace font, with a toggle for line wrapping
+- **Code** with `CodeHighlight`. The language is detected from the file extension, `language` of
+  `DocViewer.Code` overrides it
+- **JSON** as a collapsible tree when it is valid, with a switch to the code
+- **Markdown** rendered with GitHub flavored markdown, with a switch to the source
+
+Text, code and markdown files are downloaded with `fetch`, so `src` must allow it (same origin or
+CORS). Files larger than `maxSize` bytes (2 MB by default) are not loaded, and a download link is
+shown instead. Pick a file in the demo:
+
+<Demo data={demos.types} />
 
 `keepView` keeps the zoom, rotation, page layout and scroll position when `src` changes to another
 document of the same type, for example with a next button. Search, page edits and the loaded
 document itself still reset. Without it, a new `src` starts the viewer afresh.
 
-```tsx
-<DocViewer src={files[index]} pdfWorkerSrc={pdfWorkerSrc} keepView />
-```
+## Compound components
 
-## Numbers and dates
+`DocViewer` is `DocViewer.Root` with a default layout for the type of the document. To change the
+layout, use `DocViewer.Root` and the parts, like `Lightbox.Root` and its parts. `DocViewer.Root`
+takes the file, the Styles API props, labels, the store and the state of the viewer, and shares them
+with its parts. Parts must be rendered inside `DocViewer.Root`, and each is also available as a
+named export such as `DocViewerToolbar`.
 
-`locale` is a BCP 47 language tag, such as `'de-DE'`, for the numbers and dates the viewer shows:
-zoom, page counts, file sizes and document properties. It is the browser's language by default.
-The words come from `labels`, see Translating labels below.
-
-```tsx
-<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} locale="de-DE" />
-```
-
-## Images
-
-Images open fitted to the viewer, never enlarged past their natural size. Zoom with the toolbar,
-with `Ctrl` or `Cmd` and the mouse wheel, or with a trackpad pinch – zoom keeps the point under the
-pointer in place. Drag with the mouse to move around a zoomed image.
-
-| Key | Action |
-| --- | --- |
-| `+` or `=` | Zoom in |
-| `-` | Zoom out |
-| `0` | Fit to view |
-| `r` | Rotate 90° clockwise |
-
-Keyboard shortcuts work while the image has focus.
-
-## PDF files
-
-PDF files are rendered with [pdf.js](https://mozilla.github.io/pdf.js/). It is loaded only when a PDF is
-opened, so apps that never display PDFs do not download it. Pages are drawn as they scroll into view.
-
-With the pages focused, `+`, `=`, `-` and `0` zoom like they do for images, and trackpad pinch or
-Ctrl+wheel zooms too. Ctrl/Cmd+F opens search.
-
-<Demo data={demos.pdf} />
-
-## Page thumbnails
-
-The sidebar button in the toolbar shows a thumbnail for every page. Thumbnails are drawn as they
-scroll into view, the current page is highlighted and clicking a thumbnail scrolls to its page.
-Set `defaultThumbnailsOpened` to show them when the PDF opens, or control them with
-`thumbnailsOpened` and `onThumbnailsOpenedChange`, for example to keep an app's own "Pages" button
-in step.
-
-```tsx
-<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
-```
-
-Thumbnails are on the left by default. Readers can move them to any side with the panel position
-button next to the thumbnails button. At the top or bottom they form one row that scrolls sideways.
-Set the starting side with `defaultThumbnailsPosition`, or control it with `thumbnailsPosition`
-and `onThumbnailsPositionChange`, for example to remember the reader's choice:
-
-```tsx
-import { useLocalStorage } from '@mantine/hooks';
-import { DocViewer, DocViewerThumbnailsPosition } from 'mantine-doc-viewer';
-
-function Demo() {
-  const [position, setPosition] = useLocalStorage<DocViewerThumbnailsPosition>({
-    key: 'doc-viewer-thumbnails',
-    defaultValue: 'left',
-  });
-
-  return (
-    <DocViewer
-      src="/report.pdf"
-      pdfWorkerSrc={pdfWorkerSrc}
-      defaultThumbnailsOpened
-      thumbnailsPosition={position}
-      onThumbnailsPositionChange={setPosition}
-      h={600}
-    />
-  );
-}
-```
-
-## Links in PDFs
-
-Links in PDF pages are clickable. Links to another part of the document scroll the viewer to that
-spot without changing the page URL. Web links always open in a new tab, and only `http`, `https`,
-`mailto` and `tel` links open at all. Use `onLinkClick` to see or stop them, for example to confirm
-before leaving:
-
-```tsx
-<DocViewer
-  src="/report.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  onLinkClick={(url, event) => {
-    if (!window.confirm(`Open ${url}?`)) {
-      event.preventDefault();
-    }
-  }}
+<DataTable
+  head={['Part', 'Renders']}
+  data={[
+    [<code>DocViewer.Toolbar</code>, 'Toolbar, with the default controls of the document type when it has no children'],
+    [<code>DocViewer.Search</code>, 'Search bar of a PDF, opened by the search button or Ctrl or Cmd and F'],
+    [<code>DocViewer.Main</code>, 'Row under the toolbar: thumbnails and pages of a PDF by default'],
+    [<code>DocViewer.Thumbnails</code>, 'Page thumbnails of a PDF, shown while they are opened'],
+    [<code>DocViewer.Pages</code>, 'Scrollable PDF pages, with events for links, text selection and reading progress'],
+    [<code>DocViewer.Image</code>, 'Image with zoom, rotation and panning'],
+    [<code>DocViewer.Text</code>, <>Plain text file, wrapped or not</>],
+    [<code>DocViewer.Code</code>, 'Code and JSON files'],
+    [<code>DocViewer.Markdown</code>, 'Markdown file, rendered or as source'],
+    [<code>DocViewer.Body</code>, 'Scrollable area for your own view'],
+    [<code>DocViewer.Message</code>, 'Message in the area of the document, for errors and empty states'],
+    [<code>DocViewer.Loading</code>, 'Loading indicator'],
+    [<code>DocViewer.OverlayControls</code>, 'Zoom and full screen buttons over the document'],
+    [<code>DocViewer.PresentationControls</code>, 'Page count and exit button of a presentation'],
+  ]}
 />
-```
 
-Screen readers read links within the document as "Go to page 3", and web links by their address.
+The toolbar controls, `Outline`, `DocumentInfo` and the other parts are listed in the sections that
+use them. The demo below puts the default layout of a PDF together from its parts, with thumbnails
+at 96px and wide gaps between pages:
 
-## Rotate and search options
+<Demo data={demos.compound} />
 
-The rotate button turns all PDF pages a quarter turn, for scanned documents that are on their side.
-It only changes the view; the file is not changed. The search bar has match case, whole words and
-match accents buttons. Accents are ignored by default, so "cafe" also finds "café".
+`DocViewer` also takes `children`, which replace the default layout, and a few props that reach
+the default parts without writing the layout: `withToolbar`, `toolbarControls`, `toolbarProps`,
+`withOverlayControls`, `pagesProps`, `thumbnailsProps`, `searchProps`, `imageProps` and
+`textProps`.
 
-## Page layouts
+## Toolbar and controls
+
+`DocViewer.Toolbar` without children renders the controls of the document type. Pass children to
+choose and order the controls yourself. Every control is a part: `Title`, `PageControls`,
+`ZoomControls`, `ThumbnailsButton`, `RotateButton`, `LayoutMenu`, `OutlineButton`, `InfoButton`,
+`PresentationButton`, `SearchButton`, `PrintButton`, `DownloadButton`, `FullscreenButton`,
+`WrapButton` and `ViewModeControl`. Controls that do nothing for the document, such as the page
+controls of an image, render nothing, so one toolbar can serve every file type.
+
+<Demo data={demos.toolbar} />
+
+`leftSection` puts content before the title, `rightSection` after the document controls, and
+`title` and `subtitle` replace the file name and add a small line under it. The default toolbar
+also takes `controls` to hide controls without writing the toolbar, and so does `DocViewer` as
+`toolbarControls`. Hidden controls' keyboard shortcuts still work, and the store still has their
+actions. `toggleOnTap` hides and shows the toolbar when a finger taps the viewer, so a page can fill
+a phone, and `tooltipProps` reach every tooltip in the toolbar.
+
+`withOverlayControls` floats zoom and full screen buttons over the top right of the document,
+for a viewer without a toolbar, and `DocViewer.OverlayControls` does the same in a custom layout.
+Both leave out a control that `toolbarControls` hides:
+
+<Demo data={demos.controls} />
+
+The names that `controls` and `toolbarControls` take are `title`, `thumbnails`, `pages`, `zoom`,
+`rotate`, `layout`, `outline`, `info`, `presentation`, `editPages`, `markup`, `search`, `print`,
+`download`, `fullscreen`, `wrap` (text files) and `viewMode` (JSON and markdown).
+
+## Pages and thumbnails
+
+The thumbnails button in the toolbar shows a thumbnail for every page. Thumbnails are drawn as they
+scroll into view, the current page is highlighted and choosing a thumbnail scrolls to its page.
+Set `defaultThumbnailsOpened` on the root to show them when the PDF opens, and
+`defaultThumbnailsPosition` to start on any of the four sides. At the top or bottom they form one
+row that scrolls sideways. Readers can move the thumbnails with the panel position button, and
+`width` of `DocViewer.Thumbnails` sets their size.
 
 The page layout button offers single pages (the default), two pages side by side, two pages with
-the first page on its own as a cover, one row scrolled sideways, and rows that wrap. Horizontal
-and wrapped layouts fit pages to the height of the view, without making a landscape page wider
-than the view. Set the starting layout with `defaultPageLayout`, which takes a value per breakpoint
-such as `{ base: 'single', sm: 'two-page' }` and follows the screen until the reader picks a layout,
-or control it with `pageLayout` and `onPageLayoutChange`. `controllerRef.current.setPageLayout()`
-changes it too. The page being read stays in view when the layout changes, and zooming keeps the
-middle of the view on the same spot of the same page.
+the first page on its own as a cover, one row scrolled sideways, and rows that wrap.
+`defaultPageLayout` sets the layout when the PDF opens, `gap` of `DocViewer.Pages` the space
+between pages, and `withScrollSnap` stops scrolling at the start of each page or spread.
 
-## Apps that turn pages themselves
+<Demo data={demos.pages} />
 
-An app can take over page turning, for example to animate it like a book. `withScroll={false}`
-stops reader scrolling while text selection, zoom and the controller keep working.
-`controllerRef.current.goToPage(page, { behavior: 'instant' })` jumps without a smooth scroll, and
-`controllerRef.current.getPageCanvas(page)` gives the canvas a drawn page is on, to copy into an
-animation. The Leaf story builds a book reader this way.
+Only pages near the view are drawn, and pages further away give back their canvas, text layer and
+memory. Only the parts of the file needed for the pages on screen are downloaded, when the server
+supports range requests. A page canvas is kept under 16.7 million pixels, Safari's limit, and
+beyond that zoomed pages are drawn at a lower resolution instead of going blank. Change the limit
+with `maxCanvasPixels` of `DocViewer.Pages`.
 
-## Document info, attachments and layers
+Links in PDF pages are clickable. Links to another part of the document scroll the viewer to that
+spot without changing the page URL. Web links open in a new tab, and only `http`, `https`, `mailto`
+and `tel` links open at all. Screen readers read links within the document as "Go to page 3", and
+web links by their address. `DocViewer.Pages` has the events for what readers do on the pages:
 
-The document info button lists the PDF's properties (title, author, dates, PDF version, file size,
-page count and size). PDFs with attached files list them there to download, and PDFs with layers
-(optional content) get a checkbox to show or hide each one.
-
-## Presentation
-
-The presentation button shows one page at a time, fitted to the screen on a dark background, full
-screen where the browser allows it. Arrow keys, Space, Page Up and Page Down, Home and End move
-between pages, a click shows the next page, and Escape ends the presentation on the page it was on.
-Start or end it with `controllerRef.current.togglePresentation()`.
-
-## Outline
-
-PDFs with bookmarks get an outline button that lists them; choosing one scrolls to its page.
-
-```tsx
-<DocViewer src="/magazine.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultPageLayout="two-page-cover" />
-```
-
-## Print, download and full screen
-
-The toolbar has print, download and full screen buttons. Hide them like any toolbar control,
-with `toolbarControls={{ print: false, download: false, fullscreen: false }}`. `withFullscreen={false}`
-turns off full screen buttons everywhere: the toolbar button and the `withOverlayControls` one. PDFs print with the browser's own PDF printing, images and
-text from a page with only the document on it. Full screen is not offered in browsers that do
-not support it, such as iPhone Safari.
-
-## Password protected PDFs
-
-The viewer asks for the password of a protected PDF, and says when it is wrong. To pass a
-password you already have, use `pdfOptions={{ password }}`.
-
-## Editing pages
-
-Set `withPageEditing` to add an edit pages button to the PDF toolbar. It shows the pages as a grid
-where readers can:
-
-- select pages with a click, Shift or Ctrl click, Space, or Ctrl/Cmd+A
-- reorder them by dragging (with a mouse, or with touch or a pen by the grip on each page), with the
-  move earlier and move later buttons, or Alt and the arrow keys
-- delete them with the delete button or the Delete key (a PDF always keeps at least one page)
-- turn them a quarter turn with the rotate button or the R key; the turn is saved into the PDF
-- extract the selected pages as a new PDF
-
-Turning pages writes each page's rotation with [@cantoo/pdf-lib](https://github.com/cantoo-scribe/pdf-lib), which the viewer
-loads only when a page has been turned, so documents that are never turned do not load it.
-
-Done shows the edited document in the viewer; Save does the same and also hands the new PDF to
-`onSave`. The original file is never changed. Without `onSave`, saved and extracted PDFs are
-downloaded.
-
-With page editing on, readers can also drag thumbnails in the sidebar to reorder the document
-without opening the editor. The viewer shows the reordered document and calls `onSave` with
-`reason: 'reorder'`; without `onSave` nothing is downloaded. Dragging uses Mantine's `useDrag`, so
-it works with a mouse, touch and a pen; a bar shows where the page will land.
-
-```tsx
-<DocViewer
-  src="/contract.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  withPageEditing
-  onSave={async (bytes, { reason, pages }) => {
-    // reason: 'save' for the edited document, 'extract' for selected pages,
-    // 'reorder' after a thumbnail was dragged to a new place,
-    // 'annotate' for the document with the reader's marks written in
-    await upload(new Blob([bytes], { type: 'application/pdf' }), { reason, pages });
-  }}
+<DataTable
+  head={['Prop', 'Called']}
+  data={[
+    [<code>onLinkClick</code>, <>With the address when a web link is clicked, before it opens. <code>event.preventDefault()</code> stops it, for example to confirm before leaving</>],
+    [<code>onTextSelect</code>, 'With the text, the page it starts on and its boxes in page coordinates when the reader selects text. Not called when the selection is cleared'],
+    [<code>onReadingProgress</code>, <>With <code>{'{ seen, position, reachedEnd }'}</code> when how much of the PDF has been seen changes</>],
+    [<code>onReachEnd</code>, 'Once, when the bottom of the last page is on screen'],
+  ]}
 />
-```
 
-## Markup
+`renderPageOverlay` puts content of your app over each page, for example comment pins with their own
+status. It gets the page number, the page size at 100% and the `scale` of the page, and places
+content in page coordinates times `scale`, from the top left of the page. The overlay turns with the
+page when readers rotate it:
 
-Set `withMarkup` to add a markup button to the PDF toolbar. It opens a bar with tools to highlight,
-draw with a pen, type text boxes, draw rectangles, ellipses and revision clouds, and sign. Undo
-removes the last mark; Save writes the marks into the PDF as real annotations (pdf.js writes them,
-so other PDF readers show and edit them) and hands the bytes to `onSave` with `reason: 'annotate'`,
-or downloads them. `markupTools` picks the tools in the bar, and `markupColor`, `markupWidth` and
-`markupFontSize` style new marks.
+<Demo data={demos.overlay} />
 
-Marks are data: `markup`, `defaultMarkup` and `onMarkupChange` hold them, in PDF points from each
-page's top-left. The tool can be controlled too, with `markupTool` and `onMarkupToolChange`, so an
-app can use its own buttons without the bar, and `controllerRef.current.saveMarkup()` saves.
+Pages turn by themselves in an app that animates them, like a book: `withScroll={false}` stops
+reader scrolling while text selection, zoom and the store keep working, `withPageTurning` turns
+pages by spread with edge clicks, swipes and the arrow keys, and the `goToPage` action takes
+`{ behavior: 'instant' }` to jump without a smooth scroll.
 
-```tsx
-<DocViewer
-  src="/files/plan-set.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  withMarkup
-  markupTools={['cloud', 'pen', 'text']}
-  markupColor="red"
-  onSave={(bytes, { reason }) => reason === 'annotate' && uploadSheet(bytes)}
-/>
-```
+## Search, outline and document info
 
-Content that belongs to the app rather than the PDF, such as comment pins with their own status,
-goes in `renderPageOverlay` instead.
+`DocViewer.Search` is the search bar of a PDF, with match case, whole words and match accents
+buttons. Accents are ignored by default, so "cafe" also finds "café". Open search with the search
+button or with Ctrl or Cmd and F while the document has focus, move between matches with Enter and
+Shift and Enter, and close it with Escape. `inputProps` reach the search box, for example to change
+the placeholder.
 
-## Events and controller
+PDFs with bookmarks get an outline button that lists them, and choosing one scrolls to its page.
+The info button lists the properties of the PDF (title, author, dates, PDF version, file size, page
+count and size), the files attached to it to download, and a checkbox to show or hide each layer
+(optional content). The presentation button shows one page at a time, fitted to the screen on a
+dark background and full screen where the browser allows it. Arrow keys, Space, Page Up and Page
+Down, Home and End move between pages, a click shows the next page, and Escape ends the presentation
+on the page it was on.
 
-```tsx
-import { useRef, useState } from 'react';
-import { DocViewer, DocViewerController } from 'mantine-doc-viewer';
+The store has the same actions as the buttons, so your app can drive search and mark passages.
+`openSearch(query)` opens the bar with a query typed in, and `highlight` marks the first place a text
+is found, or boxes on a page, in the colors of the active match and scrolls to it:
 
-function Demo() {
-  const controller = useRef<DocViewerController>(null);
-  const [page, setPage] = useState(1);
+<Demo data={demos.search} />
 
-  return (
-    <>
-      <button onClick={() => controller.current?.openSearch('invoice')}>Find invoice</button>
-      <DocViewer
-        src="/report.pdf"
-        pdfWorkerSrc={pdfWorkerSrc}
-        controllerRef={controller}
-        page={page}
-        onPageChange={setPage}
-        onDocumentLoad={({ numPages }) => console.log(`${numPages} pages`)}
-      />
-    </>
-  );
-}
-```
-
-| Prop | Description |
-| --- | --- |
-| `onDocumentLoad` | Called with `{ type, numPages }` for PDFs and `{ type, width, height }` for images |
-| `onLinkClick` | Called with the address when a web link in a PDF is clicked; `event.preventDefault()` stops it |
-| `onSave` | Called with the bytes of a PDF made by page editing |
-| `onDocumentError` | Called with the error when a document cannot be loaded |
-| `onPageChange` | Called with the PDF page that takes up most of the view |
-| `onZoomChange` | Called with the zoom (a scale, `'fit'` or `'fit-page'`) and `{ scale }`, the scale it gives (1 is 100%). A fitted zoom reports a new scale when the view is resized |
-| `onReadingProgress` | Called with `{ seen, position, reachedEnd }` when how much of a PDF has been seen changes: the fraction seen of each page, how far the view is scrolled (0 to 1) and whether the end was reached |
-| `idleTimeout`, `onIdle` | For kiosks: `onIdle` is called when nothing was touched for `idleTimeout` ms, so the app can go back to the start |
-| `autoAdvance` | `{ interval, loop }`: plays a PDF page by page (a spread at a time in two-page layouts). With `idleTimeout` it plays only while idle |
-| `onReachEnd` | Called once when the bottom of the last page of a PDF is on screen |
-| `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
-| `zoom`, `defaultZoom` | A scale, `'fit'` (the default) or `'fit-page'`. `zoom` controls it: zooming from the toolbar, keys, wheel, pinch or controller goes to `onZoomChange`, and shows once you pass it back |
-| `fullscreen`, `onFullscreenChange` | Control full screen from your app. Set `fullscreen` from a click handler (browsers refuse it otherwise); `onFullscreenChange` reports what really happened, including Escape |
-| `controllerRef` | `goToPage`, `goToSpread`, `nextSpread`, `previousSpread`, `highlight`, `clearHighlight`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `setMarkupTool`, `saveMarkup`, `getOutline`, `getBytes`, `getPageCanvas`, `print`, `download`, `toggleFullscreen` and `resetReadingProgress`; `canPrint` and `type` to read |
-
-## Other file types
-
-Add file types with `renderers`. A renderer's `test` gets `{ src, fileName, mimeType, type }`
-and its `render` returns the view. `DocViewerToolbar`, `DocViewerBody`, `DocViewerMessage`,
-`DocViewerLoading` and `useDocViewerText` give it the same toolbar, scroll area, messages and
-size limit as the built-in views:
-
-```tsx
-import {
-  DocViewer,
-  DocViewerBody,
-  DocViewerLoading,
-  DocViewerRenderer,
-  DocViewerToolbar,
-  useDocViewerText,
-} from 'mantine-doc-viewer';
-
-function CsvView({ src }: { src: string }) {
-  const state = useDocViewerText(src, 2_000_000);
-  return (
-    <>
-      <DocViewerToolbar />
-      <DocViewerBody focusable={state.status === 'ready'}>
-        {state.status === 'ready' ? <CsvTable text={state.text} /> : <DocViewerLoading />}
-      </DocViewerBody>
-    </>
-  );
-}
-
-const csvRenderer: DocViewerRenderer = {
-  test: (file) => file.mimeType === 'text/csv' || !!file.fileName?.endsWith('.csv'),
-  render: (file) => <CsvView src={file.src} />,
-};
-
-<DocViewer src="/data.csv" renderers={[csvRenderer]} />;
-```
-
-## Large documents
-
-- Only pages near the view are drawn. Pages further away give back their canvas, text layer and
-  the memory pdf.js holds for them.
-- Only the parts of the file needed for the pages on screen are downloaded, when the server
-  supports range requests. Searching reads every page, so it downloads the rest.
-- A page canvas is kept under 16.7 million pixels (Safari's limit). Beyond that, zoomed pages are
-  drawn at a lower resolution instead of going blank. Change it with `maxCanvasPixels`.
-- Use `pdfOptions` for anything else pdf.js `getDocument` accepts, for example `password`,
-  `withCredentials`, `httpHeaders` or `cMapUrl`. Some signed storage URLs do not support range
-  requests; set `disableRange: true` for those.
-
-```tsx
-<DocViewer
-  src={signedUrl}
-  pdfWorkerSrc={pdfWorkerSrc}
-  pdfOptions={{ disableRange: true, withCredentials: true }}
-/>
-```
-
-## Text, code and markdown
-
-Text, code and markdown files are downloaded with `fetch`, so `src` must allow it (same origin or
-CORS). Files larger than `maxTextSize` bytes (2 MB by default) are not loaded; a download link is shown instead.
-
-- **Plain text** (`.txt`, `.log`, `.csv`) is shown in a monospace font, with a toggle for line wrapping
-- **Code** is shown with [CodeHighlight](https://mantine.dev/x/code-highlight/) from `@mantine/code-highlight`.
-  Colors come from the highlighting adapter of your app, the same setup as for `CodeHighlight` itself.
-  The language is detected from the file extension, set `language` to override it
-- **JSON** opens as a collapsible tree when it is valid, with a switch to the code
-- **Markdown** is rendered with GitHub flavored markdown: tables, task lists, strikethrough. Raw HTML in the file
-  is not rendered, so untrusted files are safe to preview. Relative links and images are resolved against
-  the markdown file url. A switch shows the source
-
-## Text selection and search
-
-Text in PDF pages can be selected and copied. Open search with the search button or with
-`Ctrl + F` / `Cmd + F` while the document has focus. `Enter` and `Shift + Enter` move between
-matches, `Escape` closes search.
-
-Matches are highlighted with the [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API).
-To change the colors, style the highlights in your global styles:
+Matches are highlighted with the
+[CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API).
+`matchColor` and `activeMatchColor` of `DocViewer.Pages` set their colors, or style the highlights in your
+global styles:
 
 ```css
 ::highlight(mantine-doc-viewer-match) {
@@ -386,208 +297,285 @@ To change the colors, style the highlights in your global styles:
 }
 ```
 
-### Reacting to a selection
+## Zoom and page layouts
 
-`onTextSelect` is called when the reader has selected text in a PDF, with the text, the page it
-starts on (counted from 1) and its boxes on that page, in the coordinates of `renderPageOverlay`.
-It is not called when the selection is cleared. Use it for a "copy with quote" or "comment" button:
+A zoom is a scale where `1` is 100%, `'fit'` (the default) to fit PDF pages to the width of the view
+and images to the whole view, or `'fit-page'` to fit whole PDF pages, or spreads, to both the width
+and the height. Zoom with the toolbar, with the keys, with Ctrl or Cmd and the mouse wheel or with a
+trackpad pinch; zoom keeps the point under the pointer in place. The rotate button turns all PDF
+pages or the image a quarter turn. It only changes the view, the file is not changed.
+
+Zoom and page layout are controlled like the value of a Mantine input: `zoom` with `onZoomChange`
+and `pageLayout` with `onPageLayoutChange`. Every zoom request goes to `onZoomChange` with the scale
+it gives, and shows once you pass it back. A fitted zoom reports a new scale when the view is
+resized. `page` with `onPageChange` and `fullscreen` with `onFullscreenChange` work the same way,
+and each has a `default` prop for the uncontrolled state:
+
+<Demo data={demos.zoom} />
+
+## Store API
+
+Every viewer has a store, a Mantine store like `createLightboxStore`, that holds what the viewer
+shows and the actions on it. `useDocViewer` creates a store and actions bound to it for one viewer,
+and `useDocViewerStore` subscribes a component to the state. Pass the store to `DocViewer` or
+`DocViewer.Root`; without one, the viewer creates its own.
 
 ```tsx
-<DocViewer
-  src="/report.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  onTextSelect={(text, page, rects) => setQuote({ text, page, rects })}
+import { DocViewer, useDocViewer, useDocViewerStore } from 'mantine-doc-viewer';
+
+function Demo() {
+  const [store, viewer] = useDocViewer();
+  const { page, numPages } = useDocViewerStore(store);
+
+  return (
+    <>
+      <button onClick={() => viewer.goToPage(numPages)}>Last page ({page})</button>
+      <DocViewer src="/report.pdf" store={store} />
+    </>
+  );
+}
+```
+
+Actions do nothing for documents they do not apply to, and before the document is shown, so it is
+safe to call them at any time. Use them from handlers and effects:
+
+<Demo data={demos.store} />
+
+`createDocViewer` does the same outside of React, and `docViewerActions` has every action with the
+store as the last argument, like `lightboxActions`:
+
+```tsx
+import { createDocViewer, docViewerActions } from 'mantine-doc-viewer';
+
+const [store, viewer] = createDocViewer();
+
+viewer.goToPage(3);
+docViewerActions.goToPage(3, undefined, store);
+```
+
+The state has the type and status of the document, the page and spread in view, the zoom and its
+scale, the rotation, the page layout and what is open: <code>type</code>, <code>status</code>,
+<code>info</code>, <code>error</code>, <code>numPages</code>, <code>page</code>, <code>spread</code>,
+<code>zoom</code>, <code>scale</code>, <code>rotation</code>, <code>pageLayout</code>,
+<code>thumbnailsOpened</code>, <code>thumbnailsPosition</code>, <code>searchOpened</code>,
+<code>presenting</code>, <code>fullscreen</code>, <code>canPrint</code>, <code>textWrap</code>,
+<code>viewMode</code>, <code>mode</code> and <code>markupTool</code>. The actions are:
+
+<DataTable
+  head={['Action', 'Does']}
+  data={[
+    [<code>goToPage(page, options)</code>, <>Scrolls a PDF to a page, or to a point of it with <code>{'{ top }'}</code></>],
+    [<code>goToSpread(spread)</code>, 'Scrolls a PDF to a spread'],
+    [<code>nextSpread(options)</code>, <>Turns to the next spread, and with <code>{'{ loop: true }'}</code> from the last to the first</>],
+    [<code>previousSpread()</code>, 'Turns back to the previous spread'],
+    [<code>setZoom(zoom)</code>, <><code>zoomIn()</code> and <code>zoomOut()</code> work like the toolbar buttons</>],
+    [<code>setPageLayout(layout)</code>, 'Lays PDF pages out'],
+    [<code>rotate()</code>, 'Turns an image or PDF pages 90 degrees clockwise'],
+    [<code>openSearch(query)</code>, <><code>closeSearch()</code> closes the bar</>],
+    [<code>highlight(target)</code>, <><code>clearHighlight()</code> removes it</>],
+    [<code>toggleThumbnails(opened)</code>, <><code>setThumbnailsPosition(position)</code> moves them to a side</>],
+    [<code>togglePresentation()</code>, 'Starts or ends a presentation'],
+    [<code>toggleFullscreen()</code>, 'Shows the viewer full screen, or leaves full screen'],
+    [<code>print()</code>, <><code>download()</code> downloads the document</>],
+    [<code>getOutline()</code>, 'The outline of a PDF with page numbers'],
+    [<code>getBytes()</code>, 'The bytes of the document as shown'],
+    [<code>getPageCanvas(page)</code>, 'The canvas a PDF page is drawn on, to read from'],
+    [<code>resetReadingProgress()</code>, 'Forgets how much of the PDF has been seen, for the next reader'],
+  ]}
 />
-```
 
-## pdf.js worker
+## Events
 
-pdf.js parses documents in a web worker. Set `pdfWorkerSrc` to the url of the worker file from the
-`pdfjs-dist` version installed in your app:
+`DocViewer.Root` and `DocViewer` call these when the document or the state of the viewer
+changes. Events for what happens inside PDF pages are on `DocViewer.Pages`, and the extensions
+have their own.
+
+<DataTable
+  head={['Prop', 'Called']}
+  data={[
+    [<code>onDocumentLoad</code>, <>With <code>{'{ type, numPages }'}</code> for PDFs and <code>{'{ type, width, height }'}</code> for images when the document is shown</>],
+    [<code>onDocumentError</code>, 'With the error when the document cannot be loaded'],
+    [<code>onPageChange</code>, 'With the PDF page that takes up most of the view'],
+    [<code>onZoomChange</code>, <>With the zoom and <code>{'{ scale }'}</code></>],
+    [<code>onPageLayoutChange</code>, 'When the reader picks a page layout'],
+    [<code>onFullscreenChange</code>, 'With what really happened when the viewer enters or leaves full screen, including Escape'],
+  ]}
+/>
+
+## Custom views
+
+To show a file type that the viewer does not know, put your own view in `DocViewer.Root`. Use
+`DocViewer.Toolbar`, `DocViewer.Body`, `DocViewer.Message` and `DocViewer.Loading` to get the same
+toolbar, scroll area and messages as the built-in views, `useDocViewerText` to load a text file with
+the same size limit, and `useDocViewerView` to report the outcome. `onLoad` of the hook sets the
+`status` of the store to `'ready'` and calls `onDocumentLoad`, and `onError` sets `'error'` and
+calls `onDocumentError`. The built-in views do this themselves, a view you write has to call it.
+
+`useDocViewerContext` gives the view the `src`, `type` and `fileName` of the document, the labels
+and the Styles API. The demo shows a CSV file as a table:
+
+<Demo data={demos.view} />
+
+## Page editor extension
+
+Editing PDF pages is an extension, so apps that do not use it never download it. Create it with
+`createPageEditorExtension` from `mantine-doc-viewer/editor`, once, and pass it in `extensions` of
+the viewer. It adds an edit pages button to the toolbar, an editor where readers can reorder, turn,
+delete and extract pages, and drag and delete actions on the thumbnails of the sidebar.
 
 ```tsx
-// Vite
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-
-// Next.js, webpack 5 and other bundlers that support new URL()
-const pdfWorkerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
-```
-
-To set it once for the whole app, use theme default props:
-
-```tsx
-import { createTheme } from '@mantine/core';
 import { DocViewer } from 'mantine-doc-viewer';
+import { createPageEditorExtension } from 'mantine-doc-viewer/editor';
 
-const theme = createTheme({
-  components: {
-    DocViewer: DocViewer.extend({ defaultProps: { pdfWorkerSrc } }),
+const pageEditor = createPageEditorExtension({
+  onDocumentChange: async (bytes, { reason, pages }) => {
+    await upload(new Blob([bytes], { type: 'application/pdf' }), { reason, pages });
   },
 });
+
+<DocViewer src="/contract.pdf" extensions={[pageEditor]} />;
 ```
 
-## Styling
+In the editor readers can:
 
-Like core Mantine components, DocViewer takes props that set CSS variables, and every part can
-be styled with the Styles API (`classNames`, `styles`, `vars` and `unstyled`).
+- select pages with a click, Shift or Ctrl click, Space, or Ctrl or Cmd and A
+- reorder them by dragging (with a mouse, or with touch or a pen by the grip on each page), with the
+  move earlier and move later buttons, or Alt and the arrow keys
+- delete them with the delete button or the Delete key (a PDF always keeps at least one page)
+- turn them a quarter turn with the rotate button or the R key; the turn is saved into the PDF
+- extract the selected pages as a new PDF
 
-```tsx
-<DocViewer
-  src="/report.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  size="md"
-  color="teal"
-  matchColor="grape"
-  activeMatchColor="red"
-  pageGap="xl"
-  thumbnailWidth={80}
-  radius="lg"
-  tooltipProps={{ position: 'bottom', withArrow: true }}
+Done shows the edited document in the viewer; Save does the same and also calls
+`onDocumentChange` with the new PDF. The original file is never changed. Without
+`onDocumentChange`, saved PDFs are downloaded, and so are extracted pages without `onExtract`.
+Reordering or deleting thumbnails in the sidebar shows the changed document and calls
+`onDocumentChange` with `reason: 'reorder'` or `'delete'`; without a callback nothing is
+downloaded. `withThumbnailEditing={false}` turns the sidebar editing off, and `compact` shows icon
+buttons with their labels in tooltips.
+
+Turning pages writes their rotation with [@cantoo/pdf-lib](https://github.com/cantoo-scribe/pdf-lib),
+which is loaded only when a page has been turned. The extension also exports
+`DocViewerPageEditorButton` and `DocViewerPageEditor` for custom toolbars and layouts,
+`openPageEditor` and `closePageEditor` to drive the editor from your own buttons, and `DEFAULT_LABELS`
+of the editor. Save a page in the demo:
+
+<Demo data={demos.editor} />
+
+## Markup extension
+
+Markup is an extension too, from `mantine-doc-viewer/markup`. `createMarkupExtension` adds a markup
+button to the toolbar and a bar below it with tools to highlight, draw with a pen, type text boxes,
+draw rectangles, ellipses and revision clouds, and sign. Undo removes the last mark; Save writes the
+marks into the PDF as real annotations (pdf.js writes them, so other PDF readers show and edit them)
+and calls `onDocumentChange` with `reason: 'annotate'`, or downloads the PDF.
+
+`tools` picks the tools in the bar, and `color`, `width` and `fontSize` style new marks. Marks are
+data: `value`, `defaultValue` and `onChange` hold them, in PDF points from the top left of each
+page. The tool can be controlled too, with `tool`, `defaultTool` and `onToolChange`, so an app can
+use its own buttons instead of the bar with `setMarkupTool(tool, store)`, and `saveMarkup(store)`
+saves. `DocViewerMarkupBar` and `DocViewerMarkupButton` are the parts for custom layouts.
+
+Content that belongs to the app rather than the PDF, such as comment pins, goes in
+`renderPageOverlay` instead. Draw a mark in the demo:
+
+<Demo data={demos.markup} />
+
+Extensions are plain objects, so create them once, outside of the component or with `useState`,
+and pass the same array while the viewer is mounted. Passing both extensions at once works:
+`extensions={[pageEditor, markup]}`.
+
+## Kiosk recipe
+
+A kiosk goes back to the start when nobody touches it, and plays the document to attract the next
+visitor. The viewer has no timer for this, because Mantine already has the parts:
+`useIdle` from `@mantine/hooks` says when nothing was touched, and `useInterval` turns pages with the
+`nextSpread` action. Pass `{ initialState: false }` to `useIdle`: by default it starts as idle, and
+the loop would start when the page mounts.
+
+<Demo data={demos.kiosk} />
+
+For a real kiosk, set a longer timeout, hide `print`, `download` and `fullscreen` with
+`toolbarControls`, and use `withPageTurning` for pedals and touch.
+
+## Labels and locale
+
+Every button name, message and screen reader text can be changed with `labels`. Labels that include
+a number are functions. Labels that are not set fall back to the English `DEFAULT_LABELS`, which also
+gives the type of every label, `DocViewerLabels`. `locale` is a BCP 47 language tag, such as
+`'de-DE'`, for the numbers and dates the viewer shows: zoom, page counts, file sizes and document
+properties. It is the browser's language by default.
+
+The extensions have their own `labels` option, with `DEFAULT_LABELS` exported from
+`mantine-doc-viewer/editor` and `mantine-doc-viewer/markup`:
+
+<Demo data={demos.labels} />
+
+To change labels for all viewers in your application, set `labels` in the
+[default props](https://mantine.dev/theming/default-props/) of the `DocViewer` component with
+`DocViewer.extend`.
+
+## Styles API
+
+`DocViewer` and its parts support [Styles API](https://mantine.dev/styles/styles-api/), so you can
+style any inner element with `classNames`, `styles`, `vars`, `attributes` and `unstyled`, on
+`DocViewer`, `DocViewer.Root` or a part. The selectors are shared: a part styles the same elements
+whether it is in the default layout or in your own, so the Styles API tab has one table for all
+parts. The root takes `size` for the toolbar height, buttons and text, `color` for pressed buttons,
+the current thumbnail and focus outlines, `radius`, `pageBackground` for the color behind PDF
+pages and thumbnails, and `pageColorScheme`.
+
+`pageColorScheme="dark"` inverts PDF pages for dark interfaces, keeping hues so images and charts
+stay recognisable, and `pageColorScheme="auto"` does so only when the Mantine color scheme is dark.
+`variant="plain"` removes the border, rounded corners, backgrounds and page shadows, for a document
+embedded in an article. Combine it with `withToolbar={false}` for just the pages.
+
+<Demo data={demos.styles} />
+
+`autosize` makes the viewer as tall as its content, so the page scrolls instead of a window inside
+the page. A PDF shows all its pages, and the page number, the `goToPage` action and search follow the
+scroll of the page. Text, code and markdown grow too; images keep a minimum height, so give them a
+fixed `h`. In full screen the viewer fills the screen and scrolls inside, as usual.
+
+This is which selectors each part uses:
+
+<PartSelectors data={partSelectors} />
+
+## Keyboard shortcuts
+
+The scroll area of each document can be focused with Tab and lists its shortcuts in
+`aria-keyshortcuts`. Shortcuts work while the document has focus.
+
+<DataTable
+  head={['Where', 'Key', 'Action']}
+  data={[
+    ['Images and PDF pages', <code>+</code>, 'Zoom in (= works too)'],
+    ['Images and PDF pages', <code>-</code>, 'Zoom out'],
+    ['Images and PDF pages', <code>0</code>, 'Fit to view'],
+    ['Images', <code>r</code>, 'Rotate 90 degrees clockwise'],
+    ['PDF pages', <code>Ctrl or Cmd + F</code>, 'Open search'],
+    ['Search', <code>Enter</code>, 'Next match (Shift and Enter for the previous one)'],
+    ['Search', <code>Escape</code>, 'Close search'],
+    ['Thumbnails', <code>Arrow keys, Page Up, Page Down, Home, End</code>, 'Show another page'],
+    ['Pages with withPageTurning', <code>Arrow left and right, Page Up, Page Down</code>, 'Turn the page'],
+    ['Presentation', <code>Arrow keys, Space, Page Up, Page Down, Home, End</code>, 'Move between pages'],
+    ['Presentation', <code>Escape</code>, 'End the presentation on the current page'],
+    ['Page editor', <code>Space, Ctrl or Cmd + A, R, Delete, Alt + arrow keys</code>, 'Select, select all, rotate, delete, move pages'],
+  ]}
 />
-```
-
-- `size` (`xs` to `xl`, `sm` by default) sets the toolbar height, buttons, inputs and text.
-- `color` is used for pressed toolbar buttons, the current thumbnail and focus outlines.
-- `matchColor` and `activeMatchColor` colour PDF search matches.
-- `pageGap` and `thumbnailWidth` set the space between PDF pages and the thumbnail size.
-- `tooltipProps` are passed to every toolbar tooltip, `codeHighlightProps` to the CodeHighlight
-  that shows code and markdown source.
-- `--doc-viewer-page-background` sets the background of PDF pages, for example a dimmer white in
-  dark mode.
-- `attributes` adds attributes to a part, like Mantine's Styles API: `attributes={{ control: { 'data-testid': 'viewer-button' } }}`.
-- Every toolbar button has the `control` selector, with `data-pressed` and `data-disabled`.
-
-```tsx
-<DocViewer
-  src="/report.pdf"
-  classNames={{ control: 'my-toolbar-button', toolbar: 'my-toolbar' }}
-  vars={() => ({ root: { '--doc-viewer-page-background': 'var(--mantine-color-gray-0)' } })}
-/>
-```
-
-### Responsive values
-
-`size`, `pageGap`, `thumbnailWidth` and `thumbnailsPosition` also take values per `theme.breakpoints` key, like
-Mantine style props. Here phones get bigger touch targets, tighter page gaps, smaller
-thumbnails under the pages instead of beside them:
-
-```tsx
-<DocViewer
-  src="/report.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  size={{ base: 'lg', sm: 'sm' }}
-  pageGap={{ base: 'xs', md: 'xl' }}
-  thumbnailWidth={{ base: 72, sm: 112 }}
-  thumbnailsPosition={{ base: 'bottom', sm: 'left' }}
-/>
-```
-
-The values are chosen with media queries in the browser, like Mantine's `useMatches` hook. On the
-server and on the first render the `base` value is used, so set `base` to what most visitors
-should see first.
-
-### Choosing toolbar controls
-
-Hide any toolbar control with `toolbarControls`: `title`, `thumbnails`, `pages`, `zoom`,
-`rotate`, `layout`, `outline`, `info`, `presentation`, `editPages`, `search`, `print`,
-`download`, `fullscreen`, `wrap` (text files) and `viewMode` (JSON and markdown). Hidden
-controls' keyboard shortcuts still work, and `controllerRef` still has their actions. It is the
-one switch for which toolbar buttons show.
-
-```tsx
-<DocViewer
-  src="/report.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  size="xs"
-  toolbarControls={{ rotate: false, layout: false, presentation: false, fullscreen: false }}
-/>
-```
-
-### Toolbar slots
-
-`toolbarStartSection` puts content before the title, `toolbarSubtitle` adds a small line under it,
-and `renderToolbarTitle` replaces the file name, for example with the sheet that is open. They have
-the Styles API names `toolbarStart`, `subtitle` and `title`.
-
-```tsx
-<DocViewer
-  src="/plans.pdf"
-  pdfWorkerSrc={pdfWorkerSrc}
-  toolbarStartSection={<MenuButton />}
-  toolbarSubtitle="Draft 4"
-  renderToolbarTitle={({ title }) => `Sheet ${sheet.number}, ${title}`}
-/>
-```
-
-`tapToggleToolbar` hides and shows the toolbar when a finger taps the viewer, so a page can fill a
-phone. Mouse clicks and taps on buttons or links do nothing.
-
-`withOverlayControls` floats zoom and full screen buttons over the top right of the document, for
-a viewer without a toolbar. `withFullscreen={false}` leaves out the full screen one.
-
-### Embedding and dark mode
-
-`variant="plain"` removes the border, rounded corners, backgrounds and page shadows, for a
-document embedded in an article. Combine it with `withToolbar={false}` for just the pages.
-
-`pageBackground` sets the colour behind PDF pages and thumbnails. `pageColorScheme="dark"` inverts
-PDF pages for dark interfaces, keeping hues so images and charts stay recognisable, and
-`pageColorScheme="auto"` does so only when the Mantine color scheme is dark.
-
-```tsx
-<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} variant="plain" withToolbar={false} />
-<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} pageColorScheme="auto" />
-```
-
-### Height
-
-The viewer fills the height its parent gives it. In an article, `height="auto"` makes it as tall
-as its content, so the page scrolls instead of a window inside the page. A PDF shows all its
-pages, and the page number, `goToPage` and search follow the page's scroll. Text, code and
-markdown grow too; images keep a minimum height, so give them a fixed `height`. In full screen
-the viewer fills the screen and scrolls inside, as usual. Fit to height layouts (`'horizontal'`,
-`'wrapped'`) fit to the width instead.
-
-```tsx
-<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} height="auto" />
-```
 
 ## Accessibility
 
 - Screen readers read PDF pages from their text layer. Each page is a group named "Page 2 of 3".
-- The scroll area of each document can be focused with Tab and scrolled with the arrow keys. It is
-  named after `fileName` and lists its keyboard shortcuts in `aria-keyshortcuts`.
-- Set `alt` to describe images. Without it, the file name is used.
-- The page buttons and thumbnails announce the new page, and search announces the match count.
-  Load errors are announced as alerts.
+- The scroll area of each document is a region named after `fileName`, with the keyboard shortcuts
+  in `aria-keyshortcuts`.
+- Set `alt` of `DocViewer.Image` (`imageProps={{ alt }}`) to describe images. Without it, the file
+  name is used.
+- The page buttons and thumbnails announce the new page, and search announces the match count and
+  the active match with its page once results settle. Load errors are announced as alerts.
 - Links in markdown that open a new tab say so to screen readers.
 - Thumbnails are a listbox with one tab stop on the current page. Arrow keys, Page Up, Page Down,
   Home and End move to another thumbnail and show its page; screen readers read "Page 3, 3 of 50,
   selected".
 - Buttons that become unavailable, such as Next page on the last page, keep focus.
-- Search announces the active match and its page once results settle.
 - In Windows high contrast mode, pressed toggle buttons get an outline.
-
-## Translating labels
-
-Every button name, message and screen reader text can be changed with `labels`. Labels that
-include a number are functions:
-
-```tsx
-import { DocViewer } from 'mantine-doc-viewer';
-
-function Demo() {
-  return (
-    <DocViewer
-      src="/report.pdf"
-      labels={{
-        nextPage: 'Nächste Seite',
-        previousPage: 'Vorherige Seite',
-        pageOf: (page, total) => `Seite ${page} von ${total}`,
-      }}
-    />
-  );
-}
-```
-
-`DOC_VIEWER_DEFAULT_LABELS` has the English defaults, and `DocViewerLabels` is the type of all labels.
+- Everything the viewer says is in `labels`, so translating it translates the screen reader text too.

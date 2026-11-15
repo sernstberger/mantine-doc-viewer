@@ -1,19 +1,18 @@
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer } from 'mantine-doc-viewer';
 import React from 'react';
+import { asset } from './_assets';
 
 const code = `
 import { DocViewer } from 'mantine-doc-viewer';
 
 function Demo() {
-  return <DocViewer src="/sample-image.svg" h={400} />;
+  return <DocViewer src="/sample.pdf" h={500} />;
 }
 `;
 
-const basePath = process.env.NODE_ENV === 'production' ? '/mantine-doc-viewer' : '';
-
 function Demo() {
-  return <DocViewer src={`${basePath}/sample-image.svg`} h={400} />;
+  return <DocViewer src={asset('sample.pdf')} h={500} />;
 }
 
 export const usage: MantineDemo = {

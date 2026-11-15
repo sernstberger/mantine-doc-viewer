@@ -8,6 +8,11 @@ import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-
 import { MantineProvider } from '@mantine/core';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
+import {
+  createPdfJsAdapter,
+  createReactMarkdownAdapter,
+  DocViewerAdapterProvider,
+} from 'mantine-doc-viewer';
 import React from 'react';
 import favicon from '../assets/favicon.svg';
 import { theme } from '../theme';
@@ -24,6 +29,12 @@ async function loadShiki() {
 
 const shikiAdapter = createShikiAdapter(loadShiki);
 
+const workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc });
+const markdownAdapter = createReactMarkdownAdapter(() =>
+  Promise.all([import('react-markdown'), import('remark-gfm')])
+);
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <MantineProvider theme={theme}>
@@ -36,7 +47,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="shortcut icon" href={favicon.src} />
       </Head>
       <CodeHighlightAdapterProvider adapter={shikiAdapter}>
-        <Component {...pageProps} />
+        <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
+          <Component {...pageProps} />
+        </DocViewerAdapterProvider>
       </CodeHighlightAdapterProvider>
     </MantineProvider>
   );

@@ -6,9 +6,9 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     root: 'Root element',
     toolbar: 'Toolbar above the document',
     toolbarSection:
-      'Left and right toolbar sections, from leftSection and rightSection (data-position)',
+      'Left and right toolbar sections, from `leftSection` and `rightSection` of the toolbar (data-position)',
     heading: 'Title and subtitle in the toolbar',
-    subtitle: 'Small text under the title, from toolbarSubtitle',
+    subtitle: 'Small text under the title, from `subtitle` of the toolbar or the title',
     title: 'File name in the toolbar',
     body: 'Scrollable area that contains the document',
     image: 'Image element, rendered for image documents',
@@ -19,7 +19,8 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     imageOverlay: 'Loading and error message for images',
     controls: 'Wrapper around toolbar buttons',
     control: 'Toolbar button and search close button, an ActionIcon',
-    overlayControls: 'Zoom and full screen buttons over the document, from withOverlayControls',
+    overlayControls:
+      'Zoom and full screen buttons over the document, from `withOverlayControls` or `DocViewer.OverlayControls`',
     overlayControl: 'A button in the overlay controls',
     empty:
       'Message displayed while loading, on errors and when the document type cannot be previewed',
@@ -30,9 +31,9 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     canvas: 'Canvas that a PDF page is drawn on',
     textLayer: 'Transparent, selectable text over a PDF page',
     linkLayer: 'Clickable links over a PDF page',
-    pageOverlay: 'App content over a PDF page, from renderPageOverlay',
-    highlightLayer: 'Boxes of a passage marked with controller.highlight, over a PDF page',
-    highlight: 'One box of a passage marked with controller.highlight',
+    pageOverlay: 'App content over a PDF page, from `renderPageOverlay` of `DocViewer.Pages`',
+    highlightLayer: 'Boxes of a passage marked with the `highlight` action, over a PDF page',
+    highlight: 'One box of a passage marked with the `highlight` action',
     markupLayer:
       'Marks drawn with the markup tools over a PDF page, takes the pointer while a tool is picked',
     markupText: 'A text box mark, and the box a new one is typed into',
@@ -49,7 +50,7 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     thumbnail: 'Option for one page in the thumbnails',
     thumbnailImage: 'Page preview inside a thumbnail',
     thumbnailLabel: 'Page number below a thumbnail',
-    thumbnailDelete: 'Delete button on a sidebar thumbnail, with withPageEditing',
+    thumbnailDelete: 'Delete button on a sidebar thumbnail, with the page editor extension',
     text: 'Plain text file content',
     code: 'CodeHighlight or JsonViewer that shows code files and markdown source',
     markdown: 'Rendered markdown',
@@ -150,24 +151,25 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     {
       modifier: 'data-hidden',
       selector: 'toolbar',
-      condition: 'Toolbar is hidden, by `tapToggleToolbar`',
+      condition: 'Toolbar is hidden, by `toggleOnTap` of the toolbar',
     },
     { modifier: 'data-loaded', selector: 'image', condition: 'Image has loaded' },
     {
       modifier: 'data-no-scroll',
       selector: 'body',
-      condition: '`withScroll` is false while reading a PDF',
+      condition: '`withScroll` of `DocViewer.Pages` is false',
     },
     {
       modifier: 'data-scroll-snap',
       selector: 'body',
       value: 'x | y',
-      condition: '`withScrollSnap`: scrolling stops at a page, sideways in the horizontal layout',
+      condition:
+        '`withScrollSnap` of `DocViewer.Pages`: scrolling stops at a page, sideways in the horizontal layout',
     },
     {
       modifier: 'data-swipe',
       selector: 'body',
-      condition: '`withPageTurning`: sideways swipes turn pages',
+      condition: '`withPageTurning` of `DocViewer.Pages`: sideways swipes turn pages',
     },
     {
       modifier: 'data-tool',

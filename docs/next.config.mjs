@@ -3,9 +3,12 @@ import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
 import signale from 'signale';
 
+// No remark-gfm for the mdx pages: like mantine.dev, they use no GFM syntax (no pipe tables, task
+// lists, strikethrough or footnotes; tables are DataTable components). The remark-gfm dependency of
+// this app stays for the markdown adapter that the demos pass to DocViewerAdapterProvider
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ['remark-gfm', 'remark-slug'],
+    remarkPlugins: ['remark-slug'],
   },
 });
 
