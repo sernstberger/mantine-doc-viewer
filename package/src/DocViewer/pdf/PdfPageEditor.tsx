@@ -1,37 +1,12 @@
-import { ActionIcon, Button, ButtonProps, Group, Text, VisuallyHidden } from '@mantine/core';
-import { useMergedRef } from '@mantine/hooks';
+import { VisuallyHidden } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useState } from 'react';
-import { softDisabled } from '../a11y';
-import { DocViewerTooltip } from '../controls';
 import { useDocViewerContext } from '../DocViewer.context';
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CheckIcon,
-  CloseIcon,
-  DownloadIcon,
-  DragHandleIcon,
-  ExtractIcon,
-  RotateIcon,
-  TrashIcon,
-  UndoIcon,
-} from '../icons';
-import { EditorKeyAction, getEditorKeyAction } from './editor-keys';
-import { useAnnouncement } from './use-announcement';
-import { useNearViewport } from './use-near-viewport';
-import { usePagePreview } from './use-page-preview';
-import { ReorderList, useReorderItem, useReorderList } from './use-reorder-drag';
-import {
-  buildExtractRequest,
-  initialOrder,
-  isEdited,
-  movePage,
-  moveSelected,
-  PageOrder,
-  removeSelected,
-} from './page-edits';
-import { applyPageRotations } from './rotate-pages';
+import { EditorBar } from './PdfEditorBar';
+import { PageTile } from './PdfPageTile';
+import { usePageEditorKeys } from './use-page-editor-keys';
+import { usePageEditorSave } from './use-page-editor-save';
+import { usePageEditorState } from './use-page-editor-state';
 
 export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'delete' | 'annotate';
 
@@ -44,324 +19,37 @@ interface PdfPageEditorProps {
   onSave: (bytes: Uint8Array, reason: PdfSaveReason, pages: number[]) => Promise<void> | void;
 }
 
-interface PageTileProps {
-  document: PDFDocumentProxy;
-  page: number;
-  position: number;
-  total: number;
-  selected: boolean;
-  focused: boolean;
-  /** How far the page is turned clockwise, in degrees */
-  rotation: number;
-  scrollRoot: HTMLElement | null;
-  reorder: ReorderList;
-  onSelect: (event: React.MouseEvent) => void;
-}
-
-/** Width of page previews in the editor, in px */
-const TILE_WIDTH = 120;
-
-function PageTile(props: PageTileProps) {
-  const { getStyles, labels } = useDocViewerContext();
-  const { ref, near } = useNearViewport<HTMLDivElement>(props.scrollRoot, '100% 0px');
-  const { itemRef, handleRef } = useReorderItem(props.reorder, props.page);
-  const tileRef = useMergedRef(ref, itemRef);
-  const { canvasRef, size } = usePagePreview({
-    document: props.document,
-    pageNumber: props.page,
-    width: TILE_WIDTH,
-    near,
-  });
-  const height = size ? (size.height / size.width) * TILE_WIDTH : TILE_WIDTH * 1.3;
-  // A turned page keeps the tile's width: sideways, the preview shrinks to fit across it
-  const sideways = props.rotation % 180 !== 0;
-  const boxHeight = sideways ? (TILE_WIDTH / height) * TILE_WIDTH : height;
-  const fit = sideways ? TILE_WIDTH / height : 1;
-
-  return (
-    <div
-      ref={tileRef}
-      {...getStyles('editorPage')}
-      {...props.reorder.getItemProps(props.page, props.position - 1)}
-      role="option"
-      aria-selected={props.selected}
-      aria-label={labels.editorPage(props.page, props.position, props.total)}
-      tabIndex={props.focused ? 0 : -1}
-      data-page={props.page}
-      data-selected={props.selected || undefined}
-      data-rotation={props.rotation || undefined}
-      onClick={(event) => !props.reorder.isDragClick(event) && props.onSelect(event)}
-    >
-      {/* Touch and pen drag from here, so that swiping the rest of the page scrolls */}
-      <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
-        <DragHandleIcon />
-      </span>
-      <span
-        {...getStyles('thumbnailImage', {
-          style: { position: 'relative', width: TILE_WIDTH, height: boxHeight },
-        })}
-      >
-        {near && (
-          <canvas
-            ref={canvasRef}
-            {...getStyles('canvas', {
-              style: props.rotation
-                ? {
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: TILE_WIDTH,
-                    height,
-                    transform: `translate(-50%, -50%) rotate(${props.rotation}deg) scale(${fit})`,
-                  }
-                : undefined,
-            })}
-            aria-hidden
-          />
-        )}
-      </span>
-      <span {...getStyles('thumbnailLabel')} aria-hidden>
-        {props.page}
-      </span>
-    </div>
-  );
-}
-
-interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
-  label: string;
-  icon: React.ReactNode;
-  onClick?: () => void;
-  /** Props from `softDisabled`: they carry the click handler */
-  [key: string]: unknown;
-}
-
-/** An action of the editor bar: a labelled button, or an icon with the label as tooltip when `compactPageEditor` is set */
-function EditorButton({ label, icon, variant, loading, ...others }: EditorButtonProps) {
-  const { getStyles, size, compactPageEditor } = useDocViewerContext();
-
-  if (!compactPageEditor) {
-    return (
-      <Button
-        {...getStyles('editorButton')}
-        size={size.input}
-        variant={variant}
-        loading={loading}
-        {...others}
-      >
-        {label}
-      </Button>
-    );
-  }
-
-  return (
-    <DocViewerTooltip label={label}>
-      <ActionIcon
-        {...getStyles('editorButton')}
-        size={size.input}
-        variant={variant}
-        loading={loading}
-        aria-label={label}
-        {...others}
-      >
-        {icon}
-      </ActionIcon>
-    </DocViewerTooltip>
-  );
-}
-
 /** Reorder, remove and extract pages. Edits make a new document; the original file is not changed */
 export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEditorProps) {
   const { getStyles, labels } = useDocViewerContext();
-  const [order, setOrder] = useState<PageOrder>(() => initialOrder(document.numPages));
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  // Quarter turns per page, clockwise in degrees, written into the PDF when it is saved
-  const [rotations, setRotations] = useState<Record<number, number>>({});
-  const turnOf = (page: number) => rotations[page] ?? 0;
-  const [focusedIndex, setFocusedIndex] = useState(0);
-  const [busy, setBusy] = useState(false);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
-  const [announcement, announce] = useAnnouncement();
-  const edited = isEdited(order, document.numPages) || order.some((page) => turnOf(page) !== 0);
-  const selection = order.filter((page) => selected.has(page));
-  const reorder = useReorderList({
-    container: scrollRoot,
-    layout: 'grid',
-    order,
-    onReorder: (page, toIndex) => {
-      const next = movePage(order, page, toIndex);
-      setOrder(next);
-      setFocusedIndex(toIndex);
-      announce(labels.pageMoved(page, toIndex + 1));
-    },
+  const editor = usePageEditorState({ document, scrollRoot });
+  const { order, selected, selection, edited, reorder } = editor;
+  const { busy, extract, finish, save } = usePageEditorSave({
+    document,
+    turnOf: editor.turnOf,
+    onDone,
+    onSave,
   });
-
-  /** Focus the page at this index of `pages` (the order on screen once a change has rendered) */
-  const focusIndex = (index: number, pages: PageOrder = order) => {
-    const next = Math.min(Math.max(index, 0), pages.length - 1);
-    setFocusedIndex(next);
-    scrollRoot?.querySelector<HTMLElement>(`[data-page="${pages[next]}"]`)?.focus();
-  };
-
-  const toggle = (page: number) =>
-    setSelected((current) => {
-      const next = new Set(current);
-      next.has(page) ? next.delete(page) : next.add(page);
-      return next;
-    });
-
-  /** Pages an action applies to: the selection, or the focused page when nothing is selected */
-  const targets = () => (selected.size > 0 ? selected : new Set([order[focusedIndex]]));
-
-  const move = (direction: -1 | 1) => {
-    const pages = targets();
-    const next = moveSelected(order, pages, direction);
-    setOrder(next);
-    const moved = [...pages][0];
-    announce(labels.pageMoved(moved, next.indexOf(moved) + 1));
-    requestAnimationFrame(() => focusIndex(next.indexOf(order[focusedIndex]), next));
-  };
-
-  const remove = () => {
-    const pages = targets();
-    const next = removeSelected(order, pages);
-    if (next.length === order.length) {
-      return;
-    }
-    setOrder(next);
-    setSelected(new Set());
-    // The focused page may be gone: keep keyboard focus in the list
-    requestAnimationFrame(() => focusIndex(focusedIndex, next));
-    announce(labels.pagesRemoved(order.length - next.length));
-  };
-
-  const rotate = () => {
-    const pages = targets();
-    setRotations((current) => {
-      const next = { ...current };
-      pages.forEach((page) => {
-        next[page] = ((current[page] ?? 0) + 90) % 360;
-      });
-      return next;
-    });
-    announce(labels.pagesRotated(pages.size));
-  };
-
-  /** The document with these pages in this order, turned as the reader turned them */
-  const build = async (pages: PageOrder) =>
-    applyPageRotations(
-      (await document.extractPages(buildExtractRequest(pages))) as Uint8Array,
-      pages.map(turnOf)
-    );
-
-  const run = async (action: () => Promise<void>) => {
-    setBusy(true);
-    try {
-      await action();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const keyActions: Record<EditorKeyAction, (step: -1 | 1) => void> = {
-    move: (step) => move(step),
-    focus: (step) => focusIndex(focusedIndex + step),
-    focusFirst: () => focusIndex(0),
-    focusLast: () => focusIndex(order.length - 1),
-    toggle: () => toggle(order[focusedIndex]),
-    remove: () => remove(),
-    rotate: () => rotate(),
-    selectAll: () => setSelected(new Set(order)),
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const key = getEditorKeyAction(event);
-    if (key) {
-      event.preventDefault();
-      keyActions[key.action](key.step);
-    }
-  };
+  const handleKeyDown = usePageEditorKeys(editor);
 
   return (
     <div {...getStyles('editor')}>
-      <Group {...getStyles('editorBar')} gap="xs" justify="space-between" wrap="wrap">
-        <Group gap="xs" wrap="wrap">
-          <Text fw={600} size="sm">
-            {labels.editPages}
-          </Text>
-          <Text size="sm" c="dimmed" aria-live="polite">
-            {labels.selectedCount(selected.size)}
-          </Text>
-        </Group>
-        <Group gap={6} wrap="wrap">
-          <EditorButton
-            label={labels.moveEarlier}
-            icon={<ArrowLeftIcon />}
-            variant="default"
-            onClick={() => move(-1)}
-          />
-          <EditorButton
-            label={labels.moveLater}
-            icon={<ArrowRightIcon />}
-            variant="default"
-            onClick={() => move(1)}
-          />
-          <EditorButton
-            label={labels.deletePages}
-            icon={<TrashIcon />}
-            variant="default"
-            {...softDisabled(order.length <= 1, remove)}
-          />
-          <EditorButton
-            label={labels.rotatePages}
-            icon={<RotateIcon />}
-            variant="default"
-            onClick={rotate}
-          />
-          <EditorButton
-            label={labels.extractPages}
-            icon={<ExtractIcon />}
-            variant="default"
-            {...softDisabled(selection.length === 0 || busy, () =>
-              run(async () => onSave(await build(selection), 'extract', selection))
-            )}
-          />
-          <EditorButton
-            label={labels.resetPages}
-            icon={<UndoIcon />}
-            variant="subtle"
-            {...softDisabled(!edited, () => {
-              setOrder(initialOrder(document.numPages));
-              setRotations({});
-              setSelected(new Set());
-            })}
-          />
-          <EditorButton
-            label={labels.cancel}
-            icon={<CloseIcon />}
-            variant="subtle"
-            onClick={onCancel}
-          />
-          <EditorButton
-            label={labels.done}
-            icon={<CheckIcon />}
-            variant="default"
-            loading={busy}
-            onClick={() => run(async () => onDone(edited ? await build(order) : null))}
-          />
-          <EditorButton
-            label={labels.savePages}
-            icon={<DownloadIcon />}
-            loading={busy}
-            onClick={() =>
-              run(async () => {
-                const bytes = await build(order);
-                await onSave(bytes, 'save', order);
-                onDone(bytes);
-              })
-            }
-          />
-        </Group>
-      </Group>
+      <EditorBar
+        order={order}
+        selection={selection}
+        selectedCount={selected.size}
+        edited={edited}
+        busy={busy}
+        onMove={editor.move}
+        onRemove={editor.remove}
+        onRotate={editor.rotate}
+        onExtract={() => extract(selection)}
+        onReset={editor.reset}
+        onCancel={onCancel}
+        onDone={() => finish(order, edited)}
+        onSave={() => save(order)}
+      />
 
       <div
         ref={setScrollRoot}
@@ -381,21 +69,16 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
             position={index + 1}
             total={order.length}
             selected={selected.has(page)}
-            focused={index === focusedIndex}
-            rotation={turnOf(page)}
+            focused={index === editor.focusedIndex}
+            rotation={editor.turnOf(page)}
             scrollRoot={scrollRoot}
             reorder={reorder}
-            onSelect={(event) => {
-              setFocusedIndex(index);
-              event.shiftKey || event.metaKey || event.ctrlKey
-                ? toggle(page)
-                : setSelected(new Set(selected.has(page) && selected.size === 1 ? [] : [page]));
-            }}
+            onSelect={(event) => editor.select(page, index, event)}
           />
         ))}
       </div>
 
-      <VisuallyHidden role="status">{announcement}</VisuallyHidden>
+      <VisuallyHidden role="status">{editor.announcement}</VisuallyHidden>
     </div>
   );
 }
