@@ -162,7 +162,8 @@ export interface DocViewerProps
   extends
     BoxProps,
     StylesApiProps<DocViewerFactory>,
-    ElementProps<'div'>,
+    // color is the viewer's accent colour, not the HTML attribute
+    ElementProps<'div', 'color'>,
     DocViewerEvents,
     DocViewerMarkupProps {
   /** Url of the document: a regular url, blob url or data url */
@@ -611,3 +612,12 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
 
 DocViewer.displayName = 'DocViewer';
 DocViewer.classes = classes;
+
+/** Types under the component name, like Mantine's own components: `DocViewer.Props` and so on */
+export namespace DocViewer {
+  export type Props = DocViewerProps;
+  export type StylesNames = DocViewerStylesNames;
+  export type CssVariables = DocViewerCssVariables;
+  export type Factory = DocViewerFactory;
+  export type Variant = DocViewerVariant;
+}

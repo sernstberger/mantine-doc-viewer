@@ -103,7 +103,7 @@ const OWN_PROP_NAMES = [
 type MissingOwnProps = Exclude<
   keyof DocViewerProps,
   // variant goes on to Box on purpose: Mantine renders it as data-variant
-  keyof BoxProps | keyof ElementProps<'div'> | 'variant' | (typeof OWN_PROP_NAMES)[number]
+  keyof BoxProps | keyof ElementProps<'div', 'color'> | 'variant' | (typeof OWN_PROP_NAMES)[number]
 >;
 // Fails to compile, naming the missing prop, when MissingOwnProps is not never
 const ownPropsListed: [MissingOwnProps] extends [never] ? true : MissingOwnProps = true;

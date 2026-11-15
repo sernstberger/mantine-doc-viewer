@@ -1,12 +1,13 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react';
-import { DocViewer, DocViewerProps, DocViewerStylesNames } from './DocViewer';
+import { DocViewer, DocViewerProps } from './DocViewer';
 
-const defaultProps: DocViewerProps = { src: 'https://example.com/photo.png' };
+// DocViewer.Props is DocViewerProps, like Mantine's own component namespaces
+const defaultProps: DocViewer.Props = { src: 'https://example.com/photo.png' };
 
 describe('DocViewer', () => {
-  tests.itSupportsSystemProps<DocViewerProps, DocViewerStylesNames>({
+  tests.itSupportsSystemProps<DocViewerProps, DocViewer.StylesNames>({
     component: DocViewer,
     props: defaultProps,
     styleProps: true,
