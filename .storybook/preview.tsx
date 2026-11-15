@@ -5,6 +5,7 @@ import { MantineProvider } from '@mantine/core';
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
+import { repoDecorators } from './repo';
 
 const shikiAdapter = createShikiAdapter(async () => {
   const { createHighlighter } = await import('shiki');
@@ -16,6 +17,19 @@ const shikiAdapter = createShikiAdapter(async () => {
 
 const preview: Preview = {
   parameters: {
+    options: {
+      // Component titles alphabetically, then the showcase apps; no type annotations here:
+      // Storybook evaluates this function statically
+      storySort: (a, b) => {
+        const appA = a.title.startsWith('Apps/');
+        const appB = b.title.startsWith('Apps/');
+        return appA === appB
+          ? a.title.localeCompare(b.title, undefined, { numeric: true })
+          : appA
+            ? 1
+            : -1;
+      },
+    },
     actions: { argTypesRegex: '^on[A-Z].*' },
     controls: {
       matchers: {
@@ -39,6 +53,7 @@ const preview: Preview = {
     },
   },
   decorators: [
+    ...repoDecorators,
     (renderStory: any, context: any) => {
       const [{ theme }, updateGlobals] = useGlobals();
 
