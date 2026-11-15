@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatNumber } from '../format';
 
 export type TextDocumentState =
   | { status: 'loading' }
@@ -94,7 +95,7 @@ export function decodeText(bytes: Uint8Array, contentType: string | null) {
   }
 }
 
-export function formatFileSize(bytes: number) {
+export function formatFileSize(bytes: number, locale?: string) {
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
   let unit = 0;
@@ -104,5 +105,10 @@ export function formatFileSize(bytes: number) {
     unit += 1;
   }
 
-  return `${unit === 0 ? size : size.toFixed(1)} ${units[unit]}`;
+  const digits = unit === 0 ? 0 : 1;
+  const number = formatNumber(size, locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  return `${number} ${units[unit]}`;
 }

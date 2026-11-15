@@ -166,6 +166,9 @@ export interface DocViewerProps
    */
   keepView?: boolean;
 
+  /** BCP 47 language tag, such as `'de-DE'`, for the numbers and dates the viewer shows: zoom, page counts, file sizes and document properties. The browser's language by default. Text comes from `labels` */
+  locale?: string;
+
   /** Text shown or read out by the viewer, override any of it to translate the viewer */
   labels?: Partial<DocViewerLabels>;
 
@@ -411,6 +414,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     alt,
     keepView,
     labels,
+    locale,
     pdfWorkerSrc,
     pdfOptions,
     maxCanvasPixels,
@@ -541,6 +545,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         alt,
         keepView,
         labels: resolvedLabels,
+        locale,
         withToolbar,
         toolbarControls,
         toolbarSection,

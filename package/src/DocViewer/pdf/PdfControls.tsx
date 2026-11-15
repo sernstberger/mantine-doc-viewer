@@ -20,6 +20,7 @@ import {
   SidebarIcon,
   TwoPagesIcon,
 } from '../icons';
+import { formatNumber } from '../format';
 import { ZoomControls } from '../ZoomControls';
 import { usePdfAttachments, usePdfProperties } from './document-info';
 import { fitsToHeight } from './geometry';
@@ -69,13 +70,13 @@ export interface PdfControlsProps {
 
 /** Toolbar buttons for PDFs: thumbnails, paging, zoom, rotation, layout, outline and search */
 export function PdfControls(props: PdfControlsProps) {
-  const { getStyles, labels, size, withPageEditing } = useDocViewerContext();
+  const { getStyles, labels, size, withPageEditing, locale } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
   const outline = usePdfOutline(props.document);
   const [outlineOpened, outlinePopover] = useDisclosure(false);
   const [infoOpened, infoPopover] = useDisclosure(false);
-  const properties = usePdfProperties(props.document, infoOpened);
+  const properties = usePdfProperties(props.document, infoOpened, locale);
   const attachments = usePdfAttachments(props.document);
   const { currentPage, onPage, thumbnailsOpened, layout, searchOpened } = props;
   const numPages = props.document.numPages;
@@ -131,7 +132,7 @@ export function PdfControls(props: PdfControlsProps) {
               </ActionIcon>
             </DocViewerTooltip>
             <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
-              {currentPage} / {numPages}
+              {formatNumber(currentPage, locale)} / {formatNumber(numPages, locale)}
             </Text>
             <DocViewerTooltip label={labels.nextPage}>
               <ActionIcon

@@ -18,6 +18,7 @@ import {
   nextRotation,
 } from './geometry';
 import { getRegionProps } from '../a11y';
+import { formatNumber } from '../format';
 import { saveBytes } from '../files';
 import { buildExtractRequest, getEditedFileName, initialOrder, movePage } from './page-edits';
 import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
@@ -435,7 +436,7 @@ export function PdfView() {
         {presenting && (
           <div {...getStyles('presentationControls')}>
             <span>
-              {currentPage} / {numPages}
+              {formatNumber(currentPage, context.locale)} / {formatNumber(numPages, context.locale)}
             </span>
             <CloseButton
               size="sm"

@@ -240,6 +240,8 @@ export function Atrium() {
             pdfWorkerSrc={pdfWorkerSrc}
             controllerRef={controller}
             labels={GERMAN_LABELS}
+            // Zoom reads 125 %, page counts and sizes follow German conventions
+            locale="de-DE"
             size="xl"
             color="#f2c14e"
             matchColor="#f2c14e"
@@ -262,7 +264,6 @@ export function Atrium() {
             // MISSING: swipe to turn the page; turning is an app button that calls goToPage, with the spread arithmetic done here.
             // MISSING: a zoom that fits the whole spread (width and height); 'fit' only fits the width, so the story computes it.
             // MISSING: a controlled `fullscreen` prop; the story mirrors the state from the `fullscreenchange` event.
-            // MISSING: a locale prop for the number formats the viewer uses.
           />
         </div>
 
