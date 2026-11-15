@@ -579,6 +579,71 @@
 }
 
 /* Links in PDF pages: pdf.js's annotation layer with only link annotations, adapted from pdf_viewer.css (Apache-2.0) */
+/* Marks drawn with the markup tools; it takes the pointer only while a tool is picked */
+.markupLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  transform-origin: 0 0;
+
+  & > svg {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  & [data-mark='highlight'] {
+    opacity: 0.4;
+  }
+
+  &[data-tool] {
+    pointer-events: auto;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  &[data-tool='text'] {
+    cursor: text;
+  }
+}
+
+/* Text box marks, and the box a new one is typed into: Helvetica, as the saved PDF shows it */
+.markupText {
+  position: absolute;
+  font-family: Helvetica, Arial, sans-serif;
+  white-space: pre;
+
+  & textarea {
+    min-width: 8ch;
+    min-height: 0;
+    padding: 0;
+    font-family: inherit;
+    white-space: pre;
+    outline: 1px dashed currentColor;
+    outline-offset: 2px;
+  }
+}
+
+.markupBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default);
+
+  & > :global(.mantine-Divider-root) {
+    align-self: stretch;
+    margin-inline: 4px;
+  }
+}
+
 /* App content over a page: lets clicks through to the text, except on its own children */
 .pageOverlay {
   position: absolute;

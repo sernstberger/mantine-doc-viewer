@@ -9,9 +9,10 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [x] **Overlay slot per page** (`renderPageOverlay`) that scales and rotates with the page, for app content pinned to a
       position: resolved redlines (Clause), comment and risk pins (Dealroom), teacher's margin notes
       (Markbook), proof boxes for bleed, trim and safe area (Proofline)
-- [ ] **Markup tools** saved into the PDF: highlight, text box, shapes, signature (Folio), clouds
-      and RFI pins (Plan room), pencil marks for fingering (Stand)
-- [ ] **Signature placed on a page** and saved into the PDF (Haven)
+- [x] **Markup tools** (`withMarkup`, `markupTool`, `markup`, `controller.saveMarkup`) saved into
+      the PDF: highlight, text box, shapes, signature (Folio), clouds and RFI pins (Plan room; the
+      pins are app content in `renderPageOverlay`), pencil marks for fingering (Stand)
+- [x] **Signature placed on a page** (`markupTool="signature"`) and saved into the PDF (Haven)
 - [x] **`onTextSelect(text, page, rects)`** (also `DocViewerPageRect`) so apps can comment on selected text (Dealroom)
 - [x] **Highlight a passage from outside** the viewer, not only by searching for it: `controller.highlight` and
       `clearHighlight` (Dealroom)

@@ -213,6 +213,21 @@
   background: var(--folio-chrome);
 }
 
+/* Markup row: Preview's second toolbar row, same chrome as the title bar */
+.markupBar {
+  gap: 2px;
+  border-bottom: 0.5px solid var(--folio-hairline);
+  background: var(--folio-chrome);
+
+  & :global(.mantine-Button-root) {
+    height: 22px;
+    padding-inline: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
 .editorPages {
   background: var(--folio-canvas);
 }

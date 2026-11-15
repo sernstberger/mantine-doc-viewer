@@ -226,6 +226,12 @@
   font-size: 12px;
 }
 
+.savedNote {
+  margin-right: 6px;
+  color: var(--stand-brass);
+  font-size: 12px;
+}
+
 .control {
   border: 0;
   border-radius: 6px;

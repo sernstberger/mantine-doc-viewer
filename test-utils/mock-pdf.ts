@@ -32,6 +32,16 @@ export function mockPdf({
     render: jest.fn(() => ({ promise: Promise.resolve(), cancel: jest.fn() })),
     cleanup: jest.fn(() => true),
   };
+  const annotationStorage = {
+    values: new Map<string, unknown>(),
+    setValue(key: string, value: unknown) {
+      this.values.set(key, value);
+    },
+    remove(key: string) {
+      this.values.delete(key);
+    },
+  };
+  const saved: Map<string, unknown>[] = [];
   const pages = Array.from({ length: numPages }, (_, index) => ({
     rotate: 0,
     getViewport: ({ scale, rotation = 0 }: { scale: number; rotation?: number }) => {
@@ -40,7 +50,9 @@ export function mockPdf({
         width: (quarter ? 792 : 612) * scale,
         height: (quarter ? 612 : 792) * scale,
       };
-      return { ...viewport, clone: () => viewport };
+      // Page space has its origin at the bottom left, like PDF user space
+      const convertToPdfPoint = (x: number, y: number) => [x / scale, 792 - y / scale];
+      return { ...viewport, clone: () => viewport, convertToPdfPoint };
     },
     render: page.render,
     cleanup: page.cleanup,
@@ -62,6 +74,12 @@ export function mockPdf({
     getPageIndex: jest.fn(() => Promise.resolve(1)),
     getData: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70]))),
     extractPages: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70, 45]))),
+    annotationStorage,
+    // Records what was in the annotation storage when the document was saved
+    saveDocument: jest.fn(() => {
+      saved.push(new Map(annotationStorage.values));
+      return Promise.resolve(new Uint8Array([37, 80, 68, 70, 46]));
+    }),
     getMetadata: jest.fn(() =>
       info === 'fail'
         ? Promise.reject(new Error('No metadata'))
@@ -115,5 +133,5 @@ export function mockPdf({
     return task;
   });
 
-  return { page };
+  return { page, document, annotationStorage, saved };
 }

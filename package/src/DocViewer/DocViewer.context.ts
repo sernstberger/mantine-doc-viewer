@@ -19,6 +19,7 @@ import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { DocViewerPageTurning } from './pdf/spreads';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
+import type { DocViewerMarkupProps } from './pdf/use-markup';
 import type { DocViewerSizeConfig } from './sizes';
 
 export interface DocViewerContextValue {
@@ -74,9 +75,10 @@ export interface DocViewerContextValue {
   onSave:
     | ((
         bytes: Uint8Array,
-        info: { reason: 'save' | 'extract' | 'reorder' | 'delete'; pages: number[] }
+        info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
       ) => void | Promise<void>)
     | undefined;
+  markup: DocViewerMarkupProps;
   fullscreen: boolean;
   toggleFullscreen: () => Promise<void>;
 }

@@ -1,8 +1,9 @@
 import { ActionIcon } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController, DocViewerOutlineItem } from '../controller';
+import type { DocViewerMark } from '../pdf/markup';
 import classes from './Stand.module.css';
 
 export default {
@@ -65,6 +66,25 @@ export function Stand() {
   const [spread, setSpread] = useState([1, 2]);
   const [sections, setSections] = useState<DocViewerOutlineItem[]>([]);
   const controller = useRef<DocViewerController>(null);
+  const [pencil, setPencil] = useState(false);
+  const [pencilMarks, setPencilMarks] = useState<DocViewerMark[]>([]);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!savedNote) {
+      return undefined;
+    }
+    const timeout = window.setTimeout(() => setSavedNote(null), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [savedNote]);
+
+  // Putting the pencil down writes the marks into the score, so they travel with the piece
+  const togglePencil = () => {
+    if (pencil && pencilMarks.length > 0) {
+      controller.current?.saveMarkup();
+    }
+    setPencil(!pencil);
+  };
 
   return (
     <div className={classes.stage} data-drawer={drawerOpened || undefined}>
@@ -152,6 +172,63 @@ export function Stand() {
           withScrollSnap
           onDocumentLoad={() => controller.current?.getOutline().then(setSections)}
           onSpreadChange={(_spread, pages) => setSpread(pages)}
+          // Pencil: soft graphite on the ivory paper, thin enough for fingering numbers
+          markupTool={pencil ? 'pen' : null}
+          markup={pencilMarks}
+          onMarkupChange={setPencilMarks}
+          markupColor="#6f6873"
+          markupWidth={1.1}
+          onSave={(_bytes, { reason }) => {
+            reason === 'annotate' && setSavedNote('Saved with the piece');
+          }}
+          toolbarSection={
+            <>
+              {savedNote && (
+                <span className={classes.savedNote} role="status">
+                  {savedNote}
+                </span>
+              )}
+              {pencil && (
+                <ActionIcon
+                  className={classes.control}
+                  variant="subtle"
+                  size="sm"
+                  aria-label="Undo pencil mark"
+                  disabled={pencilMarks.length === 0}
+                  onClick={() => setPencilMarks(pencilMarks.slice(0, -1))}
+                >
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path
+                      d="M7.5 12L3.5 8l4-4M3.5 8h8a5 5 0 0 1 0 10H9"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </ActionIcon>
+              )}
+              <ActionIcon
+                className={classes.control}
+                variant="subtle"
+                size="sm"
+                aria-label="Pencil"
+                aria-pressed={pencil}
+                data-pressed={pencil || undefined}
+                onClick={togglePencil}
+              >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path
+                    d="M4 16l1-3.5L13.5 4a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2L7.5 15 4 16zM12 5.5l2.5 2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </ActionIcon>
+            </>
+          }
           tooltipProps={{ openDelay: 600, position: 'bottom' }}
           classNames={{
             root: classes.root,
@@ -183,7 +260,6 @@ export function Stand() {
               </svg>
             </ActionIcon>
           }
-          // MISSING: pencil annotations for fingering and bowing, saved with the piece.
         />
       </main>
     </div>

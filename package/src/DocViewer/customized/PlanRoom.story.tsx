@@ -1,8 +1,9 @@
-import { Button, TextInput, UnstyledButton } from '@mantine/core';
+import { Button, Popover, TextInput, UnstyledButton } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
+import type { DocViewerMark } from '../pdf/markup';
 import classes from './PlanRoom.module.css';
 
 export default {
@@ -51,6 +52,63 @@ const SHEETS: Sheet[] = [
 
 const START_PAGE = 7;
 
+interface Rfi {
+  number: number;
+  page: number;
+  /** Where the pin points, in PDF points from the sheet's top-left */
+  x: number;
+  y: number;
+  status: 'open' | 'answered';
+  question: string;
+  from: string;
+}
+
+// RFIs live in the app's database with their thread and status, so they are pins over the
+// sheet, not marks in the PDF: answering one changes the pin, the drawing stays as issued
+const RFIS: Rfi[] = [
+  {
+    number: 112,
+    page: 7,
+    x: 500,
+    y: 300,
+    status: 'open',
+    question:
+      'Pour joint at grid 3: bulkhead over the beam or offset 2 ft? Detail 4/S-301 shows both.',
+    from: 'Keller Concrete, 13 Nov',
+  },
+  {
+    number: 108,
+    page: 7,
+    x: 890,
+    y: 150,
+    status: 'answered',
+    question: 'Slab edge at Stair 1: angle size for the pour stop?',
+    from: 'Answered by Halvorsen Structural, 9 Nov',
+  },
+];
+
+// A revision cloud the field engineer drew this morning around the stair opening
+const FIELD_MARKUP: DocViewerMark[] = [
+  {
+    type: 'cloud',
+    id: 'cloud-stair',
+    page: 7,
+    color: '#e03131',
+    width: 2,
+    rect: { x: 742, y: 108, width: 160, height: 220 },
+  },
+  {
+    type: 'text',
+    id: 'note-stair',
+    page: 7,
+    color: '#e03131',
+    x: 742,
+    y: 336,
+    text: 'Confirm opening size\nwith elevator sub',
+    fontSize: 10,
+  },
+];
+
 /**
  * A site superintendent on a tablet, mid pour, needs the framing sheet fast and big. The index
  * on the left is the app; the viewer scrolls sideways through the sheets like a rolled-out set.
@@ -59,6 +117,7 @@ export function PlanRoom() {
   const controller = useRef<DocViewerController>(null);
   const [page, setPage] = useState(START_PAGE);
   const [query, setQuery] = useState('');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   // Keep the current sheet in view in the index, also when the page changes by scrolling
   const currentRow = useRef<HTMLButtonElement>(null);
@@ -162,7 +221,7 @@ export function PlanRoom() {
 
         <footer className={classes.footer}>
           <span className={classes.synced} aria-hidden />
-          Synced 6:12 am. Works offline.
+          {savedAt ? `Markup saved to rev C at ${savedAt}.` : 'Synced 6:12 am. Works offline.'}
         </footer>
       </nav>
 
@@ -180,6 +239,52 @@ export function PlanRoom() {
           defaultZoom="fit"
           defaultPage={START_PAGE}
           onPageChange={setPage}
+          // Clouds, pen and notes in red, the way markup is done on a printed set
+          withMarkup
+          markupTools={['cloud', 'pen', 'text']}
+          markupColor="#e03131"
+          markupWidth={2}
+          markupFontSize={10}
+          defaultMarkup={FIELD_MARKUP}
+          onSave={(_bytes, { reason }) => {
+            if (reason === 'annotate') {
+              setSavedAt(
+                new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+              );
+            }
+          }}
+          renderPageOverlay={({ pageNumber, scale }) =>
+            RFIS.filter((rfi) => rfi.page === pageNumber).map((rfi) => (
+              <Popover
+                key={rfi.number}
+                position="bottom-start"
+                width={280}
+                withinPortal={false}
+                shadow="md"
+              >
+                <Popover.Target>
+                  <UnstyledButton
+                    className={classes.rfiPin}
+                    data-status={rfi.status}
+                    style={{ left: rfi.x * scale, top: rfi.y * scale }}
+                    aria-label={`RFI ${rfi.number}, ${rfi.status}`}
+                  >
+                    RFI {rfi.number}
+                  </UnstyledButton>
+                </Popover.Target>
+                <Popover.Dropdown className={classes.rfiCard}>
+                  <div className={classes.rfiHead}>
+                    <span className={classes.rfiNumber}>RFI {rfi.number}</span>
+                    <span className={classes.rfiStatus} data-status={rfi.status}>
+                      {rfi.status === 'open' ? 'Open' : 'Answered'}
+                    </span>
+                  </div>
+                  <p className={classes.rfiQuestion}>{rfi.question}</p>
+                  <p className={classes.rfiFrom}>{rfi.from}</p>
+                </Popover.Dropdown>
+              </Popover>
+            ))
+          }
           withPageEditing={false}
           withFullscreen={false}
           toolbarControls={{ thumbnails: false, presentation: false, info: false, layout: false }}
@@ -197,13 +302,13 @@ export function PlanRoom() {
             searchCount: classes.searchCount,
             body: classes.body,
             page: classes.sheetPage,
+            markupBar: classes.markupBar,
           }}
           // The title is the sheet in view, not the file name
           renderToolbarTitle={() =>
             currentSheet ? `${currentSheet.number} ${currentSheet.title}` : 'Plan set'
           }
           toolbarSubtitle="Plan set, rev C"
-          // MISSING: markup layer (cloud a revision, pin an RFI on the sheet) and saving it back to the set.
           // MISSING: a measure tool that uses the sheet's scale, and a way to calibrate it.
           // MISSING: overlaying two revisions of a sheet to see what changed.
         />

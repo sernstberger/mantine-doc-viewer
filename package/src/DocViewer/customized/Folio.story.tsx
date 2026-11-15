@@ -18,7 +18,7 @@ function formatSize(bytes: number) {
 
 /**
  * A Mac user tidies a quarterly report before sending it: remove the draft cover, reorder
- * sections and extract pages, all from the page editor.
+ * sections and extract pages from the page editor, then mark it up and sign it off.
  */
 export function Folio() {
   const [toast, setToast] = useState<Toast | null>(null);
@@ -53,6 +53,9 @@ export function Folio() {
           defaultZoom={1}
           defaultThumbnailsOpened
           withPageEditing
+          // Markup writes real PDF annotations, so the report opens marked up in any reader
+          withMarkup
+          markupTools={['highlight', 'text', 'rectangle', 'ellipse', 'signature']}
           // A native app writes back to the file; here the bytes only feed the notification
           onSave={(bytes, { reason, pages }) => {
             setEdited(true);
@@ -64,10 +67,15 @@ export function Folio() {
                   }
                 : reason === 'delete'
                   ? { title: 'Page deleted', text: `${pages.length} pages left` }
-                  : {
-                      title: 'Saved',
-                      text: `${pages.length} pages, ${formatSize(bytes.length)}`,
-                    }
+                  : reason === 'annotate'
+                    ? {
+                        title: 'Markup saved',
+                        text: `Marks on ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`,
+                      }
+                    : {
+                        title: 'Saved',
+                        text: `${pages.length} pages, ${formatSize(bytes.length)}`,
+                      }
             );
           }}
           // Like a macOS title bar: the name with a small line under it
@@ -92,10 +100,10 @@ export function Folio() {
             thumbnailLabel: classes.thumbnailLabel,
             editorBar: classes.editorBar,
             thumbnailDelete: classes.thumbnailDelete,
+            markupBar: classes.markupBar,
             editorPages: classes.editorPages,
             editorPage: classes.editorPage,
           }}
-          // MISSING: markup tools (highlight, text box, shapes, signature): the annotations layer.
           // MISSING: rotating one page and saving it; rotate only turns the view of every page.
         />
 

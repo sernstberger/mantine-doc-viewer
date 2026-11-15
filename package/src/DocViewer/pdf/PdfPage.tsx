@@ -9,6 +9,8 @@ import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './
 import { getPageTextContent } from './text-content';
 import { getOverlayStyle } from './page-overlay';
 import type { DocViewerPageRect } from './page-points';
+import { PdfMarkupLayer } from './PdfMarkupLayer';
+import type { PdfMarkup } from './use-markup';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -42,6 +44,8 @@ interface PdfPageProps {
 
   /** Boxes marked by `controller.highlight`, in page coordinates */
   highlightRects?: DocViewerPageRect[];
+  /** Marks to show on the page and the tool to draw new ones with */
+  markup?: PdfMarkup;
 }
 
 /** While text is being selected, pdf.js stretches `.endOfContent` over the layer to stop the selection jumping */
@@ -113,6 +117,7 @@ export function PdfPage({
   linkService,
   onTextLayer,
   highlightRects,
+  markup,
 }: PdfPageProps) {
   const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -322,6 +327,16 @@ export function PdfPage({
             />
           ))}
         </div>
+      )}
+      {markup && (
+        <PdfMarkupLayer
+          pageNumber={pageNumber}
+          width={overlaySize.width}
+          height={overlaySize.height}
+          scale={scale}
+          rotation={rotation}
+          markup={markup}
+        />
       )}
       {overlay != null && overlay !== false && (
         <div

@@ -373,3 +373,86 @@
     0 0 0 1px rgb(0 0 0 / 0.4),
     0 18px 40px rgb(0 0 0 / 0.45);
 }
+
+/* --------------------------------- markup --------------------------------- */
+
+.markupBar {
+  padding-block: 8px;
+  border-bottom: 1px solid #1f2327;
+  background: var(--plan-panel);
+
+  & :global(.mantine-Button-root) {
+    --button-bg: var(--plan-panel-raised);
+    --button-bd: 1px solid var(--plan-line);
+    --button-color: var(--plan-text);
+    --button-hover: var(--plan-line);
+
+    font-family: inherit;
+    font-weight: 600;
+  }
+}
+
+/* An RFI pin: a tag whose corner is the spot on the sheet it asks about */
+.rfiPin {
+  position: absolute;
+  padding: 2px 8px 3px;
+  border-radius: 0 6px 6px;
+  background: var(--plan-s);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  color: #1d1f22;
+  font-family: 'Barlow Condensed', Barlow, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  &[data-status='answered'] {
+    background: var(--plan-m);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--plan-hivis);
+    outline-offset: 2px;
+  }
+}
+
+.rfiCard {
+  border-color: var(--plan-line);
+  background: var(--plan-panel-raised);
+  color: var(--plan-text);
+  font-family: Barlow, system-ui, sans-serif;
+}
+
+.rfiHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rfiNumber {
+  font-family: 'Barlow Condensed', Barlow, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.rfiStatus {
+  color: var(--plan-s);
+  font-size: 13px;
+  font-weight: 600;
+
+  &[data-status='answered'] {
+    color: var(--plan-m);
+  }
+}
+
+.rfiQuestion {
+  margin: 6px 0 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.rfiFrom {
+  margin: 0;
+  color: var(--plan-muted);
+  font-size: 12.5px;
+}

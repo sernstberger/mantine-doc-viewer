@@ -1,3 +1,5 @@
+import type { DocViewerMarkupTool } from './pdf/markup';
+
 /** Text shown or read out by the viewer, override any of it with the `labels` prop to translate it */
 export interface DocViewerLabels {
   /** Name used when the file has no name, for the title and the screen reader name of the viewer */
@@ -98,6 +100,16 @@ export interface DocViewerLabels {
   matchCase: string;
   wholeWords: string;
   matchAccents: string;
+
+  /** Toolbar button that opens the markup bar, and the bar's screen reader name */
+  markup: string;
+  markupTools: Record<DocViewerMarkupTool, string>;
+  undoMark: string;
+  saveMarkup: string;
+  closeMarkup: string;
+  /** Screen reader name of the box a text mark is typed into */
+  markupText: string;
+  markupSaved: string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -212,6 +224,21 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   matchCase: 'Match case',
   wholeWords: 'Whole words',
   matchAccents: 'Match accents',
+  markup: 'Markup',
+  markupTools: {
+    highlight: 'Highlight',
+    pen: 'Pen',
+    text: 'Text box',
+    rectangle: 'Rectangle',
+    ellipse: 'Ellipse',
+    cloud: 'Cloud',
+    signature: 'Signature',
+  },
+  undoMark: 'Undo',
+  saveMarkup: 'Save',
+  closeMarkup: 'Close markup',
+  markupText: 'Text box text',
+  markupSaved: 'Markup saved',
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',

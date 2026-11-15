@@ -36,6 +36,17 @@ export type {
 } from './DocViewer/pdf/page-overlay';
 export type { DocViewerPageRect } from './DocViewer/pdf/page-points';
 export type {
+  DocViewerMark,
+  DocViewerMarkPoint,
+  DocViewerMarkRect,
+  DocViewerMarkupTool,
+  DocViewerHighlightMark,
+  DocViewerShapeMark,
+  DocViewerStrokeMark,
+  DocViewerTextMark,
+} from './DocViewer/pdf/markup';
+export type { DocViewerMarkupProps } from './DocViewer/pdf/use-markup';
+export type {
   DocViewerController,
   DocViewerEvents,
   DocViewerGoToPageOptions,
