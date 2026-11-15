@@ -37,6 +37,7 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     pageLayout: props.pageLayout,
     size: DOC_VIEWER_SIZES[props.size!] ?? DOC_VIEWER_SIZES.sm,
     color: props.color,
+    unstyled: props.unstyled,
     controller: session.controller,
     events,
     page: props.page,

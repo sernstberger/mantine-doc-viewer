@@ -20,7 +20,11 @@ export type DocViewerPageEditorStylesNames =
   | 'editorCount'
   | 'editorPages'
   | 'editorPage'
-  | 'editorButton';
+  | 'editorButton'
+  | 'thumbnailImage'
+  | 'thumbnailLabel'
+  | 'dragHandle'
+  | 'canvas';
 
 export interface DocViewerPageEditorProps
   extends BoxProps, CompoundStylesApiProps<DocViewerPageEditorFactory>, ElementProps<'div'> {}

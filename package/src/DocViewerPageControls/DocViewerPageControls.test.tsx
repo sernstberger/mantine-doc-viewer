@@ -18,8 +18,8 @@ describe('mantine-doc-viewer/DocViewerPageControls', () => {
     displayName: 'mantine-doc-viewer/DocViewerPageControls',
     refType: HTMLDivElement,
     ...PART_TEST_OPTIONS,
-    stylesApiSelectors: ['pageIndicator', 'control'],
-    selector: '.mantine-Group-root',
+    stylesApiSelectors: ['pageControls', 'pageIndicator', 'control'],
+    selector: '.mantine-DocViewer-pageControls',
   });
 
   tests.itThrowsContextError({

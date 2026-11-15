@@ -13,12 +13,13 @@ export function DocViewerTooltip(props: TooltipProps) {
 
 /** Props shared by every toolbar button: size, colours and the `control` Styles API selector */
 export function useControlProps() {
-  const { getStyles, size, color } = useDocViewerContext();
+  const { getStyles, size, color, unstyled } = useDocViewerContext();
 
   return (pressed?: boolean, stylesApiProps?: GetStylesApiOptions) => ({
     ...getStyles('control', stylesApiProps),
     'data-toolbar-toggle': true,
     size: size.control,
+    unstyled,
     variant: pressed ? 'light' : 'subtle',
     color: pressed ? color : 'gray',
     'data-pressed': pressed || undefined,

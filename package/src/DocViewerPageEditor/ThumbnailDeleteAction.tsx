@@ -10,7 +10,7 @@ import { usePageEditor } from './page-editor-setup';
  * Delete on the thumbnail instead
  */
 export function ThumbnailDeleteAction({ page }: { page: number }) {
-  const { getStyles } = useDocViewerPageContext();
+  const { getStyles, unstyled } = useDocViewerPageContext();
   const editor = usePageEditor();
   const onDelete = use(PdfThumbnailEditsContext)?.onDelete;
   if (!onDelete) {
@@ -19,6 +19,7 @@ export function ThumbnailDeleteAction({ page }: { page: number }) {
 
   return (
     <ActionIcon
+      unstyled={unstyled}
       {...getStyles('thumbnailDelete')}
       size="sm"
       variant="default"

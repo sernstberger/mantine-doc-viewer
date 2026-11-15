@@ -77,7 +77,7 @@ interface SearchHighlightsInput {
   matches: SearchMatch[];
   activeMatch: SearchMatch | undefined;
   scrollRoot: HTMLElement | null;
-  /** The window scrolls instead of `scrollRoot` (`height="auto"`) */
+  /** The window scrolls instead of `scrollRoot` (`autosize`) */
   viewport?: boolean;
   scrollToPage: (page: number) => void;
 }

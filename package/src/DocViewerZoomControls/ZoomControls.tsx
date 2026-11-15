@@ -1,7 +1,7 @@
 import {
   ActionIcon,
-  Group,
-  GroupProps,
+  Box,
+  BoxProps,
   Menu,
   UnstyledButton,
   type GetStylesApiOptions,
@@ -34,7 +34,7 @@ interface ZoomControlsProps {
   stylesApiProps?: GetStylesApiOptions;
 
   /** Props of the group around the buttons: `className`, `style` and everything the part was given */
-  groupProps?: GroupProps & Record<string, unknown>;
+  groupProps?: BoxProps & Record<string, unknown>;
 }
 
 interface ZoomLevelProps extends Pick<ZoomControlsProps, 'onZoom' | 'stylesApiProps'> {
@@ -64,10 +64,10 @@ function ZoomLevelMenu({
   onFit,
   stylesApiProps,
 }: ZoomLevelProps & Pick<ZoomControlsProps, 'fitLabel' | 'fitted' | 'onFit'>) {
-  const { getStyles, labels, locale } = useDocViewerContext();
+  const { getStyles, labels, locale, unstyled } = useDocViewerContext();
 
   return (
-    <Menu withinPortal={false} position="bottom" shadow="md">
+    <Menu unstyled={unstyled} withinPortal={false} position="bottom" shadow="md">
       <Menu.Target>
         <UnstyledButton
           {...getStyles('zoomLevel', stylesApiProps)}
@@ -102,13 +102,14 @@ export function ZoomControls({
   stylesApiProps,
   groupProps,
 }: ZoomControlsProps) {
-  const { labels, locale } = useDocViewerContext();
+  const { getStyles, labels, locale } = useDocViewerContext();
+  const { className, style, ...others } = groupProps ?? {};
   const percent = formatPercent(scale, locale);
   const controlProps = useControlProps();
   const levelProps = { percent, onZoom, stylesApiProps };
 
   return (
-    <Group gap={2} wrap="nowrap" {...groupProps}>
+    <Box {...getStyles('zoomControls', { className, style, ...stylesApiProps })} {...others}>
       <DocViewerTooltip label={labels.zoomOutLabel}>
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
@@ -142,6 +143,6 @@ export function ZoomControls({
           {fitIcon}
         </ActionIcon>
       </DocViewerTooltip>
-    </Group>
+    </Box>
   );
 }

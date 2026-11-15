@@ -42,7 +42,7 @@ export type DocViewerOverlayControlsFactory = Factory<{
 export const DocViewerOverlayControls = factory<DocViewerOverlayControlsFactory>((_props) => {
   const { classNames, className, style, styles, vars, controls, tooltipProps, ...others } =
     useProps('DocViewerOverlayControls', null, _props);
-  const { store, getStyles, labels, size } = useDocViewerContext();
+  const { store, getStyles, labels, size, unstyled } = useDocViewerContext();
   const ready = useReadyDocument(PDF_OR_IMAGE);
   const fullscreen = useDocViewerState(store, (state) => state.fullscreen);
   const show = useShowControl();
@@ -51,6 +51,7 @@ export const DocViewerOverlayControls = factory<DocViewerOverlayControlsFactory>
   const buttonProps = {
     ...getStyles('overlayControl', stylesApiProps),
     size: size.control,
+    unstyled,
     variant: 'default',
     color: 'gray',
   };
@@ -89,6 +90,7 @@ export const DocViewerOverlayControls = factory<DocViewerOverlayControlsFactory>
               {...buttonProps}
               aria-label={labels.fullscreenLabel}
               aria-pressed={fullscreen}
+              data-pressed={fullscreen || undefined}
               onClick={() => docViewerActions.toggleFullscreen(store)}
             >
               {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}

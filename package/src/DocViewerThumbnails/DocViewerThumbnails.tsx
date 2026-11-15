@@ -23,7 +23,10 @@ export type DocViewerThumbnailsStylesNames =
   | 'thumbnails'
   | 'thumbnail'
   | 'thumbnailImage'
-  | 'thumbnailLabel';
+  | 'thumbnailLabel'
+  | 'thumbnailDelete'
+  | 'dragHandle'
+  | 'canvas';
 
 export interface DocViewerThumbnailsProps
   extends BoxProps, CompoundStylesApiProps<DocViewerThumbnailsFactory>, ElementProps<'div'> {

@@ -29,8 +29,8 @@ describe('mantine-doc-viewer/DocViewerZoomControls', () => {
     displayName: 'mantine-doc-viewer/DocViewerZoomControls',
     refType: HTMLDivElement,
     ...PART_TEST_OPTIONS,
-    stylesApiSelectors: ['zoomLevel', 'control'],
-    selector: '.mantine-Group-root',
+    stylesApiSelectors: ['zoomControls', 'zoomLevel', 'control'],
+    selector: '.mantine-DocViewer-zoomControls',
   });
 
   tests.itThrowsContextError({

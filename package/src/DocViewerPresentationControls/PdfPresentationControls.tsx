@@ -25,16 +25,17 @@ export function PdfPresentationControls({
   elementProps,
   rootRef,
 }: PdfPresentationControlsProps) {
-  const { getStyles, labels, locale } = useDocViewerContext();
+  const { getStyles, labels, locale, unstyled } = useDocViewerContext();
   return (
     <Box ref={rootRef} {...getStyles('presentationControls', stylesOptions)} {...elementProps}>
-      <span>
+      <span {...getStyles('pageIndicator')}>
         {formatNumber(currentPage, locale)} / {formatNumber(numPages, locale)}
       </span>
       <CloseButton
-        size="sm"
+        {...getStyles('control')}
+        unstyled={unstyled}
+        size="md"
         variant="transparent"
-        c="white"
         aria-label={labels.exitPresentationLabel}
         aria-keyshortcuts="Escape"
         onClick={onExit}

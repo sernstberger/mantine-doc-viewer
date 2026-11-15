@@ -4,8 +4,8 @@
   --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
   --_page-background: var(--doc-viewer-page-background, var(--mantine-color-white));
   --_page-filter: none;
+  --_highlight-blend: multiply;
 
-  /* Own stacking context: the z-index values inside (1 to 3) never compete with the host page */
   isolation: isolate;
   position: relative;
   display: flex;
@@ -16,6 +16,19 @@
   border-radius: var(--doc-viewer-radius);
   background-color: var(--mantine-color-body);
   color: var(--mantine-color-text);
+}
+
+.root[data-fullscreen] {
+  border: 0;
+  border-radius: 0;
+}
+
+.pageControls,
+.zoomControls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: rem(2px);
 }
 
 .toolbar {
@@ -92,13 +105,11 @@
     min-height: rem(240px);
   }
 
-  /* withScroll={false}: the app moves the view; programmatic scrolling still works */
   &[data-no-scroll] {
     overflow: hidden;
     overscroll-behavior: none;
   }
 
-  /* withScrollSnap: scrolling stops at a page, or a spread, the way goToPage leaves it */
   &[data-scroll-snap='y'] {
     scroll-snap-type: y mandatory;
   }
@@ -109,11 +120,9 @@
 
   &[data-scroll-snap] > .pages > .page {
     scroll-snap-align: start;
-    /* Page pixels, like the gutters in pdf/zoom.ts: not scaled with the root font size */
     scroll-margin: 12px;
   }
 
-  /* withPageTurning: sideways swipes turn pages, so the browser only scrolls up and down */
   &[data-swipe] {
     touch-action: pan-y pinch-zoom;
   }
@@ -140,7 +149,6 @@
   }
 }
 
-/* Padding on both sides must add up to IMAGE_GUTTER in views/image-fit.ts */
 .imageCanvas {
   display: flex;
   align-items: center;
@@ -177,7 +185,6 @@
   inset: 0;
 }
 
-/* Mantine's EmptyState lays out the message; it fills the body and centres vertically */
 .empty {
   justify-content: center;
   height: 100%;
@@ -197,7 +204,6 @@
   gap: var(--mantine-spacing-xs);
   padding-block: rem(4px);
 
-  /* The title gives way first; below its minimum width the controls wrap inside their own box */
   margin-inline-start: auto;
 }
 
@@ -222,7 +228,6 @@
   }
 }
 
-/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback). What the layout needs is in DocViewer.behavior.module.css */
 .pages {
   gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
   padding: var(--mantine-spacing-md) 16px;
@@ -244,7 +249,6 @@
 }
 
 .canvas {
-  /* pageColorScheme sets the filter on the root; none otherwise */
   filter: var(--_page-filter);
 }
 
@@ -270,12 +274,8 @@
   white-space: nowrap;
 }
 
-/* Search match colours are added at runtime by pdf/highlights.ts: some bundlers cannot parse ::highlight() */
-
-/* High contrast mode. The text layer keeps its own colours (forced-color-adjust: none), so search highlights stay as they are */
 @media (forced-colors: active) {
-  /* Pressed toggle buttons lose their background, mark them with an outline instead */
-  .toolbar [aria-pressed='true'] {
+  :is(.control, .overlayControl)[data-pressed] {
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
@@ -302,7 +302,6 @@
 }
 
 .thumbnails {
-  /* Offset parent of the thumbnails, used to keep the active one in view */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -315,7 +314,6 @@
   border-inline-end: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
 
-  /* "left" and "right" are the start and end of the line: the rail swaps sides in RTL */
   :where([data-thumbnails-position='right']) > & {
     border-inline-end: 0;
     border-inline-start: 1px solid var(--mantine-color-default-border);
@@ -354,7 +352,6 @@
   @mixin hover {
     background-color: var(--mantine-color-default-hover);
 
-    /* The delete button shows when the thumbnail is hovered (on touch screens: pressed) */
     & > :where(.thumbnailDelete) {
       opacity: 1;
     }
@@ -371,7 +368,6 @@
   }
 }
 
-/* The width is set from the thumbnailWidth prop, in pdf/PdfThumbnails.tsx */
 .thumbnailImage {
   display: block;
   overflow: hidden;
@@ -475,7 +471,6 @@
   background-color: var(--mantine-color-body);
 }
 
-/* Marks drawn with the markup tools. Where it sits and when it takes the pointer is in DocViewer.behavior.module.css */
 .markupLayer {
   & [data-mark='highlight'] {
     opacity: 0.4;
@@ -489,7 +484,6 @@
     cursor: text;
   }
 
-  /* A tab stop while a tool is picked: keys move a cursor and place marks */
   outline: none;
 
   &:focus-visible {
@@ -506,13 +500,11 @@
   }
 }
 
-/* Text box marks, and the box a new one is typed into: Helvetica, as the saved PDF shows it */
 .markupText {
   position: absolute;
   font-family: Helvetica, Arial, sans-serif;
   white-space: pre;
 
-  /* The textarea of a box being typed: a descendant, so the class beats the input's own styles */
   & .markupInput {
     min-width: 8ch;
     min-height: 0;
@@ -538,7 +530,6 @@
   margin-inline: rem(4px);
 }
 
-/* Boxes marked from outside with controller.highlight, in the colours of the active search match (the layer is in DocViewer.behavior.module.css) */
 .highlight {
   position: absolute;
   border-radius: 2px;
@@ -547,7 +538,7 @@
     var(--doc-viewer-active-match-color, var(--mantine-color-orange-6)) 40%,
     transparent
   );
-  mix-blend-mode: multiply;
+  mix-blend-mode: var(--_highlight-blend);
   outline: 2px solid
     color-mix(
       in srgb,
@@ -557,7 +548,6 @@
   outline-offset: 1px;
 }
 
-/* Links in PDF pages (the layer itself is in DocViewer.behavior.module.css) */
 .linkLayer {
   & :global(.linkAnnotation) > a {
     border-radius: 2px;
@@ -601,8 +591,16 @@
 }
 
 .properties {
-  /* Long values (file names, producers) wrap instead of widening the popover; inherited by the values */
   overflow-wrap: anywhere;
+}
+
+.presentationControls .control {
+  color: inherit;
+
+  @media (pointer: coarse) {
+    min-width: rem(44px);
+    min-height: rem(44px);
+  }
 }
 
 .presentationControls {
@@ -677,12 +675,10 @@
   }
 }
 
-/* Drag to reorder (page editor and thumbnails), with Mantine's useDrag */
 :is(.thumbnail, .editorPage) {
   position: relative;
   touch-action: manipulation;
 
-  /* The dragged page follows the pointer */
   &[data-dragging] {
     z-index: 2;
     opacity: 0.85;
@@ -691,7 +687,6 @@
     cursor: grabbing;
   }
 
-  /* Where the page will land: a bar in the gap before or after this item */
   &[data-drop]::after {
     content: '';
     position: absolute;
@@ -707,7 +702,6 @@
     width: rem(3px);
   }
 
-  /* Before and after follow the reading direction: the bar is on the right of a page "before" it in RTL */
   &[data-drop='before']::after {
     inset-inline-start: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
   }
@@ -716,7 +710,6 @@
     inset-inline-end: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
   }
 
-  /* A vertical rail of thumbnails gets a horizontal bar instead */
   :where(.thumbnails[data-orientation='vertical']) > &[data-drop]::after {
     inset-inline: 0;
     width: auto;
@@ -740,7 +733,6 @@
   }
 }
 
-/* Touch and pen drag from the handle; a mouse drags the whole page */
 .dragHandle {
   position: absolute;
   z-index: 1;
@@ -758,10 +750,6 @@
   touch-action: none;
   cursor: grab;
 
-  /*
-   * On touch screens on the current thumbnail only (on every thumbnail they would cover the
-   * pages), and on every page of the page editor
-   */
   @media (pointer: coarse) {
     :where(.thumbnail[data-active], .editorPage) > & {
       display: grid;
@@ -769,18 +757,7 @@
   }
 }
 
-/*
- * height="auto": the viewer is as tall as its content and the window scrolls. Full screen has a
- * height of its own, so it scrolls inside the viewer as usual.
- * The selectors are in :where() so that an app's own classes win without !important; they come
- * after the plain rules, which have the same specificity.
- */
-
-/*
- * The body is as tall as its pages. Beside side thumbnails the main part is a row, where the
- * body must still fill the width: shrunk to its content, fit to width would fit the pages to
- * whatever width they had, down to the smallest zoom (Safari)
- */
+/* Workaround: Safari fits the pages to a body shrunk to its content, down to the smallest zoom */
 :where(.root[data-auto-height]:not([data-fullscreen]) .main) > .body {
   flex: 1 1 0%;
   min-width: 0;
@@ -794,7 +771,6 @@
   flex: none;
 }
 
-/* Side rails stay in view while the pages scroll past */
 :where(.root[data-auto-height]:not([data-fullscreen]) .main)
   > .thumbnails:where(:not([data-orientation='horizontal'])) {
   position: sticky;
@@ -808,7 +784,6 @@
   max-height: none;
 }
 
-/* Delete button on a sidebar thumbnail: shown on hover and focus, always on touch screens */
 .thumbnailDelete {
   position: absolute;
   z-index: 1;
@@ -825,7 +800,6 @@
     opacity: 1;
   }
 
-  /* On touch screens only the current thumbnail shows it; elsewhere it is not there to tap or announce */
   @media (pointer: coarse) {
     visibility: hidden;
     pointer-events: none;
@@ -838,10 +812,6 @@
   }
 }
 
-/*
- * variant="plain": just the document, for embedding in a page. The inner parts are in :where(),
- * so an app's classNames for them win without !important
- */
 .root[data-variant='plain'] {
   border: 0;
   border-radius: 0;
@@ -862,24 +832,22 @@
   box-shadow: none;
 }
 
-/* A presentation: pages centred on a dark background. Last, so it also wins over the plain body */
 :where(.main[data-presenting]) > .body {
-  /* Not a theme colour: dark-9 is a little lighter, and a presentation should be as dark as a room */
   background-color: #111;
   cursor: pointer;
 }
 
-/* pageColorScheme: inverted pages for dark interfaces, keeping hues */
 .root[data-page-color-scheme='dark'] {
-  /* #121212 is not a palette colour (dark-9 is #141414), kept for the same look as before */
   --_page-background: var(--doc-viewer-page-background, #121212);
   --_page-filter: invert(0.92) hue-rotate(180deg);
+  --_highlight-blend: screen;
 }
 
 .root[data-page-color-scheme='auto'] {
   @mixin dark {
     --_page-background: var(--doc-viewer-page-background, #121212);
     --_page-filter: invert(0.92) hue-rotate(180deg);
+    --_highlight-blend: screen;
   }
 }
 
@@ -900,7 +868,6 @@
   font-weight: 600;
 }
 
-/* The save button sits at the end of the markup bar */
 .markupSave {
   margin-inline-start: auto;
 }

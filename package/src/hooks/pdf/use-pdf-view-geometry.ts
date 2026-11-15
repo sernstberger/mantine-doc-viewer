@@ -21,7 +21,7 @@ import { fromPdfZoom, toPdfZoom, type PdfZoom } from '../../utils/pdf-zoom';
 /** The loaded state of a PDF, its document and its page count, as `getLoaded` gives them */
 export type PdfLoaded = ReturnType<typeof getLoaded>;
 
-/** Gap between two pages side by side, read from the CSS since `pageGap` sets it */
+/** Gap between two pages side by side, read from the CSS since `gap` of `DocViewer.Pages` sets it */
 function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
   const [columnGap, setColumnGap] = useState(16);
 

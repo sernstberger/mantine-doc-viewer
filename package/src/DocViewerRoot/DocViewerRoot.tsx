@@ -165,6 +165,10 @@ const varsResolver = createVarsResolver<DocViewerRootFactory>(
       '--doc-viewer-page-background': pageBackground
         ? getThemeColor(pageBackground, theme)
         : undefined,
+      '--doc-viewer-page-gap': undefined,
+      '--doc-viewer-match-color': undefined,
+      '--doc-viewer-active-match-color': undefined,
+      '--doc-viewer-thumbnails-width': undefined,
     },
   })
 );

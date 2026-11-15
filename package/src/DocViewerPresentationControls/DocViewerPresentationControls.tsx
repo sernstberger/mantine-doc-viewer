@@ -15,7 +15,10 @@ import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { PdfPresentationControls } from '../DocViewerPresentationControls/PdfPresentationControls';
 import classes from '../DocViewer.module.css';
 
-export type DocViewerPresentationControlsStylesNames = 'presentationControls' | 'control';
+export type DocViewerPresentationControlsStylesNames =
+  | 'presentationControls'
+  | 'pageIndicator'
+  | 'control';
 
 export interface DocViewerPresentationControlsProps
   extends

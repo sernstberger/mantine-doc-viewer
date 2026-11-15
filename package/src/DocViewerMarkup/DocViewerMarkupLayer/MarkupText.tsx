@@ -56,10 +56,12 @@ export function MarkupTextInput({
   fontSize,
   color,
 }: MarkupTextInputProps) {
-  const { getStyles } = useDocViewerPageContext();
+  const { getStyles, unstyled } = useDocViewerPageContext();
+  const input = getStyles('markupInput');
 
   return (
     <Textarea
+      unstyled={unstyled}
       key={`${textDraft.x},${textDraft.y}`}
       variant="unstyled"
       autosize
@@ -79,8 +81,8 @@ export function MarkupTextInput({
       {...getStyles('markupText', {
         style: { left: textDraft.x * scale, top: textDraft.y * scale },
       })}
-      classNames={{ input: getStyles('markupInput').className }}
-      styles={{ input: getFontStyle(fontSize, color, scale) }}
+      classNames={{ input: input.className }}
+      styles={{ input: { ...input.style, ...getFontStyle(fontSize, color, scale) } }}
       data-editing
     />
   );

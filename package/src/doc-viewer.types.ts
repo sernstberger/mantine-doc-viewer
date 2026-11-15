@@ -36,7 +36,9 @@ export type DocViewerStylesNames =
   | 'imageFrame'
   | 'imageOverlay'
   | 'empty'
+  | 'pageControls'
   | 'pageIndicator'
+  | 'zoomControls'
   | 'zoomLevel'
   | 'pages'
   | 'page'
@@ -124,7 +126,11 @@ export type DocViewerCssVariables = {
     | '--doc-viewer-color'
     | '--doc-viewer-font-size'
     | '--doc-viewer-toolbar-height'
-    | '--doc-viewer-page-background';
+    | '--doc-viewer-page-background'
+    | '--doc-viewer-page-gap'
+    | '--doc-viewer-match-color'
+    | '--doc-viewer-active-match-color'
+    | '--doc-viewer-thumbnails-width';
 };
 
 /**

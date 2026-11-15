@@ -83,6 +83,20 @@ describe('mantine-doc-viewer/DocViewerPresentationControls', () => {
     expect(document.querySelector('.my-controls')).toBeInTheDocument();
   });
 
+  it('applies classNames to the page count and the exit button, which has no inline colour', () => {
+    render(
+      <PresentingRoot>
+        <DocViewerPresentationControls
+          classNames={{ pageIndicator: 'my-count', control: 'my-exit' }}
+        />
+      </PresentingRoot>
+    );
+    const exit = screen.getByRole('button', { name: 'Exit presentation' });
+    expect(exit).toHaveClass('my-exit');
+    expect(exit.style.color).toBe('');
+    expect(document.querySelector('.my-count')).toBeInTheDocument();
+  });
+
   it('ends the presentation with the exit button', async () => {
     getDocument.mockReset();
     mockPdf({ numPages: 3 });

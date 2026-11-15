@@ -1,5 +1,6 @@
 import { useIsomorphicEffect } from '@mantine/hooks';
 import { useRef } from 'react';
+import { getScrollLeft, setScrollLeft } from '../../utils/scroll-left';
 
 /** The page under the middle of the view, and where in it the middle falls (0 is its top or left edge, 1 the other) */
 export interface ZoomAnchor {
@@ -28,11 +29,11 @@ export function getZoomAnchor(scrollRoot: HTMLElement): ZoomAnchor | null {
   if (
     first &&
     scrollRoot.scrollTop <= first.offsetTop &&
-    scrollRoot.scrollLeft <= first.offsetLeft
+    getScrollLeft(scrollRoot) <= first.offsetLeft
   ) {
     return { page: first.dataset.pageNumber!, x: 0, y: 0, atStart: true };
   }
-  const x = scrollRoot.scrollLeft + scrollRoot.clientWidth / 2;
+  const x = getScrollLeft(scrollRoot) + scrollRoot.clientWidth / 2;
   const y = scrollRoot.scrollTop + scrollRoot.clientHeight / 2;
   let best: HTMLElement | null = null;
   let bestDistance = Infinity;
@@ -59,7 +60,7 @@ const noScroll = () => false;
  * Keeps the middle of the view on the same spot of the same page when the pages are scaled:
  * without it the scroll offset stays put while every page grows or shrinks, so zooming jumps to
  * another page. Anchoring to a page rather than scaling the offset keeps working when the gaps
- * between pages (`pageGap`, the padding of `pages`, an app's own styles) do not scale
+ * between pages (`gap` of `DocViewer.Pages`, the padding of `pages`, an app's own styles) do not scale
  */
 export function useZoomAnchor(
   scrollRoot: HTMLElement | null,
@@ -93,9 +94,9 @@ export function useZoomAnchor(
       0,
       page.offsetTop + target.y * page.offsetHeight - scrollRoot.clientHeight / 2
     );
-    scrollRoot.scrollLeft = Math.max(
-      0,
-      page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2
+    setScrollLeft(
+      scrollRoot,
+      Math.max(0, page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2)
     );
   }, [scrollRoot, scale, enabled, resumeScroll]);
 }

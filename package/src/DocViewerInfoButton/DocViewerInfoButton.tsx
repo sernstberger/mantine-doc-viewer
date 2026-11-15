@@ -14,6 +14,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { PdfDocumentInfo } from '../DocViewerDocumentInfo/PdfDocumentInfo';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import type { PdfLayer } from '../hooks/pdf/use-pdf-layers';
@@ -21,7 +22,14 @@ import { usePdfAttachments, usePdfProperties } from '../utils/document-info';
 import { InfoIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
-export type DocViewerInfoButtonStylesNames = 'control' | 'dropdown';
+export type DocViewerInfoButtonStylesNames =
+  | 'control'
+  | 'dropdown'
+  | 'documentInfo'
+  | 'documentHeading'
+  | 'documentLayer'
+  | 'properties'
+  | 'outlineItem';
 
 export interface DocViewerInfoButtonProps
   extends BoxProps, CompoundStylesApiProps<DocViewerInfoButtonFactory>, ElementProps<'button'> {}
@@ -51,7 +59,7 @@ function InfoPopover({
   stylesApiProps,
   buttonProps,
 }: InfoPopoverProps) {
-  const { getStyles, labels, locale } = useDocViewerContext();
+  const { getStyles, labels, locale, unstyled } = useDocViewerContext();
   const controlProps = useControlProps();
   const [opened, popover] = useDisclosure(false);
   const properties = usePdfProperties(document, opened, locale);
@@ -59,6 +67,7 @@ function InfoPopover({
 
   return (
     <Popover
+      unstyled={unstyled}
       opened={opened}
       onChange={popover.set}
       position="bottom-end"
@@ -86,13 +95,15 @@ function InfoPopover({
           styles: stylesApiProps.styles,
         })}
       >
-        <PdfDocumentInfo
-          document={document}
-          properties={properties}
-          attachments={attachments}
-          layers={layers}
-          onLayerChange={onLayerChange}
-        />
+        <PartStyles classNames={stylesApiProps.classNames} styles={stylesApiProps.styles}>
+          <PdfDocumentInfo
+            document={document}
+            properties={properties}
+            attachments={attachments}
+            layers={layers}
+            onLayerChange={onLayerChange}
+          />
+        </PartStyles>
       </Popover.Dropdown>
     </Popover>
   );

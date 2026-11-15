@@ -20,7 +20,7 @@ interface ReadingProgressInput {
   document: unknown;
   numPages: number;
   horizontal: boolean;
-  /** The window scrolls instead of `scrollRoot` (`height="auto"`) */
+  /** The window scrolls instead of `scrollRoot` (`autosize`) */
   viewport: boolean;
   events: Required<DocViewerPagesEvents>;
 }

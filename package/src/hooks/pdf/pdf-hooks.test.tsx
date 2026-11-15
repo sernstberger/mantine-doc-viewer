@@ -472,6 +472,39 @@ describe('useZoomAnchor', () => {
     expect(root.scrollTop).toBe(1000 - 300);
   });
 
+  it('keeps the same spot of the page in the middle in a right-to-left view', () => {
+    const state = { scale: 1 };
+    const root = document.createElement('div');
+    root.style.direction = 'rtl';
+    defineOn(root, {
+      clientHeight: () => 600,
+      clientWidth: () => 400,
+      scrollWidth: () => 1000,
+    });
+    const page = document.createElement('div');
+    page.dataset.pageNumber = '1';
+    defineOn(page, {
+      offsetTop: () => 0,
+      offsetLeft: () => 100 * state.scale,
+      offsetHeight: () => 400 * state.scale,
+      offsetWidth: () => 300 * state.scale,
+    });
+    root.append(page);
+    root.scrollTop = 100;
+    root.scrollLeft = 150 - 600;
+    const { rerender } = renderHook(
+      ({ scale }) => {
+        useLayoutEffect(() => {
+          state.scale = scale;
+        }, [scale]);
+        useZoomAnchor(root, scale, true);
+      },
+      { initialProps: { scale: 1 } }
+    );
+    rerender({ scale: 2 });
+    expect(root.scrollLeft).toBe(500 - 600);
+  });
+
   it('leaves the offset when there is no page to keep in view', () => {
     const root = document.createElement('div');
     const restore = defineOn(root, { clientHeight: () => 600, clientWidth: () => 400 });

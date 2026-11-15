@@ -38,10 +38,11 @@ export type DocViewerMessageFactory = Factory<{
 export const DocViewerMessage = factory<DocViewerMessageFactory>((_props) => {
   const { classNames, className, style, styles, vars, children, withDownload, error, ...others } =
     useProps('DocViewerMessage', null, _props);
-  const { getStyles, src, fileName, labels } = useDocViewerContext();
+  const { getStyles, src, fileName, labels, unstyled } = useDocViewerContext();
 
   return (
     <EmptyState
+      unstyled={unstyled}
       {...getStyles('empty', { className, style, classNames, styles })}
       size="sm"
       role={error ? 'alert' : 'status'}
@@ -51,6 +52,7 @@ export const DocViewerMessage = factory<DocViewerMessageFactory>((_props) => {
       {withDownload && (
         <EmptyState.Actions>
           <Anchor
+            unstyled={unstyled}
             href={src}
             download={fileName ?? true}
             target="_blank"

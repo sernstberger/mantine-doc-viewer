@@ -42,7 +42,7 @@ export function PdfDocumentInfo({
   elementProps,
   rootRef,
 }: PdfDocumentInfoProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, unstyled } = useDocViewerContext();
   const id = useId();
 
   return (
@@ -51,7 +51,13 @@ export function PdfDocumentInfo({
         <Text id={`${id}-properties`} size="sm" {...getStyles('documentHeading')}>
           {labels.propertiesLabel}
         </Text>
-        <DataList {...getStyles('properties')} size="xs" gap={4} labelWidth="6.5rem">
+        <DataList
+          unstyled={unstyled}
+          {...getStyles('properties')}
+          size="xs"
+          gap={4}
+          labelWidth="6.5rem"
+        >
           {(properties ?? []).map((property) => (
             <DataList.Item key={property.key}>
               <DataList.ItemLabel>{labels.propertyNameLabels[property.key]}</DataList.ItemLabel>
@@ -90,6 +96,7 @@ export function PdfDocumentInfo({
           <Stack gap={6}>
             {layers.map((layer) => (
               <Checkbox
+                unstyled={unstyled}
                 key={layer.id}
                 size="xs"
                 {...getStyles('documentLayer')}
