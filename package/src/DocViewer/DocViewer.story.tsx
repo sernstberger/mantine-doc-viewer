@@ -86,6 +86,9 @@ export function PdfWithoutWorker() {
   );
 }
 
+// Logs a console error on purpose (a setup mistake for the developer): e2e/errors.spec.ts covers it
+PdfWithoutWorker.tags = ['no-smoke'];
+
 export function PdfLoadError() {
   return (
     <div style={{ padding: 40 }}>
