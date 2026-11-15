@@ -1,4 +1,4 @@
-import React, { use, useState, useSyncExternalStore } from 'react';
+import React from 'react';
 import {
   Box,
   BoxProps,
@@ -8,7 +8,6 @@ import {
   Factory,
   getFontSize,
   getRadius,
-  getSpacing,
   getThemeColor,
   isNumberLike,
   MantineColor,
@@ -16,19 +15,12 @@ import {
   MantineSize,
   rem,
   StylesApiProps,
-  useMantineTheme,
   useProps,
   useStyles,
 } from '@mantine/core';
-import { useIsomorphicEffect } from '@mantine/hooks';
 import type { DocViewerLabels } from '../default-labels';
 import { DocViewerProvider } from '../doc-viewer.context';
-import {
-  createDocViewerStore,
-  updateDocViewerStateAction,
-  type DocViewerState,
-  type DocViewerStore,
-} from '../doc-viewer.store';
+import type { DocViewerStore } from '../doc-viewer.store';
 import type {
   DocViewerCssVariables,
   DocViewerExtension,
@@ -39,17 +31,12 @@ import type {
   DocViewerVariant,
   DocViewerZoom,
 } from '../doc-viewer.types';
-import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
-import type { DocViewerMarkupOptions } from '../DocViewerMarkup/markup-extension';
-import type { DocViewerPageEditorOptions } from '../DocViewerPageEditor/page-editor-extension';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
 import { DOC_VIEWER_SIZES } from '../utils/sizes';
 import classes from '../DocViewer.module.css';
-import { getExtensionOptions, useDocViewerContextValue } from './doc-viewer-context-value';
-import { DocViewerLayoutContext, type DocViewerLayoutConfig } from './layout-context';
+import { getRootElementProps } from './root-element-props';
 import { useBehaviorStyles } from './use-behavior-styles';
-import { useDocViewerEvents } from './use-doc-viewer-events';
-import { useDocViewerSession } from './use-doc-viewer-session';
+import { useDocViewerRoot } from './use-doc-viewer-root';
 
 export type DocViewerRootStylesNames = DocViewerStylesNames;
 
@@ -180,155 +167,27 @@ const varsResolver = createVarsResolver<DocViewerRootFactory>(
   })
 );
 
-function useStoreSlice<T>(store: DocViewerStore, select: (state: DocViewerState) => T) {
-  const getSnapshot = () => select(store.getState());
-  return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
-}
-
-function usePartVars(layout: DocViewerLayoutConfig) {
-  const theme = useMantineTheme();
-  const { pagesProps, thumbnailsProps } = layout;
-  const color = (value: MantineColor | undefined) =>
-    value ? getThemeColor(value, theme) : undefined;
-  return {
-    '--doc-viewer-page-gap': pagesProps?.gap === undefined ? undefined : getSpacing(pagesProps.gap),
-    '--doc-viewer-match-color': color(pagesProps?.matchColor),
-    '--doc-viewer-active-match-color': color(pagesProps?.activeMatchColor),
-    '--doc-viewer-thumbnails-width': thumbnailsProps?.width
-      ? rem(thumbnailsProps.width)
-      : undefined,
-  };
-}
-
 export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
   const props = useProps('DocViewerRoot', docViewerRootDefaultProps, _props);
-  const {
-    classNames,
-    className,
-    style,
-    styles,
-    unstyled,
-    vars,
-    attributes,
-    mod,
-    ref,
-    src,
-    type,
-    mimeType,
-    fileName,
-    keepView,
-    locale,
-    labels,
-    store: storeProp,
-    extensions,
-    size,
-    radius,
-    color,
-    autosize,
-    pageBackground,
-    pageColorScheme,
-    defaultThumbnailsOpened,
-    defaultThumbnailsPosition,
-    page,
-    defaultPage,
-    onPageChange,
-    zoom,
-    defaultZoom,
-    onZoomChange,
-    pageLayout,
-    defaultPageLayout,
-    onPageLayoutChange,
-    fullscreen,
-    onFullscreenChange,
-    onDocumentLoad,
-    onDocumentError,
-    children,
-    ...others
-  } = props;
-
-  const layout = use(DocViewerLayoutContext);
-  const adapters = useDocViewerAdapters();
-  const [ownStore] = useState(createDocViewerStore);
-  const store = storeProp ?? ownStore;
-
-  const getStylesApi = useStyles<DocViewerRootFactory>({
-    name: 'DocViewer',
-    classes,
-    props,
-    className,
-    style,
-    classNames,
-    styles,
-    unstyled,
-    vars,
-    varsResolver,
-    attributes,
-    stable: true,
-  });
-  const getStyles = useBehaviorStyles(getStylesApi);
-
-  const editor = getExtensionOptions<DocViewerPageEditorOptions>(extensions, 'page-editor');
-  const markup = getExtensionOptions<DocViewerMarkupOptions>(extensions, 'markup');
-  const session = useDocViewerSession({
-    src,
-    type,
-    mimeType,
-    fileName,
-    labels,
-    extensionLabels: [editor?.labels, markup?.labels],
-    toggleOnTap: layout.toolbarProps?.toggleOnTap,
-    fullscreen,
-    onFullscreenChange: (value) => {
-      updateDocViewerStateAction({ fullscreen: value }, store);
-      onFullscreenChange?.(value);
-    },
-    ref,
-    store,
-  });
-  const events = useDocViewerEvents({
-    props: {
-      onDocumentLoad,
-      onDocumentError,
-      onPageChange,
-      onZoomChange,
-      onPageLayoutChange,
-      onReadingProgress: layout.pagesProps?.onReadingProgress,
-      onReachEnd: layout.pagesProps?.onReachEnd,
-      onLinkClick: layout.pagesProps?.onLinkClick,
-      onTextSelect: layout.pagesProps?.onTextSelect,
-    },
-    src,
-    type: session.type,
-    unsupported: session.type === 'unknown' || (session.type === 'pdf' && !adapters.pdf),
-    store,
-    controller: session.controller,
-  });
-
-  const documentKey = keepView ? session.type : `${session.type}:${src}`;
-  useIsomorphicEffect(() => {
-    updateDocViewerStateAction(
-      {
-        thumbnailsOpened: !!defaultThumbnailsOpened,
-        thumbnailsPosition: defaultThumbnailsPosition ?? 'left',
-      },
-      store
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentKey, store]);
-
-  const thumbnailsOpened = useStoreSlice(store, (state) => state.thumbnailsOpened);
-  const thumbnailsPosition = useStoreSlice(store, (state) => state.thumbnailsPosition);
-  const partVars = usePartVars(layout);
-  const value = useDocViewerContextValue({
-    props,
-    layout,
-    getStyles,
-    session,
-    events,
-    store,
-    adapters,
-    thumbnails: { thumbnailsOpened, thumbnailsPosition },
-  });
+  const { classNames, className, style, styles, unstyled, vars, attributes, mod, children } = props;
+  const getStyles = useBehaviorStyles(
+    useStyles<DocViewerRootFactory>({
+      name: 'DocViewer',
+      classes,
+      props,
+      className,
+      style,
+      classNames,
+      styles,
+      unstyled,
+      vars,
+      varsResolver,
+      attributes,
+      stable: true,
+    })
+  );
+  const { value, session, partVars } = useDocViewerRoot(props, getStyles);
+  const { size, autosize, pageColorScheme } = props;
 
   return (
     <DocViewerProvider value={value}>
@@ -346,7 +205,7 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
           mod,
         ]}
         __vars={partVars}
-        {...others}
+        {...getRootElementProps(props)}
         {...session.tapToggle.handlers}
       >
         {children}

@@ -61,8 +61,6 @@ export function ImageView() {
         {ready && <ImageControls scale={scale} zoom={zoom} zoomTo={zoomTo} rotate={rotate} />}
       </ToolbarView>
       <div {...getStyles('body')}>
-        {/* Once the image is ready getRegionProps makes this a focusable, labelled region (role and
-            tabIndex come through the spread), and the keys are for that region */}
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
           ref={stageRef}
