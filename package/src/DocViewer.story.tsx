@@ -1,35 +1,20 @@
 import { Button, Group, Stack, Table, Text as MantineText } from '@mantine/core';
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useState } from 'react';
-import { createPageEditorExtension } from './editor';
 import {
   createPdfJsAdapter,
-  createReactMarkdownAdapter,
   DocViewer,
   DocViewerAdapterProvider,
   useDocViewer,
-  useDocViewerContext,
+  useDocViewerStore,
   useDocViewerText,
+  useDocViewerView,
 } from './index';
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+export default { title: 'DocViewer' };
+
 const pdfAdapterWithoutWorker = createPdfJsAdapter(() => import('pdfjs-dist'));
-const markdownAdapter = createReactMarkdownAdapter(() =>
-  Promise.all([import('react-markdown'), import('remark-gfm')])
-);
 
-export default {
-  title: 'DocViewer',
-  decorators: [
-    (Story: React.ComponentType) => (
-      <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
-        <Story />
-      </DocViewerAdapterProvider>
-    ),
-  ],
-};
-
-export function Pdf() {
+export function Usage() {
   return (
     <div style={{ padding: 40 }}>
       <DocViewer src="/sample.pdf" h={600} />
@@ -37,40 +22,65 @@ export function Pdf() {
   );
 }
 
-export function PdfWithThumbnails() {
-  return (
-    <div style={{ padding: 40 }}>
-      <DocViewer src="/sample.pdf" defaultThumbnailsOpened h={600} />
-    </div>
-  );
-}
+export function Controlled() {
+  const [page, setPage] = useState(1);
+  const [zoom, setZoom] = useState('');
 
-export function PdfThumbnailsBottom() {
   return (
-    <div style={{ padding: 40 }}>
+    <Stack p={40} gap="sm">
+      <Group gap="xs">
+        <Button size="xs" variant="default" onClick={() => setPage(1)}>
+          First page
+        </Button>
+        <Button size="xs" variant="default" onClick={() => setPage(50)}>
+          Last page
+        </Button>
+        <MantineText size="sm">
+          Page {page}, zoom {zoom}
+        </MantineText>
+      </Group>
       <DocViewer
-        src="/sample.pdf"
-        defaultThumbnailsOpened
-        defaultThumbnailsPosition="bottom"
+        src="/sample-50.pdf"
+        page={page}
+        onPageChange={setPage}
+        onZoomChange={(next, { scale }) =>
+          setZoom(`${Math.round(scale * 100)}%${typeof next === 'number' ? '' : ` (${next})`}`)
+        }
         h={600}
       />
-    </div>
+    </Stack>
   );
 }
 
-function LongPdf({ pages }: { pages: number }) {
+export function StoreApi() {
+  const [store, viewer] = useDocViewer();
+  const { page, numPages } = useDocViewerStore(store);
+
   return (
-    <div style={{ padding: 40 }}>
-      <DocViewer src={`/sample-${pages}.pdf`} defaultThumbnailsOpened h={700} />
-    </div>
+    <Stack p={40} gap="sm">
+      <Group gap="xs">
+        <Button size="xs" variant="default" onClick={() => viewer.goToPage(1)}>
+          First page
+        </Button>
+        <Button size="xs" variant="default" onClick={() => viewer.setZoom(1)}>
+          100%
+        </Button>
+        <Button size="xs" variant="default" onClick={() => viewer.openSearch('page 7')}>
+          Search "page 7"
+        </Button>
+        <Button size="xs" variant="default" onClick={() => viewer.print()}>
+          Print
+        </Button>
+        <MantineText size="sm">
+          Page {page} of {numPages}
+        </MantineText>
+      </Group>
+      <DocViewer src="/sample-50.pdf" store={store} h={600} />
+    </Stack>
   );
 }
 
-export const Pdf50Pages = () => <LongPdf pages={50} />;
-export const Pdf500Pages = () => <LongPdf pages={500} />;
-export const Pdf1000Pages = () => <LongPdf pages={1000} />;
-
-export function Styled() {
+export function StylesApi() {
   return (
     <div style={{ padding: 40 }}>
       <DocViewer
@@ -87,6 +97,131 @@ export function Styled() {
     </div>
   );
 }
+
+export function Unstyled() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.pdf" unstyled h={600} />
+    </div>
+  );
+}
+
+export function Composition() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer.Root src="/sample-50.pdf" defaultThumbnailsOpened h={600}>
+        <DocViewer.Toolbar>
+          <DocViewer.ThumbnailsButton />
+          <DocViewer.Title />
+          <DocViewer.PageControls />
+          <DocViewer.ZoomControls />
+          <DocViewer.SearchButton />
+          <DocViewer.DownloadButton />
+        </DocViewer.Toolbar>
+        <DocViewer.Search />
+        <DocViewer.Main>
+          <DocViewer.Thumbnails />
+          <DocViewer.Pages />
+        </DocViewer.Main>
+      </DocViewer.Root>
+    </div>
+  );
+}
+
+export function WithThumbnails() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.pdf" defaultThumbnailsOpened h={600} />
+    </div>
+  );
+}
+
+export function WithThumbnailsBottom() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer
+        src="/sample.pdf"
+        defaultThumbnailsOpened
+        defaultThumbnailsPosition="bottom"
+        h={600}
+      />
+    </div>
+  );
+}
+
+export function WithTwoPages() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample-50.pdf" defaultPageLayout="two-page-cover" h={600} />
+    </div>
+  );
+}
+
+export function WithDarkPages() {
+  return (
+    <div style={{ padding: 40, background: 'var(--mantine-color-dark-7)' }}>
+      <DocViewer src="/sample-50.pdf" pageColorScheme="dark" defaultThumbnailsOpened h={600} />
+    </div>
+  );
+}
+
+export function WithTrimmedToolbar() {
+  return (
+    <div style={{ padding: 40, width: 420 }}>
+      <DocViewer
+        src="/sample.pdf"
+        size="xs"
+        toolbarControls={{
+          rotate: false,
+          layout: false,
+          outline: false,
+          info: false,
+          presentation: false,
+          print: false,
+          fullscreen: false,
+        }}
+        h={500}
+      />
+    </div>
+  );
+}
+
+export function WithOverlayControls() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.pdf" withToolbar={false} withOverlayControls h={500} />
+    </div>
+  );
+}
+
+export function Plain() {
+  return (
+    <div style={{ padding: 40, maxWidth: 720 }}>
+      <MantineText mb="sm">
+        An article with a PDF embedded in it, with no viewer chrome:
+      </MantineText>
+      <DocViewer
+        src="/sample.pdf"
+        variant="plain"
+        withToolbar={false}
+        pagesProps={{ gap: 'sm' }}
+        h={500}
+      />
+    </div>
+  );
+}
+
+function LongPdf({ pages }: { pages: number }) {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src={`/sample-${pages}.pdf`} defaultThumbnailsOpened h={700} />
+    </div>
+  );
+}
+
+export const Pdf50Pages = () => <LongPdf pages={50} />;
+export const Pdf500Pages = () => <LongPdf pages={500} />;
+export const Pdf1000Pages = () => <LongPdf pages={1000} />;
 
 export function PdfWithoutWorker() {
   return (
@@ -183,55 +318,6 @@ export function Unsupported() {
   );
 }
 
-export function Controlled() {
-  const [store, viewer] = useDocViewer();
-  const [page, setPage] = useState(1);
-  const [zoom, setZoom] = useState('');
-
-  return (
-    <Stack p={40} gap="sm">
-      <Group gap="xs">
-        <Button size="xs" variant="default" onClick={() => setPage(1)}>
-          First page
-        </Button>
-        <Button size="xs" variant="default" onClick={() => setPage(50)}>
-          Last page
-        </Button>
-        <Button size="xs" variant="default" onClick={() => viewer.setZoom(1)}>
-          100%
-        </Button>
-        <Button size="xs" variant="default" onClick={() => viewer.openSearch('page 7')}>
-          Search "page 7"
-        </Button>
-        <Button size="xs" variant="default" onClick={() => viewer.print()}>
-          Print
-        </Button>
-        <MantineText size="sm">
-          Page {page}, zoom {zoom}
-        </MantineText>
-      </Group>
-      <DocViewer
-        src="/sample-50.pdf"
-        store={store}
-        page={page}
-        onPageChange={setPage}
-        onZoomChange={(next, { scale }) =>
-          setZoom(`${Math.round(scale * 100)}%${typeof next === 'number' ? '' : ` (${next})`}`)
-        }
-        h={600}
-      />
-    </Stack>
-  );
-}
-
-export function TwoPages() {
-  return (
-    <div style={{ padding: 40 }}>
-      <DocViewer src="/sample-50.pdf" defaultPageLayout="two-page-cover" h={600} />
-    </div>
-  );
-}
-
 /** Splits CSV text into rows, with quoted fields */
 function parseCsv(text: string) {
   return text
@@ -245,16 +331,26 @@ function parseCsv(text: string) {
     );
 }
 
-function CsvView() {
-  const { src } = useDocViewerContext();
+function CsvView({ src }: { src: string }) {
   const state = useDocViewerText(src, 2_000_000);
+  const view = useDocViewerView();
+
+  React.useEffect(() => {
+    if (state.status === 'ready') {
+      view.onLoad();
+    } else if (state.status === 'error') {
+      view.onError(state.error);
+    }
+  }, [state, view]);
+
+  const rows = state.status === 'ready' ? parseCsv(state.text) : [];
 
   return (
     <>
       <DocViewer.Toolbar />
       <DocViewer.Body focusable={state.status === 'ready'}>
         {state.status === 'loading' && <DocViewer.Loading />}
-        {state.status !== 'loading' && state.status !== 'ready' && (
+        {(state.status === 'error' || state.status === 'too-large') && (
           <DocViewer.Message withDownload error>
             This file could not be loaded
           </DocViewer.Message>
@@ -263,21 +359,19 @@ function CsvView() {
           <Table striped withTableBorder bg="var(--mantine-color-body)">
             <Table.Thead>
               <Table.Tr>
-                {parseCsv(state.text)[0].map((cell, index) => (
+                {rows[0].map((cell, index) => (
                   <Table.Th key={index}>{cell}</Table.Th>
                 ))}
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {parseCsv(state.text)
-                .slice(1)
-                .map((row, rowIndex) => (
-                  <Table.Tr key={rowIndex}>
-                    {row.map((cell, index) => (
-                      <Table.Td key={index}>{cell}</Table.Td>
-                    ))}
-                  </Table.Tr>
-                ))}
+              {rows.slice(1).map((row, rowIndex) => (
+                <Table.Tr key={rowIndex}>
+                  {row.map((cell, index) => (
+                    <Table.Td key={index}>{cell}</Table.Td>
+                  ))}
+                </Table.Tr>
+              ))}
             </Table.Tbody>
           </Table>
         )}
@@ -286,83 +380,12 @@ function CsvView() {
   );
 }
 
-export function CustomRenderer() {
+export function Csv() {
   return (
     <div style={{ padding: 40 }}>
       <DocViewer src="/sample.csv" h={400}>
-        <CsvView />
+        <CsvView src="/sample.csv" />
       </DocViewer>
-    </div>
-  );
-}
-
-export function PageEditing() {
-  const [saved, setSaved] = useState('Nothing saved yet');
-
-  return (
-    <Stack p={40} gap="sm">
-      <MantineText size="sm" data-testid="saved">
-        {saved}
-      </MantineText>
-      <DocViewer
-        src="/sample.pdf"
-        extensions={[
-          createPageEditorExtension({
-            onDocumentChange: (bytes, { reason, pages }) =>
-              setSaved(`${reason}: ${bytes.length} bytes, pages ${pages.join(', ')}`),
-            onExtract: (bytes, { pages }) =>
-              setSaved(`extract: ${bytes.length} bytes, pages ${pages.join(', ')}`),
-          }),
-        ]}
-        defaultThumbnailsOpened
-        h={600}
-      />
-    </Stack>
-  );
-}
-
-export function Plain() {
-  return (
-    <div style={{ padding: 40, maxWidth: 720 }}>
-      <MantineText mb="sm">
-        An article with a PDF embedded in it, with no viewer chrome:
-      </MantineText>
-      <DocViewer
-        src="/sample.pdf"
-        variant="plain"
-        withToolbar={false}
-        pagesProps={{ gap: 'sm' }}
-        h={500}
-      />
-    </div>
-  );
-}
-
-export function DarkPages() {
-  return (
-    <div style={{ padding: 40, background: 'var(--mantine-color-dark-7)' }}>
-      <DocViewer src="/sample-50.pdf" pageColorScheme="dark" defaultThumbnailsOpened h={600} />
-    </div>
-  );
-}
-
-export function TrimmedToolbar() {
-  return (
-    <div style={{ padding: 40, width: 420 }}>
-      <DocViewer
-        src="/sample.pdf"
-        size="xs"
-        toolbarControls={{
-          rotate: false,
-          layout: false,
-          outline: false,
-          info: false,
-          presentation: false,
-          print: false,
-          fullscreen: false,
-        }}
-        h={500}
-      />
     </div>
   );
 }
