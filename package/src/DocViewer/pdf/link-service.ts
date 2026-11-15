@@ -1,3 +1,4 @@
+import { clamp } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 type Destination = string | unknown[] | null | undefined;
@@ -93,7 +94,7 @@ export interface LinkServiceHandlers {
  */
 export function createLinkService(document: PDFDocumentProxy, handlers: LinkServiceHandlers) {
   const goToPage = (page: number) =>
-    handlers.goToDestination({ page: Math.min(Math.max(page, 1), handlers.numPages) });
+    handlers.goToDestination({ page: clamp(page, 1, handlers.numPages) });
 
   return {
     externalLinkEnabled: true,

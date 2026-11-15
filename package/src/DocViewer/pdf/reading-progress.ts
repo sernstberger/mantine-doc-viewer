@@ -1,3 +1,4 @@
+import { clamp } from '@mantine/hooks';
 import type { Box } from './geometry';
 
 /** The part of a page that has been on screen, as a start and an end between 0 and 1 along the scroll axis */
@@ -38,7 +39,7 @@ export function mergeRange(seen: SeenRange | undefined, visible: SeenRange): See
 /** How far the view has scrolled, from 0 at the start to 1 at the end. 0 when nothing scrolls */
 export function getReadingPosition(offset: number, size: number, viewSize: number) {
   const scrollable = size - viewSize;
-  return scrollable > 0 ? round(Math.min(Math.max(offset / scrollable, 0), 1)) : 0;
+  return scrollable > 0 ? round(clamp(offset / scrollable, 0, 1)) : 0;
 }
 
 /** Fraction seen of every page, in page order, and whether the end of the last page has been seen */

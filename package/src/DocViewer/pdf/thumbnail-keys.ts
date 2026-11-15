@@ -1,3 +1,5 @@
+import { clamp } from '@mantine/hooks';
+
 /** How many thumbnails fit in the rail, at least one */
 export function getThumbnailsPerView(railSize: number, thumbnailSize: number) {
   return Math.max(1, Math.floor(railSize / (thumbnailSize || 1)));
@@ -20,5 +22,5 @@ export function getNextThumbnailPage(
     Home: 1,
     End: numPages,
   };
-  return key in moves ? Math.min(Math.max(moves[key], 1), numPages) : null;
+  return key in moves ? clamp(moves[key], 1, numPages) : null;
 }

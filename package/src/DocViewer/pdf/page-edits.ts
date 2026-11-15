@@ -1,3 +1,5 @@
+import { clamp } from '@mantine/hooks';
+
 /** Page numbers (from 1) in the order the edited document will have them */
 export type PageOrder = number[];
 
@@ -45,7 +47,7 @@ export function moveSelected(
 /** Moves one page to a new position, as a drag and drop does */
 export function movePage(order: PageOrder, page: number, toIndex: number): PageOrder {
   const next = order.filter((item) => item !== page);
-  next.splice(Math.min(Math.max(toIndex, 0), next.length), 0, page);
+  next.splice(clamp(toIndex, 0, next.length), 0, page);
   return next;
 }
 
