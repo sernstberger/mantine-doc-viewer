@@ -148,87 +148,82 @@ export function PlanRoom() {
 
   const index = (
     <>
-        <header className={classes.header}>
-          {/* Takes the drawer's initial focus, so a phone's keyboard stays down */}
-          <h1 className={classes.project} tabIndex={-1} data-autofocus>Millbrook Medical Office</h1>
-          <p className={classes.issue}>Issued for construction, 12 October 2026</p>
-        </header>
+      <header className={classes.header}>
+        {/* Takes the drawer's initial focus, so a phone's keyboard stays down */}
+        <h1 className={classes.project} tabIndex={-1} data-autofocus>
+          Millbrook Medical Office
+        </h1>
+        <p className={classes.issue}>Issued for construction, 12 October 2026</p>
+      </header>
 
-        <div className={classes.tools}>
-          <TextInput
-            classNames={{ input: classes.filterInput, section: classes.filterIcon }}
-            value={query}
-            onChange={(event) => setQuery(event.currentTarget.value)}
-            // Enter opens the first match, so "s2" and Enter is all it takes mid pour
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && visible[0]) {
-                openSheet(visible[0]);
-              }
-            }}
-            placeholder="Find a sheet"
-            aria-label="Find a sheet"
-            size="md"
-            leftSection={
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-                <circle cx="8" cy="8" r="5.25" stroke="currentColor" strokeWidth="1.6" />
-                <path
-                  d="M12 12l4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-              </svg>
+      <div className={classes.tools}>
+        <TextInput
+          classNames={{ input: classes.filterInput, section: classes.filterIcon }}
+          value={query}
+          onChange={(event) => setQuery(event.currentTarget.value)}
+          // Enter opens the first match, so "s2" and Enter is all it takes mid pour
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && visible[0]) {
+              openSheet(visible[0]);
             }
-          />
-          <Button
-            variant="default"
-            size="md"
-            classNames={{ root: classes.textSearch }}
-            onClick={() => controller.current?.openSearch()}
-          >
-            Search drawing text
-          </Button>
-        </div>
+          }}
+          placeholder="Find a sheet"
+          aria-label="Find a sheet"
+          size="md"
+          leftSection={
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+              <circle cx="8" cy="8" r="5.25" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M12 12l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          }
+        />
+        <Button
+          variant="default"
+          size="md"
+          classNames={{ root: classes.textSearch }}
+          onClick={() => controller.current?.openSearch()}
+        >
+          Search drawing text
+        </Button>
+      </div>
 
-        <div className={classes.sheets}>
-          {(Object.keys(DISCIPLINES) as Discipline[]).map((discipline) => {
-            const group = visible.filter((sheet) => sheet.discipline === discipline);
-            if (!group.length) {
-              return null;
-            }
-            return (
-              <section key={discipline} className={classes.group} data-discipline={discipline}>
-                <h2 className={classes.groupTitle}>
-                  {DISCIPLINES[discipline]}
-                  <span className={classes.groupCount}>{group.length}</span>
-                </h2>
-                {group.map((sheet) => (
-                  <UnstyledButton
-                    key={sheet.number}
-                    ref={sheet.page === page ? currentRow : undefined}
-                    className={classes.sheet}
-                    data-discipline={sheet.discipline}
-                    data-current={sheet.page === page || undefined}
-                    aria-current={sheet.page === page ? 'page' : undefined}
-                    onClick={() => openSheet(sheet)}
-                  >
-                    <span className={classes.number}>{sheet.number}</span>
-                    <span className={classes.sheetTitle}>{sheet.title}</span>
-                    {sheet.note && <span className={classes.note}>{sheet.note}</span>}
-                  </UnstyledButton>
-                ))}
-              </section>
-            );
-          })}
-          {!visible.length && (
-            <p className={classes.none}>No sheet matches &ldquo;{query}&rdquo;.</p>
-          )}
-        </div>
+      <div className={classes.sheets}>
+        {(Object.keys(DISCIPLINES) as Discipline[]).map((discipline) => {
+          const group = visible.filter((sheet) => sheet.discipline === discipline);
+          if (!group.length) {
+            return null;
+          }
+          return (
+            <section key={discipline} className={classes.group} data-discipline={discipline}>
+              <h2 className={classes.groupTitle}>
+                {DISCIPLINES[discipline]}
+                <span className={classes.groupCount}>{group.length}</span>
+              </h2>
+              {group.map((sheet) => (
+                <UnstyledButton
+                  key={sheet.number}
+                  ref={sheet.page === page ? currentRow : undefined}
+                  className={classes.sheet}
+                  data-discipline={sheet.discipline}
+                  data-current={sheet.page === page || undefined}
+                  aria-current={sheet.page === page ? 'page' : undefined}
+                  onClick={() => openSheet(sheet)}
+                >
+                  <span className={classes.number}>{sheet.number}</span>
+                  <span className={classes.sheetTitle}>{sheet.title}</span>
+                  {sheet.note && <span className={classes.note}>{sheet.note}</span>}
+                </UnstyledButton>
+              ))}
+            </section>
+          );
+        })}
+        {!visible.length && <p className={classes.none}>No sheet matches &ldquo;{query}&rdquo;.</p>}
+      </div>
 
-        <footer className={classes.footer}>
-          <span className={classes.synced} aria-hidden />
-          {savedAt ? `Markup saved to rev C at ${savedAt}.` : 'Synced 6:12 am. Works offline.'}
-        </footer>
+      <footer className={classes.footer}>
+        <span className={classes.synced} aria-hidden />
+        {savedAt ? `Markup saved to rev C at ${savedAt}.` : 'Synced 6:12 am. Works offline.'}
+      </footer>
     </>
   );
 
