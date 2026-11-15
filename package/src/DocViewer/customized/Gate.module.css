@@ -1,0 +1,373 @@
+/*
+ * Gate: an airline app at the gate. The flight header owns the screen (huge times in Manrope
+ * 800), the e-ticket sits under it on pale mist, and amber is spent only on the gate change.
+ */
+
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 32px 16px;
+  background: radial-gradient(70% 55% at 50% 0%, #1b4175 0%, transparent 70%), #06182f;
+  font-family: Manrope, system-ui, sans-serif;
+}
+
+/* A silver-edged phone, so it reads as another product than the dark-bezel Scanbox */
+.phone {
+  width: 375px;
+  max-width: 100%;
+  height: 844px;
+  max-height: calc(100vh - 32px);
+  padding: 6px;
+  border-radius: 54px;
+  background: linear-gradient(145deg, #e6ebf1, #9aa7b8 55%, #d4dbe4);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.25),
+    0 40px 80px -24px rgb(0 0 0 / 0.7);
+}
+
+.screen {
+  --gate-navy: #0b2545;
+  --gate-sky: #13315c;
+  --gate-amber: #f4b400;
+  --gate-mist: #eef4fa;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 3px solid #05111f;
+  border-radius: 48px;
+  background: var(--gate-mist);
+  color: var(--gate-navy);
+}
+
+/* ---------------------------------- flight header --------------------------------- */
+
+.header {
+  flex-shrink: 0;
+  padding: 0 20px 18px;
+  background: var(--gate-navy);
+  color: #fff;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 8px 12px 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.statusIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 4px 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.flightNo {
+  color: #aebfd6;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.route {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.leg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &[data-end] {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+/* The bold thing: the times are as big as the screen can carry */
+.time {
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.airport {
+  color: #aebfd6;
+  font-size: 13px;
+  font-weight: 500;
+
+  & strong {
+    margin-right: 2px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+}
+
+.flightPath {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-top: -14px;
+  color: #aebfd6;
+}
+
+.pathLine {
+  flex: 1;
+  height: 0;
+  border-top: 2px dotted #4a6a95;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin: 16px 0 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #284a78;
+}
+
+.fact {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 9px 12px 10px;
+  background: var(--gate-sky);
+
+  & dt {
+    color: #aebfd6;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  & dd {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  /* The only amber on the screen: the gate changed */
+  &[data-changed] {
+    background: var(--gate-amber);
+    color: var(--gate-navy);
+
+    & dt,
+    & .was {
+      color: #4d3a00;
+    }
+  }
+}
+
+.was {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---------------------------------- segmented switch --------------------------------- */
+
+.switchRow {
+  flex-shrink: 0;
+  padding: 10px 16px 6px;
+}
+
+.segments {
+  padding: 3px;
+  border-radius: 14px;
+  background: #dbe5f1;
+}
+
+.segmentsIndicator {
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(11 37 69 / 0.18);
+}
+
+.segmentsLabel {
+  padding-block: 9px;
+  color: #4a6080;
+  font-size: 15px;
+  font-weight: 700;
+
+  &[data-active] {
+    color: var(--gate-navy);
+  }
+
+  &[data-active]:hover {
+    color: var(--gate-navy);
+  }
+}
+
+/* ---------------------------------- viewer --------------------------------- */
+
+.root {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  background: var(--gate-mist);
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.toolbar {
+  flex-wrap: nowrap;
+  min-height: 38px;
+  padding-inline: 12px;
+  border: 0;
+  background: transparent;
+}
+
+.controls {
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.control {
+  border: 0;
+  border-radius: 10px;
+  background: #dbe5f1;
+  color: var(--gate-navy);
+
+  &:hover {
+    background: #c9d8ea;
+  }
+
+  &[data-pressed] {
+    background: var(--gate-navy);
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gate-navy);
+    outline-offset: 2px;
+  }
+}
+
+.pageIndicator {
+  min-width: 56px;
+  color: #4a6080;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.body {
+  background: var(--gate-mist);
+}
+
+.pages {
+  padding: 4px 16px 12px;
+}
+
+.pageSheet {
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgb(11 37 69 / 0.06),
+    0 10px 24px -10px rgb(11 37 69 / 0.35);
+}
+
+.thumbnails {
+  gap: 10px;
+  padding: 6px 16px 8px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 -1px 0 rgb(11 37 69 / 0.08);
+}
+
+.thumbnail {
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  color: #4a6080;
+
+  &:hover {
+    background: var(--gate-mist);
+  }
+
+  &[data-active] {
+    background: var(--gate-mist);
+    color: var(--gate-navy);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gate-navy);
+    outline-offset: 1px;
+  }
+}
+
+.thumbnailImage {
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgb(11 37 69 / 0.14);
+
+  .thumbnail[data-active] > & {
+    box-shadow: 0 0 0 2px var(--gate-navy);
+  }
+}
+
+.thumbnailLabel {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* ---------------------------------- footer --------------------------------- */
+
+.footer {
+  flex-shrink: 0;
+  background: #fff;
+  box-shadow: 0 -1px 0 rgb(11 37 69 / 0.08);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0;
+  padding: 4px 20px 0;
+  color: #4a6080;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.homeIndicator {
+  display: block;
+  width: 128px;
+  height: 5px;
+  margin: 8px auto;
+  border-radius: 3px;
+  background: var(--gate-navy);
+}
