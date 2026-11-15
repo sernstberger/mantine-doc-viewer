@@ -1,99 +1,76 @@
-import { VisuallyHidden } from '@mantine/core';
-import { useElementSize, useMergedRef } from '@mantine/hooks';
-import React, { useState } from 'react';
+import { Box, VisuallyHidden } from '@mantine/core';
+import React from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../doc-viewer.context';
 import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
-import { printImage } from '../utils/print';
+import { useImageView } from '../hooks/image/use-image-view';
 import { getRegionProps } from '../utils/a11y';
-import { useAnnouncement } from '../hooks/pdf/use-announcement';
-import { useZoomAnnouncement } from '../hooks/use-zoom-announcement';
-import { getFrameStyle, getImageFitScale, getImageStyle, ImageRotation } from '../utils/image-fit';
-import { nextImageRotation } from '../utils/image-zoom';
+import { getFrameStyle, getImageStyle } from '../utils/image-fit';
+import type { DocViewerImageProps } from './DocViewerImage';
 import { ImageControls } from './ImageControls';
 import { ImageOverlay } from './ImageOverlay';
-import { useDragToPan } from '../hooks/image/use-drag-to-pan';
-import { useImageController } from '../hooks/image/use-image-controller';
-import { useImageKeys } from '../hooks/image/use-image-keys';
-import { useImageLoad } from '../hooks/image/use-image-load';
-import { useImageZoom } from '../hooks/image/use-image-zoom';
 
-export function ImageView() {
-  const {
-    getStyles,
-    src,
-    fileName,
-    alt,
-    labels,
-    zoom: zoomProp,
-    defaultZoom,
-    events,
-  } = useDocViewerContext();
+export function ImageView({
+  alt,
+  classNames,
+  className,
+  style,
+  styles,
+  vars,
+  ...others
+}: DocViewerImageProps) {
+  const { getStyles, src } = useDocViewerContext();
   const title = useDocumentTitle();
-  const [rotation, setRotation] = useState<ImageRotation>(0);
-  const [stage, setStage] = useState<HTMLDivElement | null>(null);
-  const { ref: sizeRef, width, height } = useElementSize<HTMLDivElement>();
-  const pan = useDragToPan<HTMLDivElement>();
-  const stageRef = useMergedRef(sizeRef, setStage, pan.ref);
-  const { naturalSize, failed, ready, checkLoaded, onLoad, onError } = useImageLoad();
-
-  const [announcement, announce] = useAnnouncement();
-  const fitScale = naturalSize ? getImageFitScale({ width, height }, naturalSize, rotation) : 1;
-  const { zoom, scale, zoomTo, overflowing } = useImageZoom({
-    stage,
-    zoom: zoomProp,
-    defaultZoom,
-    fitScale,
-    ready,
-    onZoomChange: events.onZoomChange,
-    layoutKey: `${rotation}:${width}x${height}`,
-    onZoom: () => markZoom(),
-  });
-  const markZoom = useZoomAnnouncement(scale, announce);
-  const rotate = () => setRotation(nextImageRotation);
-  const handleKeyDown = useImageKeys({ scale, zoomTo, rotate });
-  const imageAlt = alt ?? fileName ?? labels.imageLabel;
-  const print = () => printImage(src, imageAlt, fileName);
-  useImageController({ ready, scale, zoomTo, rotate, print });
+  const view = useImageView(alt);
+  const { naturalSize, failed, ready, rotation, scale } = view;
+  const stylesProps = { classNames, styles };
 
   return (
     <>
-      <ToolbarView onPrint={ready ? print : undefined}>
-        {ready && <ImageControls scale={scale} zoom={zoom} zoomTo={zoomTo} rotate={rotate} />}
+      <ToolbarView onPrint={ready ? view.print : undefined}>
+        {ready && (
+          <ImageControls scale={scale} zoom={view.zoom} zoomTo={view.zoomTo} rotate={view.rotate} />
+        )}
       </ToolbarView>
-      <div {...getStyles('body')}>
+      <Box {...getStyles('body', { className, style, ...stylesProps })} {...others}>
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
-          ref={stageRef}
-          {...getStyles('imageStage')}
+          ref={view.stageRef}
+          {...getStyles('imageStage', stylesProps)}
           {...getRegionProps(ready, title, 'Plus Minus 0 R')}
-          onKeyDown={handleKeyDown}
-          data-pannable={(ready && overflowing) || undefined}
-          data-panning={pan.panning || undefined}
+          onKeyDown={view.onKeyDown}
+          data-pannable={(ready && view.overflowing) || undefined}
+          data-panning={view.pan.panning || undefined}
         >
-          <div {...getStyles('imageCanvas')}>
+          <div {...getStyles('imageCanvas', stylesProps)}>
             <div
-              {...getStyles('imageFrame', { style: getFrameStyle(naturalSize, rotation, scale) })}
+              {...getStyles('imageFrame', {
+                ...stylesProps,
+                style: getFrameStyle(naturalSize, rotation, scale),
+              })}
             >
               {!failed && (
                 <img
-                  ref={checkLoaded}
+                  ref={view.checkLoaded}
                   src={src}
-                  alt={imageAlt}
+                  alt={view.imageAlt}
                   draggable={false}
-                  onLoad={onLoad}
-                  onError={onError}
+                  onLoad={view.onLoad}
+                  onError={view.onError}
                   data-loaded={ready || undefined}
-                  {...getStyles('image', { style: getImageStyle(naturalSize, rotation, scale) })}
+                  {...getStyles('image', {
+                    ...stylesProps,
+                    style: getImageStyle(naturalSize, rotation, scale),
+                  })}
                 />
               )}
             </div>
           </div>
         </div>
 
-        {!ready && <ImageOverlay failed={failed} />}
-      </div>
+        {!ready && <ImageOverlay failed={failed} {...stylesProps} />}
+      </Box>
 
-      {ready && <VisuallyHidden role="status">{announcement}</VisuallyHidden>}
+      {ready && <VisuallyHidden role="status">{view.announcement}</VisuallyHidden>}
     </>
   );
 }

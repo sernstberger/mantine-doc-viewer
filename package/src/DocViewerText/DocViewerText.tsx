@@ -37,9 +37,9 @@ export type DocViewerTextViewProps = Partial<
 
 /** Plain text view with its toolbar */
 export const DocViewerText = factory<DocViewerTextFactory>((_props) => {
-  useProps('DocViewerText', null, _props);
+  const props = useProps('DocViewerText', null, _props);
   useDocViewerContext();
-  return <TextView />;
+  return <TextView {...props} />;
 });
 
 DocViewerText.classes = classes;

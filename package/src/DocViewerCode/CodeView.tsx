@@ -1,14 +1,16 @@
 import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { getCodeLanguage } from '../utils/get-doc-viewer-type';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
+import { useDocViewerStateValue } from '../hooks/use-doc-viewer-state';
 import { printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
 import { ViewModeToggle } from '../DocViewerViewModeControl/ViewModeToggle';
 import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
+import type { DocViewerCodeProps } from './DocViewerCode';
 
 const NOT_JSON = Symbol('not-json');
 
@@ -27,22 +29,28 @@ function parseJson(text: string) {
   }
 }
 
-export function CodeView({ language: languageOverride }: { language?: string }) {
-  const { getStyles, src, fileName, language, maxTextSize, labels, codeHighlightProps } =
-    useDocViewerContext();
+export function CodeView({
+  maxSize,
+  language,
+  codeHighlightProps,
+  vars,
+  ...others
+}: DocViewerCodeProps) {
+  const { classNames, styles } = others;
+  const ctx = useDocViewerContext();
+  const { getStyles, src, fileName, store, labels } = ctx;
   const show = useShowControl();
-  const state = useDocViewerText(src, maxTextSize);
-  const resolvedLanguage =
-    languageOverride ?? language ?? getCodeLanguage({ src, fileName }) ?? 'text';
+  const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
+  const resolvedLanguage = language ?? ctx.language ?? getCodeLanguage({ src, fileName }) ?? 'text';
+  const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
   const text = state.status === 'ready' ? state.text : null;
 
-  // Valid JSON can also be shown as a collapsible tree
   const json = useMemo(
     () => (text !== null && resolvedLanguage === 'json' ? parseJson(text) : NOT_JSON),
     [text, resolvedLanguage]
   );
-  const [mode, setMode] = useState<'tree' | 'code'>('tree');
-  const showTree = json !== NOT_JSON && mode === 'tree';
+  const [viewMode, setViewMode] = useDocViewerStateValue(store, 'viewMode');
+  const showTree = json !== NOT_JSON && viewMode === 'preview';
   const onPrint = useTextView('code', state, async () => {
     text !== null && (await printText(text, fileName));
   });
@@ -52,20 +60,24 @@ export function CodeView({ language: languageOverride }: { language?: string }) 
       <ToolbarView onPrint={onPrint}>
         {json !== NOT_JSON && show('viewMode') && (
           <ViewModeToggle
-            value={mode}
-            onChange={setMode}
+            value={viewMode}
+            onChange={setViewMode}
             data={[
-              { value: 'tree', label: labels.treeLabel },
-              { value: 'code', label: labels.codeLabel },
+              { value: 'preview', label: labels.treeLabel },
+              { value: 'source', label: labels.codeLabel },
             ]}
             label={labels.jsonViewLabel}
           />
         )}
       </ToolbarView>
-      <DocViewerBody focusable={state.status === 'ready'}>
-        {text === null && <TextStatus state={state} />}
+      <DocViewerBody focusable={state.status === 'ready'} {...others}>
+        {text === null && <TextStatus state={state} classNames={classNames} styles={styles} />}
         {text !== null && showTree && (
-          <JsonViewer value={json} defaultExpandDepth={2} {...getStyles('code')} />
+          <JsonViewer
+            value={json}
+            defaultExpandDepth={2}
+            {...getStyles('code', { classNames, styles })}
+          />
         )}
         {text !== null && !showTree && (
           <CodeHighlight
@@ -74,10 +86,12 @@ export function CodeView({ language: languageOverride }: { language?: string }) 
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...codeHighlightProps}
+            {...highlightProps}
             {...getStyles('code', {
-              className: codeHighlightProps?.className,
-              style: codeHighlightProps?.style,
+              classNames,
+              styles,
+              className: highlightProps?.className,
+              style: highlightProps?.style,
             })}
           />
         )}

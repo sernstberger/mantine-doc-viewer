@@ -12,13 +12,11 @@ function isOverflowing(stage: HTMLElement) {
 export function useDragToPan<T extends HTMLElement>() {
   const stageRef = useRef<T | null>(null);
   const drag = useDrag<T>((state) => {
-    // The press started on the stage, so it is mounted
     const stage = stageRef.current!;
     if (state.first && (state.event.pointerType !== 'mouse' || !isOverflowing(stage))) {
       state.cancel();
       return;
     }
-    // Moves scroll; the release only ends the drag
     if (state.last) {
       return;
     }

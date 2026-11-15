@@ -14,6 +14,8 @@ import { TextStatus } from '../DocViewerText/TextStatus';
 import { useTextView } from '../hooks/text/use-text-view';
 import { ViewModeToggle } from '../DocViewerViewModeControl/ViewModeToggle';
 import { useDocViewerText } from '../hooks/text/use-doc-viewer-text';
+import { useDocViewerStateValue } from '../hooks/use-doc-viewer-state';
+import type { DocViewerMarkdownProps } from './DocViewerMarkdown';
 
 /** Prints what is shown: the rendered markdown in preview, otherwise the source */
 export function getMarkdownPrintSource(
@@ -46,7 +48,11 @@ function useMarkdownModule() {
   return { module, failed };
 }
 
-function MarkdownPreview({ text }: { text: string }) {
+function MarkdownPreview({
+  text,
+  classNames,
+  styles,
+}: Pick<DocViewerMarkdownProps, 'classNames' | 'styles'> & { text: string }) {
   const { getStyles, src, labels } = useDocViewerContext();
   const { module, failed } = useMarkdownModule();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -60,7 +66,6 @@ function MarkdownPreview({ text }: { text: string }) {
     [labels]
   );
 
-  // react-markdown parses and transforms the whole text on every render: only when it changes
   const rendered = useMemo(() => {
     if (!module) {
       return null;
@@ -95,20 +100,26 @@ function MarkdownPreview({ text }: { text: string }) {
   }
 
   return (
-    <Typography ref={rootRef} {...getStyles('markdown')} data-markdown>
+    <Typography ref={rootRef} {...getStyles('markdown', { classNames, styles })} data-markdown>
       {rendered}
     </Typography>
   );
 }
 
-export function MarkdownView() {
-  const { getStyles, src, maxTextSize, labels, codeHighlightProps } = useDocViewerContext();
+export function MarkdownView({
+  maxSize,
+  codeHighlightProps,
+  vars,
+  ...others
+}: DocViewerMarkdownProps) {
+  const { classNames, styles } = others;
+  const ctx = useDocViewerContext();
+  const { getStyles, src, store, labels, fileName } = ctx;
   const show = useShowControl();
-  const state = useDocViewerText(src, maxTextSize);
-  const [mode, setMode] = useState<'preview' | 'source'>('preview');
-  const { fileName } = useDocViewerContext();
+  const state = useDocViewerText(src, maxSize ?? ctx.maxTextSize);
+  const [mode, setMode] = useDocViewerStateValue(store, 'viewMode');
+  const highlightProps = codeHighlightProps ?? ctx.codeHighlightProps;
   const bodyRef = useRef<HTMLDivElement>(null);
-  // Prints what is shown: the rendered markdown, or its source
   const onPrint = useTextView('markdown', state, async () => {
     const source = getMarkdownPrintSource(
       mode,
@@ -137,9 +148,13 @@ export function MarkdownView() {
           />
         )}
       </ToolbarView>
-      <DocViewerBody ref={bodyRef} focusable={state.status === 'ready'}>
-        {state.status !== 'ready' && <TextStatus state={state} />}
-        {state.status === 'ready' && mode === 'preview' && <MarkdownPreview text={state.text} />}
+      <DocViewerBody ref={bodyRef} focusable={state.status === 'ready'} {...others}>
+        {state.status !== 'ready' && (
+          <TextStatus state={state} classNames={classNames} styles={styles} />
+        )}
+        {state.status === 'ready' && mode === 'preview' && (
+          <MarkdownPreview text={state.text} classNames={classNames} styles={styles} />
+        )}
         {state.status === 'ready' && mode === 'source' && (
           <CodeHighlight
             code={state.text}
@@ -147,10 +162,12 @@ export function MarkdownView() {
             withLineNumbers
             withFirstLineIndentation
             radius={0}
-            {...codeHighlightProps}
+            {...highlightProps}
             {...getStyles('code', {
-              className: codeHighlightProps?.className,
-              style: codeHighlightProps?.style,
+              classNames,
+              styles,
+              className: highlightProps?.className,
+              style: highlightProps?.style,
             })}
           />
         )}

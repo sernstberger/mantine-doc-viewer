@@ -33,10 +33,14 @@ export type DocViewerMarkdownFactory = Factory<{
 
 /** Markdown view with its toolbar; the source without a markdown adapter */
 export const DocViewerMarkdown = factory<DocViewerMarkdownFactory>((_props) => {
-  useProps('DocViewerMarkdown', null, _props);
+  const props = useProps('DocViewerMarkdown', null, _props);
   useDocViewerContext();
   const { markdown } = useDocViewerAdapters();
-  return <LazyView>{markdown ? <MarkdownView /> : <CodeView language="markdown" />}</LazyView>;
+  return (
+    <LazyView>
+      {markdown ? <MarkdownView {...props} /> : <CodeView {...props} language="markdown" />}
+    </LazyView>
+  );
 });
 
 DocViewerMarkdown.classes = classes;

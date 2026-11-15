@@ -35,11 +35,11 @@ export type DocViewerCodeFactory = Factory<{
 
 /** Code view with its toolbar, highlighted with @mantine/code-highlight */
 export const DocViewerCode = factory<DocViewerCodeFactory>((_props) => {
-  const { language } = useProps('DocViewerCode', null, _props);
+  const props = useProps('DocViewerCode', null, _props);
   useDocViewerContext();
   return (
     <LazyView>
-      <CodeView language={language} />
+      <CodeView {...props} />
     </LazyView>
   );
 });

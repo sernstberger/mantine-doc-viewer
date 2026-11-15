@@ -44,6 +44,23 @@ describe('markdown components', () => {
     render(<Pre>plain text</Pre>);
     expect(screen.getByText('plain text').tagName).toBe('PRE');
   });
+
+  it('highlights fenced code without a language as text', () => {
+    const node = {
+      type: 'element',
+      tagName: 'pre',
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {},
+          children: [{ type: 'text', value: 'plain\n' }],
+        },
+      ],
+    };
+    render(<Pre node={node}>x</Pre>);
+    expect(screen.getByText('plain')).toBeInTheDocument();
+  });
 });
 
 describe('scrollToHeading', () => {

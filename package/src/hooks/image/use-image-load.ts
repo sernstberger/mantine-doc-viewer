@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDocViewerContext } from '../../doc-viewer.context';
 import type { Size } from '../../utils/image-fit';
+import { useDocViewerView } from '../view/use-doc-viewer-view';
 
 /** Load state of the image, and the document events that follow from it */
 export function useImageLoad() {
-  const { src, events, mimeType } = useDocViewerContext();
+  const { src } = useDocViewerContext();
+  const { onLoad: reportLoad, onError: reportError } = useDocViewerView();
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState(false);
 
-  // With keepView the image is not remounted: a new src gets another try after a failure
   useEffect(() => setFailed(false), [src]);
 
   // A server-rendered image can finish loading before React attaches onLoad
@@ -27,15 +28,15 @@ export function useImageLoad() {
 
   useEffect(() => {
     if (naturalSize && !failed) {
-      events.onDocumentLoad({ type: 'image', ...naturalSize, mimeType });
+      reportLoad({ type: 'image', ...naturalSize });
     }
-  }, [naturalSize, failed, events, mimeType]);
+  }, [naturalSize, failed, reportLoad]);
 
   useEffect(() => {
     if (failed) {
-      events.onDocumentError(new Error(`Image could not be loaded: ${src}`));
+      reportError(new Error(`Image could not be loaded: ${src}`));
     }
-  }, [failed, events, src]);
+  }, [failed, reportError, src]);
 
   return {
     naturalSize,
