@@ -1,6 +1,7 @@
 import { ActionIcon, Group, Popover, Radio, SegmentedControl, Stack, Text } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useState } from 'react';
+import { useDisclosure } from '@mantine/hooks';
+import React from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
@@ -72,8 +73,8 @@ export function PdfControls(props: PdfControlsProps) {
   const show = useShowControl();
   const controlProps = useControlProps();
   const outline = usePdfOutline(props.document);
-  const [outlineOpened, setOutlineOpened] = useState(false);
-  const [infoOpened, setInfoOpened] = useState(false);
+  const [outlineOpened, outlinePopover] = useDisclosure(false);
+  const [infoOpened, infoPopover] = useDisclosure(false);
   const properties = usePdfProperties(props.document, infoOpened);
   const attachments = usePdfAttachments(props.document);
   const { currentPage, onPage, thumbnailsOpened, layout, searchOpened } = props;
@@ -201,7 +202,7 @@ export function PdfControls(props: PdfControlsProps) {
           {outline && outline.length > 0 && (
             <Popover
               opened={outlineOpened}
-              onChange={setOutlineOpened}
+              onChange={outlinePopover.set}
               position="bottom-end"
               shadow="md"
               withinPortal={false}
@@ -214,7 +215,7 @@ export function PdfControls(props: PdfControlsProps) {
                     {...controlProps(outlineOpened)}
                     aria-label={labels.outline}
                     aria-expanded={outlineOpened}
-                    onClick={() => setOutlineOpened((opened) => !opened)}
+                    onClick={outlinePopover.toggle}
                   >
                     <OutlineIcon />
                   </ActionIcon>
@@ -225,7 +226,7 @@ export function PdfControls(props: PdfControlsProps) {
                   document={props.document}
                   items={outline}
                   onSelect={(page) => {
-                    setOutlineOpened(false);
+                    outlinePopover.close();
                     onPage(page);
                   }}
                 />
@@ -239,7 +240,7 @@ export function PdfControls(props: PdfControlsProps) {
         <>
           <Popover
             opened={infoOpened}
-            onChange={setInfoOpened}
+            onChange={infoPopover.set}
             position="bottom-end"
             shadow="md"
             withinPortal={false}
@@ -252,7 +253,7 @@ export function PdfControls(props: PdfControlsProps) {
                   {...controlProps(infoOpened)}
                   aria-label={labels.documentInfo}
                   aria-expanded={infoOpened}
-                  onClick={() => setInfoOpened((opened) => !opened)}
+                  onClick={infoPopover.toggle}
                 >
                   <InfoIcon />
                 </ActionIcon>

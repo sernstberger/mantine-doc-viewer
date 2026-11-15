@@ -110,12 +110,9 @@
   inset: 0;
 }
 
+/* Mantine's EmptyState lays out the message; it fills the body and centres vertically */
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: var(--mantine-spacing-sm);
   height: 100%;
   min-height: 160px;
   padding: var(--mantine-spacing-xl);
@@ -589,17 +586,8 @@
 }
 
 .properties {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 4px var(--mantine-spacing-sm);
-  margin: 0;
-
-  & dt {
-    color: var(--mantine-color-dimmed);
-  }
-
+  /* Long values (file names, producers) wrap instead of widening the popover */
   & dd {
-    margin: 0;
     overflow-wrap: anywhere;
   }
 }

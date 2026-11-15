@@ -1,4 +1,5 @@
 import { ActionIcon, CloseButton, TextInput, VisuallyHidden } from '@mantine/core';
+import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import type { DocViewerLabels } from '../labels';
@@ -67,17 +68,11 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
   const { getStyles, labels, size } = useDocViewerContext();
   const controlProps = useControlProps();
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      event.shiftKey ? onPrevious() : onNext();
-    }
-
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onClose();
-    }
-  };
+  const handleKeyDown = getHotkeyHandler([
+    ['Enter', onNext],
+    ['shift+Enter', onPrevious],
+    ['Escape', onClose],
+  ]);
 
   return (
     <div {...getStyles('search')} role="search">

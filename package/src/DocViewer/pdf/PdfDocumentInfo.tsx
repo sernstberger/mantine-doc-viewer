@@ -1,4 +1,4 @@
-import { Checkbox, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Checkbox, DataList, Stack, Text, UnstyledButton } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
@@ -29,14 +29,14 @@ export function PdfDocumentInfo({
         <Text id="doc-viewer-properties" fw={600} size="sm" mb={4}>
           {labels.properties}
         </Text>
-        <dl {...getStyles('properties')}>
+        <DataList {...getStyles('properties')} size="xs" gap={4} labelWidth="6.5rem">
           {(properties ?? []).map((property) => (
-            <React.Fragment key={property.key}>
-              <dt>{labels.propertyNames[property.key]}</dt>
-              <dd>{property.value}</dd>
-            </React.Fragment>
+            <DataList.Item key={property.key}>
+              <DataList.ItemLabel>{labels.propertyNames[property.key]}</DataList.ItemLabel>
+              <DataList.ItemValue>{property.value}</DataList.ItemValue>
+            </DataList.Item>
           ))}
-        </dl>
+        </DataList>
       </section>
 
       {attachments.length > 0 && (

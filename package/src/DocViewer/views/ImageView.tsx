@@ -27,8 +27,9 @@ export function ImageView() {
   const [rotation, setRotation] = useState<ImageRotation>(0);
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const { ref: sizeRef, width, height } = useElementSize<HTMLDivElement>();
-  const stageRef = useMergedRef(sizeRef, setStage);
-  const panning = useDragToPan(stage);
+  const pan = useDragToPan<HTMLDivElement>();
+  const stageRef = useMergedRef(sizeRef, setStage, pan.ref);
+  const panning = pan.panning;
 
   const fitScale = naturalSize ? getImageFitScale({ width, height }, naturalSize, rotation) : 1;
   const { zoom, scale, zoomTo, overflowing } = useImageZoom({

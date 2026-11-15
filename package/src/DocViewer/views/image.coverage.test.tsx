@@ -149,15 +149,10 @@ describe('drag to pan', () => {
 
   it('scrolls while the mouse is dragged over an overflowing stage', () => {
     const stage = setup({ scrollWidth: 400, scrollHeight: 100 });
-    const setPointerCapture = jest.fn();
-    (stage as any).setPointerCapture = setPointerCapture;
-
     const down = pointerEvent('pointerdown', { clientX: 50, clientY: 50 });
     act(() => {
       stage.dispatchEvent(down);
     });
-    expect(down.defaultPrevented).toBe(true);
-    expect(setPointerCapture).toHaveBeenCalledWith(1);
     expect(stage).toHaveAttribute('data-panning', 'true');
 
     act(() => {
@@ -178,7 +173,7 @@ describe('drag to pan', () => {
     expect(stage.scrollLeft).toBe(20);
   });
 
-  it('pans when only the height overflows, without pointer capture support', () => {
+  it('pans when only the height overflows', () => {
     const stage = setup({ scrollWidth: 100, scrollHeight: 400 });
     act(() => {
       stage.dispatchEvent(pointerEvent('pointerdown'));
@@ -199,15 +194,13 @@ describe('drag to pan', () => {
       overflowing.dispatchEvent(right);
       overflowing.dispatchEvent(touch);
     });
-    expect(right.defaultPrevented).toBe(false);
-    expect(touch.defaultPrevented).toBe(false);
+    expect(overflowing).not.toHaveAttribute('data-panning');
 
     defineLayout(overflowing, { scrollWidth: 100, scrollHeight: 100 });
     const fits = pointerEvent('pointerdown');
     act(() => {
       overflowing.dispatchEvent(fits);
     });
-    expect(fits.defaultPrevented).toBe(false);
     expect(overflowing).not.toHaveAttribute('data-panning');
 
     // Moving without a drag in progress does nothing

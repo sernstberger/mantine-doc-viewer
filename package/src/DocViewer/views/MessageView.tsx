@@ -1,4 +1,4 @@
-import { Anchor, Loader, VisuallyHidden } from '@mantine/core';
+import { Anchor, EmptyState, Loader, VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 
@@ -15,21 +15,23 @@ export function DocViewerMessage({ children, withDownload, error }: DocViewerMes
   const { getStyles, src, fileName, labels } = useDocViewerContext();
 
   return (
-    <div {...getStyles('empty')} role={error ? 'alert' : 'status'}>
+    <EmptyState {...getStyles('empty')} size="sm" role={error ? 'alert' : 'status'}>
       {children}
       {withDownload && (
-        <Anchor
-          href={src}
-          download={fileName ?? true}
-          // Browsers ignore download for other origins and open the file instead, so not in place of the app
-          target="_blank"
-          rel="noopener noreferrer"
-          size="sm"
-        >
-          {labels.downloadFile}
-        </Anchor>
+        <EmptyState.Actions>
+          <Anchor
+            href={src}
+            download={fileName ?? true}
+            // Browsers ignore download for other origins and open the file instead, so not in place of the app
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+          >
+            {labels.downloadFile}
+          </Anchor>
+        </EmptyState.Actions>
       )}
-    </div>
+    </EmptyState>
   );
 }
 
