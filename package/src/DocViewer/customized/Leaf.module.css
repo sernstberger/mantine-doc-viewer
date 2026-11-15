@@ -155,21 +155,11 @@
   pointer-events: none;
 
   &[data-side='left'] {
-    background: linear-gradient(
-      to left,
-      rgb(0 0 0 / 0.07),
-      rgb(0 0 0 / 0.02) 3%,
-      transparent 9%
-    );
+    background: linear-gradient(to left, rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.02) 3%, transparent 9%);
   }
 
   &[data-side='right'] {
-    background: linear-gradient(
-      to right,
-      rgb(0 0 0 / 0.08),
-      rgb(0 0 0 / 0.02) 3%,
-      transparent 9%
-    );
+    background: linear-gradient(to right, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.02) 3%, transparent 9%);
   }
 
   &[data-side='single'] {
@@ -207,21 +197,11 @@
   }
 
   &[data-side='left']::after {
-    background: linear-gradient(
-      to left,
-      rgb(0 0 0 / 0.07),
-      rgb(0 0 0 / 0.02) 3%,
-      transparent 9%
-    );
+    background: linear-gradient(to left, rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.02) 3%, transparent 9%);
   }
 
   &[data-side='right']::after {
-    background: linear-gradient(
-      to right,
-      rgb(0 0 0 / 0.08),
-      rgb(0 0 0 / 0.02) 3%,
-      transparent 9%
-    );
+    background: linear-gradient(to right, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.02) 3%, transparent 9%);
   }
 
   &[data-side='single']::after {
@@ -262,12 +242,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(
-    to right,
-    rgb(0 0 0 / 0.02),
-    rgb(0 0 0 / 0.1) 60%,
-    rgb(0 0 0 / 0.22)
-  );
+  background: linear-gradient(to right, rgb(0 0 0 / 0.02), rgb(0 0 0 / 0.1) 60%, rgb(0 0 0 / 0.22));
   opacity: 0;
 }
 
@@ -280,7 +255,12 @@
 
   .face[data-side='right'] > &,
   .face[data-side='single'] > & {
-    background: linear-gradient(to right, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.05) 22%, transparent 45%);
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.22),
+      rgb(0 0 0 / 0.05) 22%,
+      transparent 45%
+    );
   }
 
   .face[data-side='left'] > & {
