@@ -1,16 +1,23 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  Popover,
+  Radio,
+  Stack,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
-import { LayoutControl } from '../DocViewerToolbar/PdfNavigationControls';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
 import type { DocViewerPageLayout } from '../doc-viewer.types';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
+import { TwoPagesIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerLayoutMenuStylesNames = 'control' | 'dropdown';
@@ -28,15 +35,63 @@ export type DocViewerLayoutMenuFactory = Factory<{
   compound: true;
 }>;
 
+const LAYOUTS = [
+  ['single', 'layoutSingleLabel'],
+  ['two-page', 'layoutTwoPageLabel'],
+  ['two-page-cover', 'layoutTwoPageCoverLabel'],
+  ['horizontal', 'layoutHorizontalLabel'],
+  ['wrapped', 'layoutWrappedLabel'],
+] as const;
+
 /** Menu of PDF page layouts */
 export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) => {
-  useProps('DocViewerLayoutMenu', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
-  if (!session) {
+  const { classNames, className, style, styles, vars, layouts, ...others } = useProps(
+    'DocViewerLayoutMenu',
+    null,
+    _props
+  );
+  const { store, getStyles, labels, size } = useDocViewerContext();
+  const ready = useReadyDocument(PDF_ONLY);
+  const layout = useDocViewerState(store, (state) => state.pageLayout);
+  const show = useShowControl();
+  const controlProps = useControlProps();
+  const stylesApiProps = { classNames, styles };
+
+  if (!ready || !show('layout')) {
     return null;
   }
-  return <LayoutControl layout={session.view.layout} onLayoutChange={session.view.setLayout} />;
+
+  return (
+    <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+      <Popover.Target>
+        <DocViewerTooltip label={labels.pageLayoutLabel}>
+          <ActionIcon
+            {...controlProps(layout !== 'single', { className, style, classNames, styles })}
+            aria-label={labels.pageLayoutLabel}
+            {...others}
+          >
+            <TwoPagesIcon />
+          </ActionIcon>
+        </DocViewerTooltip>
+      </Popover.Target>
+      <Popover.Dropdown {...getStyles('dropdown', stylesApiProps)}>
+        <Radio.Group
+          value={layout}
+          onChange={(value) => docViewerActions.setPageLayout(value as DocViewerPageLayout, store)}
+          label={labels.pageLayoutLabel}
+          size={size.input}
+        >
+          <Stack gap={6} mt={6}>
+            {LAYOUTS.filter(([value]) => !layouts || layouts.includes(value)).map(
+              ([value, label]) => (
+                <Radio key={value} value={value} label={labels[label]} size={size.input} />
+              )
+            )}
+          </Stack>
+        </Radio.Group>
+      </Popover.Dropdown>
+    </Popover>
+  );
 });
 
 DocViewerLayoutMenu.classes = classes;

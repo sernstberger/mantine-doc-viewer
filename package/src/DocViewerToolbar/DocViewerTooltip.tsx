@@ -1,13 +1,15 @@
-import { Tooltip, TooltipProps } from '@mantine/core';
+import { Tooltip, TooltipProps, type GetStylesApiOptions } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { useDocViewerToolbarContext } from './toolbar-context';
 
-/** Tooltips also show on keyboard focus, so keyboard users can see what an icon button does */
 const TOOLTIP_EVENTS = { hover: true, focus: true, touch: false };
 
-/** Toolbar tooltip with the viewer's `tooltipProps` */
+/** Toolbar tooltip with the `tooltipProps` of its toolbar, or of the viewer outside of one. It also shows on keyboard focus */
 export function DocViewerTooltip(props: TooltipProps) {
-  const { tooltipProps } = useDocViewerContext();
+  const viewer = useDocViewerContext();
+  const toolbar = useDocViewerToolbarContext();
+  const tooltipProps = toolbar ? toolbar.tooltipProps : viewer.tooltipProps;
   return <Tooltip events={TOOLTIP_EVENTS} {...tooltipProps} {...props} />;
 }
 
@@ -15,13 +17,11 @@ export function DocViewerTooltip(props: TooltipProps) {
 export function useControlProps() {
   const { getStyles, size, color } = useDocViewerContext();
 
-  return (pressed?: boolean) => ({
-    ...getStyles('control'),
-    // Makes the button a stop for the arrow keys of Mantine's Toolbar
+  return (pressed?: boolean, stylesApiProps?: GetStylesApiOptions) => ({
+    ...getStyles('control', stylesApiProps),
     'data-toolbar-toggle': true,
     size: size.control,
     variant: pressed ? 'light' : 'subtle',
-    // An unset colour is the theme's primary colour, as ActionIcon does
     color: pressed ? color : 'gray',
     'data-pressed': pressed || undefined,
   });

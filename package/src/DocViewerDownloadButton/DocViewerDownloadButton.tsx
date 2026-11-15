@@ -1,5 +1,5 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
@@ -7,8 +7,10 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { DownloadButton } from '../DocViewerToolbar/ToolbarParts';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { DownloadIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerDownloadButtonStylesNames = 'control';
@@ -25,9 +27,35 @@ export type DocViewerDownloadButtonFactory = Factory<{
 
 /** Downloads the document */
 export const DocViewerDownloadButton = factory<DocViewerDownloadButtonFactory>((_props) => {
-  useProps('DocViewerDownloadButton', null, _props);
-  useDocViewerContext();
-  return <DownloadButton />;
+  const { classNames, className, style, styles, vars, ...others } = useProps(
+    'DocViewerDownloadButton',
+    null,
+    _props
+  );
+  const { src, fileName, labels } = useDocViewerContext();
+  const show = useShowControl();
+  const controlProps = useControlProps();
+
+  if (!show('download')) {
+    return null;
+  }
+
+  return (
+    <DocViewerTooltip label={labels.downloadLabel}>
+      <ActionIcon
+        component="a"
+        href={src}
+        download={fileName ?? true}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...controlProps(false, { className, style, classNames, styles })}
+        aria-label={labels.downloadLabel}
+        {...others}
+      >
+        <DownloadIcon />
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
 });
 
 DocViewerDownloadButton.classes = classes;

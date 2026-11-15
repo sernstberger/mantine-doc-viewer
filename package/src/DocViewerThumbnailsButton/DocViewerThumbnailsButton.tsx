@@ -1,15 +1,22 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  Popover,
+  SegmentedControl,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
-import { ThumbnailsControl } from '../DocViewerToolbar/PdfNavigationControls';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
+import type { DocViewerThumbnailsPosition } from '../doc-viewer.types';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
+import { PanelPositionIcon, SidebarIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerThumbnailsButtonStylesNames = 'control' | 'dropdown';
@@ -19,7 +26,7 @@ export interface DocViewerThumbnailsButtonProps
     BoxProps,
     CompoundStylesApiProps<DocViewerThumbnailsButtonFactory>,
     ElementProps<'button'> {
-  /** Determines whether the button has a menu to move the thumbnails, `true` by default */
+  /** Determines whether the button has a menu to move the thumbnails while they are shown, `true` by default */
   withPositionMenu?: boolean;
 }
 
@@ -30,22 +37,70 @@ export type DocViewerThumbnailsButtonFactory = Factory<{
   compound: true;
 }>;
 
-/** Shows and hides the PDF page thumbnails */
+const POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
+
+const defaultProps = {
+  withPositionMenu: true,
+} satisfies Partial<DocViewerThumbnailsButtonProps>;
+
+/** Shows and hides the PDF page thumbnails, and moves them to another side of the viewer */
 export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactory>((_props) => {
-  useProps('DocViewerThumbnailsButton', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
-  if (!session) {
+  const { classNames, className, style, styles, vars, withPositionMenu, ...others } = useProps(
+    'DocViewerThumbnailsButton',
+    defaultProps,
+    _props
+  );
+  const { store, getStyles, labels, size } = useDocViewerContext();
+  const ready = useReadyDocument(PDF_ONLY);
+  const opened = useDocViewerState(store, (state) => state.thumbnailsOpened);
+  const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
+  const show = useShowControl();
+  const controlProps = useControlProps();
+  const stylesApiProps = { classNames, styles };
+
+  if (!ready || !show('thumbnails')) {
     return null;
   }
-  const panel = session.view.thumbnailsPanel;
+
   return (
-    <ThumbnailsControl
-      opened={panel.opened}
-      onToggle={() => panel.toggle()}
-      position={panel.position}
-      onPositionChange={panel.setPosition}
-    />
+    <>
+      <DocViewerTooltip label={opened ? labels.hidePagesLabel : labels.showPagesLabel}>
+        <ActionIcon
+          {...controlProps(opened, { className, style, classNames, styles })}
+          aria-label={labels.pageThumbnailsLabel}
+          aria-pressed={opened}
+          onClick={() => docViewerActions.toggleThumbnails(undefined, store)}
+          {...others}
+        >
+          <SidebarIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
+      {opened && withPositionMenu && (
+        <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+          <Popover.Target>
+            <DocViewerTooltip label={labels.thumbnailsPositionLabel}>
+              <ActionIcon
+                {...controlProps(false, stylesApiProps)}
+                aria-label={labels.thumbnailsPositionLabel}
+              >
+                <PanelPositionIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+          </Popover.Target>
+          <Popover.Dropdown p={4} {...getStyles('dropdown', stylesApiProps)}>
+            <SegmentedControl
+              size={size.input}
+              value={position}
+              onChange={(value) =>
+                docViewerActions.setThumbnailsPosition(value as DocViewerThumbnailsPosition, store)
+              }
+              aria-label={labels.thumbnailsPositionLabel}
+              data={POSITIONS.map((value) => ({ value, label: labels[`${value}Label`] }))}
+            />
+          </Popover.Dropdown>
+        </Popover>
+      )}
+    </>
   );
 });
 

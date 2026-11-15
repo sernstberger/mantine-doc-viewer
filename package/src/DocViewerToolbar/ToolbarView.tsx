@@ -1,7 +1,10 @@
 import { Toolbar } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { DownloadButton, FullscreenButton, PrintButton, ToolbarHeading } from './ToolbarParts';
+import { DocViewerDownloadButton } from '../DocViewerDownloadButton/DocViewerDownloadButton';
+import { DocViewerFullscreenButton } from '../DocViewerFullscreenButton/DocViewerFullscreenButton';
+import { DocViewerPrintButton } from '../DocViewerPrintButton/DocViewerPrintButton';
+import { DocViewerTitle } from '../DocViewerTitle/DocViewerTitle';
 
 export interface ToolbarViewProps {
   /** Controls specific to the document type, for example, PDF paging and zoom */
@@ -11,6 +14,7 @@ export interface ToolbarViewProps {
   onPrint?: () => Promise<void> | void;
 }
 
+/** The toolbar the views render around their own controls, until each view uses `DocViewerToolbar` */
 export function ToolbarView({ children, onPrint }: ToolbarViewProps) {
   const { getStyles, toolbarSection, toolbarStartSection, withToolbar, toolbarHidden, labels } =
     useDocViewerContext();
@@ -26,8 +30,7 @@ export function ToolbarView({ children, onPrint }: ToolbarViewProps) {
           {toolbarStartSection}
         </div>
       )}
-      <ToolbarHeading />
-      {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
+      <DocViewerTitle />
       <Toolbar
         unstyled
         withBorder={false}
@@ -40,9 +43,9 @@ export function ToolbarView({ children, onPrint }: ToolbarViewProps) {
             {toolbarSection}
           </div>
         )}
-        <PrintButton onPrint={onPrint} />
-        <DownloadButton />
-        <FullscreenButton />
+        {onPrint && <DocViewerPrintButton />}
+        <DocViewerDownloadButton />
+        <DocViewerFullscreenButton />
       </Toolbar>
     </div>
   );

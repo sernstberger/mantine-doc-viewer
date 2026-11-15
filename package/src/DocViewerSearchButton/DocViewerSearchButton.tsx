@@ -1,5 +1,5 @@
-import React from 'react';
 import {
+  ActionIcon,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
@@ -7,9 +7,15 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
-import { SearchControl } from '../DocViewerToolbar/PdfPanelControls';
+import { useMergedRef } from '@mantine/hooks';
+import React from 'react';
+import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import { docViewerActions } from '../doc-viewer.store';
+import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
+import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
+import { SearchIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
 export type DocViewerSearchButtonStylesNames = 'control';
@@ -24,21 +30,42 @@ export type DocViewerSearchButtonFactory = Factory<{
   compound: true;
 }>;
 
-/** Opens and closes PDF search */
+/** Opens and closes the search of a PDF */
 export const DocViewerSearchButton = factory<DocViewerSearchButtonFactory>((_props) => {
-  useProps('DocViewerSearchButton', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
-  if (!session) {
+  const { classNames, className, style, styles, vars, ref, ...others } = useProps(
+    'DocViewerSearchButton',
+    null,
+    _props
+  );
+  const { store, labels } = useDocViewerContext();
+  const returnFocusRef = usePdfSession()?.content.search.toggleRef;
+  const mergedRef = useMergedRef(ref, returnFocusRef);
+  const ready = useReadyDocument(PDF_ONLY);
+  const opened = useDocViewerState(store, (state) => state.searchOpened);
+  const show = useShowControl();
+  const controlProps = useControlProps();
+
+  if (!ready || !show('search')) {
     return null;
   }
-  const { search } = session.content;
+
   return (
-    <SearchControl
-      opened={search.opened}
-      toggleRef={search.toggleRef}
-      onToggle={() => (search.opened ? search.close() : search.open())}
-    />
+    <DocViewerTooltip label={labels.searchLabel}>
+      <ActionIcon
+        {...controlProps(opened, { className, style, classNames, styles })}
+        ref={mergedRef}
+        aria-label={labels.searchLabel}
+        aria-pressed={opened}
+        onClick={() =>
+          opened
+            ? docViewerActions.closeSearch(store)
+            : docViewerActions.openSearch(undefined, store)
+        }
+        {...others}
+      >
+        <SearchIcon />
+      </ActionIcon>
+    </DocViewerTooltip>
   );
 });
 

@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
+  Box,
   BoxProps,
   CompoundStylesApiProps,
   ElementProps,
   factory,
   Factory,
+  Toolbar,
   TooltipProps,
   useProps,
 } from '@mantine/core';
-import { DocViewerProvider, useDocViewerContext } from '../doc-viewer.context';
+import { useMergedRef } from '@mantine/hooks';
+import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerControl } from '../doc-viewer.types';
+import { DocViewerTitle } from '../DocViewerTitle/DocViewerTitle';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import classes from '../DocViewer.module.css';
-import { ToolbarView } from './ToolbarView';
+import { DefaultControls, DefaultEndControls } from './default-controls';
+import { DocViewerToolbarContext } from './toolbar-context';
+import { useToolbarTapToggle } from './use-toolbar-tap-toggle';
 
 export type DocViewerToolbarStylesNames = 'toolbar' | 'toolbarSection' | 'controls';
 
@@ -49,29 +56,75 @@ export type DocViewerToolbarFactory = Factory<{
   compound: true;
 }>;
 
-/** The bar above the document: title, document controls, print, download and full screen */
+const defaultProps = {
+  toggleOnTap: false,
+} satisfies Partial<DocViewerToolbarProps>;
+
+/** The bar above the document: the controls of its type by default, or the controls it is given. It is not shown while a PDF is presented */
 export const DocViewerToolbar = factory<DocViewerToolbarFactory>((_props) => {
-  const { children, controls, leftSection, rightSection, title, subtitle, tooltipProps } = useProps(
-    'DocViewerToolbar',
-    null,
-    _props
-  );
-  const ctx = useDocViewerContext();
-  const value = {
-    ...ctx,
-    withToolbar: true,
-    toolbarControls: controls,
-    toolbarStartSection: leftSection,
-    toolbarSection: rightSection,
-    toolbarTitle: title,
-    toolbarSubtitle: subtitle,
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    vars,
+    children,
+    controls,
+    leftSection,
+    rightSection,
+    title,
+    subtitle,
+    toggleOnTap,
     tooltipProps,
-  };
+    ref,
+    ...others
+  } = useProps('DocViewerToolbar', defaultProps, _props);
+  const { store, getStyles, labels } = useDocViewerContext();
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const mergedRef = useMergedRef(ref, setElement);
+  const hidden = useToolbarTapToggle(toggleOnTap, element);
+  const presenting = useDocViewerState(store, (state) => state.presenting);
+  const context = useMemo(() => ({ tooltipProps }), [tooltipProps]);
+  const stylesApiProps = { classNames, styles };
+  const withDefaults = children === undefined || children === null;
+
+  if (presenting) {
+    return null;
+  }
 
   return (
-    <DocViewerProvider value={value}>
-      <ToolbarView onPrint={() => ctx.controller.current.print?.()}>{children}</ToolbarView>
-    </DocViewerProvider>
+    <DocViewerToolbarContext value={context}>
+      <Box
+        ref={mergedRef}
+        {...getStyles('toolbar', { className, style, classNames, styles })}
+        data-doc-viewer-toolbar
+        data-hidden={hidden || undefined}
+        {...others}
+      >
+        {leftSection && (
+          <div {...getStyles('toolbarSection', stylesApiProps)} data-position="left">
+            {leftSection}
+          </div>
+        )}
+        {withDefaults && controls?.title !== false && (
+          <DocViewerTitle title={title} subtitle={subtitle} />
+        )}
+        <Toolbar
+          unstyled
+          withBorder={false}
+          aria-label={labels.toolbarLabel}
+          {...getStyles('controls', stylesApiProps)}
+        >
+          {withDefaults ? <DefaultControls controls={controls} /> : children}
+          {rightSection && (
+            <div {...getStyles('toolbarSection', stylesApiProps)} data-position="right">
+              {rightSection}
+            </div>
+          )}
+          {withDefaults && <DefaultEndControls controls={controls} />}
+        </Toolbar>
+      </Box>
+    </DocViewerToolbarContext>
   );
 });
 
