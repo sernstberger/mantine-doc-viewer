@@ -33,6 +33,19 @@ describe('pdf geometry', () => {
     expect(computeScale({ ...base, zoom: 'fit-width', layout: 'wrapped' })).toBe(2);
   });
 
+  it('never makes a page wider than the view in layouts that fit the height', () => {
+    // Landscape sheets in a short, wide view: the height would make each 1200px wide
+    const base = {
+      bodyWidth: 632,
+      bodyHeight: 832,
+      columnGap: 16,
+      pageWidth: 400,
+      pageHeight: 200,
+    };
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'horizontal' })).toBe(1.5);
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'wrapped' })).toBe(1.5);
+  });
+
   it('fits a whole page or spread to the width and the height', () => {
     const base = {
       bodyWidth: 832,

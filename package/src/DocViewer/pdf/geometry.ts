@@ -43,7 +43,8 @@ export function computeScale(input: ScaleInput) {
   }
   const byHeight = getFitWidthScale(bodyHeight, pageHeight, gutter.y);
   if (fitsToHeight(layout) && !input.autoHeight) {
-    return byHeight;
+    // Pages fill the height of the view, but a landscape page is never made wider than the view
+    return Math.min(byHeight, getFitWidthScale(bodyWidth, pageWidth, gutter.x));
   }
   const byWidth = isTwoPages(layout)
     ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2, gutter.x)
