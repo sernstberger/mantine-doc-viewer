@@ -26,8 +26,8 @@ export function normalizeZoom(zoom: DocViewerZoom): DocViewerZoom {
 /**
  * The zoom of a PDF or image, controlled (`zoom`) or not (`defaultZoom`), and the scale it gives.
  * `onZoomChange` hears the zoom and its scale whenever either changes, a fitted scale after a
- * resize too. A controlled viewer reports a request at once, with the scale it would give, and
- * shows it once the app passes it back
+ * resize too. A controlled viewer reports every request at once (like Mantine's `useUncontrolled`),
+ * with the scale it would give, and shows it once the app passes it back
  */
 export function useZoomSetting({
   value,
@@ -44,17 +44,17 @@ export function useZoomSetting({
   const scale = scaleOf(zoom);
   const reported = useRef('');
 
-  /** Calls onZoomChange, once for each zoom and scale */
+  /** Calls onZoomChange for a zoom and scale, and remembers it so its echo is not reported again */
   const report = (next: DocViewerZoom, nextScale: number) => {
-    const key = `${next}:${nextScale}`;
-    if (key !== reported.current) {
-      reported.current = key;
-      onZoomChange(next, { scale: nextScale });
-    }
+    reported.current = `${next}:${nextScale}`;
+    onZoomChange(next, { scale: nextScale });
   };
 
+  // The zoom shown changed: report it unless it is the echo of a request already reported
   useEffect(() => {
-    ready && report(zoom, scale);
+    if (ready && `${zoom}:${scale}` !== reported.current) {
+      report(zoom, scale);
+    }
     // report reads the ref and the stable onZoomChange
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, zoom, scale]);

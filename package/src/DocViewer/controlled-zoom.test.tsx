@@ -130,6 +130,28 @@ describe('controlled zoom', () => {
     );
   });
 
+  it('reports a request again when the app refused it', async () => {
+    const controller = createRef<DocViewerController>();
+    const onZoomChange = jest.fn();
+    render(
+      <ControlledViewer
+        src="/files/photo.png"
+        initial={1.5}
+        next={2}
+        controllerRef={controller}
+        onZoomChange={onZoomChange}
+      />
+    );
+    loadImage();
+    onZoomChange.mockClear();
+
+    act(() => controller.current!.setZoom(2));
+    act(() => controller.current!.setZoom(2));
+    expect(onZoomChange).toHaveBeenCalledTimes(2);
+    expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
+    expect(zoomLevel()).toHaveTextContent('150%');
+  });
+
   it('reports a zoom the app sets', async () => {
     mockPdf();
     const onZoomChange = jest.fn();
