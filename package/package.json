@@ -7,13 +7,16 @@
   "license": "MIT",
   "author": "Steve Ernstberger",
   "keywords": [
+    "document-viewer",
+    "file-preview",
+    "image-viewer",
     "mantine",
-    "react",
     "pdf",
     "pdf-viewer",
-    "document-viewer",
-    "image-viewer",
-    "file-preview"
+    "react"
+  ],
+  "sideEffects": [
+    "*.css"
   ],
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.mjs",

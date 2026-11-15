@@ -1,8 +1,65 @@
 # mantine-doc-viewer
 
-Document viewer for [Mantine](https://mantine.dev): PDF, images, plain text, code and markdown, with a shared toolbar, light/dark support and the full Mantine Styles API.
+Document viewer for [Mantine](https://mantine.dev): PDFs, images, plain text, code, JSON and
+markdown in one component, with the Mantine Styles API, light and dark themes, and full keyboard
+and screen reader support.
 
-> Work in progress — not published yet.
+**[Documentation and demos](https://sernstberger.github.io/mantine-doc-viewer/)**
+
+## Features
+
+- **PDF** (pdf.js): search with match case, whole words and accents, thumbnails on any side,
+  outline, clickable links, page layouts (single, two pages, cover, horizontal, wrapped),
+  rotation, document info, attachments and layers, presentation mode, password protected files
+- **Page editing** (opt in): reorder, remove and extract pages, saved as a new PDF
+- **Images**: fit, zoom around the pointer, pinch, rotate, drag to pan
+- **Text, code, JSON and markdown**: highlighting with `@mantine/code-highlight`, a JSON tree,
+  GitHub flavoured markdown rendered safely
+- **Large documents**: only pages near the view are drawn, and only the parts of a PDF on screen
+  are downloaded when the server supports range requests
+- **Print, download and full screen**, a `controllerRef` with every action, and events for load,
+  errors, page, zoom and links
+- **Customisable**: `size`, `color`, `variant="plain"`, dark pages, hideable toolbar controls,
+  translatable labels, and renderers for other file types
+- **Small**: about 24 kB gzipped; pdf.js and the markdown renderer load only when needed
+
+## Installation
+
+```bash
+npm install mantine-doc-viewer @mantine/core @mantine/hooks @mantine/code-highlight pdfjs-dist
+```
+
+Import the styles once, next to Mantine's:
+
+```tsx
+import '@mantine/core/styles.css';
+import '@mantine/code-highlight/styles.css';
+import 'mantine-doc-viewer/styles.css';
+```
+
+## Usage
+
+PDFs need the pdf.js worker from your installed `pdfjs-dist`:
+
+```tsx
+import { DocViewer } from 'mantine-doc-viewer';
+// Vite; with webpack or Next.js use new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+function Demo() {
+  return <DocViewer src="/files/report.pdf" pdfWorkerSrc={pdfWorkerSrc} h={600} />;
+}
+```
+
+The file type comes from `mimeType`, the file name or the url. Images, text, code and markdown
+need nothing else. See the [documentation](https://sernstberger.github.io/mantine-doc-viewer/)
+for every prop, the Styles API, events and the controller.
+
+## Requirements
+
+- Mantine 9, React 18 or 19, pdfjs-dist 6
+- Current versions of Chrome, Edge, Firefox and Safari. Search highlights use the CSS Custom
+  Highlight API; where it is missing, search still finds and scrolls to matches.
 
 ## Development
 
@@ -11,9 +68,9 @@ This repo was created from [mantinedev/extension-template](https://github.com/ma
 - `nvm use` then `yarn` — install dependencies
 - `npm run storybook` — Storybook
 - `npm run dev` — documentation site
-- `npm run docgen` — regenerate props documentation
 - `npm run build` — build the package into `package/dist`
-- `npm test` — syncpack, format, typecheck, lint and jest
+- `npm test` — syncpack, format, typecheck, lint, and Jest with 100% coverage required
+- `npx tsx scripts/generate-sample-pdf.ts` — regenerate the sample PDFs
 
 ## License
 
