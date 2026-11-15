@@ -69,6 +69,9 @@ function PdfThumbnail({
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
 
   return (
+    // An option in the thumbnails listbox: the listbox handles the keys for the focused option
+    // (Enter and Space show its page, arrows move), as in the ARIA listbox pattern
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
       ref={thumbnailRef}
       {...getStyles('thumbnail')}
@@ -147,6 +150,9 @@ export function PdfThumbnails({
   const handleKeyDown = useThumbnailKeys({ numPages, horizontal, onSelect, onDelete: deletePage });
 
   return (
+    // Focus moves between the options (roving tabindex: the current page is the tab stop), so
+    // the listbox itself does not take focus, as in the ARIA listbox pattern
+    // eslint-disable-next-line jsx-a11y/interactive-supports-focus
     <div
       ref={setScrollRoot}
       {...getStyles('thumbnails')}

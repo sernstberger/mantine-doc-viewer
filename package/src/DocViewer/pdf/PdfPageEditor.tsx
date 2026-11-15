@@ -58,6 +58,9 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         onSave={() => save(order)}
       />
 
+      {/* Focus moves between the pages (roving tabindex: the focused page is the tab stop), so the
+          listbox itself does not take focus, as in the ARIA listbox pattern */}
+      {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
       <div
         ref={setScrollRoot}
         {...getStyles('editorPages')}

@@ -34,7 +34,16 @@ export function mockItemLayout(layout: TestLayout, rtl = false) {
 
 /** A whole box: Mantine's floating elements (tooltips) read x, y, width and height too */
 function toRect(left: number, top: number, width: number, height: number) {
-  const box = { left, top, width, height, x: left, y: top, right: left + width, bottom: top + height };
+  const box = {
+    left,
+    top,
+    width,
+    height,
+    x: left,
+    y: top,
+    right: left + width,
+    bottom: top + height,
+  };
   return { ...box, toJSON: () => box } as DOMRect;
 }
 
