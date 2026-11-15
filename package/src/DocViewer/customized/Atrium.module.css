@@ -1,0 +1,307 @@
+/*
+ * Atrium: a museum kiosk. The screen is a wayfinding sign: deep green wall, signage yellow for
+ * the current room, condensed numerals in squares like the ones on the doors. It owns its colours
+ * and does not follow the Mantine colour scheme, because the kiosk has one look in every light.
+ * Everything is sized for a touch screen at arm's length: nothing under 64px, focus is a thick
+ * yellow ring.
+ */
+
+.kiosk {
+  --atrium-wall: #1f3b36;
+  --atrium-panel: #2a4a44;
+  --atrium-panel-raised: #355a53;
+  --atrium-text: #f3f1ea;
+  --atrium-muted: #b4c7c1;
+  --atrium-yellow: #f2c14e;
+  --atrium-line: rgb(243 241 234 / 0.16);
+  --atrium-touch: 72px;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100vh;
+  min-height: 640px;
+  background: var(--atrium-wall);
+  color: var(--atrium-text);
+  font-family: Barlow, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ----------------------------------- top band ----------------------------------- */
+
+.band {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-height: 112px;
+  padding: 16px 32px 16px 24px;
+  border-bottom: 2px solid var(--atrium-line);
+  background: var(--atrium-panel);
+}
+
+.signs {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 16px 48px;
+  min-width: 0;
+}
+
+.sign {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.signNumber {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  background: var(--atrium-yellow);
+  color: var(--atrium-wall);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  padding-bottom: 4px;
+
+  &[data-symbol] {
+    font-weight: 600;
+  }
+}
+
+.signTitle {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.signKind {
+  color: var(--atrium-yellow);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.exhibition {
+  flex-shrink: 0;
+  padding-left: 40px;
+  border-left: 2px solid var(--atrium-line);
+  text-align: right;
+}
+
+.exhibitionTitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.exhibitionSub {
+  color: var(--atrium-muted);
+  font-size: 18px;
+}
+
+.fullscreenButton {
+  flex-shrink: 0;
+  min-width: 120px;
+  height: 64px;
+  padding: 0 24px;
+  border: 2px solid var(--atrium-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--atrium-text);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--atrium-panel-raised);
+  }
+
+  &:focus-visible {
+    outline: 4px solid var(--atrium-yellow);
+    outline-offset: 3px;
+  }
+}
+
+/* ------------------------------------ reader ------------------------------------ */
+
+.reader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.viewer {
+  min-width: 0;
+  min-height: 0;
+}
+
+.turn {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  border: 0;
+  background: transparent;
+  color: var(--atrium-yellow);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--atrium-panel);
+  }
+
+  &:active:not(:disabled) {
+    background: var(--atrium-yellow);
+    color: var(--atrium-wall);
+  }
+
+  &:disabled {
+    color: var(--atrium-line);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 4px solid var(--atrium-yellow);
+    outline-offset: -8px;
+  }
+}
+
+.root {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: var(--atrium-wall);
+  color: var(--atrium-text);
+  font-family: inherit;
+}
+
+.toolbar {
+  justify-content: center;
+  border-bottom: 0;
+  background: var(--atrium-wall);
+  color: var(--atrium-text);
+}
+
+.controls {
+  gap: 12px;
+}
+
+.control {
+  border: 2px solid var(--atrium-line);
+  border-radius: 0;
+  background: var(--atrium-panel);
+  color: var(--atrium-text);
+
+  &:hover {
+    background: var(--atrium-panel-raised);
+  }
+
+  &[data-pressed] {
+    border-color: var(--atrium-yellow);
+    background: var(--atrium-yellow);
+    color: var(--atrium-wall);
+  }
+
+  &:focus-visible {
+    outline: 4px solid var(--atrium-yellow);
+    outline-offset: 3px;
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: var(--atrium-muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.body {
+  background: var(--atrium-wall);
+  scrollbar-width: none;
+}
+
+.page {
+  box-shadow:
+    0 0 0 1px rgb(243 241 234 / 0.28),
+    0 10px 28px rgb(8 20 18 / 0.5);
+}
+
+/* ---------------------------------- wayfinding ---------------------------------- */
+
+.wayfinding {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 32px;
+  border-top: 2px solid var(--atrium-line);
+  background: var(--atrium-panel);
+}
+
+.rooms {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  display: grid;
+  place-items: center;
+  min-width: var(--atrium-touch);
+  height: var(--atrium-touch);
+  border: 2px solid var(--atrium-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--atrium-text);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+
+  &[data-wide] {
+    padding: 0 28px;
+    font-family: Barlow, sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  &:hover {
+    background: var(--atrium-panel-raised);
+  }
+
+  &[data-active] {
+    border-color: var(--atrium-yellow);
+    background: var(--atrium-yellow);
+    color: var(--atrium-wall);
+  }
+
+  &:focus-visible {
+    outline: 4px solid var(--atrium-yellow);
+    outline-offset: 3px;
+  }
+}
+
+.hint {
+  margin-left: auto;
+  color: var(--atrium-muted);
+  font-size: 24px;
+  animation: hint-pulse 3.2s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes hint-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
