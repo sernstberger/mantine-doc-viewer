@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { useCallbackRef } from '@mantine/hooks';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { usePdfAttachments, usePdfProperties } from '../utils/document-info';
@@ -59,21 +60,23 @@ export const DocViewerDocumentInfo = factory<DocViewerDocumentInfoFactory>((_pro
   const session = useReadyPdfSession();
   const setVisible = session?.content.pdfLayers.setVisible;
   const onLayerChange = useCallbackRef((id: string, visible: boolean) => setVisible?.(id, visible));
-  const stylesOptions = useShallowStable({ className, style, classNames, styles });
+  const stylesOptions = useShallowStable({ className, style });
   const elementProps = useShallowStable(others);
   if (!session) {
     return null;
   }
 
   return (
-    <DocumentInfoView
-      document={session.loaded.ready!.document}
-      layers={session.content.pdfLayers.layers}
-      onLayerChange={onLayerChange}
-      stylesOptions={stylesOptions}
-      elementProps={elementProps}
-      rootRef={ref}
-    />
+    <PartStyles classNames={classNames} styles={styles}>
+      <DocumentInfoView
+        document={session.loaded.ready!.document}
+        layers={session.content.pdfLayers.layers}
+        onLayerChange={onLayerChange}
+        stylesOptions={stylesOptions}
+        elementProps={elementProps}
+        rootRef={ref}
+      />
+    </PartStyles>
   );
 });
 

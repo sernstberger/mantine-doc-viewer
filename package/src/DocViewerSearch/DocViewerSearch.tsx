@@ -8,7 +8,8 @@ import {
   TooltipProps,
   useProps,
 } from '@mantine/core';
-import { DocViewerProvider, useDocViewerContext } from '../doc-viewer.context';
+import { useDocViewerContext } from '../doc-viewer.context';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
 import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
@@ -54,19 +55,18 @@ function SearchBar({
 }: DocViewerSearchProps) {
   const context = useDocViewerContext();
   const session = usePdfSession();
-  const stylesOptions = useShallowStable({ className, style, classNames, styles });
+  const stylesOptions = useShallowStable({ className, style });
   const elementProps = useShallowStable(others);
-  const value = useShallowStable({
-    ...context,
-    tooltipProps: tooltipProps ?? context.tooltipProps,
-  });
+  const overrides = tooltipProps
+    ? { tooltipProps: { ...context.tooltipProps, ...tooltipProps } }
+    : undefined;
   const search = session?.content.search;
   if (!search) {
     return null;
   }
 
   return (
-    <DocViewerProvider value={value}>
+    <PartStyles classNames={classNames} styles={styles} overrides={overrides}>
       <PdfSearchBar
         inputRef={search.inputRef}
         query={search.query}
@@ -85,7 +85,7 @@ function SearchBar({
         elementProps={elementProps}
         rootRef={ref}
       />
-    </DocViewerProvider>
+    </PartStyles>
   );
 }
 

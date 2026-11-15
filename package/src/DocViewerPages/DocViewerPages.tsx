@@ -16,6 +16,7 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { usePagesRegistration } from '../hooks/pdf/use-pages-config';
 import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
 import { MAX_CANVAS_PIXELS } from '../utils/render-page';
+import { PartStyles } from './PartStyles';
 import type { DocViewerPasswordInputProps, DocViewerReadingProgress } from '../doc-viewer.types';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
@@ -131,25 +132,27 @@ export const DocViewerPages = factory<DocViewerPagesFactory>((_props) => {
   }
 
   return (
-    <PdfPagesBody
-      session={session}
-      bodyRef={ref}
-      maxCanvasPixels={maxCanvasPixels!}
-      renderPageOverlay={renderPageOverlay}
-      passwordInputProps={passwordInputProps}
-      bodyProps={{
-        ...getStyles('body', { className, style, classNames, styles }),
-        ...others,
-        __vars: {
-          ...__vars,
-          '--doc-viewer-page-gap': gap === undefined ? undefined : getSpacing(gap),
-          '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
-          '--doc-viewer-active-match-color': activeMatchColor
-            ? getThemeColor(activeMatchColor, theme)
-            : undefined,
-        },
-      }}
-    />
+    <PartStyles classNames={classNames} styles={styles}>
+      <PdfPagesBody
+        session={session}
+        bodyRef={ref}
+        maxCanvasPixels={maxCanvasPixels!}
+        renderPageOverlay={renderPageOverlay}
+        passwordInputProps={passwordInputProps}
+        bodyProps={{
+          ...getStyles('body', { className, style, classNames, styles }),
+          ...others,
+          __vars: {
+            ...__vars,
+            '--doc-viewer-page-gap': gap === undefined ? undefined : getSpacing(gap),
+            '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
+            '--doc-viewer-active-match-color': activeMatchColor
+              ? getThemeColor(activeMatchColor, theme)
+              : undefined,
+          },
+        }}
+      />
+    </PartStyles>
   );
 });
 

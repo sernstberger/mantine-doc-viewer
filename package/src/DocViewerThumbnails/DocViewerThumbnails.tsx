@@ -13,6 +13,7 @@ import { updateDocViewerStateAction } from '../doc-viewer.store';
 import { DEFAULT_THUMBNAILS_WIDTH } from '../DocViewerRoot/doc-viewer-context-value';
 import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { getThumbnailsLayout } from '../utils/geometry';
@@ -59,7 +60,7 @@ function ThumbnailsRail({
   const { store } = useDocViewerContext();
   const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
   const select = useCallbackRef((page: number) => session?.position.goToPage(page, false));
-  const stylesOptions = useShallowStable({ className, style, classNames, styles });
+  const stylesOptions = useShallowStable({ className, style });
   const elementProps = useShallowStable(others);
   if (!session) {
     return null;
@@ -67,19 +68,21 @@ function ThumbnailsRail({
 
   const { ready } = session.loaded;
   return (
-    <PdfThumbnails
-      document={ready!.document}
-      placeholderSize={ready!.firstPageSize}
-      orientation={getThumbnailsLayout(position).orientation}
-      currentPage={session.position.currentPage}
-      rotation={session.view.rotation}
-      layers={session.content.layers}
-      onSelect={select}
-      width={width}
-      stylesOptions={stylesOptions}
-      elementProps={elementProps}
-      rootRef={ref}
-    />
+    <PartStyles classNames={classNames} styles={styles}>
+      <PdfThumbnails
+        document={ready!.document}
+        placeholderSize={ready!.firstPageSize}
+        orientation={getThumbnailsLayout(position).orientation}
+        currentPage={session.position.currentPage}
+        rotation={session.view.rotation}
+        layers={session.content.layers}
+        onSelect={select}
+        width={width}
+        stylesOptions={stylesOptions}
+        elementProps={elementProps}
+        rootRef={ref}
+      />
+    </PartStyles>
   );
 }
 

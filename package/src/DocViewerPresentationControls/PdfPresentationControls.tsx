@@ -1,10 +1,4 @@
-import {
-  Box,
-  BoxProps,
-  CloseButton,
-  ElementProps,
-  type GetStylesApiOptions,
-} from '@mantine/core';
+import { Box, BoxProps, CloseButton, ElementProps, type GetStylesApiOptions } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { formatNumber } from '../utils/format';

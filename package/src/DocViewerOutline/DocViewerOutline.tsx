@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { useCallbackRef } from '@mantine/hooks';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { SessionOutline } from '../DocViewerOutline/SessionOutline';
@@ -36,20 +37,22 @@ export const DocViewerOutline = factory<DocViewerOutlineFactory>((_props) => {
   useDocViewerContext();
   const session = useReadyPdfSession();
   const onSelect = useCallbackRef((page: number) => session?.position.goToPage(page));
-  const stylesOptions = useShallowStable({ className, style, classNames, styles });
+  const stylesOptions = useShallowStable({ className, style });
   const elementProps = useShallowStable(others);
   if (!session) {
     return null;
   }
 
   return (
-    <SessionOutline
-      document={session.loaded.ready!.document}
-      onSelect={onSelect}
-      stylesOptions={stylesOptions}
-      elementProps={elementProps}
-      rootRef={ref}
-    />
+    <PartStyles classNames={classNames} styles={styles}>
+      <SessionOutline
+        document={session.loaded.ready!.document}
+        onSelect={onSelect}
+        stylesOptions={stylesOptions}
+        elementProps={elementProps}
+        rootRef={ref}
+      />
+    </PartStyles>
   );
 });
 

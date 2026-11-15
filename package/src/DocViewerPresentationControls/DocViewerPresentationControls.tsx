@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { PdfPresentationControls } from '../DocViewerPresentationControls/PdfPresentationControls';
@@ -41,21 +42,23 @@ export const DocViewerPresentationControls = factory<DocViewerPresentationContro
     const presenting = useDocViewerState(store, (state) => state.presenting);
     const page = useDocViewerState(store, (state) => state.page);
     const numPages = useDocViewerState(store, (state) => state.numPages);
-    const stylesOptions = useShallowStable({ className, style, classNames, styles });
+    const stylesOptions = useShallowStable({ className, style });
     const elementProps = useShallowStable(others);
     if (!presenting) {
       return null;
     }
 
     return (
-      <PdfPresentationControls
-        currentPage={page}
-        numPages={numPages}
-        onExit={() => docViewerActions.togglePresentation(store)}
-        stylesOptions={stylesOptions}
-        elementProps={elementProps}
-        rootRef={ref}
-      />
+      <PartStyles classNames={classNames} styles={styles}>
+        <PdfPresentationControls
+          currentPage={page}
+          numPages={numPages}
+          onExit={() => docViewerActions.togglePresentation(store)}
+          stylesOptions={stylesOptions}
+          elementProps={elementProps}
+          rootRef={ref}
+        />
+      </PartStyles>
     );
   }
 );
