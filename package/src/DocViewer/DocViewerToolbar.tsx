@@ -1,6 +1,6 @@
 import { ActionIcon, Toolbar } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
-import { DocViewerTooltip, useControlProps } from './controls';
+import React, { useState } from 'react';
+import { DocViewerTooltip, useControlProps, useFullscreenAvailable } from './controls';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
 import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
 
@@ -22,13 +22,6 @@ export interface DocViewerToolbarProps {
 
   /** Prints the document, the print button is shown when it is set */
   onPrint?: () => Promise<void> | void;
-}
-
-/** Full screen is not available in some browsers (iPhone Safari) and inside iframes without permission */
-function useFullscreenAvailable() {
-  const [available, setAvailable] = useState(false);
-  useEffect(() => setAvailable(!!document.fullscreenEnabled), []);
-  return available;
 }
 
 export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {

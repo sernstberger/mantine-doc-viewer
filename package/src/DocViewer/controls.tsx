@@ -1,5 +1,5 @@
 import { Tooltip, TooltipProps } from '@mantine/core';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDocViewerContext } from './DocViewer.context';
 
 /** Tooltips also show on keyboard focus, so keyboard users can see what an icon button does */
@@ -24,4 +24,11 @@ export function useControlProps() {
     color: pressed ? (color ?? 'gray') : 'gray',
     'data-pressed': pressed || undefined,
   });
+}
+
+/** Full screen is not available in some browsers (iPhone Safari) and inside iframes without permission */
+export function useFullscreenAvailable() {
+  const [available, setAvailable] = useState(false);
+  useEffect(() => setAvailable(!!document.fullscreenEnabled), []);
+  return available;
 }

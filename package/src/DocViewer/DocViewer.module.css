@@ -4,6 +4,7 @@
   --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
   --_page-background: var(--doc-viewer-page-background, white);
 
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 200px;
@@ -26,6 +27,16 @@
 
 .toolbar[data-hidden] {
   display: none;
+}
+
+.overlayControls {
+  position: absolute;
+  z-index: 3;
+  top: var(--mantine-spacing-xs);
+  inset-inline-end: var(--mantine-spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .toolbarStart {

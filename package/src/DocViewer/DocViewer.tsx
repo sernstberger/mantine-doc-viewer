@@ -35,6 +35,7 @@ import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import { useTapToggle } from './use-tap-toggle';
+import { OverlayControls } from './OverlayControls';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
@@ -57,6 +58,8 @@ export type DocViewerStylesNames =
   | 'title'
   | 'subtitle'
   | 'controls'
+  | 'overlayControls'
+  | 'overlayControl'
   | 'control'
   | 'body'
   | 'image'
@@ -292,6 +295,13 @@ export interface DocViewerProps
    */
   tapToggleToolbar?: boolean;
 
+  /**
+   * Determines whether zoom and full screen buttons float over the top right of the document,
+   * for a viewer without a toolbar (`withToolbar={false}`), `false` by default. The buttons follow
+   * `withFullscreen`. Styles API names: `overlayControls` and `overlayControl`
+   */
+  withOverlayControls?: boolean;
+
   /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
@@ -443,6 +453,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     renderToolbarTitle,
     renderPageOverlay,
     tapToggleToolbar,
+    withOverlayControls,
     withToolbar,
     toolbarControls,
     pageBackground,
@@ -591,6 +602,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         <React.Fragment key={`${resolvedType}:${src}`}>
           {renderView({ src, fileName: resolvedFileName, mimeType, type: resolvedType }, renderers)}
         </React.Fragment>
+        {withOverlayControls && <OverlayControls />}
       </Box>
     </DocViewerProvider>
   );

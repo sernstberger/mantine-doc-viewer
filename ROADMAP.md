@@ -29,7 +29,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Controlled `fullscreen` prop** (Atrium)
 - [ ] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate)
 - [x] **Tap-to-toggle toolbar** (`tapToggleToolbar`) on touch screens, so a page can fill a phone (Gate)
-- [ ] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
+- [x] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
       embedded viewer (Field Report)
 - [ ] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
       cause a horizontal scrollbar (Proofline)
