@@ -33,7 +33,6 @@ export function usePdfReadingPosition(
   );
   useKeepPageOnLayout(view.layout, currentPage, scrollToPage);
   const [pageAnnouncement, announce] = useAnnouncement();
-  // Zoom from keys, buttons, the wheel and the app; fit zoom after a resize stays silent
   const zoomTo = useAnnouncedZoom(scale, view.setZoom, announce);
 
   /** Moves to a page, and reads it out unless something else already does (the thumbnails) */

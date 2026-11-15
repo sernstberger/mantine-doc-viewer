@@ -50,7 +50,6 @@ export function usePageTurning({ options, active, swipeable, turn }: PageTurning
     })
   );
 
-  // A mouse drag selects text, so only fingers and pens swipe
   const drag = useDrag<HTMLDivElement>(
     (state) => {
       if (state.first && (state.event.pointerType === 'mouse' || !swipeable)) {
@@ -70,7 +69,6 @@ export function usePageTurning({ options, active, swipeable, turn }: PageTurning
     if (!active || !options.tapZones || event.timeStamp - swipedAt.current < SWIPE_CLICK_TIME) {
       return;
     }
-    // Links, overlay buttons and text being selected keep their clicks
     const target = event.target as Element;
     if (target.closest(CLICKABLE_SELECTOR) || !window.getSelection()!.isCollapsed) {
       return;

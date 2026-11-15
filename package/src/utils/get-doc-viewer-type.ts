@@ -61,7 +61,6 @@ function fromMimeType(mimeType: string): DocViewerType | null {
 
 function getExtension(source: string): string | null {
   const path = source.split(/[?#]/)[0];
-  // split() always returns at least one part, so pop() always has one
   const fileName = path.split('/').pop()!;
   const dotIndex = fileName.lastIndexOf('.');
   return dotIndex > 0 ? fileName.slice(dotIndex + 1).toLowerCase() : null;

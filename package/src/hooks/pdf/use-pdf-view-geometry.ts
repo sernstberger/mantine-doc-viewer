@@ -104,7 +104,6 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
     presentation,
     presenting,
     viewport,
-    // A document is open for reading: loaded, and not shown as a presentation
     reading: !!ready && !presenting,
     scale,
     horizontal: layout === 'horizontal',

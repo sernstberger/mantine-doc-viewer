@@ -35,9 +35,7 @@ export function useTextSelect({ scrollRoot, scale, rotation, onTextSelect }: Tex
       return;
     }
 
-    // A range reports the box of each element it covers as well as its text: the same spots
-    // twice. Boxes outside the page belong to the pages the selection goes on to, and a box as
-    // big as the page is the page itself
+    // Workaround: a Range reports the box of each element it covers as well as its text (the same spots twice)
     const pageBox = pageNode.getBoundingClientRect();
     const boxes = Array.from(range.getClientRects()).filter(
       (box, index, all) =>

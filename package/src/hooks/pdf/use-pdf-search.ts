@@ -37,7 +37,6 @@ async function readSearchablePage(document: PDFDocumentProxy, pageNumber: number
     pages.set(pageNumber, page);
     return page;
   } catch {
-    // A page whose text cannot be read is searched as empty, so the other pages still are
     return { text: buildPageText([]), items: [] };
   }
 }

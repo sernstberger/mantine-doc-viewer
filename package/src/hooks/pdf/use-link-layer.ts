@@ -67,8 +67,6 @@ export function useLinkLayer({
   labels,
 }: LinkLayerInput) {
   const linkLayerRef = useRef<HTMLDivElement>(null);
-  // Read when links are named, not a reason to draw the layer again: an app's inline `labels`
-  // object is new on every render
   const labelsRef = useRef(labels);
   labelsRef.current = labels;
 
@@ -115,7 +113,7 @@ export function useLinkLayer({
           enableScripting: false,
           hasJSActions: false,
           imageResourcesPath: '',
-          // Our link service implements the part of pdf.js's PDFLinkService that links use
+          // Workaround: our link service implements the part of pdf.js's PDFLinkService that links use
         } as unknown as Parameters<NonNullable<typeof layer>['render']>[0]);
 
         if (!cancelled) {

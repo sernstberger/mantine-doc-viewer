@@ -6,7 +6,6 @@ import { useCallback, useState } from 'react';
  */
 export function useAnnouncement() {
   const [announcement, setAnnouncement] = useState('');
-  // Stable, so objects that carry it (the markup state) do not change, and pages skip renders
   const announce = useCallback(
     (text: string) => setAnnouncement((current) => text + (current.endsWith('​') ? '' : '​')),
     []

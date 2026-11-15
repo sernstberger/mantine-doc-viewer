@@ -41,7 +41,6 @@ export function usePagePreview({
     let cancelled = false;
     let renderTask: RenderTask | undefined;
 
-    // A document destroyed meanwhile (new src, edited pages, unmount) rejects: nothing to draw
     const draw = (page: PDFPageProxy) => {
       const node = canvas.node.current;
       if (cancelled || !node) {
@@ -69,8 +68,7 @@ export function usePagePreview({
       cancelled = true;
       renderTask?.cancel();
     };
-    // Pages draw with the document's own layer visibility until a layer is toggled (version)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pages draw with the document's own layer visibility until a layer is toggled (version)
   }, [document, pageNumber, near, width, maxCanvasPixels, rotation, layers?.version]);
 
   useReleasePage(document, pageNumber, near);

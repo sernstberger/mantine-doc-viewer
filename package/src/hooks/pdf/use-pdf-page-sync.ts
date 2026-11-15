@@ -27,7 +27,6 @@ export function usePdfPageSync({ context, state, loaded, view, position }: PdfPa
     currentPage,
     mimeType: context.mimeType,
   });
-  // The document's pages are in place in the scroll area
   const laidOut = isLaidOut(loaded.ready, view.scrollRoot, view.pagesNode);
   usePageSync({
     numPages,

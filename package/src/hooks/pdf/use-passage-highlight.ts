@@ -121,7 +121,6 @@ export function usePassageHighlight({
     ).find((found) => !textTarget.page || found.pageNumber === textTarget.page);
   }, [pages, textTarget]);
 
-  // A new document has other pages: the passage is gone
   useEffect(() => setTarget(null), [document]);
 
   usePassagePaint({
@@ -134,7 +133,6 @@ export function usePassageHighlight({
   });
 
   const highlight = (next: DocViewerHighlightTarget) => {
-    // A copy, so marking the same passage again scrolls to it again
     setTarget({ ...next });
     if ('rects' in next && next.rects.length > 0) {
       const top = Math.min(...next.rects.map((rect) => rect.y));

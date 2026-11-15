@@ -20,7 +20,7 @@ export function getLayers(config: OptionalContentConfig | null): PdfLayer[] {
     return [];
   }
 
-  // Groups know their own visibility; config.isVisible() takes marked content, not a group
+  // Workaround: groups know their own visibility; pdf.js config.isVisible() takes marked content, not a group
   return Array.from(
     config as Iterable<[string, { name?: string; visible?: boolean }]>,
     ([id, group]) => ({

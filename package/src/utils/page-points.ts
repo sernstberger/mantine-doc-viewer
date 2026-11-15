@@ -48,7 +48,6 @@ export function getPageRects(
   scale: number,
   rotation: PdfRotation
 ): DocViewerPageRect[] {
-  // Size of the page as shown, at 100%
   const shownWidth = pageBox.width / scale;
   const shownHeight = pageBox.height / scale;
 
@@ -60,7 +59,6 @@ export function getPageRects(
       const right = left + box.width / scale;
       const bottom = top + box.height / scale;
 
-      // Corners of the box in the page's own coordinates: left, top, right, bottom
       const corners: Record<PdfRotation, [number, number, number, number]> = {
         0: [left, top, right, bottom],
         90: [top, shownWidth - right, bottom, shownWidth - left],

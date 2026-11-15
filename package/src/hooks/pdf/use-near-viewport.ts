@@ -22,7 +22,6 @@ function getSharedObserver(root: HTMLElement | null, rootMargin: string) {
   if (!shared) {
     const listeners = new Map<Element, NearListener>();
     const observer = new IntersectionObserver(
-      // An entry can still arrive for an element that stopped being watched
       (entries) => entries.forEach((entry) => listeners.get(entry.target)?.(entry.isIntersecting)),
       { root, rootMargin }
     );

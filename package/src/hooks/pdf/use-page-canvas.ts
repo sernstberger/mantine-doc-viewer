@@ -28,7 +28,6 @@ export function usePageCanvas({
 }: PageCanvasInput) {
   const canvas = usePageCanvasRef();
   const [size, setSize] = useState<PdfPageSize | null>(null);
-  // Size before the viewer's rotation, for the overlay
   const [baseSize, setBaseSize] = useState<PdfPageSize | null>(null);
   const [rendered, setRendered] = useState(false);
 
@@ -41,7 +40,6 @@ export function usePageCanvas({
     let cancelled = false;
     let renderTask: RenderTask | undefined;
 
-    // A document destroyed meanwhile (new src, edited pages, unmount) rejects: nothing to draw
     const draw = (page: PDFPageProxy) => {
       const node = canvas.node.current;
       if (cancelled || !node) {
@@ -49,7 +47,6 @@ export function usePageCanvas({
       }
 
       const { width, height } = getPageViewport(page, 1, rotation);
-      // The same object while the size holds, so zooming does not render the page again for it
       setSize((current) => keepSize(current, { width, height }));
       const base = getPageViewport(page, 1);
       setBaseSize((current) => keepSize(current, { width: base.width, height: base.height }));
@@ -76,8 +73,7 @@ export function usePageCanvas({
       cancelled = true;
       renderTask?.cancel();
     };
-    // Pages draw with the document's own layer visibility until a layer is toggled (version)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pages draw with the document's own layer visibility until a layer is toggled (version)
   }, [document, pageNumber, scale, near, maxCanvasPixels, rotation, layers?.version]);
 
   return { canvasRef: canvas.ref, size, baseSize, rendered };

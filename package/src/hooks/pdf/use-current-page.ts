@@ -20,11 +20,8 @@ export function useCurrentPage(
   const visible = useRef(new Set<number>());
   const observer = useRef<IntersectionObserver | null>(null);
 
-  // While scrolling to a page, the pages passed on the way are ignored so the counter
-  // shows the target page instead of counting through every page in between
   const scrollTarget = useRef<number | null>(null);
   const settleScroll = useRef<(() => void) | null>(null);
-  // The page and offset of the scroll in progress, to restart it when the pages are scaled
   const pendingOffset = useRef<number | ((pageHeight: number) => number)>(0);
   const pendingInstant = useRef(false);
 

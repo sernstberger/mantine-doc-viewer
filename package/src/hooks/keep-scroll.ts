@@ -15,7 +15,6 @@ export function useKeepScroll(
   const pending = useRef(false);
   const lastSrc = useRef(src);
 
-  // Set while rendering, before the loading document changes the content
   const readyRef = useRef(ready);
   readyRef.current = ready;
 

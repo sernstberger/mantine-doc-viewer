@@ -45,14 +45,11 @@ export function computeScale(input: ScaleInput) {
   }
   const byHeight = getFitWidthScale(bodyHeight, pageHeight, gutter.y);
   if (fitsToHeight(layout) && !input.autoHeight) {
-    // Pages fill the height of the view, but a landscape page is never made wider than the view
     return Math.min(byHeight, getFitWidthScale(bodyWidth, pageWidth, gutter.x));
   }
   const byWidth = isTwoPages(layout)
     ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2, gutter.x)
     : getFitWidthScale(bodyWidth, pageWidth, gutter.x);
-  // A whole page, or a whole spread, fits both ways; a viewer that grows with its pages has no
-  // height of its own to fit, so it fits the width
   return zoom === 'fit-page' && !input.autoHeight ? Math.min(byWidth, byHeight) : byWidth;
 }
 

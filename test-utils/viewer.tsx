@@ -13,7 +13,10 @@ export interface TestDocViewerProps extends DocViewerProps {
 }
 
 /** The public `DocViewer` inside an adapter provider holding the pdf.js and react-markdown test doubles */
-export function TestDocViewer({ pdfAdapter = TEST_VIEWER_PDF_ADAPTER, ...props }: TestDocViewerProps) {
+export function TestDocViewer({
+  pdfAdapter = TEST_VIEWER_PDF_ADAPTER,
+  ...props
+}: TestDocViewerProps) {
   return (
     <DocViewerAdapterProvider pdf={pdfAdapter} markdown={testMarkdownAdapter}>
       <DocViewer {...props} />

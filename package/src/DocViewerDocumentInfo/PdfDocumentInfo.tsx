@@ -43,7 +43,6 @@ export function PdfDocumentInfo({
   rootRef,
 }: PdfDocumentInfoProps) {
   const { getStyles, labels } = useDocViewerContext();
-  // Several viewers on one page each name their own sections
   const id = useId();
 
   return (

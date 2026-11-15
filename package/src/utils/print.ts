@@ -18,7 +18,7 @@ function printFrame(setup: (frame: HTMLIFrameElement) => void): Promise<void> {
     });
 
     const remove = () => {
-      // Some browsers return from print() before the dialog closes, so remove a little later
+      // Workaround: some browsers return from print() before the dialog closes, so remove a little later
       window.setTimeout(() => frame.remove(), 60_000);
     };
 

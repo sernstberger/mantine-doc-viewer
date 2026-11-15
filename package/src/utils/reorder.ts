@@ -19,7 +19,6 @@ export function getDropIndex(
   layout: ReorderLayout,
   rtl = false
 ): number | null {
-  // True when the pointer is before the middle of the item, in reading order across the row
   const beforeMiddle = ({ left, right }: ItemRect) =>
     rtl ? x > (left + right) / 2 : x < (left + right) / 2;
 
@@ -36,8 +35,6 @@ export function getDropIndex(
     return index === -1 ? rects.length : index;
   }
 
-  // A wrapping grid: the row under the pointer (or the nearest row), then the place in that row.
-  // Items in a row share their top edge; their heights can differ
   const rows: { first: number; items: ItemRect[]; bottom: number }[] = [];
   rects.forEach((rect, index) => {
     const row = rows.find((item) => item.items[0].top === rect.top);

@@ -12,7 +12,7 @@ export function useImageLoad() {
 
   useEffect(() => setFailed(false), [src]);
 
-  // A server-rendered image can finish loading before React attaches onLoad
+  // Workaround: a server-rendered image can finish loading before React attaches onLoad
   const checkLoaded = useCallback((image: HTMLImageElement | null) => {
     if (image?.complete && image.naturalWidth > 0) {
       setNaturalSize({ width: image.naturalWidth, height: image.naturalHeight });

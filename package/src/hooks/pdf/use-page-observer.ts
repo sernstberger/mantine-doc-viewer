@@ -37,8 +37,6 @@ export function usePageObserver({
     }
     const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
 
-    // Measured in pixels, not intersection ratios: a page zoomed to several times the
-    // height of the viewer never reaches a ratio threshold, yet fills the whole view
     const update = () => {
       const boxes = collectVisibleBoxes(visible.current, pages.current);
       const view = getViewBox(viewport, scrollRoot);

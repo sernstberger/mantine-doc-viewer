@@ -55,8 +55,7 @@ export function useShowBytes({
       focusThumbnail(thumbnailViewer.current, pageAfterEdit.current);
       thumbnailViewer.current = null;
     }
-    // Only when a new edited document is ready
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when a new edited document is ready
   }, [editedData, document]);
 
   return showBytes;

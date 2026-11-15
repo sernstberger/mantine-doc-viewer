@@ -79,7 +79,7 @@ export function useImageZoom(input: ImageZoomInput) {
     setOverflowing(isOverflowing(stage));
   }, [stage, scale, layoutKey]);
 
-  // Pinch on a trackpad arrives as a wheel event with ctrlKey set
+  // Workaround: pinch on a trackpad arrives as a wheel event with ctrlKey set
   useEffect(() => {
     if (!stage) {
       return undefined;

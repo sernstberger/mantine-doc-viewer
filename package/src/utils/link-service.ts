@@ -131,7 +131,6 @@ export function createLinkService(document: PDFDocumentProxy, handlers: LinkServ
       action in pages && goToPage(pages[action]);
     },
 
-    // Optional content and attachments are not supported, their links do nothing
     executeSetOCGState() {},
     async getAttachmentContent() {
       return null;
