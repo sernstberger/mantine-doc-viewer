@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DocViewerMark, toPagePoint } from './markup';
 import { type Draft, makeMark, type TextDraft } from './markup-draft';
-import type { MarkupLayerInput } from './markup-layer-input';
+import type { MarkupLayerInput } from './use-markup';
 import { useMarkCommit } from './use-mark-commit';
 
 interface DrawingInput extends MarkupLayerInput {
@@ -18,13 +18,14 @@ export function useMarkupDrawing({
   scale,
   rotation,
   markup,
+  marks,
   textDraft,
   setTextDraft,
   commitText,
 }: DrawingInput) {
   const { tool } = markup;
   const [draft, setDraft] = useState<Draft | null>(null);
-  const commit = useMarkCommit({ pageNumber, markup });
+  const commit = useMarkCommit({ pageNumber, markup, marks });
 
   const getPoint = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();

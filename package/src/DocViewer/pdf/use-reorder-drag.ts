@@ -1,6 +1,6 @@
 import { useDirection } from '@mantine/core';
-import { useDrag, UseDragState } from '@mantine/hooks';
-import React, { useRef, useState } from 'react';
+import { useCallbackRef, useDrag, UseDragState } from '@mantine/hooks';
+import React, { useMemo, useRef, useState } from 'react';
 import { getDropIndex, getMoveIndex, isNoopDrop, ItemRect, ReorderLayout } from './reorder';
 
 /** Movement in px before a press becomes a drag, so a click still selects */
@@ -15,6 +15,26 @@ interface DragState {
   fromIndex: number;
   dropIndex: number | null;
   offset: [number, number];
+}
+
+/** How one item shows the drag: the dragged item moves with the pointer, the drop target is marked */
+export interface ReorderItemState {
+  dragging?: boolean;
+  drop?: 'before' | 'after';
+  offset?: [number, number];
+}
+
+/** The state of every item the drag does not touch: one object, so those items keep their props */
+const IDLE: ReorderItemState = {};
+
+/** Data attributes and style for an item in its drag state */
+export function getReorderItemProps({ dragging, drop, offset }: ReorderItemState) {
+  return {
+    'data-reorder-item': true,
+    'data-dragging': dragging || undefined,
+    'data-drop': drop,
+    style: offset ? { translate: `${offset[0]}px ${offset[1]}px` } : undefined,
+  };
 }
 
 interface ReorderListOptions {
@@ -69,7 +89,7 @@ export function useReorderList({
   // A drag ends with a click on the item it started on; that click must not select it
   const suppressClickUntil = useRef(0);
 
-  const handleDrag = (page: number, state: UseDragState) => {
+  const handleDrag = useCallbackRef((page: number, state: UseDragState) => {
     // Items are inside the container, so it is mounted by the time one is dragged
     const list = container!;
     const fromIndex = order.indexOf(page);
@@ -93,33 +113,40 @@ export function useReorderList({
       dropIndex: getDropIndex(readRects(list), state.xy, layout, rtl),
       offset: state.movement,
     });
-  };
+  });
 
-  /** Props for the item at `index`: the drop marker and the dragged item's position */
-  const getItemProps = (page: number, index: number) => {
+  /** True for a click that ends a drag, which should not count as a click */
+  const isDragClick = useCallbackRef(
+    (event: React.MouseEvent) => event.timeStamp < suppressClickUntil.current
+  );
+
+  /** The drop marker and the dragged item's position for the item at `index` */
+  const getItemState = (page: number, index: number): ReorderItemState => {
     const dropIndex =
       drag && drag.dropIndex !== null && !isNoopDrop(drag.fromIndex, drag.dropIndex)
         ? drag.dropIndex
         : null;
     const dragging = drag?.page === page;
     const drop =
-      dropIndex === index ? 'before' : dropIndex === order.length && index === order.length - 1;
-
-    return {
-      'data-reorder-item': true,
-      'data-dragging': dragging || undefined,
-      'data-drop': drop === 'before' ? 'before' : drop ? 'after' : undefined,
-      style: dragging ? { translate: `${drag.offset[0]}px ${drag.offset[1]}px` } : undefined,
-    };
+      dropIndex === index
+        ? 'before'
+        : dropIndex === order.length && index === order.length - 1
+          ? 'after'
+          : undefined;
+    return dragging || drop ? { dragging, drop, offset: dragging ? drag.offset : undefined } : IDLE;
   };
 
-  /** True for a click that ends a drag, which should not count as a click */
-  const isDragClick = (event: React.MouseEvent) => event.timeStamp < suppressClickUntil.current;
+  // The same object through a drag, so items render again only when their own state changes
+  const list = useMemo(
+    () => ({ enabled, handleDrag, isDragClick }),
+    [enabled, handleDrag, isDragClick]
+  );
 
-  return { enabled, dragging: drag !== null, handleDrag, getItemProps, isDragClick };
+  return { list, dragging: drag !== null, getItemState };
 }
 
-export type ReorderList = ReturnType<typeof useReorderList>;
+/** What each item takes from the list: the same object while dragging stays enabled or not */
+export type ReorderList = ReturnType<typeof useReorderList>['list'];
 
 /**
  * Drag refs for one item: the whole item drags with a mouse; touch and pen drag from the

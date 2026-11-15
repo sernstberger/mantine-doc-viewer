@@ -1,4 +1,5 @@
 import { VisuallyHidden } from '@mantine/core';
+import { useCallbackRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
 import { focusIfLost } from '../a11y';
@@ -34,6 +35,8 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     onSave,
   });
   const handleKeyDown = usePageEditorKeys(editor, onCancel);
+  // The same function on every render, so tiles skip renders their own props do not need
+  const select = useCallbackRef(editor.select);
 
   // The editor replaces the reader and the Edit pages button with it: focus moves to the pages
   useEffect(() => {
@@ -82,8 +85,9 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
             focused={index === editor.focusedIndex}
             rotation={editor.turnOf(page)}
             scrollRoot={scrollRoot}
-            reorder={reorder}
-            onSelect={(event) => editor.select(page, index, event)}
+            reorder={reorder.list}
+            dragState={reorder.getItemState(page, index)}
+            onSelect={select}
           />
         ))}
       </div>

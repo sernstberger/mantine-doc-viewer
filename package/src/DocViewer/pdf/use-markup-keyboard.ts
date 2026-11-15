@@ -1,12 +1,27 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useMergedRef } from '@mantine/hooks';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { focusIfLost } from '../a11y';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
+import type { DocViewerLabels } from '../labels';
 import type { DocViewerMarkPoint } from './markup';
 import type { Draft, TextDraft } from './markup-draft';
 import { getMarkupKeyAction, MARKUP_KEY_SHORTCUTS, type MarkupKeyAction } from './markup-keys';
-import type { MarkupLayerInput } from './markup-layer-input';
+import type { MarkupLayerInput } from './use-markup';
+
+/** Keys that move focus to the markup layer of the page before or after */
+const PAGE_STEPS: Record<string, number> = { PageUp: -1, PageDown: 1 };
+
+const hasModifier = (event: React.KeyboardEvent) =>
+  event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+
+/** Pages to move by for the key: 1 for Page Down, -1 for Page Up, 0 for other keys */
+const getPageStep = (event: React.KeyboardEvent) =>
+  hasModifier(event) ? 0 : (PAGE_STEPS[event.key] ?? 0);
 
 interface MarkupKeyboardInput extends MarkupLayerInput {
+  numPages: number;
+  /** The layer the Tab key reaches: the current page's, so the pages are one tab stop */
+  tabStop: boolean;
   draft: Draft | null;
   setDraft: (draft: Draft | null) => void;
   /** Writes a draft into the marks, and says whether it made a mark */
@@ -40,36 +55,47 @@ function useTextBoxFocusReturn(textDraft: TextDraft | null) {
   };
 }
 
-/**
- * Placing marks without a pointer: while a tool is picked the page's markup layer is a tab stop
- * with a cursor that the arrow keys move; Enter starts and finishes a mark at it, or opens a text
- * box there. What happens is read out through the viewer's status region
- */
-export function useMarkupKeyboard({
-  pageNumber,
-  width,
-  height,
-  rotation,
-  markup,
+/** The layer's ref: registered with the markup by page, and focused again after a text box */
+function useLayerRef(
+  pageNumber: number,
+  registerLayer: (pageNumber: number, node: HTMLElement | null) => void,
+  textDraft: TextDraft | null
+) {
+  const { layerRef: focusReturnRef, returnFocusLater } = useTextBoxFocusReturn(textDraft);
+  const register = useCallback(
+    (node: HTMLDivElement | null) => registerLayer(pageNumber, node),
+    [registerLayer, pageNumber]
+  );
+  return { layerRef: useMergedRef(focusReturnRef, register), returnFocusLater };
+}
+
+interface KeyActionsInput {
+  toolName: string;
+  caret: DocViewerMarkPoint;
+  draft: Draft | null;
+  setCaret: (caret: DocViewerMarkPoint) => void;
+  setDraft: (draft: Draft | null) => void;
+  commit: (draft: Draft) => boolean;
+  setTextDraft: (draft: TextDraft | null) => void;
+  returnFocusLater: () => void;
+  labels: DocViewerLabels;
+  announce: (message: string) => void;
+}
+
+/** What each markup key action does, and what it reads out */
+function getKeyActions({
+  toolName,
+  caret,
   draft,
+  setCaret,
   setDraft,
   commit,
-  textDraft,
   setTextDraft,
-}: MarkupKeyboardInput) {
-  const { labels } = useDocViewerContext();
-  const { tool, announce } = markup;
-  const { layerRef, returnFocusLater } = useTextBoxFocusReturn(textDraft);
-  const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
-  // The cursor starts in the middle of the page
-  const caret = caretPoint ?? [width / 2, height / 2];
-
-  if (!tool) {
-    return { layerRef, caret: null, keyboardProps: {} };
-  }
-  const toolName = labels.markupTools[tool];
-
-  const actions: Record<MarkupKeyAction['type'], (action: MarkupKeyAction) => void> = {
+  returnFocusLater,
+  labels,
+  announce,
+}: KeyActionsInput): Record<MarkupKeyAction['type'], (action: MarkupKeyAction) => void> {
+  return {
     move: (action) => {
       const moved = action as MoveAction;
       !draft && moved.draft && announce(labels.markStarted(toolName));
@@ -95,17 +121,74 @@ export function useMarkupKeyboard({
       setTextDraft({ x: caret[0], y: caret[1], text: '' });
     },
   };
+}
+
+/**
+ * Placing marks without a pointer: while a tool is picked the current page's markup layer is a
+ * tab stop with a cursor that the arrow keys move; Enter starts and finishes a mark at it, or
+ * opens a text box there, and Page Up and Page Down move to the layer of the page before or
+ * after. What happens is read out through the viewer's status region
+ */
+export function useMarkupKeyboard({
+  pageNumber,
+  numPages,
+  tabStop,
+  width,
+  height,
+  rotation,
+  markup,
+  draft,
+  setDraft,
+  commit,
+  textDraft,
+  setTextDraft,
+}: MarkupKeyboardInput) {
+  const { labels } = useDocViewerPageContext();
+  const { tool, announce, registerLayer } = markup;
+  const { layerRef, returnFocusLater } = useLayerRef(pageNumber, registerLayer, textDraft);
+  const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
+  // The cursor starts in the middle of the page
+  const caret = caretPoint ?? [width / 2, height / 2];
+
+  if (!tool) {
+    return { layerRef, caret: null, keyboardProps: {} };
+  }
+  const toolName = labels.markupTools[tool];
+
+  const actions = getKeyActions({
+    toolName,
+    caret,
+    draft,
+    setCaret,
+    setDraft,
+    commit,
+    setTextDraft,
+    returnFocusLater,
+    labels,
+    announce,
+  });
+
+  const goToPage = (step: number) => {
+    const target = pageNumber + step;
+    if (target >= 1 && target <= numPages) {
+      draft && actions.cancel({ type: 'cancel' });
+      markup.focusPage(target);
+    }
+  };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     // Keys typed into the text box are its own
     if (event.target !== event.currentTarget) {
       return;
     }
-    const action = getMarkupKeyAction(event, { tool, caret, draft, width, height, rotation });
-    if (action) {
+    const step = getPageStep(event);
+    const action = step
+      ? null
+      : getMarkupKeyAction(event, { tool, caret, draft, width, height, rotation });
+    if (step || action) {
       event.preventDefault();
       event.stopPropagation();
-      actions[action.type](action);
+      step ? goToPage(step) : actions[action!.type](action!);
     }
   };
 
@@ -113,11 +196,11 @@ export function useMarkupKeyboard({
     layerRef,
     caret,
     keyboardProps: {
-      tabIndex: 0,
+      tabIndex: tabStop ? 0 : -1,
       role: 'application',
       'aria-label': labels.markupLayer(toolName, pageNumber),
       'aria-description': labels.markupKeys,
-      'aria-keyshortcuts': MARKUP_KEY_SHORTCUTS,
+      'aria-keyshortcuts': `${MARKUP_KEY_SHORTCUTS} PageUp PageDown`,
       onKeyDown,
     },
   };

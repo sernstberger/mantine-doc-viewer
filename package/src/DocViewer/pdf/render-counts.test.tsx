@@ -4,6 +4,15 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import type { DocViewerMark } from './markup';
+
+/**
+ * Counts thumbnail and page tile renders: each names itself with its label once per render. One
+ * labels object for the whole file, so the viewer gets the same functions on every render
+ */
+const thumbnailRenders = jest.fn((page: number) => `Thumbnail ${page}`);
+const tileRenders = jest.fn((page: number, position: number) => `Page ${page} at ${position}`);
+const countingLabels = { thumbnail: thumbnailRenders, editorPage: tileRenders };
 
 /**
  * renderPageOverlay is called once each time a PdfPage renders, so it counts page renders.
@@ -145,5 +154,147 @@ describe('page renders', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
     await act(async () => {});
     expect(firstPage.getAnnotations.mock.calls.length).toBe(drawn);
+  });
+});
+
+/** Page numbers of the renders since `from`, from a mock called once per page render */
+function rendersSince(mock: jest.Mock, from: number) {
+  return mock.mock.calls
+    .slice(from)
+    .map(([info]) => (typeof info === 'number' ? info : (info.pageNumber as number)))
+    .sort((a, b) => a - b);
+}
+
+describe('page renders on a page turn and a new mark', () => {
+  it('renders no page again when the app turns a controlled page', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const renderPageOverlay = countPageRenders();
+    function App() {
+      const [page, setPage] = useState(1);
+      return (
+        <>
+          <button type="button" onClick={() => setPage(page + 2)}>
+            Turn
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            page={page}
+            onPageChange={setPage}
+            renderPageOverlay={renderPageOverlay}
+          />
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = renderPageOverlay.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
+    await act(async () => {});
+    expect(rendersSince(renderPageOverlay, before)).toEqual([]);
+  });
+
+  it('renders only the page a new mark is on', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const renderPageOverlay = countPageRenders();
+    function App() {
+      const [marks, setMarks] = useState<DocViewerMark[]>([]);
+      const add = () =>
+        setMarks([
+          ...marks,
+          {
+            type: 'highlight',
+            id: `mark-${marks.length}`,
+            page: 2,
+            color: 'yellow',
+            rect: { x: 10, y: 10, width: 50, height: 20 },
+          },
+        ]);
+      return (
+        <>
+          <button type="button" onClick={add}>
+            Mark
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            markup={marks}
+            onMarkupChange={setMarks}
+            renderPageOverlay={renderPageOverlay}
+          />
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = renderPageOverlay.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
+    await act(async () => {});
+    expect(rendersSince(renderPageOverlay, before)).toEqual([2, 2]);
+    expect(container.querySelectorAll('rect[data-mark="highlight"]')).toHaveLength(2);
+  });
+});
+
+describe('thumbnail and page tile renders', () => {
+  it('renders only the thumbnails whose page became or stopped being current', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    function App() {
+      const [page, setPage] = useState(1);
+      return (
+        <>
+          <button type="button" onClick={() => setPage(3)}>
+            Turn
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            defaultThumbnailsOpened
+            withPageEditing
+            page={page}
+            onPageChange={setPage}
+            labels={countingLabels}
+          />
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = thumbnailRenders.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
+    await act(async () => {});
+    expect(rendersSince(thumbnailRenders, before)).toEqual([1, 3]);
+  });
+
+  it('renders only the page tiles whose focus moved in the page editor', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    render(
+      <DocViewer
+        src="/files/report.pdf"
+        pdfWorkerSrc="/worker.mjs"
+        defaultZoom={1}
+        withPageEditing
+        labels={countingLabels}
+      />
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
+    const first = await screen.findByRole('option', { name: 'Page 1 at 1' });
+    await act(async () => {});
+    act(() => first.focus());
+
+    const before = tileRenders.mock.calls.length;
+    await userEvent.keyboard('{ArrowRight}');
+    await act(async () => {});
+    expect(rendersSince(tileRenders, before)).toEqual([1, 2]);
   });
 });

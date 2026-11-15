@@ -133,7 +133,8 @@ export function PdfReaderBody({
           registerPage={position.registerPage}
           linkService={content.linkService}
           onTextLayer={content.textLayers.onTextLayer}
-          markup={content.markup}
+          markup={content.markup.layer}
+          marksByPage={content.markup.marksByPage}
         />
       )}
     </div>

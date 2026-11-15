@@ -1,11 +1,16 @@
 import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { DragHandleIcon } from '../icons';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
-import { ReorderList, useReorderItem } from './use-reorder-drag';
+import {
+  getReorderItemProps,
+  type ReorderItemState,
+  type ReorderList,
+  useReorderItem,
+} from './use-reorder-drag';
 
 interface PageTileProps {
   document: PDFDocumentProxy;
@@ -18,14 +23,16 @@ interface PageTileProps {
   rotation: number;
   scrollRoot: HTMLElement | null;
   reorder: ReorderList;
-  onSelect: (event: React.MouseEvent) => void;
+  dragState: ReorderItemState;
+  /** A click on the tile, with the page and its index */
+  onSelect: (page: number, index: number, event: React.MouseEvent) => void;
 }
 
 /** Width of page previews in the editor, in px */
 const TILE_WIDTH = 120;
 
-export function PageTile(props: PageTileProps) {
-  const { getStyles, labels } = useDocViewerContext();
+function PageTileView(props: PageTileProps) {
+  const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(props.scrollRoot, '100% 0px');
   const { itemRef, handleRef } = useReorderItem(props.reorder, props.page);
   const tileRef = useMergedRef(ref, itemRef);
@@ -48,7 +55,7 @@ export function PageTile(props: PageTileProps) {
     <div
       ref={tileRef}
       {...getStyles('editorPage')}
-      {...props.reorder.getItemProps(props.page, props.position - 1)}
+      {...getReorderItemProps(props.dragState)}
       role="option"
       aria-selected={props.selected}
       aria-label={labels.editorPage(props.page, props.position, props.total)}
@@ -56,7 +63,9 @@ export function PageTile(props: PageTileProps) {
       data-page={props.page}
       data-selected={props.selected || undefined}
       data-rotation={props.rotation || undefined}
-      onClick={(event) => !props.reorder.isDragClick(event) && props.onSelect(event)}
+      onClick={(event) =>
+        !props.reorder.isDragClick(event) && props.onSelect(props.page, props.position - 1, event)
+      }
     >
       {/* Touch and pen drag from here, so that swiping the rest of the page scrolls */}
       <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
@@ -92,3 +101,6 @@ export function PageTile(props: PageTileProps) {
     </div>
   );
 }
+
+/** Memoised: moving focus or the selection renders only the tiles whose state changed */
+export const PageTile = React.memo(PageTileView);

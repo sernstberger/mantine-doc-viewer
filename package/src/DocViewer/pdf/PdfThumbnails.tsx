@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { useMergedRef } from '@mantine/hooks';
+import { useCallbackRef, useMergedRef } from '@mantine/hooks';
 import React, { useMemo, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import { DragHandleIcon } from '../icons';
 import { initialOrder } from './page-edits';
 import { PdfThumbnailDelete } from './PdfThumbnailDelete';
@@ -12,7 +12,13 @@ import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
 import { useThumbnailKeys } from './use-thumbnail-keys';
 import { useThumbnailScroll } from './use-thumbnail-scroll';
-import { ReorderList, useReorderItem, useReorderList } from './use-reorder-drag';
+import {
+  getReorderItemProps,
+  type ReorderItemState,
+  type ReorderList,
+  useReorderItem,
+  useReorderList,
+} from './use-reorder-drag';
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
@@ -28,11 +34,12 @@ interface PdfThumbnailProps {
   orientation: ThumbnailsOrientation;
   scrollRoot: HTMLElement | null;
   reorder: ReorderList;
+  dragState: ReorderItemState;
   onSelect: (pageNumber: number) => void;
   onDelete?: (pageNumber: number) => void;
 }
 
-function PdfThumbnail({
+function PdfThumbnailView({
   document,
   pageNumber,
   placeholderSize,
@@ -42,10 +49,11 @@ function PdfThumbnail({
   orientation,
   scrollRoot,
   reorder,
+  dragState,
   onSelect,
   onDelete,
 }: PdfThumbnailProps) {
-  const { getStyles, labels, thumbnailWidth } = useDocViewerContext();
+  const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
   const horizontal = orientation === 'horizontal';
   // Half size in the strip above or below the pages
   const width = horizontal ? Math.round(thumbnailWidth / 2) : thumbnailWidth;
@@ -75,7 +83,7 @@ function PdfThumbnail({
     <div
       ref={thumbnailRef}
       {...getStyles('thumbnail')}
-      {...(reorder.enabled ? reorder.getItemProps(pageNumber, pageNumber - 1) : undefined)}
+      {...(reorder.enabled ? getReorderItemProps(dragState) : undefined)}
       role="option"
       aria-selected={active}
       aria-label={labels.thumbnail(pageNumber)}
@@ -105,6 +113,9 @@ function PdfThumbnail({
   );
 }
 
+/** Memoised: on a page turn only the thumbnails that become or stop being current render again */
+const PdfThumbnail = React.memo(PdfThumbnailView);
+
 export interface PdfThumbnailsProps {
   document: PDFDocumentProxy;
   placeholderSize: PdfPageSize;
@@ -130,13 +141,13 @@ export function PdfThumbnails({
   onReorder,
   onDelete,
 }: PdfThumbnailsProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
 
   const numPages = document.numPages;
   const horizontal = orientation === 'horizontal';
   const order = useMemo(() => initialOrder(numPages), [numPages]);
-  const reorder = useReorderList({
+  const { list: reorder, getItemState } = useReorderList({
     container: scrollRoot,
     layout: horizontal ? 'horizontal' : 'vertical',
     order,
@@ -145,9 +156,18 @@ export function PdfThumbnails({
     enabled: !!onReorder,
   });
 
+  // The same functions on every render, so thumbnails skip renders their own props do not need
+  const select = useCallbackRef(onSelect);
+  // Only called when there is a delete button, which needs onDelete
+  const remove = useCallbackRef((page: number) => onDelete!(page));
   // The last page stays: no delete button, and Delete does nothing
-  const deletePage = numPages > 1 ? onDelete : undefined;
-  const handleKeyDown = useThumbnailKeys({ numPages, horizontal, onSelect, onDelete: deletePage });
+  const deletePage = numPages > 1 && onDelete ? remove : undefined;
+  const handleKeyDown = useThumbnailKeys({
+    numPages,
+    horizontal,
+    onSelect: select,
+    onDelete: deletePage,
+  });
 
   return (
     // Focus moves between the options (roving tabindex: the current page is the tab stop), so
@@ -175,7 +195,8 @@ export function PdfThumbnails({
           orientation={orientation}
           scrollRoot={scrollRoot}
           reorder={reorder}
-          onSelect={onSelect}
+          dragState={getItemState(index + 1, index)}
+          onSelect={select}
           onDelete={deletePage}
         />
       ))}

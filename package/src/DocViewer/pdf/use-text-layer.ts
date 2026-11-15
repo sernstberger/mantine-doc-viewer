@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { type RefObject, useEffect, useRef } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerPageContext } from '../DocViewer.context';
 import type { PdfJsModule } from './load-pdfjs';
 import { getPageViewport, type PdfRotation } from './render-page';
 import { getPageTextContent } from './text-content';
@@ -67,7 +67,7 @@ export function useTextLayer({
   onTextLayer,
 }: TextLayerInput) {
   const textLayerRef = useRef<HTMLDivElement>(null);
-  const { pageHasNoText } = useDocViewerContext().labels;
+  const { pageHasNoText } = useDocViewerPageContext().labels;
 
   useEffect(() => {
     const container = textLayerRef.current;

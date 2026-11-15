@@ -117,6 +117,8 @@ export interface DocViewerLabels {
   closeMarkup: string;
   /** Screen reader name of the box a text mark is typed into */
   markupText: string;
+  /** How to add or cancel the text being typed, read after the text box's name */
+  markupTextKeys: string;
   markupSaved: string;
   /** Screen reader name of a page while a markup tool is picked, where keys place marks */
   markupLayer: (tool: string, page: number) => string;
@@ -125,6 +127,10 @@ export interface DocViewerLabels {
   markStarted: (tool: string) => string;
   markAdded: (tool: string) => string;
   markCancelled: string;
+  /** Screen reader name of the hidden list of a page's marks */
+  pageMarks: (page: number, count: number) => string;
+  /** A text mark in that list, after the tool's name */
+  textMark: (tool: string, text: string) => string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -258,13 +264,16 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   saveMarkup: 'Save',
   closeMarkup: 'Close markup',
   markupText: 'Text box text',
+  markupTextKeys: 'Control or Command with Enter adds the text, Escape cancels.',
   markupSaved: 'Markup saved',
   markupLayer: (tool, page) => `${tool} on page ${page}`,
   markupKeys:
-    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels.',
+    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels. Page Up and Page Down go to the previous and next page.',
   markStarted: (tool) => `${tool} started`,
   markAdded: (tool) => `${tool} added`,
   markCancelled: 'Mark cancelled',
+  pageMarks: (page, count) => `Page ${page}: ${count} ${count === 1 ? 'mark' : 'marks'}`,
+  textMark: (tool, text) => `${tool}: ${text}`,
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',
