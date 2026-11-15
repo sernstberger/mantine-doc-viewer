@@ -64,7 +64,11 @@
       ]
     }
   },
-  "repository": "https://github.com/sernstberger/mantine-doc-viewer.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sernstberger/mantine-doc-viewer.git",
+    "directory": "package"
+  },
   "peerDependencies": {
     "@cantoo/pdf-lib": "^2.11.1",
     "@mantine/code-highlight": "^9.7.0",
