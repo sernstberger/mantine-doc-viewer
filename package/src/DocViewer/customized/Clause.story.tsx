@@ -1,11 +1,14 @@
-import { Button, Textarea } from '@mantine/core';
+import { Button, SegmentedControl, Textarea } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
 import classes from './Clause.module.css';
 
-export default { title: 'DocViewer/Apps/Clause (contract redlining)' };
+export default {
+  title: 'DocViewer/Apps/Clause (contract redlining)',
+  parameters: { layout: 'fullscreen' },
+};
 
 type Kind = 'plain' | 'ins' | 'del';
 type Seg = [Kind, string];
@@ -309,6 +312,8 @@ export function Clause() {
     Object.fromEntries(CHANGED.map((clause) => [clause.number, clause.change!.counter]))
   );
   const [approved, setApproved] = useState(false);
+  // Which pane shows on a phone; the three sit side by side on larger screens
+  const [pane, setPane] = useState<'clauses' | 'document' | 'clause'>('document');
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -327,6 +332,7 @@ export function Clause() {
 
   const select = (number: number) => {
     setSelected(number);
+    setPane('document');
     const target = CLAUSES.find((item) => item.number === number)!;
     // A little above the clause, so its first line is not under the toolbar
     controller.current?.goToPage(target.page, { top: Math.max(target.span[0] - 24, 0) });
@@ -412,7 +418,7 @@ export function Clause() {
         </Button>
       </header>
 
-      <div className={classes.panes}>
+      <div className={classes.panes} data-pane={pane}>
         <nav className={classes.clauses} aria-label="Clauses">
           <h2 className={classes.paneTitle}>Clauses</h2>
           <ol className={classes.clauseList}>
@@ -487,7 +493,10 @@ export function Clause() {
                       data-active={active}
                       aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
                       aria-pressed={item.number === selected}
-                      onClick={() => setSelected(item.number)}
+                      onClick={() => {
+                        setSelected(item.number);
+                        setPane('clause');
+                      }}
                       style={{ ...box, left: 44 * scale, width: 22 * scale }}
                     >
                       <StatusDot status={itemStatus} />
@@ -613,6 +622,21 @@ export function Clause() {
           )}
         </aside>
       </div>
+
+      <SegmentedControl
+        className={classes.tabs}
+        classNames={{ indicator: classes.tabIndicator, label: classes.tabLabel }}
+        aria-label="Show"
+        fullWidth
+        radius={0}
+        value={pane}
+        onChange={(value) => setPane(value as typeof pane)}
+        data={[
+          { value: 'clauses', label: 'Clauses' },
+          { value: 'document', label: 'Document' },
+          { value: 'clause', label: `Clause ${selected}` },
+        ]}
+      />
 
       {toast && (
         <div className={classes.toast} role="status">
