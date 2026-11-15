@@ -9,7 +9,7 @@ import {
   loadReadyState,
   pagesLoaded,
   PdfPartsRoot,
-} from '../DocViewerPages/pdf-test-kit';
+} from '../../../test-utils/pdf-parts';
 import {
   DocViewerDocumentInfo,
   type DocViewerDocumentInfoProps,

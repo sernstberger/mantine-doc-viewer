@@ -1,12 +1,12 @@
 import { act, waitFor } from '@testing-library/react';
 import React, { useMemo } from 'react';
-import { createTestPdfAdapter } from '../../../test-utils/adapters';
-import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import type { DocViewerPdfAdapter } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
-import { DocViewerAdapterProvider } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
-import { DocViewerRoot, type DocViewerRootProps } from '../DocViewerRoot/DocViewerRoot';
-import { PdfSessionContext, usePdfSession } from '../DocViewerRoot/pdf-session-context';
-import { getLoaded, type PdfDocumentState } from '../hooks/pdf/use-pdf-document';
+import { createTestPdfAdapter } from './adapters';
+import { getDocument, mockPdf } from './mock-pdf';
+import type { DocViewerPdfAdapter } from '../package/src/DocViewerAdapterProvider/adapters/pdfjs-adapter';
+import { DocViewerAdapterProvider } from '../package/src/DocViewerAdapterProvider/DocViewerAdapterProvider';
+import { DocViewerRoot, type DocViewerRootProps } from '../package/src/DocViewerRoot/DocViewerRoot';
+import { PdfSessionContext, usePdfSession } from '../package/src/DocViewerRoot/pdf-session-context';
+import { getLoaded, type PdfDocumentState } from '../package/src/hooks/pdf/use-pdf-document';
 
 /** An adapter whose engine never loads: the session stays loading and nothing updates after a test ends */
 export const PENDING_PDF_ADAPTER: DocViewerPdfAdapter = { load: () => new Promise(() => {}) };

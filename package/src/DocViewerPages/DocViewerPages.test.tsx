@@ -15,7 +15,7 @@ import {
   LoadedPdfRoot as LoadedRoot,
   loadReadyState,
   pagesLoaded as loaded,
-} from './pdf-test-kit';
+} from '../../../test-utils/pdf-parts';
 
 const NUM_PAGES = 3;
 let ready: Awaited<ReturnType<typeof loadReadyState>>;

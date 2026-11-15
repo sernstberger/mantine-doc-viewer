@@ -10,7 +10,7 @@ import {
   pagesLoaded,
   PdfPartsRoot,
   PENDING_PDF_ADAPTER,
-} from '../DocViewerPages/pdf-test-kit';
+} from '../../../test-utils/pdf-parts';
 import {
   DocViewerMain,
   type DocViewerMainProps,

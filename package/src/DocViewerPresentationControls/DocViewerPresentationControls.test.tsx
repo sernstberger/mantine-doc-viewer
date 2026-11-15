@@ -6,7 +6,7 @@ import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { createDocViewer, updateDocViewerStateAction } from '../doc-viewer.store';
 import { DocViewerPages } from '../DocViewerPages/DocViewerPages';
-import { LoadedPdfRoot, pagesLoaded, PdfPartsRoot } from '../DocViewerPages/pdf-test-kit';
+import { LoadedPdfRoot, pagesLoaded, PdfPartsRoot } from '../../../test-utils/pdf-parts';
 import {
   DocViewerPresentationControls,
   type DocViewerPresentationControlsProps,

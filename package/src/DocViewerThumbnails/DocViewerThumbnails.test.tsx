@@ -11,7 +11,7 @@ import {
   loadReadyState,
   PdfPartsRoot,
   TEST_PDF_ADAPTER,
-} from '../DocViewerPages/pdf-test-kit';
+} from '../../../test-utils/pdf-parts';
 import {
   DocViewerThumbnails,
   type DocViewerThumbnailsProps,

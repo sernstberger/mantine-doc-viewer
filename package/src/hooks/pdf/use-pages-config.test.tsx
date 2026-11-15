@@ -4,7 +4,7 @@ import { act } from '@testing-library/react';
 import { useDocViewerContext, type DocViewerContextValue } from '../../doc-viewer.context';
 import { DocViewer } from '../../DocViewer';
 import { DocViewerPages } from '../../DocViewerPages/DocViewerPages';
-import { PdfPartsRoot } from '../../DocViewerPages/pdf-test-kit';
+import { PdfPartsRoot } from '../../../../test-utils/pdf-parts';
 import { usePagesContext } from './use-pages-config';
 
 function Probe({ onContext }: { onContext: (context: DocViewerContextValue) => void }) {

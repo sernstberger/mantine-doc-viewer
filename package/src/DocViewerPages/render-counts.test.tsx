@@ -8,7 +8,7 @@ import type { DocViewerMark } from '../utils/markup';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
 import { DocViewerPages } from './DocViewerPages';
-import { LoadedPdfRoot } from './pdf-test-kit';
+import { LoadedPdfRoot } from '../../../test-utils/pdf-parts';
 
 /**
  * Counts thumbnail and page tile renders: each names itself with its label once per render. One

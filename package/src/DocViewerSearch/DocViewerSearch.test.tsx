@@ -7,7 +7,7 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { createDocViewer, updateDocViewerStateAction } from '../doc-viewer.store';
 import { DocViewerRoot } from '../DocViewerRoot/DocViewerRoot';
 import { DocViewerPages } from '../DocViewerPages/DocViewerPages';
-import { LoadedPdfRoot, pagesLoaded, PdfPartsRoot } from '../DocViewerPages/pdf-test-kit';
+import { LoadedPdfRoot, pagesLoaded, PdfPartsRoot } from '../../../test-utils/pdf-parts';
 import {
   DocViewerSearch,
   type DocViewerSearchProps,
