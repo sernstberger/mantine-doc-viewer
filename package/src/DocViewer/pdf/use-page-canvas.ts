@@ -1,5 +1,6 @@
-import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
-import { useEffect, useRef, useState } from 'react';
+import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
+import { useEffect, useState } from 'react';
+import { keepSize, usePageCanvasRef } from './page-canvas-ref';
 import { getPageViewport, type PdfRotation, renderPageToCanvas } from './render-page';
 import type { PdfLayersState } from './use-pdf-layers';
 import type { PdfPageSize } from './use-pdf-document';
@@ -25,7 +26,7 @@ export function usePageCanvas({
   maxCanvasPixels,
   layers,
 }: PageCanvasInput) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvas = usePageCanvasRef();
   const [size, setSize] = useState<PdfPageSize | null>(null);
   // Size before the viewer's rotation, for the overlay
   const [baseSize, setBaseSize] = useState<PdfPageSize | null>(null);
@@ -40,19 +41,21 @@ export function usePageCanvas({
     let cancelled = false;
     let renderTask: RenderTask | undefined;
 
-    document.getPage(pageNumber).then((page) => {
-      const canvas = canvasRef.current;
-      if (cancelled || !canvas) {
+    // A document destroyed meanwhile (new src, edited pages, unmount) rejects: nothing to draw
+    const draw = (page: PDFPageProxy) => {
+      const node = canvas.node.current;
+      if (cancelled || !node) {
         return;
       }
 
       const { width, height } = getPageViewport(page, 1, rotation);
-      setSize({ width, height });
+      // The same object while the size holds, so zooming does not render the page again for it
+      setSize((current) => keepSize(current, { width, height }));
       const base = getPageViewport(page, 1);
-      setBaseSize({ width: base.width, height: base.height });
+      setBaseSize((current) => keepSize(current, { width: base.width, height: base.height }));
       renderTask = renderPageToCanvas(
         page,
-        canvas,
+        node,
         scale,
         maxCanvasPixels,
         rotation,
@@ -63,7 +66,11 @@ export function usePageCanvas({
         () => !cancelled && setRendered(true),
         () => {}
       );
-    });
+    };
+    document
+      .getPage(pageNumber)
+      .then(draw)
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -73,5 +80,5 @@ export function usePageCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document, pageNumber, scale, near, maxCanvasPixels, rotation, layers?.version]);
 
-  return { canvasRef, size, baseSize, rendered };
+  return { canvasRef: canvas.ref, size, baseSize, rendered };
 }

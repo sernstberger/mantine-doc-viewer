@@ -1,6 +1,7 @@
-import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
-import { useEffect, useRef, useState } from 'react';
+import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
+import { useEffect, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
+import { keepSize, usePageCanvasRef } from './page-canvas-ref';
 import { getPageViewport, PdfRotation, renderPageToCanvas } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import type { PdfLayersState } from './use-pdf-layers';
@@ -29,7 +30,7 @@ export function usePagePreview({
   layers,
 }: PagePreviewInput) {
   const { maxCanvasPixels } = useDocViewerContext();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvas = usePageCanvasRef();
   const [size, setSize] = useState<PdfPageSize | null>(null);
 
   useEffect(() => {
@@ -40,24 +41,29 @@ export function usePagePreview({
     let cancelled = false;
     let renderTask: RenderTask | undefined;
 
-    document.getPage(pageNumber).then((page) => {
-      const canvas = canvasRef.current;
-      if (cancelled || !canvas) {
+    // A document destroyed meanwhile (new src, edited pages, unmount) rejects: nothing to draw
+    const draw = (page: PDFPageProxy) => {
+      const node = canvas.node.current;
+      if (cancelled || !node) {
         return;
       }
 
       const { width: pageWidth, height } = getPageViewport(page, 1, rotation);
-      setSize({ width: pageWidth, height });
+      setSize((current) => keepSize(current, { width: pageWidth, height }));
       renderTask = renderPageToCanvas(
         page,
-        canvas,
+        node,
         width / pageWidth,
         maxCanvasPixels,
         rotation,
         layers?.config ?? undefined
       );
       renderTask.promise.catch(() => {});
-    });
+    };
+    document
+      .getPage(pageNumber)
+      .then(draw)
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -69,5 +75,5 @@ export function usePagePreview({
 
   useReleasePage(document, pageNumber, near);
 
-  return { canvasRef, size };
+  return { canvasRef: canvas.ref, size };
 }
