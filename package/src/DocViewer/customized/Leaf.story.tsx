@@ -137,13 +137,9 @@ function makeFace(
   return face;
 }
 
-/**
- * Copies the canvas of a page the viewer has drawn, found through the viewer's Styles API class
- * names, or null when the page is not drawn yet
- */
-function snapshot(page: HTMLElement | null, canvasClass: string) {
-  const source = page?.querySelector<HTMLCanvasElement>(`canvas.${canvasClass}`);
-  if (!page || page.dataset.rendered === undefined || !source || source.width === 0) {
+/** Copies a page the viewer has drawn (controller.getPageCanvas), or null when it is not drawn yet */
+function snapshot(source: HTMLCanvasElement | null) {
+  if (!source || source.width === 0) {
     return null;
   }
   const copy = document.createElement('canvas');
@@ -291,7 +287,9 @@ export function Leaf() {
     const secondSlot =
       count === 2 ? { ...firstSlot, left: firstSlot.left + firstSlot.width } : null;
     const copy = (number: number) =>
-      number >= 1 && number <= total ? snapshot(pageElement(number), classes.canvas) : null;
+      number >= 1 && number <= total
+        ? snapshot(controller.current?.getPageCanvas(number) ?? null)
+        : null;
 
     busy.current = true;
     overlay.replaceChildren();
@@ -322,7 +320,8 @@ export function Leaf() {
         );
       overlay.append(...faces);
       setTurning('fade');
-      controller.current?.goToPage(to);
+      // The overlay covers the view: jump straight there underneath it
+      controller.current?.goToPage(to, { behavior: 'instant' });
       whenSettled(to, pageTop, () => {
         const fade = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
           duration: 160,
@@ -399,9 +398,9 @@ export function Leaf() {
     overlay.style.perspectiveOrigin = `${sheetSlot.left}px ${sheetSlot.top + sheetSlot.height / 2}px`;
     overlay.append(...staticFaces, sheet);
 
-    // The viewer moves to the new page underneath, hidden while the overlay plays
+    // The viewer jumps to the new page underneath, hidden while the overlay plays
     setTurning('flip');
-    controller.current?.goToPage(to);
+    controller.current?.goToPage(to, { behavior: 'instant' });
 
     const easing = 'cubic-bezier(0.32, 0.08, 0.24, 1)';
     const angles = forward ? [0, -180] : [-180, 0];
@@ -591,9 +590,6 @@ export function Leaf() {
           {scale > 0 && (
             <div ref={bookRef} className={classes.book} style={bookSize}>
               <DocViewer
-                // The layout is a default, so the viewer starts over (on the same page) when the
-                // window changes between one page and a spread
-                key={spread ? 'spread' : 'page'}
                 src={BOOK.src}
                 fileName={BOOK.title}
                 pdfWorkerSrc={pdfWorkerSrc}
@@ -603,9 +599,11 @@ export function Leaf() {
                 radius={0}
                 pageGap={0}
                 pageBackground="var(--leaf-paper)"
-                defaultPageLayout={spread ? 'two-page' : 'single'}
+                // The app picks one page or a spread from the window; the page stays when it changes
+                pageLayout={spread ? 'two-page' : 'single'}
                 defaultZoom="fit-page"
-                defaultPage={first}
+                // The app turns the pages
+                withScroll={false}
                 onDocumentLoad={(info) => {
                   setNumPages(info.numPages ?? 0);
                   controller.current

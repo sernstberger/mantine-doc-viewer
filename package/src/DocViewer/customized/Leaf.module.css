@@ -113,10 +113,8 @@
   height: 100%;
 }
 
-/* The app turns the pages: the viewer does not scroll for the reader */
+/* The app turns the pages (withScroll={false}) and reads swipes itself */
 .app .body {
-  overflow: hidden;
-  scrollbar-width: none;
   touch-action: none;
 }
 
