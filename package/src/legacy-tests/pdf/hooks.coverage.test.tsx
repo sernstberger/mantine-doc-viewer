@@ -15,6 +15,7 @@ import { useCurrentPage } from '../../hooks/pdf/use-current-page';
 import { useNearViewport } from '../../hooks/pdf/use-near-viewport';
 import { usePagePreview } from '../../hooks/pdf/use-page-preview';
 import { usePresentation } from '../../hooks/pdf/use-presentation';
+import { usePdfSearchBar } from '../../hooks/pdf/use-pdf-search-bar';
 import { useReleasePage } from '../../hooks/pdf/use-release-page';
 import { useZoomAnchor } from '../../hooks/pdf/use-zoom-anchor';
 
@@ -883,5 +884,18 @@ describe('PdfPage', () => {
       window.dispatchEvent(new Event('pointerup'));
     });
     expect(layer).not.toHaveClass('selecting');
+  });
+});
+
+describe('usePdfSearchBar', () => {
+  it('closes without a search button or a fallback to focus', async () => {
+    const store = createDocViewerStore();
+    const { result } = renderHook(() => usePdfSearchBar(store, null, null));
+    act(() => result.current.open('total'));
+    expect(store.getState().searchOpened).toBe(true);
+    act(() => result.current.close());
+    await act(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+    expect(store.getState().searchOpened).toBe(false);
+    expect(result.current.query).toBe('');
   });
 });
