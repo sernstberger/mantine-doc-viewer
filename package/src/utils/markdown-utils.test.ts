@@ -1,6 +1,7 @@
 import {
   createSlugger,
   getFencedCode,
+  getText,
   HastNode,
   rehypeHeadingIds,
   resolveMarkdownUrl,
@@ -90,5 +91,16 @@ describe('getMarkdownPrintSource', () => {
     expect(getMarkdownPrintSource('preview', undefined, '# Hi')).toEqual({ text: '# Hi' });
     expect(getMarkdownPrintSource('source', '<h1>Hi</h1>', '# Hi')).toEqual({ text: '# Hi' });
     expect(getMarkdownPrintSource('source', undefined, null)).toBeNull();
+  });
+});
+
+describe('markdown url and text helpers', () => {
+  it('keeps the url when it cannot be resolved', () => {
+    expect(resolveMarkdownUrl('a.png', 'file.md', 'not a url')).toBe('a.png');
+  });
+
+  it('reads text nodes without a value as empty', () => {
+    expect(getText({ type: 'text' })).toBe('');
+    expect(getText({ type: 'element' })).toBe('');
   });
 });

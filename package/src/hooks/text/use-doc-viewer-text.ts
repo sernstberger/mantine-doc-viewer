@@ -12,8 +12,6 @@ export function useDocViewerText(src: string, maxSize: number): DocViewerTextSta
   const [state, setState] = useState<DocViewerTextState>({ status: 'loading' });
 
   useEffect(() => {
-    // Aborting also stops the download of a file that turns out to be too large,
-    // so whether the component is still interested is tracked separately
     const controller = new AbortController();
     let cancelled = false;
     setState({ status: 'loading' });
@@ -30,7 +28,6 @@ export function useDocViewerText(src: string, maxSize: number): DocViewerTextSta
         return { status: 'too-large', size: declaredSize } as const;
       }
 
-      // Counted while reading, as the size may be missing or be the compressed size
       const chunks: Uint8Array[] = [];
       let size = 0;
       const reader = response.body?.getReader();
