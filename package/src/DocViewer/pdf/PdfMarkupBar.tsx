@@ -1,0 +1,87 @@
+import { ActionIcon, Button, CloseButton, Divider } from '@mantine/core';
+import React from 'react';
+import { softDisabled } from '../a11y';
+import { DocViewerTooltip, useControlProps } from '../controls';
+import { useDocViewerContext } from '../DocViewer.context';
+import {
+  CloudIcon,
+  EllipseIcon,
+  HighlightIcon,
+  PenIcon,
+  RectangleIcon,
+  SignatureIcon,
+  TextBoxIcon,
+  UndoIcon,
+} from '../icons';
+import type { DocViewerMarkupTool } from './markup';
+import type { PdfMarkup } from './use-markup';
+
+const TOOL_ICONS: Record<DocViewerMarkupTool, React.FC> = {
+  highlight: HighlightIcon,
+  pen: PenIcon,
+  text: TextBoxIcon,
+  rectangle: RectangleIcon,
+  ellipse: EllipseIcon,
+  cloud: CloudIcon,
+  signature: SignatureIcon,
+};
+
+interface PdfMarkupBarProps {
+  markup: PdfMarkup;
+  onSave: () => void;
+  onClose: () => void;
+}
+
+/** Markup tools, undo and save, in a bar under the toolbar */
+export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
+  const { getStyles, labels, size } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const empty = markup.marks.length === 0;
+
+  return (
+    <div {...getStyles('markupBar')} role="toolbar" aria-label={labels.markup}>
+      {markup.tools.map((tool) => {
+        const ToolIcon = TOOL_ICONS[tool];
+        const active = markup.tool === tool;
+        return (
+          <DocViewerTooltip key={tool} label={labels.markupTools[tool]}>
+            <ActionIcon
+              {...controlProps(active)}
+              aria-label={labels.markupTools[tool]}
+              aria-pressed={active}
+              data-tool={tool}
+              onClick={() => markup.setTool(active ? null : tool)}
+            >
+              <ToolIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        );
+      })}
+      <Divider orientation="vertical" />
+      <DocViewerTooltip label={labels.undoMark}>
+        <ActionIcon
+          {...controlProps()}
+          aria-label={labels.undoMark}
+          {...softDisabled(empty, markup.undo)}
+        >
+          <UndoIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
+      <Button
+        size={size.input}
+        variant="default"
+        loading={markup.saving}
+        ml="auto"
+        {...softDisabled(empty, onSave)}
+      >
+        {labels.saveMarkup}
+      </Button>
+      <CloseButton
+        {...getStyles('control')}
+        size={size.control}
+        aria-label={labels.closeMarkup}
+        onClick={onClose}
+      />
+    </div>
+  );
+}

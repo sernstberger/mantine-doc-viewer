@@ -24,6 +24,11 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     canvas: 'Canvas that a PDF page is drawn on',
     textLayer: 'Transparent, selectable text over a PDF page',
     linkLayer: 'Clickable links over a PDF page',
+    pageOverlay: 'App content over a PDF page, from renderPageOverlay',
+    markupLayer:
+      'Marks drawn with the markup tools over a PDF page, takes the pointer while a tool is picked',
+    markupText: 'A text box mark, and the box a new one is typed into',
+    markupBar: 'Markup tools, undo and save, below the toolbar',
     search: 'PDF search bar below the toolbar',
     searchInput: 'Search input in the PDF search bar',
     searchCount: 'Match count in the PDF search bar',

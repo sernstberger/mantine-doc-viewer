@@ -35,6 +35,7 @@ import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
+import type { DocViewerMarkupProps } from './pdf/use-markup';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
@@ -68,6 +69,9 @@ export type DocViewerStylesNames =
   | 'textLayer'
   | 'linkLayer'
   | 'pageOverlay'
+  | 'markupLayer'
+  | 'markupText'
+  | 'markupBar'
   | 'search'
   | 'searchInput'
   | 'searchCount'
@@ -105,6 +109,7 @@ export type DocViewerControl =
   | 'info'
   | 'presentation'
   | 'editPages'
+  | 'markup'
   | 'search'
   | 'print'
   | 'download'
@@ -137,7 +142,12 @@ export type DocViewerCssVariables = {
 };
 
 export interface DocViewerProps
-  extends BoxProps, StylesApiProps<DocViewerFactory>, ElementProps<'div'>, DocViewerEvents {
+  extends
+    BoxProps,
+    StylesApiProps<DocViewerFactory>,
+    ElementProps<'div'>,
+    DocViewerEvents,
+    DocViewerMarkupProps {
   /** Url of the document: a regular url, blob url or data url */
   src: string;
 
@@ -240,12 +250,13 @@ export interface DocViewerProps
   /**
    * Called with the bytes of a PDF made by page editing: the edited document (`reason: 'save'`),
    * the extracted pages (`reason: 'extract'`), or the document after a thumbnail was dragged to a
-   * new place (`reason: 'reorder'`). Without it, saved and extracted PDFs are downloaded; a
-   * reorder only changes what the viewer shows
+   * new place (`reason: 'reorder'`), or with the marks drawn with the markup tools written in
+   * (`reason: 'annotate'`, `pages` are the pages with marks). Without it, saved, extracted and
+   * marked up PDFs are downloaded; a reorder only changes what the viewer shows
    */
   onSave?: (
     bytes: Uint8Array,
-    info: { reason: 'save' | 'extract' | 'reorder'; pages: number[] }
+    info: { reason: 'save' | 'extract' | 'reorder' | 'annotate'; pages: number[] }
   ) => void | Promise<void>;
 
   /** Determines whether the toolbar has a print button, `true` by default */
@@ -432,6 +443,17 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     withFullscreen,
     withPageEditing,
     onSave,
+    withMarkup,
+    markupTools,
+    markupTool,
+    defaultMarkupTool,
+    onMarkupToolChange,
+    markup,
+    defaultMarkup,
+    onMarkupChange,
+    markupColor,
+    markupWidth,
+    markupFontSize,
     onDocumentLoad,
     onDocumentError,
     onPageChange,
@@ -537,6 +559,19 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withFullscreen,
         withPageEditing,
         onSave,
+        markup: {
+          withMarkup,
+          markupTools,
+          markupTool,
+          defaultMarkupTool,
+          onMarkupToolChange,
+          markup,
+          defaultMarkup,
+          onMarkupChange,
+          markupColor,
+          markupWidth,
+          markupFontSize,
+        },
         fullscreen: fullscreen.fullscreen,
         toggleFullscreen: fullscreen.toggle,
       }}

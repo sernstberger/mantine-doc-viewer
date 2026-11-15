@@ -18,7 +18,7 @@ function formatSize(bytes: number) {
 
 /**
  * A Mac user tidies a quarterly report before sending it: remove the draft cover, reorder
- * sections and extract pages, all from the page editor.
+ * sections and extract pages from the page editor, then mark it up and sign it off.
  */
 export function Folio() {
   const [toast, setToast] = useState<Toast | null>(null);
@@ -52,6 +52,9 @@ export function Folio() {
           defaultZoom={1}
           defaultThumbnailsOpened
           withPageEditing
+          // Markup writes real PDF annotations, so the report opens marked up in any reader
+          withMarkup
+          markupTools={['highlight', 'text', 'rectangle', 'ellipse', 'signature']}
           // A native app writes back to the file; here the bytes only feed the notification
           onSave={(bytes, { reason, pages }) =>
             setToast(
@@ -60,10 +63,15 @@ export function Folio() {
                     title: `Extracted ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`,
                     text: `New document, ${formatSize(bytes.length)}`,
                   }
-                : {
-                    title: 'Saved',
-                    text: `${pages.length} pages, ${formatSize(bytes.length)}`,
-                  }
+                : reason === 'annotate'
+                  ? {
+                      title: 'Markup saved',
+                      text: `Marks on ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`,
+                    }
+                  : {
+                      title: 'Saved',
+                      text: `${pages.length} pages, ${formatSize(bytes.length)}`,
+                    }
             )
           }
           // A document app opens files in place, there is nothing to download
@@ -84,11 +92,11 @@ export function Folio() {
             thumbnailImage: classes.thumbnailImage,
             thumbnailLabel: classes.thumbnailLabel,
             editorBar: classes.editorBar,
+            markupBar: classes.markupBar,
             editorPages: classes.editorPages,
             editorPage: classes.editorPage,
           }}
           // MISSING: Delete in the thumbnail sidebar itself; reordering there works by dragging, deleting needs the page editor.
-          // MISSING: markup tools (highlight, text box, shapes, signature): the annotations layer.
           // MISSING: rotating one page and saving it; rotate only turns the view of every page.
           // MISSING: a subtitle slot next to the title ("Edited") without replacing the whole toolbar.
         />

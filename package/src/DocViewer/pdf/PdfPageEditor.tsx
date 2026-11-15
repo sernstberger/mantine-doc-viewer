@@ -19,7 +19,7 @@ import {
   removeSelected,
 } from './page-edits';
 
-export type PdfSaveReason = 'save' | 'extract' | 'reorder';
+export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'annotate';
 
 interface PdfPageEditorProps {
   document: PDFDocumentProxy;

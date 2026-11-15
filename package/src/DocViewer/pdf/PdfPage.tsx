@@ -8,6 +8,8 @@ import type { PdfJsModule } from './load-pdfjs';
 import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import { getPageTextContent } from './text-content';
 import { getOverlayStyle } from './page-overlay';
+import { PdfMarkupLayer } from './PdfMarkupLayer';
+import type { PdfMarkup } from './use-markup';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -38,6 +40,9 @@ interface PdfPageProps {
 
   /** Called with the text layer spans once they are rendered, and with `null` when they are removed */
   onTextLayer: (pageNumber: number, textDivs: HTMLElement[] | null) => void;
+
+  /** Marks to show on the page and the tool to draw new ones with */
+  markup?: PdfMarkup;
 }
 
 /** While text is being selected, pdf.js stretches `.endOfContent` over the layer to stop the selection jumping */
@@ -108,6 +113,7 @@ export function PdfPage({
   registerPage,
   linkService,
   onTextLayer,
+  markup,
 }: PdfPageProps) {
   const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -297,6 +303,16 @@ export function PdfPage({
       {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
+      {markup && (
+        <PdfMarkupLayer
+          pageNumber={pageNumber}
+          width={overlaySize.width}
+          height={overlaySize.height}
+          scale={scale}
+          rotation={rotation}
+          markup={markup}
+        />
+      )}
       {overlay != null && overlay !== false && (
         <div
           {...getStyles('pageOverlay', {

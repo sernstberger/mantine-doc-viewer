@@ -1,9 +1,11 @@
-import { CloseButton, VisuallyHidden } from '@mantine/core';
+import { ActionIcon, CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
-import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext, useShowControl } from '../DocViewer.context';
+import { DocViewerTooltip, useControlProps } from '../controls';
+import { MarkupIcon } from '../icons';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { printPdfBytes } from '../print';
 import { clampZoom, zoomIn, zoomOut } from '../zoom';
@@ -21,6 +23,7 @@ import { saveBytes } from '../files';
 import { buildExtractRequest, getEditedFileName, initialOrder, movePage } from './page-edits';
 import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
 import { PdfControls } from './PdfControls';
+import { PdfMarkupBar } from './PdfMarkupBar';
 import { getResolvedOutline } from './PdfOutline';
 import { PdfPageEditor, PdfSaveReason } from './PdfPageEditor';
 import { PdfPage } from './PdfPage';
@@ -31,6 +34,7 @@ import { PdfRotation, rotateSize } from './render-page';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
 import { useLinkService } from './use-link-service';
+import { useMarkup } from './use-markup';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePresentation } from './use-presentation';
 import { useZoomAnchor } from './use-zoom-anchor';
@@ -60,6 +64,8 @@ export function PdfView() {
   const context = useDocViewerContext();
   const { getStyles, labels, controller, events, defaultPageLayout } = context;
   const title = useDocumentTitle();
+  const show = useShowControl();
+  const controlProps = useControlProps();
   // Page editing makes a new document, which the viewer then shows instead of `src`
   const [editing, setEditing] = useState(false);
   const [editedData, setEditedData] = useState<Uint8Array | null>(null);
@@ -123,6 +129,9 @@ export function PdfView() {
     scrollRoot,
     scrollToPage,
   });
+  const markup = useMarkup(context.markup);
+  const [markupOpened, setMarkupOpened] = useState(false);
+  const withMarkupBar = !!context.markup.withMarkup && (markupOpened || markup.tool !== null);
   const pdfLayers = usePdfLayers(document);
   const layers = { config: pdfLayers.config, version: pdfLayers.version };
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });
@@ -170,6 +179,8 @@ export function PdfView() {
     togglePresentation: () => {
       ready && presentation.toggle();
     },
+    setMarkupTool: markup.setTool,
+    saveMarkup: () => saveMarkup(),
     print,
   });
 
@@ -210,9 +221,21 @@ export function PdfView() {
     if (context.onSave) {
       await context.onSave(bytes, { reason, pages });
     } else {
-      const suffix = reason === 'extract' ? 'pages' : 'edited';
+      const suffixes = { extract: 'pages', annotate: 'annotated' } as Record<string, string>;
+      const suffix = suffixes[reason] ?? 'edited';
       saveBytes(bytes, getEditedFileName(context.fileName, suffix), 'application/pdf');
     }
+  };
+
+  /** Writes the marks into the PDF and saves it, with the pages that have marks */
+  const saveMarkup = async () => {
+    if (!document || markup.marks.length === 0) {
+      return;
+    }
+    const bytes = await markup.save(document);
+    const pages = [...new Set(markup.marks.map((mark) => mark.page))].sort((a, b) => a - b);
+    await savePdf(bytes, 'annotate', pages);
+    announce(labels.markupSaved);
   };
 
   /** Moves a page by dragging its thumbnail: the viewer shows the reordered document */
@@ -354,7 +377,38 @@ export function PdfView() {
               onEditPages={() => setEditing(true)}
             />
           )}
+          {ready && context.markup.withMarkup && show('markup') && (
+            <DocViewerTooltip label={labels.markup}>
+              <ActionIcon
+                {...controlProps(withMarkupBar)}
+                aria-label={labels.markup}
+                aria-pressed={withMarkupBar}
+                onClick={() => {
+                  setMarkupOpened(!withMarkupBar);
+                  withMarkupBar && markup.setTool(null);
+                }}
+              >
+                <MarkupIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+          )}
         </DocViewerToolbar>
+      )}
+
+      {ready && withMarkupBar && !presenting && (
+        <PdfMarkupBar
+          markup={markup}
+          onSave={() =>
+            saveMarkup().catch((error: Error) => {
+              // eslint-disable-next-line no-console
+              console.error(error);
+            })
+          }
+          onClose={() => {
+            setMarkupOpened(false);
+            markup.setTool(null);
+          }}
+        />
       )}
 
       {ready && search.opened && !presenting && (
@@ -414,6 +468,7 @@ export function PdfView() {
                   registerPage={registerPage}
                   linkService={linkService}
                   onTextLayer={onTextLayer}
+                  markup={markup}
                 />
               ))}
             </div>

@@ -181,11 +181,39 @@ it works with a mouse, touch and a pen; a bar shows where the page will land.
   withPageEditing
   onSave={async (bytes, { reason, pages }) => {
     // reason: 'save' for the edited document, 'extract' for selected pages,
-    // 'reorder' after a thumbnail was dragged to a new place
+    // 'reorder' after a thumbnail was dragged to a new place,
+    // 'annotate' for the document with the reader's marks written in
     await upload(new Blob([bytes], { type: 'application/pdf' }), { reason, pages });
   }}
 />
 ```
+
+## Markup
+
+Set `withMarkup` to add a markup button to the PDF toolbar. It opens a bar with tools to highlight,
+draw with a pen, type text boxes, draw rectangles, ellipses and revision clouds, and sign. Undo
+removes the last mark; Save writes the marks into the PDF as real annotations (pdf.js writes them,
+so other PDF readers show and edit them) and hands the bytes to `onSave` with `reason: 'annotate'`,
+or downloads them. `markupTools` picks the tools in the bar, and `markupColor`, `markupWidth` and
+`markupFontSize` style new marks.
+
+Marks are data: `markup`, `defaultMarkup` and `onMarkupChange` hold them, in PDF points from each
+page's top-left. The tool can be controlled too, with `markupTool` and `onMarkupToolChange`, so an
+app can use its own buttons without the bar, and `controllerRef.current.saveMarkup()` saves.
+
+```tsx
+<DocViewer
+  src="/files/plan-set.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  withMarkup
+  markupTools={['cloud', 'pen', 'text']}
+  markupColor="red"
+  onSave={(bytes, { reason }) => reason === 'annotate' && uploadSheet(bytes)}
+/>
+```
+
+Content that belongs to the app rather than the PDF, such as comment pins with their own status,
+goes in `renderPageOverlay` instead.
 
 ## Events and controller
 
@@ -223,7 +251,7 @@ function Demo() {
 | `onZoomChange` | Called with the scale (1 is 100%) and whether it is fitted |
 | `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
 | `defaultZoom` | A scale, or `'fit'` (the default) |
-| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `getOutline`, `print`, `download` and `toggleFullscreen` |
+| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `setMarkupTool`, `saveMarkup`, `getOutline`, `print`, `download` and `toggleFullscreen` |
 
 ## Other file types
 

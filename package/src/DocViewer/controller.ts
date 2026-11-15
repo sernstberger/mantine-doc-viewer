@@ -2,6 +2,7 @@ import { useCallbackRef } from '@mantine/hooks';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import type { DocType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
+import type { DocViewerMarkupTool } from './pdf/markup';
 
 /** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
 export type DocViewerZoom = number | 'fit';
@@ -34,6 +35,12 @@ export interface DocViewerController {
 
   /** Opens the PDF page editor (needs `withPageEditing`) */
   editPages: () => void;
+
+  /** Picks a markup tool to draw on PDF pages with, or puts it down with `null` */
+  setMarkupTool: (tool: DocViewerMarkupTool | null) => void;
+
+  /** Writes the marks into the PDF and hands the bytes to `onSave` (`reason: 'annotate'`), or downloads them */
+  saveMarkup: () => Promise<void>;
 
   /** The PDF's outline (bookmarks) with page numbers, empty for other documents and PDFs without one */
   getOutline: () => Promise<DocViewerOutlineItem[]>;
@@ -105,6 +112,10 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       toggleThumbnails: call('toggleThumbnails'),
       togglePresentation: call('togglePresentation'),
       editPages: call('editPages'),
+      setMarkupTool: call('setMarkupTool'),
+      saveMarkup: async () => {
+        await implementation.current.saveMarkup?.();
+      },
       print: async () => {
         await implementation.current.print?.();
       },
