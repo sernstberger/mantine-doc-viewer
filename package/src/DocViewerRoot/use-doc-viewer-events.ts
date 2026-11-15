@@ -4,7 +4,7 @@ import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.s
 import type { ControllerImplementation, DocViewerEvents } from '../hooks/use-controller-registry';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
 
-type RootEvents = Omit<DocViewerEvents, 'onDocumentLoadStart' | 'onSpreadChange'>;
+type RootEvents = Omit<DocViewerEvents, 'onDocumentLoadStart'>;
 
 interface DocViewerEventsInput {
   props: RootEvents;
@@ -15,7 +15,10 @@ interface DocViewerEventsInput {
   controller: React.RefObject<ControllerImplementation>;
 }
 
-/** Handlers that write what they report into the store, then call the latest props */
+/**
+ * Handlers that call the latest props. Load, error and zoom (reported by every document type) are
+ * also written into the store; the PDF session projects the rest of its state itself
+ */
 function createEvents(
   store: DocViewerStore,
   controller: React.RefObject<ControllerImplementation>,
@@ -44,19 +47,12 @@ function createEvents(
       update({ status: 'error', error });
       props().onDocumentError?.(error);
     },
-    onPageChange: (page) => {
-      update({ page });
-      props().onPageChange?.(page);
-    },
-    onSpreadChange: (index, pages) => update({ spread: { index, pages } }),
+    onPageChange: (page) => props().onPageChange?.(page),
     onZoomChange: (zoom, details) => {
       update({ zoom, scale: details.scale });
       props().onZoomChange?.(zoom, details);
     },
-    onPageLayoutChange: (layout) => {
-      update({ pageLayout: layout });
-      props().onPageLayoutChange?.(layout);
-    },
+    onPageLayoutChange: (layout) => props().onPageLayoutChange?.(layout),
     onReadingProgress: (progress) => props().onReadingProgress?.(progress),
     onReachEnd: () => props().onReachEnd?.(),
     onLinkClick: (url, event) => props().onLinkClick?.(url, event),
@@ -64,7 +60,7 @@ function createEvents(
   };
 }
 
-/** Stable event handlers for the views; each also writes what it reports into the store */
+/** Stable event handlers for the views */
 export function useDocViewerEvents(input: DocViewerEventsInput) {
   const latest = useRef(input);
   latest.current = input;

@@ -16,6 +16,7 @@ import { usePresentation } from './use-presentation';
 import { useThumbnailsPanel } from './use-thumbnails-panel';
 import type { DocViewerZoom } from '../use-controller-registry';
 import { useZoomSetting } from '../use-zoom-setting';
+import { useDocViewerStateValue } from '../use-doc-viewer-state';
 import { fromPdfZoom, toPdfZoom, type PdfZoom } from '../../utils/pdf-zoom';
 
 /** The loaded state of a PDF, its document and its page count, as `getLoaded` gives them */
@@ -44,7 +45,8 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
     defaultLayout: context.defaultPageLayout,
     onChange: context.events.onPageLayoutChange,
   });
-  const [rotation, setRotation] = useState<PdfRotation>(0);
+  const [storedRotation, setRotation] = useDocViewerStateValue(context.store, 'rotation');
+  const rotation = storedRotation as PdfRotation;
   const thumbnailsPanel = useThumbnailsPanel(context);
 
   const [pagesNode, setPagesNode] = useState<HTMLDivElement | null>(null);
@@ -56,6 +58,7 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
   const gutter = usePagesGutter(pagesNode, bodyWidth);
   const pageSize = getPageSize(ready?.firstPageSize, rotation);
   const presentation = usePresentation({
+    store: context.store,
     fullscreen: context.fullscreen,
     toggleFullscreen: context.toggleFullscreen,
     body: scrollRoot,
@@ -91,7 +94,7 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
     layout,
     setLayout,
     rotation,
-    rotate: () => setRotation(nextRotation),
+    rotate: () => setRotation((current) => nextRotation(current as PdfRotation)),
     thumbnailsPanel,
     pagesNode,
     setPagesNode,

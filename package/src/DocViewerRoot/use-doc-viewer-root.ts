@@ -1,5 +1,6 @@
-import { use, useState, useSyncExternalStore } from 'react';
+import { use, useEffect, useState } from 'react';
 import {
+  getEnv,
   getSpacing,
   getThemeColor,
   MantineColor,
@@ -11,21 +12,61 @@ import { useIsomorphicEffect } from '@mantine/hooks';
 import {
   createDocViewerStore,
   updateDocViewerStateAction,
-  type DocViewerState,
   type DocViewerStore,
 } from '../doc-viewer.store';
+import type { DocViewerExtension } from '../doc-viewer.types';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
-import type { DocViewerMarkupOptions } from '../DocViewerMarkup/markup-extension';
-import type { DocViewerPageEditorOptions } from '../DocViewerPageEditor/page-editor-extension';
-import { getExtensionOptions, useDocViewerContextValue } from './doc-viewer-context-value';
+import type { DocViewerLabels } from '../default-labels';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { useDocViewerContextValue } from './doc-viewer-context-value';
 import type { DocViewerRootFactory, DocViewerRootProps } from './DocViewerRoot';
 import { DocViewerLayoutContext, type DocViewerLayoutConfig } from './layout-context';
 import { useDocViewerEvents } from './use-doc-viewer-events';
 import { useDocViewerSession } from './use-doc-viewer-session';
 
-function useStoreSlice<T>(store: DocViewerStore, select: (state: DocViewerState) => T) {
-  const getSnapshot = () => select(store.getState());
-  return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
+const storeOwners = new WeakMap<DocViewerStore, object>();
+
+/** In development, throws when a second mounted Root is given a store another Root already uses */
+function useStoreOwner(store: DocViewerStore) {
+  const [owner] = useState(() => ({}));
+  useEffect(() => {
+    if (getEnv() === 'development' && storeOwners.has(store)) {
+      throw new Error(
+        '[mantine-doc-viewer] One store is passed to two DocViewer.Root components. Create a store for each viewer with useDocViewer()'
+      );
+    }
+    storeOwners.set(store, owner);
+    return () => {
+      storeOwners.get(store) === owner && storeOwners.delete(store);
+    };
+  }, [store, owner]);
+}
+
+let warnedMissingPdfAdapter = false;
+
+/** Forgets that the missing PDF adapter warning was shown, for tests */
+export function resetMissingPdfAdapterWarning() {
+  warnedMissingPdfAdapter = false;
+}
+
+/** In development, warns once when a PDF is shown without a PDF adapter */
+function useMissingPdfAdapterWarning(missing: boolean) {
+  useEffect(() => {
+    if (missing && getEnv() === 'development' && !warnedMissingPdfAdapter) {
+      warnedMissingPdfAdapter = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[mantine-doc-viewer] PDF files need DocViewerAdapterProvider with createPdfJsAdapter: <DocViewerAdapterProvider pdf={createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc })}>"
+      );
+    }
+  }, [missing]);
+}
+
+/** Labels the extensions bring, from the `labels` option each of them takes */
+function getExtensionLabels(extensions: DocViewerExtension[] | undefined) {
+  return (extensions ?? []).map(
+    (extension) => (extension.options as { labels?: Partial<DocViewerLabels> } | undefined)?.labels
+  );
 }
 
 /** CSS variables of the parts, from the part props `DocViewer` passes through */
@@ -68,8 +109,7 @@ export function useDocViewerRoot(
   const adapters = useDocViewerAdapters();
   const [ownStore] = useState(createDocViewerStore);
   const store = props.store ?? ownStore;
-  const editor = getExtensionOptions<DocViewerPageEditorOptions>(props.extensions, 'page-editor');
-  const markup = getExtensionOptions<DocViewerMarkupOptions>(props.extensions, 'markup');
+  useStoreOwner(store);
 
   const session = useDocViewerSession({
     src: props.src,
@@ -77,7 +117,7 @@ export function useDocViewerRoot(
     mimeType: props.mimeType,
     fileName: props.fileName,
     labels: props.labels,
-    extensionLabels: [editor?.labels, markup?.labels],
+    extensionLabels: getExtensionLabels(props.extensions),
     toggleOnTap: layout.toolbarProps?.toggleOnTap,
     fullscreen: props.fullscreen,
     onFullscreenChange: (value) => {
@@ -96,9 +136,10 @@ export function useDocViewerRoot(
     controller: session.controller,
   });
   useThumbnailsDefaults(props, store, session.type);
+  useMissingPdfAdapterWarning(session.type === 'pdf' && !adapters.pdf);
 
-  const thumbnailsOpened = useStoreSlice(store, (state) => state.thumbnailsOpened);
-  const thumbnailsPosition = useStoreSlice(store, (state) => state.thumbnailsPosition);
+  const thumbnailsOpened = useDocViewerState(store, (state) => state.thumbnailsOpened);
+  const thumbnailsPosition = useDocViewerState(store, (state) => state.thumbnailsPosition);
   const partVars = usePartVars(layout);
   const value = useDocViewerContextValue({
     props,
@@ -111,5 +152,5 @@ export function useDocViewerRoot(
     thumbnails: { thumbnailsOpened, thumbnailsPosition },
   });
 
-  return { value, session, partVars };
+  return { value, session, partVars, withPdfSession: session.type === 'pdf' && !!adapters.pdf };
 }

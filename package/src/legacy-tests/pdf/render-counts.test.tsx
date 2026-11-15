@@ -198,7 +198,7 @@ describe('page renders on a page turn and a new mark', () => {
     expect(rendersSince(renderPageOverlay, before)).toEqual([]);
   });
 
-  it('renders only the page a new mark is on', async () => {
+  it('renders no page for a new mark: the markup page layer shows it', async () => {
     mockPdf({ numPages: NUM_PAGES });
     const renderPageOverlay = countPageRenders();
     function App() {
@@ -238,7 +238,7 @@ describe('page renders on a page turn and a new mark', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
     await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
     await act(async () => {});
-    expect(rendersSince(renderPageOverlay, before)).toEqual([2, 2]);
+    expect(rendersSince(renderPageOverlay, before)).toEqual([]);
     expect(container.querySelectorAll('rect[data-mark="highlight"]')).toHaveLength(2);
   });
 });

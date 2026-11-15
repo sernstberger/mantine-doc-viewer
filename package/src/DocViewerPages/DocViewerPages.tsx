@@ -12,11 +12,11 @@ import {
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerPasswordInputProps, DocViewerReadingProgress } from '../doc-viewer.types';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
-import { PdfReaderBody } from '../DocViewerRoot/PdfReader';
 import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
 import type { DocViewerPageRect } from '../utils/page-points';
 import type { DocViewerPageTurning } from '../utils/spreads';
 import classes from '../DocViewer.module.css';
+import { PdfPagesBody } from './PdfPagesBody';
 
 export type DocViewerPagesStylesNames =
   | 'body'
@@ -91,17 +91,7 @@ export const DocViewerPages = factory<DocViewerPagesFactory>((_props) => {
     return null;
   }
 
-  return (
-    <PdfReaderBody
-      state={session.state}
-      loaded={session.loaded}
-      view={session.view}
-      position={session.position}
-      content={session.content}
-      turns={session.turns}
-      onKeyDown={session.actions.handleKeyDown}
-    />
-  );
+  return <PdfPagesBody session={session} />;
 });
 
 DocViewerPages.classes = classes;

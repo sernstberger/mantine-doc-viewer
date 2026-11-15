@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { DocViewerPageLayout } from '../../doc-viewer.types';
 import { clampPage } from '../../utils/geometry';
 import {
@@ -15,21 +15,13 @@ interface SpreadsInput {
   /** False while there is no document: nothing is reported */
   ready: boolean;
   goToPage: (page: number) => void;
-  onSpreadChange: (spread: number, pages: number[]) => void;
 }
 
 /**
  * The pages shown side by side (pairs in two-page layouts, single pages in the others), turning by
- * spread, and `onSpreadChange` whenever the spread in view, or its pages, change
+ * spread, and the spread in view (counted from 1) once the document is ready
  */
-export function useSpreads({
-  layout,
-  numPages,
-  currentPage,
-  ready,
-  goToPage,
-  onSpreadChange,
-}: SpreadsInput) {
+export function useSpreads({ layout, numPages, currentPage, ready, goToPage }: SpreadsInput) {
   const spreads = useMemo(() => getSpreads(layout, numPages), [layout, numPages]);
   const spreadIndex = getSpreadIndex(spreads, currentPage);
 
@@ -42,17 +34,7 @@ export function useSpreads({
     pages && goToPage(pages[0]);
   };
 
-  const reported = useRef('');
-  useEffect(() => {
-    if (!ready) {
-      return;
-    }
-    const pages = spreads[spreadIndex];
-    if (pages.join() !== reported.current) {
-      reported.current = pages.join();
-      onSpreadChange(spreadIndex + 1, pages);
-    }
-  }, [ready, spreads, spreadIndex, onSpreadChange]);
+  const spread = ready ? { index: spreadIndex + 1, pages: spreads[spreadIndex] } : null;
 
-  return { turn, goToSpread };
+  return { turn, goToSpread, spread };
 }

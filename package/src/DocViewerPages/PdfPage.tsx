@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import type { PdfLinkService } from '../utils/link-service';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
@@ -8,11 +8,7 @@ import { type PdfRotation, rotateSize } from '../utils/render-page';
 import { getOverlayStyle } from '../utils/page-overlay';
 import type { DocViewerPageRect } from '../utils/page-points';
 import { PdfHighlightLayer } from './PdfHighlightLayer';
-import { NO_MARKS } from '../utils/marks-by-page';
-import { PdfMarkupLayer } from '../DocViewerMarkup/PdfMarkupLayer';
-import { PdfMarkList } from '../DocViewerMarkup/PdfMarkupText';
-import type { DocViewerMark } from '../utils/markup';
-import type { PdfLayerMarkup } from '../hooks/pdf/use-markup';
+import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
 import { useLinkLayer } from '../hooks/pdf/use-link-layer';
 import { useNearViewport } from '../hooks/pdf/use-near-viewport';
 import { usePageCanvas } from '../hooks/pdf/use-page-canvas';
@@ -49,14 +45,15 @@ interface PdfPageProps {
 
   /** Boxes marked by `controller.highlight`, in page coordinates */
   highlightRects?: DocViewerPageRect[];
-  /** The tool to draw new marks with */
-  markup?: PdfLayerMarkup;
+}
 
-  /** Marks to show on the page */
-  marks?: DocViewerMark[];
-
-  /** The page whose markup layer the Tab key reaches while a tool is picked */
-  markupTabStop?: boolean;
+/** The page layers of the extensions, the same array while the extensions are */
+function usePageLayers() {
+  const extensions = useDocViewerExtensions();
+  return useMemo(
+    () => extensions.flatMap((extension) => (extension.pageLayer ? [extension.pageLayer] : [])),
+    [extensions]
+  );
 }
 
 function PdfPageView({
@@ -66,14 +63,12 @@ function PdfPageView({
   scrollRoot,
   registerPage,
   highlightRects,
-  markup,
-  marks = NO_MARKS,
-  markupTabStop = false,
   ...props
 }: PdfPageProps) {
   const { document, pageNumber, scale } = props;
   const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
+  const pageLayers = usePageLayers();
   // What the canvas, text and link layers draw from; each hook takes the fields it needs
   const page = { ...props, rotation, near };
 
@@ -113,18 +108,9 @@ function PdfPageView({
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
       {highlightRects && <PdfHighlightLayer rects={highlightRects} {...layerSize} />}
-      {marks.length > 0 && <PdfMarkList pageNumber={pageNumber} marks={marks} />}
-      {/* Only near the view: a long document would otherwise hold a layer for every page */}
-      {markup && near && (
-        <PdfMarkupLayer
-          pageNumber={pageNumber}
-          numPages={numPages}
-          tabStop={markupTabStop}
-          markup={markup}
-          marks={marks}
-          {...layerSize}
-        />
-      )}
+      {pageLayers.map((Layer, index) => (
+        <Layer key={index} page={pageNumber} numPages={numPages} near={near} {...layerSize} />
+      ))}
       {overlay != null && overlay !== false && (
         <div
           {...getStyles('pageOverlay', {

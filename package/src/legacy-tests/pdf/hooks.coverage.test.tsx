@@ -5,6 +5,7 @@ import * as pdfjs from 'pdfjs-dist';
 import React, { useLayoutEffect } from 'react';
 import { DocViewer } from '../../../../test-utils/render-legacy';
 import { DocViewerProvider } from '../../doc-viewer.context';
+import { createDocViewerStore } from '../../doc-viewer.store';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { PdfPage } from '../../DocViewerPages/PdfPage';
@@ -296,10 +297,13 @@ describe('usePresentation', () => {
     restore.splice(0).forEach((fn) => fn());
   });
 
-  const setup = (toggle: jest.Mock, fullscreen = false, body: HTMLElement | null = null) =>
-    renderHook((props) => usePresentation(props), {
-      initialProps: { fullscreen, toggleFullscreen: toggle, body },
+  const store = createDocViewerStore();
+  const setup = (toggle: jest.Mock, fullscreen = false, body: HTMLElement | null = null) => {
+    store.setState({ ...store.getState(), presenting: false });
+    return renderHook((props) => usePresentation(props), {
+      initialProps: { store, fullscreen, toggleFullscreen: toggle, body },
     });
+  };
 
   it('presents inside the viewer where full screen is not available', async () => {
     const toggle = jest.fn(() => Promise.resolve());
@@ -370,9 +374,9 @@ describe('usePresentation', () => {
     const toggle = jest.fn(() => Promise.resolve());
     const { result, rerender } = setup(toggle);
     await act(() => result.current.start());
-    rerender({ fullscreen: true, toggleFullscreen: toggle, body: null });
+    rerender({ store, fullscreen: true, toggleFullscreen: toggle, body: null });
     expect(result.current.presenting).toBe(true);
-    rerender({ fullscreen: false, toggleFullscreen: toggle, body: null });
+    rerender({ store, fullscreen: false, toggleFullscreen: toggle, body: null });
     expect(result.current.presenting).toBe(false);
   });
 });

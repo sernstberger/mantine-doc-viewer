@@ -10,10 +10,12 @@ import {
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerPages } from '../DocViewerPages/DocViewerPages';
 import { DocViewerPresentationControls } from '../DocViewerPresentationControls/DocViewerPresentationControls';
+import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import { getThumbnailsLayout } from '../utils/geometry';
 import classes from '../DocViewer.module.css';
-import { PdfMain } from './PdfMain';
 
 export type DocViewerMainStylesNames = 'main';
 
@@ -30,24 +32,43 @@ export type DocViewerMainFactory = Factory<{
   compound: true;
 }>;
 
-/** The row under the toolbar: thumbnails, pages and presentation controls of a PDF */
+/** The screen of the extension whose mode is on (the page editor), null in reading mode */
+function useExtensionScreen() {
+  const { store } = useDocViewerContext();
+  const mode = useDocViewerState(store, (state) => state.mode);
+  const extensions = useDocViewerExtensions();
+  return extensions.find((extension) => extension.screen?.mode === mode)?.screen?.Component;
+}
+
+/**
+ * The row under the toolbar: thumbnails, pages and presentation controls of a PDF, in the DOM
+ * order the thumbnails position needs. While an extension mode is on it shows that screen instead
+ */
 export const DocViewerMain = factory<DocViewerMainFactory>((_props) => {
   const { children } = useProps('DocViewerMain', null, _props);
-  useDocViewerContext();
+  const { getStyles } = useDocViewerContext();
   const session = usePdfSession();
+  const Screen = useExtensionScreen();
   if (!session) {
     return null;
   }
+  if (Screen && session.loaded.ready) {
+    return <Screen />;
+  }
 
+  const { presenting, thumbnailsPanel } = session.view;
+  const { first } = getThumbnailsLayout(thumbnailsPanel.position);
   return (
-    <PdfMain
-      position={session.view.thumbnailsPanel.position}
-      presenting={session.view.presenting}
-      thumbnails={<DocViewerThumbnails />}
-      presentationControls={<DocViewerPresentationControls />}
+    <div
+      {...getStyles('main')}
+      data-thumbnails-position={thumbnailsPanel.position}
+      data-presenting={presenting || undefined}
     >
+      {first && <DocViewerThumbnails />}
       {children ?? <DocViewerPages />}
-    </PdfMain>
+      {!first && <DocViewerThumbnails />}
+      {presenting && <DocViewerPresentationControls />}
+    </div>
   );
 });
 

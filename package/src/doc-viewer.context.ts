@@ -19,7 +19,6 @@ import type {
   DocViewerZoom,
 } from './doc-viewer.types';
 import type { ControllerImplementation, DocViewerEvents } from './hooks/use-controller-registry';
-import type { DocViewerMarkupProps } from './hooks/pdf/use-markup';
 import { useShallowStable } from './DocViewerRoot/use-shallow-stable';
 import type { DocViewerType } from './utils/get-doc-viewer-type';
 import type { DocViewerRenderPageOverlay } from './utils/page-overlay';
@@ -78,14 +77,9 @@ export interface DocViewerContextValue {
   zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
   withFullscreen: boolean;
-  withPageEditing: boolean;
-  withThumbnailEditing: boolean;
-  compactPageEditor: boolean | undefined;
   withPageTurning: boolean | DocViewerPageTurning | undefined;
   withScrollSnap: boolean | undefined;
   withScroll: boolean | undefined;
-  onSave: DocViewerSaveHandler | undefined;
-  markup: DocViewerMarkupProps;
   fullscreen: boolean;
   toggleFullscreen: () => Promise<void>;
 }

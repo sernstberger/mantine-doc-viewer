@@ -27,7 +27,7 @@ import type { DocViewerPresentationButton } from './DocViewerPresentationButton/
 import type { DocViewerPresentationControls } from './DocViewerPresentationControls/DocViewerPresentationControls';
 import type { DocViewerPrintButton } from './DocViewerPrintButton/DocViewerPrintButton';
 import type { DocViewerRotateButton } from './DocViewerRotateButton/DocViewerRotateButton';
-import { LegacyLayout } from './DocViewerRoot/LegacyLayout';
+import { DefaultLayout } from './DocViewerRoot/DefaultLayout';
 import { DocViewerLayoutContext } from './DocViewerRoot/layout-context';
 import {
   DocViewerRoot,
@@ -170,7 +170,7 @@ export const DocViewerBase = factory<DocViewerFactory>((_props) => {
 
   return (
     <DocViewerLayoutContext value={layout}>
-      <DocViewerRoot {...others}>{children ?? <LegacyLayout />}</DocViewerRoot>
+      <DocViewerRoot {...others}>{children ?? <DefaultLayout />}</DocViewerRoot>
     </DocViewerLayoutContext>
   );
 });

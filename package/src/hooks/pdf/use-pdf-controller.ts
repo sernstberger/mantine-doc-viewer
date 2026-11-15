@@ -17,7 +17,6 @@ interface PdfControllerInput {
   numPages: number;
   scale: number;
   scrollRoot: HTMLElement | null;
-  withPageEditing: boolean | undefined;
   goToPage: (
     page: number,
     withAnnouncement: boolean,
@@ -25,7 +24,6 @@ interface PdfControllerInput {
     behavior?: 'smooth' | 'instant'
   ) => void;
   setZoom: (zoom: PdfZoom) => void;
-  setEditing: (editing: boolean) => void;
   toggleThumbnails: (opened?: boolean) => void;
   togglePresentation: () => void;
   passage: Pick<ReturnType<typeof usePassageHighlight>, 'highlight' | 'clear'>;
@@ -38,8 +36,6 @@ interface PdfControllerInput {
     | 'previousSpread'
     | 'setPageLayout'
     | 'rotate'
-    | 'setMarkupTool'
-    | 'saveMarkup'
     | 'print'
     | 'resetReadingProgress'
   >;
@@ -64,9 +60,6 @@ export function usePdfController(input: PdfControllerInput) {
     toggleThumbnails: input.toggleThumbnails,
     getOutline: async () =>
       document ? getResolvedOutline(document, await document.getOutline().catch(() => null)) : [],
-    editPages: () => {
-      input.withPageEditing && ready && input.setEditing(true);
-    },
     togglePresentation: () => {
       ready && input.togglePresentation();
     },
