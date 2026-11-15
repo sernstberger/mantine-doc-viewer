@@ -4,7 +4,7 @@ import { useDisclosure } from '@mantine/hooks';
 import React from 'react';
 import { DocViewerTooltip, useControlProps } from './DocViewerTooltip';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { EditPagesIcon, InfoIcon, OutlineIcon, PresentationIcon, SearchIcon } from '../utils/icons';
+import { InfoIcon, OutlineIcon, PresentationIcon, SearchIcon } from '../utils/icons';
 import { usePdfAttachments, usePdfProperties } from '../utils/document-info';
 import { PdfDocumentInfo } from '../DocViewerDocumentInfo/PdfDocumentInfo';
 import { PdfOutline, usePdfOutline } from '../DocViewerOutline/PdfOutline';
@@ -141,34 +141,6 @@ export function PresentationControl({
           onClick={onPresent}
         >
           <PresentationIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
-    )
-  );
-}
-
-/** Page editor button, when page editing is enabled */
-export function EditPagesControl({
-  onEditPages,
-  buttonRef,
-}: {
-  onEditPages: () => void;
-  buttonRef?: React.Ref<HTMLButtonElement>;
-}) {
-  const { labels, withPageEditing } = useDocViewerContext();
-  const show = useShowControl();
-  const controlProps = useControlProps();
-  return (
-    show('editPages') &&
-    withPageEditing && (
-      <DocViewerTooltip label={labels.editPagesLabel}>
-        <ActionIcon
-          ref={buttonRef}
-          {...controlProps()}
-          aria-label={labels.editPagesLabel}
-          onClick={onEditPages}
-        >
-          <EditPagesIcon />
         </ActionIcon>
       </DocViewerTooltip>
     )

@@ -3,6 +3,7 @@ import React from 'react';
 import { softDisabled } from '../utils/a11y';
 import { DocViewerTooltip } from '../DocViewerToolbar/DocViewerTooltip';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { usePageEditor } from './page-editor-setup';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -24,11 +25,12 @@ interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
   [key: string]: unknown;
 }
 
-/** An action of the editor bar: a labelled button, or an icon with the label as tooltip when `compactPageEditor` is set */
+/** An action of the editor bar: a labelled button, or an icon with the label as tooltip with the `compact` option */
 function EditorButton({ label, icon, variant, loading, ...others }: EditorButtonProps) {
-  const { getStyles, size, compactPageEditor } = useDocViewerContext();
+  const { getStyles, size } = useDocViewerContext();
+  const compact = usePageEditor()?.compact;
 
-  if (!compactPageEditor) {
+  if (!compact) {
     return (
       <Button
         {...getStyles('editorButton')}

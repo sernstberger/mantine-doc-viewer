@@ -216,11 +216,29 @@ export interface DocViewerLoadInfo {
 export interface DocViewerPageLayerProps {
   /** Page number, counted from 1 */
   page: number;
+
+  /** Number of pages of the document */
+  numPages: number;
+
+  /** Whether the page is near the visible area; far pages draw nothing heavy */
+  near: boolean;
+
+  /** Page size at 100% in PDF points, before the viewer's rotation */
+  width: number;
+  height: number;
+
+  /** Scale the page is drawn at, where 1 is 100% */
+  scale: number;
+
+  /** Rotation of the view in degrees */
+  rotation: 0 | 90 | 180 | 270;
 }
 
-/** Reorder support an extension gives the thumbnails */
+/** Reorder and delete support an extension gives the thumbnails, provided by its `setup` */
 export interface DocViewerReorderSlot {
   onReorder: (page: number, toIndex: number) => void | Promise<void>;
+
+  /** Adds a delete action to each thumbnail and the Delete key; not set while one page is left */
   onDelete?: (page: number) => void | Promise<void>;
 }
 
@@ -228,8 +246,11 @@ export interface DocViewerReorderSlot {
 export interface DocViewerExtension {
   readonly name: 'page-editor' | 'markup' | (string & {});
 
-  /** @internal Mounted inside the PDF session: hooks, registry, store writes */
-  readonly setup?: React.ComponentType;
+  /**
+   * @internal Mounted inside the PDF session around the viewer's content: hooks, registry, store
+   * writes, and the contexts the extension's own parts and the session's slot contexts read
+   */
+  readonly setup?: React.ComponentType<{ children: React.ReactNode }>;
 
   /** @internal Toolbar controls the default toolbar inserts after their anchor control */
   readonly toolbarControls?: {
@@ -244,10 +265,9 @@ export interface DocViewerExtension {
   /** @internal Layer drawn on every PDF page */
   readonly pageLayer?: React.ComponentType<DocViewerPageLayerProps>;
 
-  /** @internal Thumbnail action and reorder support */
+  /** @internal Action shown on every thumbnail; reorder support comes from `setup` (DocViewerReorderSlot) */
   readonly thumbnail?: {
     action?: React.ComponentType<{ page: number }>;
-    reorder?: DocViewerReorderSlot;
   };
 
   /** @internal Screen that replaces the content of `DocViewer.Main` while `state.mode` is `mode` */

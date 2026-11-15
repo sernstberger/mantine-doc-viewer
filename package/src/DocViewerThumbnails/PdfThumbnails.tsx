@@ -1,10 +1,10 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useCallbackRef, useMergedRef } from '@mantine/hooks';
-import React, { useMemo, useState } from 'react';
+import React, { use, useMemo, useState } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import { DragHandleIcon } from '../utils/icons';
-import { initialOrder } from '../utils/page-edits';
-import { PdfThumbnailDelete } from '../DocViewerPageEditor/PdfThumbnailDelete';
+import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
+import { PdfThumbnailEditsContext } from '../DocViewerRoot/pdf-session-context';
 import { PdfRotation, rotateSize } from '../utils/render-page';
 import type { PdfPageSize } from '../hooks/pdf/use-pdf-document';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
@@ -36,7 +36,8 @@ interface PdfThumbnailProps {
   reorder: ReorderList;
   dragState: ReorderItemState;
   onSelect: (pageNumber: number) => void;
-  onDelete?: (pageNumber: number) => void;
+  /** Actions of the extensions, shown on the thumbnail */
+  actions: React.ComponentType<{ page: number }>[];
 }
 
 function PdfThumbnailView({
@@ -51,7 +52,7 @@ function PdfThumbnailView({
   reorder,
   dragState,
   onSelect,
-  onDelete,
+  actions,
 }: PdfThumbnailProps) {
   const { getStyles, labels, thumbnailWidth } = useDocViewerPageContext();
   const horizontal = orientation === 'horizontal';
@@ -98,7 +99,9 @@ function PdfThumbnailView({
           <DragHandleIcon />
         </span>
       )}
-      {onDelete && <PdfThumbnailDelete pageNumber={pageNumber} onDelete={onDelete} />}
+      {actions.map((Action, index) => (
+        <Action key={index} page={pageNumber} />
+      ))}
       <span
         {...getStyles('thumbnailImage', {
           style: { width, height: (pageSize.height / pageSize.width) * width },
@@ -124,11 +127,24 @@ export interface PdfThumbnailsProps {
   layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   onSelect: (pageNumber: number) => void;
-  /** Reorders the document by dragging thumbnails; without it thumbnails do not drag */
-  onReorder?: (pageNumber: number, toIndex: number) => void;
-  /** Adds a delete button to each thumbnail, and makes Delete remove the focused page */
-  onDelete?: (pageNumber: number) => void;
 }
+
+/** The thumbnail actions of the extensions, the same array while the extensions are */
+function useThumbnailActions() {
+  const extensions = useDocViewerExtensions();
+  return useMemo(
+    () =>
+      extensions.flatMap((extension) =>
+        extension.thumbnail?.action ? [extension.thumbnail.action] : []
+      ),
+    [extensions]
+  );
+}
+
+/**
+ * The thumbnails strip. An extension's setup can make thumbnails drag to reorder and delete pages
+ * (PdfThumbnailEditsContext); its thumbnail actions show on each thumbnail
+ */
 
 export function PdfThumbnails({
   document,
@@ -138,30 +154,32 @@ export function PdfThumbnails({
   layers,
   orientation,
   onSelect,
-  onReorder,
-  onDelete,
 }: PdfThumbnailsProps) {
   const { getStyles, labels } = useDocViewerPageContext();
+  const edits = use(PdfThumbnailEditsContext);
+  const actions = useThumbnailActions();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
 
   const numPages = document.numPages;
   const horizontal = orientation === 'horizontal';
-  const order = useMemo(() => initialOrder(numPages), [numPages]);
+  const order = useMemo(
+    () => Array.from({ length: numPages }, (_, index) => index + 1),
+    [numPages]
+  );
   const { list: reorder, getItemState } = useReorderList({
     container: scrollRoot,
     layout: horizontal ? 'horizontal' : 'vertical',
     order,
-    // Only called when dragging is enabled, which needs onReorder
-    onReorder: (page, toIndex) => onReorder!(page, toIndex),
-    enabled: !!onReorder,
+    // Only called when dragging is enabled, which needs the edits
+    onReorder: (page, toIndex) => edits!.onReorder(page, toIndex),
+    enabled: !!edits,
   });
 
   // The same functions on every render, so thumbnails skip renders their own props do not need
   const select = useCallbackRef(onSelect);
-  // Only called when there is a delete button, which needs onDelete
-  const remove = useCallbackRef((page: number) => onDelete!(page));
-  // The last page stays: no delete button, and Delete does nothing
-  const deletePage = numPages > 1 && onDelete ? remove : undefined;
+  // Only called when the edits can delete
+  const remove = useCallbackRef((page: number) => edits!.onDelete!(page));
+  const deletePage = edits?.onDelete ? remove : undefined;
   const handleKeyDown = useThumbnailKeys({
     numPages,
     horizontal,
@@ -197,7 +215,7 @@ export function PdfThumbnails({
           reorder={reorder}
           dragState={getItemState(index + 1, index)}
           onSelect={select}
-          onDelete={deletePage}
+          actions={actions}
         />
       ))}
     </div>

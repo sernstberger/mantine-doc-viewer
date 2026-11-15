@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
 import classes from '../DocViewer.module.css';
+import { PageEditorScreen } from './PageEditorScreen';
 
 export type DocViewerPageEditorStylesNames =
   | 'editor'
@@ -29,11 +30,11 @@ export type DocViewerPageEditorFactory = Factory<{
   compound: true;
 }>;
 
-/** The page editor screen; `DocViewer.Main` shows it while the editor is open */
+/** The page editor screen while the editor is open; `DocViewer.Main` shows it by itself, place it for a custom layout */
 export const DocViewerPageEditor = factory<DocViewerPageEditorFactory>((_props) => {
   useProps('DocViewerPageEditor', null, _props);
   useDocViewerContext();
-  return null;
+  return <PageEditorScreen />;
 });
 
 DocViewerPageEditor.classes = classes;

@@ -26,7 +26,6 @@ export interface DocViewerEvents {
   onDocumentLoad?: (info: DocViewerLoadInfo) => void;
   onDocumentError?: (error: Error) => void;
   onPageChange?: (page: number) => void;
-  onSpreadChange?: (spread: number, pages: number[]) => void;
   onZoomChange?: (zoom: DocViewerZoom, details: { scale: number }) => void;
   onPageLayoutChange?: (layout: DocViewerPageLayout) => void;
   onReadingProgress?: (progress: DocViewerReadingProgress) => void;

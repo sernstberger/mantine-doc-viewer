@@ -2,7 +2,6 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useMemo } from 'react';
 import type { DocViewerContextValue } from '../../doc-viewer.context';
 import { useLinkService } from './use-link-service';
-import { useMarkup } from './use-markup';
 import { usePassageHighlight } from './use-passage-highlight';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePdfSearchBar } from './use-pdf-search-bar';
@@ -11,15 +10,15 @@ import type { PdfViewGeometry } from './use-pdf-view-geometry';
 import { useSearchHighlights, useTextLayers } from './use-search-highlights';
 import { useTextSelect } from './use-text-select';
 
-/** What the pages show over the drawing: search matches, a passage, selected text, markup, layers and links */
+/** What the pages show over the drawing: search matches, a passage, selected text, layers and links */
 export function usePdfPageContent(
   context: DocViewerContextValue,
   document: PDFDocumentProxy | null,
   { scrollRoot, viewport, scale, rotation }: PdfViewGeometry,
-  { currentPage, scrollToPage, announce }: PdfReadingPosition
+  { currentPage, scrollToPage }: PdfReadingPosition
 ) {
   const { events } = context;
-  const search = usePdfSearchBar(document, scrollRoot);
+  const search = usePdfSearchBar(context.store, document, scrollRoot);
   const textLayers = useTextLayers();
   useSearchHighlights({
     textLayers,
@@ -40,7 +39,6 @@ export function usePdfPageContent(
     rotation,
   });
   useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
-  const markup = useMarkup(context.markup, announce, scrollToPage);
   const pdfLayers = usePdfLayers(document);
   // One object per layer change, so pages only draw again (and render) when a layer is toggled
   const layers = useMemo(
@@ -49,7 +47,7 @@ export function usePdfPageContent(
   );
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });
 
-  return { search, textLayers, passage, markup, pdfLayers, layers, linkService };
+  return { search, textLayers, passage, pdfLayers, layers, linkService };
 }
 
 export type PdfPageContent = ReturnType<typeof usePdfPageContent>;

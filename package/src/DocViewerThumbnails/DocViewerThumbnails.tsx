@@ -9,8 +9,9 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
-import { PdfReaderThumbnails } from '../DocViewerRoot/PdfReader';
+import { getThumbnailsLayout } from '../utils/geometry';
 import classes from '../DocViewer.module.css';
+import { PdfThumbnails } from './PdfThumbnails';
 
 export type DocViewerThumbnailsStylesNames =
   | 'thumbnails'
@@ -31,21 +32,26 @@ export type DocViewerThumbnailsFactory = Factory<{
   compound: true;
 }>;
 
-/** PDF page thumbnails, shown while they are opened */
+/** PDF page thumbnails, shown while they are opened on a loaded document that is not presented */
 export const DocViewerThumbnails = factory<DocViewerThumbnailsFactory>((_props) => {
   useProps('DocViewerThumbnails', null, _props);
   useDocViewerContext();
   const session = usePdfSession();
-  if (!session) {
+  const ready = session?.loaded.ready;
+  if (!session || !ready || !session.view.thumbnailsPanel.opened || session.view.presenting) {
     return null;
   }
+
+  const { view, position, content } = session;
   return (
-    <PdfReaderThumbnails
-      ready={session.loaded.ready}
-      view={session.view}
-      position={session.position}
-      content={session.content}
-      actions={session.actions}
+    <PdfThumbnails
+      document={ready.document}
+      placeholderSize={ready.firstPageSize}
+      orientation={getThumbnailsLayout(view.thumbnailsPanel.position).orientation}
+      currentPage={position.currentPage}
+      rotation={view.rotation}
+      layers={content.layers}
+      onSelect={(page) => position.goToPage(page, false)}
     />
   );
 });

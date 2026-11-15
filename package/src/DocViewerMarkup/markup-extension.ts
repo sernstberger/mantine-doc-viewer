@@ -2,6 +2,10 @@ import type { MantineColor } from '@mantine/core';
 import type { DocViewerExtension } from '../doc-viewer.types';
 import type { DocViewerMark, DocViewerMarkupTool } from '../utils/markup';
 import type { DocViewerMarkupLabels } from './default-labels';
+import { DocViewerMarkupBar } from './DocViewerMarkupBar/DocViewerMarkupBar';
+import { DocViewerMarkupButton } from './DocViewerMarkupButton/DocViewerMarkupButton';
+import { MarkupSetup } from './markup-setup';
+import { MarkupPageLayer } from './MarkupPageLayer';
 
 export interface DocViewerMarkupOptions {
   /** Tools in the markup bar, in that order. All are shown by default */
@@ -46,5 +50,12 @@ export interface DocViewerMarkupOptions {
 
 /** Markup tools for `extensions`: highlight, draw, write and sign on PDF pages */
 export function createMarkupExtension(options: DocViewerMarkupOptions = {}): DocViewerExtension {
-  return { name: 'markup', options };
+  return {
+    name: 'markup',
+    options,
+    setup: MarkupSetup,
+    toolbarControls: [{ control: 'markup', after: 'search', Component: DocViewerMarkupButton }],
+    bar: DocViewerMarkupBar,
+    pageLayer: MarkupPageLayer,
+  };
 }

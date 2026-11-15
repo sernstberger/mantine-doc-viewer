@@ -15,13 +15,12 @@ export function usePdfPageTurns(
   { currentPage, goToPage }: PdfReadingPosition
 ) {
   const { layout, scale, columnGap, bodyWidth } = view;
-  const { turn, goToSpread } = useSpreads({
+  const { turn, goToSpread, spread } = useSpreads({
     layout,
     numPages,
     currentPage,
     ready: !!ready,
     goToPage,
-    onSpreadChange: context.events.onSpreadChange,
   });
   const turning = resolvePageTurning(context.withPageTurning);
   const swipeable =
@@ -46,6 +45,7 @@ export function usePdfPageTurns(
   return {
     turn,
     goToSpread,
+    spread,
     onEdgeClick: pageTurning.onClick,
     setBodyNode,
     keyShortcuts,

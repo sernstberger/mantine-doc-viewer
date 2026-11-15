@@ -3,7 +3,7 @@ import { render, screen } from '@mantine-tests/core';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { DocViewer } from '../DocViewer';
 import { createDocViewer } from '../doc-viewer.store';
-import { resetMissingPdfAdapterWarning } from '../DocViewerRoot/LegacyLayout';
+import { resetMissingPdfAdapterWarning } from '../DocViewerRoot/use-doc-viewer-root';
 import { DocViewerAdapterProvider } from './DocViewerAdapterProvider';
 import { createReactMarkdownAdapter } from './adapters/react-markdown-adapter';
 import { createPdfJsAdapter } from './adapters/pdfjs-adapter';

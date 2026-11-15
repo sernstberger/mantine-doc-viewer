@@ -34,6 +34,8 @@ import type {
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
 import { DOC_VIEWER_SIZES } from '../utils/sizes';
 import classes from '../DocViewer.module.css';
+import { DocViewerExtensionsProvider } from './extensions-context';
+import { PdfSession } from './PdfSession';
 import { getRootElementProps } from './root-element-props';
 import { useBehaviorStyles } from './use-behavior-styles';
 import { useDocViewerRoot } from './use-doc-viewer-root';
@@ -186,8 +188,8 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
       stable: true,
     })
   );
-  const { value, session, partVars } = useDocViewerRoot(props, getStyles);
-  const { size, autosize, pageColorScheme } = props;
+  const { value, session, partVars, withPdfSession } = useDocViewerRoot(props, getStyles);
+  const { size, autosize, pageColorScheme, keepView, src, extensions } = props;
 
   return (
     <DocViewerProvider value={value}>
@@ -208,7 +210,13 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
         {...getRootElementProps(props)}
         {...session.tapToggle.handlers}
       >
-        {children}
+        <DocViewerExtensionsProvider extensions={extensions}>
+          {withPdfSession ? (
+            <PdfSession key={keepView ? 'pdf' : src}>{children}</PdfSession>
+          ) : (
+            children
+          )}
+        </DocViewerExtensionsProvider>
       </Box>
     </DocViewerProvider>
   );

@@ -1,4 +1,5 @@
 import { createContext, use } from 'react';
+import type { DocViewerReorderSlot } from '../doc-viewer.types';
 import type { getLoaded, PdfDocumentState } from '../hooks/pdf/use-pdf-document';
 import type { PdfModes } from '../hooks/pdf/use-pdf-modes';
 import type { PdfPageContent } from '../hooks/pdf/use-pdf-page-content';
@@ -31,3 +32,6 @@ export function useReadyPdfSession() {
   const session = use(PdfSessionContext);
   return session?.loaded.ready ? session : null;
 }
+
+/** Reorder and delete support for the thumbnails, provided by an extension's setup */
+export const PdfThumbnailEditsContext = createContext<DocViewerReorderSlot | null>(null);
