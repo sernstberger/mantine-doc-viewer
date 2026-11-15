@@ -1,7 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "include": ["package/src"],
-  "exclude": ["**/*.test.tsx", "**/*.test.ts", "**/*.story.tsx", "**/*.story.ts", "package/dist"],
+  "exclude": [
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "**/test-utils.tsx",
+    "**/*.story.tsx",
+    "**/*.story.ts",
+    "package/dist"
+  ],
   "compilerOptions": {
     "emitDeclarationOnly": true,
     "rootDir": "package/src"
