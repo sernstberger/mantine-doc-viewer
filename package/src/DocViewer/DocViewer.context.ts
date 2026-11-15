@@ -2,6 +2,8 @@ import type {
   DocViewerControl,
   DocViewerFactory,
   DocViewerPageLayout,
+  DocViewerPasswordInputProps,
+  DocViewerSearchInputProps,
   DocViewerThumbnailsPosition,
 } from './DocViewer';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
@@ -62,6 +64,8 @@ export interface DocViewerContextValue {
   color: MantineColor | undefined;
   thumbnailWidth: number;
   tooltipProps: Omit<TooltipProps, 'label' | 'children'> | undefined;
+  searchInputProps: DocViewerSearchInputProps | undefined;
+  passwordInputProps: DocViewerPasswordInputProps | undefined;
   codeHighlightProps: Omit<CodeHighlightProps, 'code' | 'language'> | undefined;
   controller: React.RefObject<ControllerImplementation>;
   events: Required<DocViewerEvents>;

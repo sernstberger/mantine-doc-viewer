@@ -14,7 +14,9 @@ import {
   MantineRadius,
   MantineSize,
   MantineSpacing,
+  PasswordInputProps,
   rem,
+  TextInputProps,
   TooltipProps,
   StylesApiProps,
   useProps,
@@ -49,6 +51,23 @@ import { CodeView, LazyView, MarkdownView } from './lazy-views';
 import { TextView } from './text/TextView';
 import { ImageView } from './views/ImageView';
 import { UnsupportedView } from './views/UnsupportedView';
+
+/** `data-*` attributes, which JSX accepts on any element but an object does not */
+type DataAttributes = { [name: `data-${string}`]: string | number | boolean | undefined };
+
+/** Props of the PDF search box that an app may set: not what the viewer controls (value, keys, size, ref, classes) */
+export type DocViewerSearchInputProps = Omit<
+  TextInputProps,
+  'value' | 'defaultValue' | 'onChange' | 'onKeyDown' | 'size' | 'className' | 'style'
+> &
+  DataAttributes;
+
+/** Props of the PDF password field that an app may set: not what the viewer controls (value, error, size, classes) */
+export type DocViewerPasswordInputProps = Omit<
+  PasswordInputProps,
+  'value' | 'defaultValue' | 'onChange' | 'error' | 'size' | 'className' | 'style'
+> &
+  DataAttributes;
 
 export type DocViewerStylesNames =
   | 'root'
@@ -277,6 +296,12 @@ export interface DocViewerProps
 
   /** Props passed to every toolbar tooltip, for example `{ disabled: true }` or `{ position: 'bottom' }` */
   tooltipProps?: Omit<TooltipProps, 'label' | 'children'>;
+
+  /** Props passed to the search box of a PDF, for example `{ placeholder: 'Find in contract' }` or `{ 'data-testid': 'search' }`. The value, the key handling and `size` stay with the viewer; use `classNames.searchInput` for classes */
+  searchInputProps?: DocViewerSearchInputProps;
+
+  /** Props passed to the password field of a protected PDF, for example `{ description: 'Ask the sender' }`. The value, the error and `size` stay with the viewer; use `classNames.passwordInput` for classes */
+  passwordInputProps?: DocViewerPasswordInputProps;
 
   /** Props passed to the CodeHighlight that shows code files and markdown source */
   codeHighlightProps?: Omit<CodeHighlightProps, 'code' | 'language'>;

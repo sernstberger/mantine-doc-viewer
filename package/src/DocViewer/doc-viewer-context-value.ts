@@ -53,6 +53,8 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     color: props.color,
     thumbnailWidth: resolved.thumbnailWidth,
     tooltipProps: props.tooltipProps,
+    searchInputProps: props.searchInputProps,
+    passwordInputProps: props.passwordInputProps,
     codeHighlightProps: props.codeHighlightProps,
     controller: session.controller,
     events,
