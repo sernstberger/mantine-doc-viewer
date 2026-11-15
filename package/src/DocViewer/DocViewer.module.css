@@ -533,6 +533,30 @@
   transform-origin: 0 0;
 }
 
+/* Boxes marked from outside with controller.highlight, in the colours of the active search match */
+.highlightLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+.highlight {
+  position: absolute;
+  border-radius: 2px;
+  background-color: color-mix(
+    in srgb,
+    var(--doc-viewer-active-match-color, rgb(253 126 20)) 40%,
+    transparent
+  );
+  mix-blend-mode: multiply;
+  outline: 2px solid
+    color-mix(in srgb, var(--doc-viewer-active-match-color, rgb(217 72 15)) 80%, transparent);
+  outline-offset: 1px;
+}
+
 /* No specificity, so an app's own class can set pointer-events: none on a child */
 :where(.pageOverlay) > :where(*) {
   pointer-events: auto;

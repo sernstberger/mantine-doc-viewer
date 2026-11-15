@@ -12,9 +12,10 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Markup tools** saved into the PDF: highlight, text box, shapes, signature (Folio), clouds
       and RFI pins (Plan room), pencil marks for fingering (Stand)
 - [ ] **Signature placed on a page** and saved into the PDF (Haven)
-- [ ] **`onTextSelect(text, page, rects)`** so apps can comment on selected text (Dealroom)
-- [ ] **Highlight a passage from outside** the viewer, not only by searching for it (Dealroom)
-- [ ] **Scroll to a point in a page** (`goToPage(page, { top })`), not only its top (Clause)
+- [x] **`onTextSelect(text, page, rects)`** (also `DocViewerPageRect`) so apps can comment on selected text (Dealroom)
+- [x] **Highlight a passage from outside** the viewer, not only by searching for it: `controller.highlight` and
+      `clearHighlight` (Dealroom)
+- [x] **Scroll to a point in a page** (`goToPage(page, { top })`), not only its top (Clause)
 - [x] **Slot beside or below a page** for slug text like "Front, page 1 of 2" (Proofline): overlay
       content can sit outside the page box
 

@@ -10,7 +10,7 @@ export interface SearchablePage {
 }
 
 /** Extracts the text of every page the first time `enabled` is true */
-function useSearchablePages(document: PDFDocumentProxy | null, enabled: boolean) {
+export function useSearchablePages(document: PDFDocumentProxy | null, enabled: boolean) {
   const [pages, setPages] = useState<SearchablePage[] | null>(null);
 
   useEffect(() => {

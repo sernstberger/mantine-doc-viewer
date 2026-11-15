@@ -39,6 +39,7 @@ export function scrollRangeIntoView(container: HTMLElement, range: Range) {
 }
 
 interface SearchHighlightsInput {
+  textLayers: ReturnType<typeof useTextLayers>;
   pages: SearchablePage[] | null;
   matches: SearchMatch[];
   activeMatch: SearchMatch | undefined;
@@ -52,13 +53,13 @@ interface SearchHighlightsInput {
  * once its ranges exist
  */
 export function useSearchHighlights({
+  textLayers: { layers, version },
   pages,
   matches,
   activeMatch,
   scrollRoot,
   scrollToPage,
 }: SearchHighlightsInput) {
-  const { layers, version, onTextLayer } = useTextLayers();
   const pendingScroll = useRef(false);
 
   useEffect(() => {
@@ -103,6 +104,4 @@ export function useSearchHighlights({
 
     return () => cleanups.forEach((cleanup) => cleanup());
   }, [pages, matches, activeMatch, layers, version, scrollRoot]);
-
-  return onTextLayer;
 }

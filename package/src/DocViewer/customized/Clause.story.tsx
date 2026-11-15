@@ -328,7 +328,8 @@ export function Clause() {
   const select = (number: number) => {
     setSelected(number);
     const target = CLAUSES.find((item) => item.number === number)!;
-    controller.current?.goToPage(target.page);
+    // A little above the clause, so its first line is not under the toolbar
+    controller.current?.goToPage(target.page, { top: Math.max(target.span[0] - 24, 0) });
   };
 
   const nextOpen = useMemo(() => {
@@ -496,7 +497,6 @@ export function Clause() {
               })
             }
             // MISSING: reading the PDF's tracked changes as data (author, range, text) so the clause list would not need to repeat them.
-            // MISSING: scrolling to a point in a page (a clause's own y offset); goToPage only reaches the top of the page.
           />
         </main>
 

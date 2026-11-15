@@ -95,8 +95,11 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
 
   // Only the viewer scrolls: scrollIntoView() would also scroll the page around the viewer
   const scrollToPage = useCallback(
-    /** `offset` is the distance from the top of the page to scroll to, in px */
-    (page: number, offset = 0) => {
+    /**
+     * `offset` is the distance from the top of the page to scroll to, in px, or a function of the
+     * page's height in px that gives it
+     */
+    (page: number, offset: number | ((pageHeight: number) => number) = 0) => {
       const node = pages.current.get(page);
       setCurrentPage(page);
 
@@ -119,7 +122,8 @@ export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = fals
       settleScroll.current = settle;
 
       // Long jumps are instant: scrolling smoothly past hundreds of pages would draw each one
-      const top = node.offsetTop - PAGE_SCROLL_OFFSET + offset;
+      const distance = typeof offset === 'function' ? offset(node.offsetHeight) : offset;
+      const top = node.offsetTop - PAGE_SCROLL_OFFSET + distance;
       const left = horizontal ? node.offsetLeft - PAGE_SCROLL_OFFSET : scrollRoot.scrollLeft;
       const far =
         Math.abs(top - scrollRoot.scrollTop) > scrollRoot.clientHeight * LONG_JUMP_SCREENS ||

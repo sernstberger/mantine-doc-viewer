@@ -37,7 +37,10 @@ import { useZoomAnchor } from './use-zoom-anchor';
 import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
-import { useSearchHighlights } from './use-search-highlights';
+import { usePassageHighlight } from './use-passage-highlight';
+import { useSearchHighlights, useTextLayers } from './use-search-highlights';
+import { useTextSelect } from './use-text-select';
+import { getPointOffset } from './page-points';
 import type { PdfZoom } from './zoom';
 
 /** Gap between two pages side by side, read from the CSS since `pageGap` sets it */
@@ -116,13 +119,25 @@ export function PdfView() {
   );
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
-  const onTextLayer = useSearchHighlights({
+  const textLayers = useTextLayers();
+  useSearchHighlights({
+    textLayers,
     pages: search.pages,
     matches: search.matches,
     activeMatch: search.activeMatch,
     scrollRoot,
     scrollToPage,
   });
+  const passage = usePassageHighlight({
+    document,
+    layers: textLayers.layers,
+    layersVersion: textLayers.version,
+    scrollRoot,
+    scrollToPage,
+    scale,
+    rotation,
+  });
+  useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
   const pdfLayers = usePdfLayers(document);
   const layers = { config: pdfLayers.config, version: pdfLayers.version };
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });
@@ -143,8 +158,13 @@ export function PdfView() {
   });
 
   /** Moves to a page, and reads it out unless something else already does (the thumbnails) */
-  const goToPage = (page: number, withAnnouncement = true) => {
-    scrollToPage(page);
+  const goToPage = (page: number, withAnnouncement = true, top?: number) => {
+    scrollToPage(
+      page,
+      top === undefined
+        ? undefined
+        : (pageHeight) => getPointOffset(Math.max(top, 0), scale, rotation, pageHeight)
+    );
     withAnnouncement && announce(labels.pageOf(page, numPages));
   };
   const rotate = () => setRotation(nextRotation);
@@ -153,7 +173,9 @@ export function PdfView() {
   };
 
   useRegisterController(controller, {
-    goToPage: (page) => ready && goToPage(clampPage(page, numPages)),
+    goToPage: (page, options) => ready && goToPage(clampPage(page, numPages), true, options?.top),
+    highlight: (target) => ready && passage.highlight(target),
+    clearHighlight: passage.clear,
     setZoom: (next) => setZoom(next === 'fit' ? 'fit-width' : clampZoom(next)),
     zoomIn: () => setZoom(zoomIn(scale)),
     zoomOut: () => setZoom(zoomOut(scale)),
@@ -413,7 +435,10 @@ export function PdfView() {
                   scrollRoot={scrollRoot}
                   registerPage={registerPage}
                   linkService={linkService}
-                  onTextLayer={onTextLayer}
+                  onTextLayer={textLayers.onTextLayer}
+                  highlightRects={
+                    passage.rects?.page === pageNumber ? passage.rects.rects : undefined
+                  }
                 />
               ))}
             </div>

@@ -68,6 +68,8 @@ export type DocViewerStylesNames =
   | 'textLayer'
   | 'linkLayer'
   | 'pageOverlay'
+  | 'highlightLayer'
+  | 'highlight'
   | 'search'
   | 'searchInput'
   | 'searchCount'
@@ -437,6 +439,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     onPageChange,
     onZoomChange,
     onLinkClick,
+    onTextSelect,
     mod,
     ref,
     ...others
@@ -489,6 +492,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handlePageChange = useCallbackRef(onPageChange);
   const handleZoomChange = useCallbackRef(onZoomChange);
   const handleLinkClick = useCallbackRef(onLinkClick);
+  const handleTextSelect = useCallbackRef(onTextSelect);
   const events = useMemo(
     () => ({
       onDocumentLoad: handleDocumentLoad,
@@ -496,8 +500,16 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       onPageChange: handlePageChange,
       onZoomChange: handleZoomChange,
       onLinkClick: handleLinkClick,
+      onTextSelect: handleTextSelect,
     }),
-    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+    [
+      handleDocumentLoad,
+      handleDocumentError,
+      handlePageChange,
+      handleZoomChange,
+      handleLinkClick,
+      handleTextSelect,
+    ]
   );
 
   return (
