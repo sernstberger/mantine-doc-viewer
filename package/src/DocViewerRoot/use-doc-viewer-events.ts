@@ -50,10 +50,6 @@ function createEvents(
     onPageChange: (page) => props().onPageChange?.(page),
     onZoomChange: (zoom, details) => props().onZoomChange?.(zoom, details),
     onPageLayoutChange: (layout) => props().onPageLayoutChange?.(layout),
-    onReadingProgress: (progress) => props().onReadingProgress?.(progress),
-    onReachEnd: () => props().onReachEnd?.(),
-    onLinkClick: (url, event) => props().onLinkClick?.(url, event),
-    onTextSelect: (text, details) => props().onTextSelect?.(text, details),
   };
 }
 

@@ -119,11 +119,10 @@ export const DocViewerPages = factory<DocViewerPagesFactory>((_props) => {
     onReachEnd,
     ...others
   } = useProps('DocViewerPages', { ...defaultProps, ...layout.pagesProps }, _props);
-  const { getStyles, store } = useDocViewerContext();
+  const { getStyles } = useDocViewerContext();
   const theme = useMantineTheme();
   const session = usePdfSession();
   usePagesRegistration(
-    store,
     { withPageTurning, withScrollSnap, withScroll },
     { onLinkClick, onTextSelect, onReadingProgress, onReachEnd }
   );

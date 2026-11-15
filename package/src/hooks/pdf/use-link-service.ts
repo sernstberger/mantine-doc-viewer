@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useMemo, useRef } from 'react';
-import type { DocViewerEvents } from '../use-controller-registry';
+import type { DocViewerPagesEvents } from '../use-controller-registry';
 import { createLinkService } from '../../utils/link-service';
 
 interface LinkServiceInput {
@@ -8,7 +8,7 @@ interface LinkServiceInput {
   currentPage: number;
   scale: number;
   scrollToPage: (page: number, offset?: number) => void;
-  events: Required<DocViewerEvents>;
+  events: Required<DocViewerPagesEvents>;
 }
 
 /** Link service for the document's link layers, made once per document and reading the latest state */

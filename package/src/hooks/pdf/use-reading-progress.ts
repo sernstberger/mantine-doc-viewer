@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { DocViewerEvents } from '../use-controller-registry';
+import type { DocViewerPagesEvents } from '../use-controller-registry';
 import type { Box, VisibleBox } from '../../utils/geometry';
 import {
   getReadingPosition,
@@ -22,7 +22,7 @@ interface ReadingProgressInput {
   horizontal: boolean;
   /** The window scrolls instead of `scrollRoot` (`height="auto"`) */
   viewport: boolean;
-  events: Required<DocViewerEvents>;
+  events: Required<DocViewerPagesEvents>;
 }
 
 /**

@@ -126,7 +126,7 @@ export function useDocViewerRoot(
     store,
   });
   const events = useDocViewerEvents({
-    props: { ...props, ...layout.pagesProps },
+    props,
     src: props.src,
     type: session.type,
     unsupported: session.type === 'unknown' || (session.type === 'pdf' && !adapters.pdf),

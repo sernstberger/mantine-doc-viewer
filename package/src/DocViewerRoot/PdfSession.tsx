@@ -1,6 +1,6 @@
 import { VisuallyHidden } from '@mantine/core';
 import { useIsomorphicEffect } from '@mantine/hooks';
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import {
   updateDocViewerStateAction,
@@ -11,6 +11,11 @@ import type { DocViewerExtension } from '../doc-viewer.types';
 import { useEditedDocument } from '../hooks/pdf/use-pdf-edits';
 import { getLoaded, usePdfDocument } from '../hooks/pdf/use-pdf-document';
 import { usePdfModes } from '../hooks/pdf/use-pdf-modes';
+import {
+  createPagesRegistry,
+  PdfPagesRegistryContext,
+  usePagesContext,
+} from '../hooks/pdf/use-pages-config';
 import { usePdfPageContent } from '../hooks/pdf/use-pdf-page-content';
 import { usePdfPageSync } from '../hooks/pdf/use-pdf-page-sync';
 import { usePdfPageTurns } from '../hooks/pdf/use-pdf-page-turns';
@@ -92,13 +97,15 @@ export function PdfSession({ children }: { children: React.ReactNode }) {
   const state = usePdfDocument(context.src, context.pdfAdapter!, edited.editedData);
   const loaded = getLoaded(state);
   const { ready } = loaded;
+  const [pagesRegistry] = useState(createPagesRegistry);
+  const pagesContext = usePagesContext(context, pagesRegistry);
 
   useSessionReset(context.store, context.src);
   const view = usePdfViewGeometry(context, ready);
-  const position = usePdfReadingPosition(context, loaded, view);
-  const content = usePdfPageContent(context, loaded.document, view, position);
+  const position = usePdfReadingPosition(pagesContext, loaded, view);
+  const content = usePdfPageContent(pagesContext, loaded.document, view, position);
   usePdfPageSync({ context, state, loaded, view, position });
-  const turns = usePdfPageTurns(context, loaded, view, position);
+  const turns = usePdfPageTurns(pagesContext, loaded, view, position);
   const actions = usePdfViewActions({
     context,
     state,
@@ -117,7 +124,9 @@ export function PdfSession({ children }: { children: React.ReactNode }) {
 
   return (
     <PdfSessionContext value={session}>
-      {withSetups(extensions, children)}
+      <PdfPagesRegistryContext value={pagesRegistry}>
+        {withSetups(extensions, children)}
+      </PdfPagesRegistryContext>
       {ready && reading && (
         <VisuallyHidden role="status">{position.pageAnnouncement}</VisuallyHidden>
       )}

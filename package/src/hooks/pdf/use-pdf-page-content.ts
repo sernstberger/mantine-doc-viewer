@@ -1,8 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useMemo } from 'react';
-import type { DocViewerContextValue } from '../../doc-viewer.context';
 import { useLinkService } from './use-link-service';
-import { usePagesContext } from './use-pages-config';
+import type { PdfPagesContextValue } from './use-pages-config';
 import { usePassageHighlight } from './use-passage-highlight';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePdfSearchBar } from './use-pdf-search-bar';
@@ -13,12 +12,11 @@ import { useTextSelect } from './use-text-select';
 
 /** What the pages show over the drawing: search matches, a passage, selected text, layers and links */
 export function usePdfPageContent(
-  rootContext: DocViewerContextValue,
+  context: PdfPagesContextValue,
   document: PDFDocumentProxy | null,
   { scrollRoot, viewport, scale, rotation }: PdfViewGeometry,
   { currentPage, scrollToPage }: PdfReadingPosition
 ) {
-  const context = usePagesContext(rootContext);
   const { events } = context;
   const search = usePdfSearchBar(context.store, document, scrollRoot);
   const textLayers = useTextLayers();

@@ -1,11 +1,10 @@
-import type { DocViewerContextValue } from '../../doc-viewer.context';
 import { useAnnouncedZoom } from '../use-zoom-announcement';
 import { getPointOffset } from '../../utils/page-points';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
 import { useKeepPageOnLayout } from './use-page-layout';
 import type { PdfLoaded, PdfViewGeometry } from './use-pdf-view-geometry';
-import { usePagesContext } from './use-pages-config';
+import type { PdfPagesContextValue } from './use-pages-config';
 import { useReadingProgress } from './use-reading-progress';
 
 /**
@@ -13,11 +12,10 @@ import { useReadingProgress } from './use-reading-progress';
  * zooming too, read out once it settles
  */
 export function usePdfReadingPosition(
-  rootContext: DocViewerContextValue,
+  context: PdfPagesContextValue,
   { document, numPages }: PdfLoaded,
   view: PdfViewGeometry
 ) {
-  const context = usePagesContext(rootContext);
   const { scrollRoot, horizontal, viewport, scale, rotation } = view;
   const progress = useReadingProgress({
     scrollRoot,

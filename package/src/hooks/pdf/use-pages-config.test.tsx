@@ -1,20 +1,24 @@
-import React from 'react';
+import React, { use } from 'react';
 import { render } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
-import { useDocViewerContext, type DocViewerContextValue } from '../../doc-viewer.context';
+import { useDocViewerContext } from '../../doc-viewer.context';
 import { DocViewer } from '../../DocViewer';
 import { DocViewerPages } from '../../DocViewerPages/DocViewerPages';
 import { PdfPartsRoot } from '../../../../test-utils/pdf-parts';
-import { usePagesContext } from './use-pages-config';
+import {
+  PdfPagesRegistryContext,
+  usePagesContext,
+  type PdfPagesContextValue,
+} from './use-pages-config';
 
-function Probe({ onContext }: { onContext: (context: DocViewerContextValue) => void }) {
-  onContext(usePagesContext(useDocViewerContext()));
+function Probe({ onContext }: { onContext: (context: PdfPagesContextValue) => void }) {
+  onContext(usePagesContext(useDocViewerContext(), use(PdfPagesRegistryContext)!));
   return null;
 }
 
 function setup(pages: React.ReactNode) {
-  const seen: { context?: DocViewerContextValue } = {};
-  const onContext = (value: DocViewerContextValue) => {
+  const seen: { context?: PdfPagesContextValue } = {};
+  const onContext = (value: PdfPagesContextValue) => {
     seen.context = value;
   };
   const tree = (content: React.ReactNode) => (
@@ -83,14 +87,14 @@ describe('usePagesContext', () => {
     expect(() => view.seen.context!.events.onReachEnd()).not.toThrow();
   });
 
-  it('uses the handlers DocViewer gives Root while no Pages is mounted', () => {
+  it('uses the handlers DocViewer gives its pages through pagesProps', () => {
     const handlers = {
       onLinkClick: jest.fn(),
       onTextSelect: jest.fn(),
       onReadingProgress: jest.fn(),
       onReachEnd: jest.fn(),
     };
-    const seen: { context?: DocViewerContextValue } = {};
+    const seen: { context?: PdfPagesContextValue } = {};
     render(
       <PdfPartsRoot>
         <DocViewer src="/files/report.pdf" pagesProps={handlers}>
@@ -99,6 +103,7 @@ describe('usePagesContext', () => {
               seen.context = context;
             }}
           />
+          <DocViewerPages />
         </DocViewer>
       </PdfPartsRoot>
     );

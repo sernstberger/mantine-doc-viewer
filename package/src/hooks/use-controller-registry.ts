@@ -28,6 +28,10 @@ export interface DocViewerEvents {
   onPageChange?: (page: number) => void;
   onZoomChange?: (zoom: DocViewerZoom, details: { scale: number }) => void;
   onPageLayoutChange?: (layout: DocViewerPageLayout) => void;
+}
+
+/** What the pages of a PDF report, to the handlers of `DocViewer.Pages` */
+export interface DocViewerPagesEvents {
   onReadingProgress?: (progress: DocViewerReadingProgress) => void;
   onReachEnd?: () => void;
   onLinkClick?: (url: string, event: MouseEvent) => void;

@@ -1,6 +1,6 @@
 import { useDebouncedCallback } from '@mantine/hooks';
 import { useEffect } from 'react';
-import type { DocViewerEvents } from '../use-controller-registry';
+import type { DocViewerPagesEvents } from '../use-controller-registry';
 import { getPageRects } from '../../utils/page-points';
 import type { PdfRotation } from '../../utils/render-page';
 
@@ -11,7 +11,7 @@ interface TextSelectInput {
   scrollRoot: HTMLElement | null;
   scale: number;
   rotation: PdfRotation;
-  onTextSelect: NonNullable<DocViewerEvents['onTextSelect']>;
+  onTextSelect: NonNullable<DocViewerPagesEvents['onTextSelect']>;
 }
 
 /**
