@@ -1,6 +1,16 @@
-import { MIN_ZOOM } from '../zoom';
+import type { DocViewerZoom } from '../controller';
+import { clampZoom, MIN_ZOOM } from '../zoom';
 
-export type PdfZoom = number | 'fit-width';
+/** Zoom of PDF pages: a scale, fit to the width of the view, or fit whole pages (or spreads) */
+export type PdfZoom = number | 'fit-width' | 'fit-page';
+
+/** The PDF zoom for a zoom from props or the controller */
+export function toPdfZoom(zoom: DocViewerZoom): PdfZoom {
+  if (zoom === 'fit') {
+    return 'fit-width';
+  }
+  return zoom === 'fit-page' ? zoom : clampZoom(zoom);
+}
 
 /** Space kept around pages when the padding of the `pages` element cannot be read, 16px a side by default */
 export const PAGES_GUTTER = 32;

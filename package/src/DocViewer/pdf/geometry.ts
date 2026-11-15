@@ -38,15 +38,19 @@ export interface ScaleInput {
 export function computeScale(input: ScaleInput) {
   const { zoom, layout, bodyWidth, bodyHeight, columnGap, pageWidth, pageHeight } = input;
   const gutter = input.gutter ?? DEFAULT_PAGES_GUTTER;
-  if (zoom !== 'fit-width') {
+  if (typeof zoom === 'number') {
     return zoom;
   }
+  const byHeight = getFitWidthScale(bodyHeight, pageHeight, gutter.y);
   if (fitsToHeight(layout) && !input.autoHeight) {
-    return getFitWidthScale(bodyHeight, pageHeight, gutter.y);
+    return byHeight;
   }
-  return isTwoPages(layout)
+  const byWidth = isTwoPages(layout)
     ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2, gutter.x)
     : getFitWidthScale(bodyWidth, pageWidth, gutter.x);
+  // A whole page, or a whole spread, fits both ways; a viewer that grows with its pages has no
+  // height of its own to fit, so it fits the width
+  return zoom === 'fit-page' && !input.autoHeight ? Math.min(byWidth, byHeight) : byWidth;
 }
 
 /** Scale that fits a whole page in the view, for presentations */

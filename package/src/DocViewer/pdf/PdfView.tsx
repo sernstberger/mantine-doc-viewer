@@ -1,6 +1,6 @@
 import { CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
@@ -48,11 +48,20 @@ import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
 import { getPointOffset } from './page-points';
+import {
+  fitsAcross,
+  getSpreadIndex,
+  getSpreads,
+  getTurnTarget,
+  type PageTurnDirection,
+  resolvePageTurning,
+} from './spreads';
+import { usePageTurning } from './use-page-turning';
 import { usePagesGutter } from './use-pages-gutter';
 import { usePassageHighlight } from './use-passage-highlight';
 import { useSearchHighlights, useTextLayers } from './use-search-highlights';
 import { useTextSelect } from './use-text-select';
-import type { PdfZoom } from './zoom';
+import { toPdfZoom, type PdfZoom } from './zoom';
 
 /** Gap between two pages side by side, read from the CSS since `pageGap` sets it */
 function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
@@ -89,9 +98,7 @@ export function PdfView() {
   const document = ready?.document ?? null;
   const numPages = document?.numPages ?? 0;
 
-  const [zoom, setZoom] = useState<PdfZoom>(
-    context.defaultZoom === 'fit' ? 'fit-width' : context.defaultZoom
-  );
+  const [zoom, setZoom] = useState<PdfZoom>(() => toPdfZoom(context.defaultZoom));
   const [layout, setLayout] = useState<DocViewerPageLayout>(defaultPageLayout ?? 'single');
   const [rotation, setRotation] = useState<PdfRotation>(0);
   const [thumbnailsOpened, setThumbnailsOpened] = useState(
@@ -182,7 +189,7 @@ export function PdfView() {
     events,
     currentPage,
     scale,
-    fitted: zoom === 'fit-width',
+    fitted: typeof zoom !== 'number',
     mimeType: context.mimeType,
   });
   usePageSync({
@@ -214,15 +221,51 @@ export function PdfView() {
     goToPage: (page) => goToPage(page, false),
   });
   const rotate = () => setRotation(nextRotation);
+
+  // Spreads: the pages side by side in two-page layouts, single pages in the others
+  const spreads = useMemo(() => getSpreads(layout, numPages), [layout, numPages]);
+  const spreadIndex = getSpreadIndex(spreads, currentPage);
+  const turn = (direction: PageTurnDirection) => {
+    const target = getTurnTarget(spreads, currentPage, direction);
+    target && goToPage(target);
+  };
+  const turning = resolvePageTurning(context.withPageTurning);
+  const swipeable =
+    turning.swipe && fitsAcross({ layout, scale, pageWidth: pageSize.width, columnGap, bodyWidth });
+  const pageTurning = usePageTurning({
+    options: turning,
+    active: !!ready && !presenting,
+    swipeable,
+    turn,
+  });
+  const setBodyNode = useMergedRef(setBodyRef, pageTurning.ref);
+
+  const spreadReported = useRef('');
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const pages = spreads[spreadIndex];
+    if (pages.join() !== spreadReported.current) {
+      spreadReported.current = pages.join();
+      events.onSpreadChange(spreadIndex + 1, pages);
+    }
+  }, [ready, spreads, spreadIndex, events]);
   const print = async () => {
     document && (await printPdfBytes(await document.getData()));
   };
 
   useRegisterController(controller, {
     goToPage: (page, options) => ready && goToPage(clampPage(page, numPages), true, options?.top),
+    goToSpread: (spread) => {
+      const pages = spreads[clampPage(spread, spreads.length) - 1];
+      pages && goToPage(pages[0]);
+    },
+    nextSpread: () => turn(1),
+    previousSpread: () => turn(-1),
     highlight: (target) => ready && passage.highlight(target),
     clearHighlight: passage.clear,
-    setZoom: (next) => setZoom(next === 'fit' ? 'fit-width' : clampZoom(next)),
+    setZoom: (next) => setZoom(toPdfZoom(next)),
     zoomIn: () => setZoom(zoomIn(scale)),
     zoomOut: () => setZoom(zoomOut(scale)),
     setPageLayout: setLayout,
@@ -463,12 +506,28 @@ export function PdfView() {
       >
         {thumbnailsLayout.first && thumbnails}
         <div
-          ref={setBodyRef}
+          ref={setBodyNode}
           {...getStyles('body')}
-          {...getRegionProps(!!ready, title, 'Control+F Meta+F Plus Minus 0')}
+          {...getRegionProps(
+            !!ready,
+            title,
+            turning.keys
+              ? 'Control+F Meta+F Plus Minus 0 ArrowLeft ArrowRight PageUp PageDown'
+              : 'Control+F Meta+F Plus Minus 0'
+          )}
+          data-scroll-snap={
+            context.withScrollSnap && !presenting
+              ? layout === 'horizontal'
+                ? 'x'
+                : 'y'
+              : undefined
+          }
+          data-swipe={(swipeable && !presenting) || undefined}
           onKeyDown={handleKeyDown}
-          // In a presentation a click shows the next page
-          onClick={presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : undefined}
+          // In a presentation a click shows the next page; otherwise the edges may turn pages
+          onClick={
+            presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : pageTurning.onClick
+          }
         >
           <PdfStatus state={state} />
 

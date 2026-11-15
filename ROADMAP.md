@@ -26,7 +26,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       sheet (Folio, Dealroom, Plan room, Stand)
 - [x] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
       (Field Report). PDFs, text and code grow; images keep a minimum height
-- [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
+- [x] **Fit the whole page or spread** (`zoom: 'fit-page'`) (width and height), besides fit to width (Atrium, Stand)
 - [x] **Controlled `fullscreen` prop** (Atrium): `fullscreen` and `onFullscreenChange`
 - [x] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate): `thumbnailsPosition` takes `{ base, sm }` values
 - [x] **Tap-to-toggle toolbar** (`tapToggleToolbar`) on touch screens, so a page can fill a phone (Gate)
@@ -34,8 +34,9 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       embedded viewer (Field Report)
 - [x] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
       cause a horizontal scrollbar (Proofline): fit-to-width reads the padding of the `pages` element
-- [ ] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
-      zones, swipe, pedal keys) (Stand, Atrium)
+- [x] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
+      zones, swipe, pedal keys) (Stand, Atrium): `goToSpread`, `nextSpread`, `previousSpread`,
+      `onSpreadChange`, `withScrollSnap`, `withPageTurning`
 - [x] **Compact page editor bar** (`compactPageEditor`, `editorButton` Styles API part): a Styles API
       part for its buttons, and an icon-only variant for phones (Scanbox)
 

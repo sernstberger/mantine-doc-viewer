@@ -4,8 +4,12 @@ import type { DocType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
 import type { DocViewerPageRect } from './pdf/page-points';
 
-/** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
-export type DocViewerZoom = number | 'fit';
+/**
+ * A scale where 1 is 100%, `'fit'` to fit PDF pages to the width of the view (images to the
+ * whole view), or `'fit-page'` to fit whole PDF pages, or spreads in two-page layouts, to both
+ * the width and the height of the view
+ */
+export type DocViewerZoom = number | 'fit' | 'fit-page';
 
 /** Actions available through `controllerRef`. Actions that do not apply to the current document do nothing */
 export interface DocViewerController {
@@ -20,6 +24,18 @@ export interface DocViewerController {
 
   /** Removes the highlight made with `highlight` */
   clearHighlight: () => void;
+
+  /**
+   * Scrolls a PDF to a spread, counted from 1: the pages shown side by side in two-page
+   * layouts (1-2, 3-4 or, with a cover, 1, 2-3), a single page in other layouts
+   */
+  goToSpread: (spread: number) => void;
+
+  /** Turns a PDF to the next spread, or the next page outside two-page layouts */
+  nextSpread: () => void;
+
+  /** Turns a PDF back to the previous spread, or the previous page outside two-page layouts */
+  previousSpread: () => void;
 
   /** Sets the zoom of a PDF or image */
   setZoom: (zoom: DocViewerZoom) => void;
@@ -157,6 +173,9 @@ export interface DocViewerEvents {
   onDocumentLoad?: (info: DocViewerLoadInfo) => void;
   onDocumentError?: (error: Error) => void;
   onPageChange?: (page: number) => void;
+
+  /** Called when the PDF spread in view changes, with its number counted from 1 and its pages, for example `[4, 5]` */
+  onSpreadChange?: (spread: number, pages: number[]) => void;
   onZoomChange?: (scale: number, fitted: boolean) => void;
 
   /** Called when how much of a PDF has been seen changes: the fraction seen of each page, the scroll position and whether the end was reached. Pages that were scrolled past count too, so check `seen` to tell a skim from a read */
@@ -199,6 +218,9 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       goToPage: call('goToPage'),
       highlight: call('highlight'),
       clearHighlight: call('clearHighlight'),
+      goToSpread: call('goToSpread'),
+      nextSpread: call('nextSpread'),
+      previousSpread: call('previousSpread'),
       setZoom: call('setZoom'),
       zoomIn: call('zoomIn'),
       zoomOut: call('zoomOut'),

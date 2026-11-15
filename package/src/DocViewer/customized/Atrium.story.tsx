@@ -1,6 +1,5 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useElementSize } from '@mantine/hooks';
+import React, { useCallback, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
 import classes from './Atrium.module.css';
@@ -24,24 +23,15 @@ const ROOMS: Room[] = [
 ];
 
 const FIRST_ROOM_PAGE = 3;
-const PAGE_SIZE = { width: 420, height: 595 };
 const PAGE_GAP = 20;
 
 /** Time without a touch before the kiosk starts over, and how long each spread shows while it plays */
 const IDLE_TIMEOUT = 60_000;
 const ATTRACT_INTERVAL = 9_000;
-const TOOLBAR_HEIGHT = 68;
 
-/** The page that opens a spread in the two-page-cover layout: 1, then 2-3, 4-5, 6-7, 8 */
-const spreadStart = (page: number) => (page <= 1 ? 1 : page - (page % 2));
-
-/** Rooms on the spread that starts at `first`; the cover, plan and credits have none */
-function roomsOnSpread(first: number, numPages: number) {
-  const last = first === 1 ? 1 : Math.min(first + 1, numPages || first + 1);
-  return ROOMS.filter(
-    (room) =>
-      room.number + FIRST_ROOM_PAGE - 1 >= first && room.number + FIRST_ROOM_PAGE - 1 <= last
-  );
+/** Rooms on the open spread; the cover, plan and credits have none */
+function roomsOnSpread(pages: number[]) {
+  return ROOMS.filter((room) => pages.includes(room.number + FIRST_ROOM_PAGE - 1));
 }
 
 /** Text the visitor reads on a kiosk is German, and so is the viewer's own */
@@ -154,34 +144,14 @@ function Arrow({ direction }: { direction: 'previous' | 'next' }) {
  */
 export function Atrium() {
   const controller = useRef<DocViewerController>(null);
-  const [page, setPage] = useState(1);
-  const [numPages, setNumPages] = useState(0);
+  // The viewer reports the open spread: the cover alone, then pairs of pages
+  const [spread, setSpread] = useState({ number: 1, pages: [1] });
+  const [spreadCount, setSpreadCount] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
 
-  // Zoom so that a whole spread is visible without scrolling, from the room the viewer has
-  const { ref: readerRef, width, height } = useElementSize<HTMLDivElement>();
-  const fitSpread = useCallback(() => {
-    if (numPages === 0) {
-      return;
-    }
-    const availableWidth = fullscreen ? window.innerWidth : width;
-    const availableHeight = (fullscreen ? window.innerHeight : height) - TOOLBAR_HEIGHT;
-    if (availableWidth > 0 && availableHeight > 0) {
-      const byWidth = (availableWidth - 48) / (PAGE_SIZE.width * 2 + PAGE_GAP);
-      const byHeight = (availableHeight - 28) / PAGE_SIZE.height;
-      controller.current?.setZoom(Math.max(0.3, Math.min(byWidth, byHeight)));
-    }
-  }, [numPages, width, height, fullscreen]);
-  useEffect(fitSpread, [fitSpread]);
-
-  const first = spreadStart(page);
-  const last = first === 1 ? 1 : Math.min(first + 1, numPages || first + 1);
-  const rooms = roomsOnSpread(first, numPages);
+  const first = spread.pages[0];
+  const rooms = roomsOnSpread(spread.pages);
   const goTo = useCallback((target: number) => controller.current?.goToPage(target), []);
-  const turn = (direction: 1 | -1) => {
-    const target = first === 1 ? (direction === 1 ? 2 : 1) : first + direction * 2;
-    goTo(Math.min(Math.max(target, 1), numPages || 1));
-  };
 
   return (
     <div className={classes.kiosk}>
@@ -227,13 +197,13 @@ export function Atrium() {
           type="button"
           className={classes.turn}
           aria-label="Vorherige Seite"
-          disabled={first <= 1}
-          onClick={() => turn(-1)}
+          disabled={spread.number <= 1}
+          onClick={() => controller.current?.previousSpread()}
         >
           <Arrow direction="previous" />
         </button>
 
-        <div ref={readerRef} className={classes.viewer}>
+        <div className={classes.viewer}>
           <DocViewer
             src="/stories/exhibition-guide.pdf"
             fileName="Wasserzeichen"
@@ -249,14 +219,20 @@ export function Atrium() {
             radius={0}
             pageGap={PAGE_GAP}
             defaultPageLayout="two-page-cover"
-            onDocumentLoad={(info) => setNumPages(info.numPages ?? 0)}
-            onPageChange={setPage}
-            // After a minute nobody has touched the screen: back to the cover at the spread zoom, then
-            // the guide turns a spread every nine seconds until the next visitor touches it
+            // The whole spread is on the screen, in the frame and full screen alike
+            defaultZoom="fit-page"
+            // The cover alone, then pairs of pages
+            onDocumentLoad={(info) => setSpreadCount(Math.floor((info.numPages ?? 0) / 2) + 1)}
+            onSpreadChange={(number, pages) => setSpread({ number, pages })}
+            // Visitors swipe the glass or use the arrows beside the guide; scrolling stops on spreads
+            withPageTurning={{ tapZones: false }}
+            withScrollSnap
+            // After a minute nobody has touched the screen: back to the cover with the whole spread in
+            // view, then the guide turns a spread every nine seconds until the next visitor touches it
             idleTimeout={IDLE_TIMEOUT}
             onIdle={() => {
               controller.current?.goToPage(1);
-              fitSpread();
+              controller.current?.setZoom('fit-page');
             }}
             autoAdvance={{ interval: ATTRACT_INTERVAL }}
             // A kiosk is not for taking files home
@@ -270,8 +246,6 @@ export function Atrium() {
             tooltipProps={TOOLTIP_PROPS}
             toolbarControls={TOOLBAR_CONTROLS}
             classNames={CLASS_NAMES}
-            // MISSING: swipe to turn the page; turning is an app button that calls goToPage, with the spread arithmetic done here.
-            // MISSING: a zoom that fits the whole spread (width and height); 'fit' only fits the width, so the story computes it.
           />
         </div>
 
@@ -279,8 +253,8 @@ export function Atrium() {
           type="button"
           className={classes.turn}
           aria-label="Nächste Seite"
-          disabled={numPages > 0 && last >= numPages}
-          onClick={() => turn(1)}
+          disabled={spreadCount > 0 && spread.number >= spreadCount}
+          onClick={() => controller.current?.nextSpread()}
         >
           <Arrow direction="next" />
         </button>
@@ -311,7 +285,7 @@ export function Atrium() {
             </li>
           ))}
         </ol>
-        <div className={classes.hint}>Zum Blättern die Pfeile berühren</div>
+        <div className={classes.hint}>Zum Blättern wischen oder die Pfeile berühren</div>
       </nav>
     </div>
   );
