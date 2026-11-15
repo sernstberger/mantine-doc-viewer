@@ -26,3 +26,24 @@ export function getImageFitScale(container: Size, image: Size, rotation: ImageRo
 
   return Math.max(MIN_ZOOM, Math.min(1, width / rotated.width, height / rotated.height));
 }
+
+/** Size of the frame around the rotated image at the current scale, none before it has loaded */
+export function getFrameStyle(naturalSize: Size | null, rotation: ImageRotation, scale: number) {
+  if (!naturalSize) {
+    return undefined;
+  }
+  const frame = getRotatedSize(naturalSize, rotation);
+  return { width: frame.width * scale, height: frame.height * scale };
+}
+
+/** Size and rotation of the image itself, none before it has loaded */
+export function getImageStyle(naturalSize: Size | null, rotation: ImageRotation, scale: number) {
+  if (!naturalSize) {
+    return undefined;
+  }
+  return {
+    width: naturalSize.width * scale,
+    height: naturalSize.height * scale,
+    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+  };
+}
