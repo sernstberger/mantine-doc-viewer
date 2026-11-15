@@ -51,4 +51,16 @@ describe('getEditorKeyAction', () => {
     expect(getEditorKeyAction({ key: 'x' })).toBeNull();
     expect(getEditorKeyAction({ key: 'Enter' })).toBeNull();
   });
+
+  it('swaps the horizontal arrows in a right-to-left page order, keeps the vertical ones', () => {
+    expect(getEditorKeyAction({ key: 'ArrowRight' }, true)).toEqual({ action: 'focus', step: -1 });
+    expect(getEditorKeyAction({ key: 'ArrowLeft' }, true)).toEqual({ action: 'focus', step: 1 });
+    expect(getEditorKeyAction({ key: 'ArrowRight', altKey: true }, true)).toEqual({
+      action: 'move',
+      step: -1,
+    });
+    expect(getEditorKeyAction({ key: 'ArrowUp' }, true)).toEqual({ action: 'focus', step: -1 });
+    expect(getEditorKeyAction({ key: 'ArrowDown' }, true)).toEqual({ action: 'focus', step: 1 });
+    expect(getEditorKeyAction({ key: 'Home' }, true)).toEqual({ action: 'focusFirst', step: 1 });
+  });
 });

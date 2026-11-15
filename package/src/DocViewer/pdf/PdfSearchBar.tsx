@@ -116,7 +116,7 @@ function SearchResults(props: PdfSearchBarProps) {
 
 export function PdfSearchBar(props: PdfSearchBarProps) {
   const { inputRef, query, onQueryChange, onNext, onPrevious, onClose } = props;
-  const { getStyles, labels, size } = useDocViewerContext();
+  const { getStyles, labels, size, searchInputProps } = useDocViewerContext();
 
   const handleKeyDown = getHotkeyHandler([
     ['Enter', onNext],
@@ -127,14 +127,15 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
   return (
     <div {...getStyles('search')} role="search">
       <TextInput
+        placeholder={labels.searchDocument}
+        aria-label={labels.searchDocument}
+        leftSection={<SearchIcon />}
+        {...searchInputProps}
         ref={inputRef}
         size={size.input}
         value={query}
         onChange={(event) => onQueryChange(event.currentTarget.value)}
         onKeyDown={handleKeyDown}
-        placeholder={labels.searchDocument}
-        aria-label={labels.searchDocument}
-        leftSection={<SearchIcon />}
         {...getStyles('searchInput')}
       />
       <SearchOptionToggles options={props.options} onOptionsChange={props.onOptionsChange} />

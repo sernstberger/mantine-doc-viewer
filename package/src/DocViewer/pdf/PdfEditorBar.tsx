@@ -1,4 +1,4 @@
-import { ActionIcon, Button, ButtonProps, Group, Text } from '@mantine/core';
+import { ActionIcon, Button, ButtonProps, Group, Text, useDirection } from '@mantine/core';
 import React from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip } from '../controls';
@@ -77,18 +77,19 @@ interface EditorBarProps {
 /** The editing actions, from moving pages to saving */
 function EditorActions(props: EditorBarProps) {
   const { labels } = useDocViewerContext();
+  const rtl = useDirection().dir === 'rtl';
 
   return (
     <Group gap={6} wrap="wrap">
       <EditorButton
         label={labels.moveEarlier}
-        icon={<ArrowLeftIcon />}
+        icon={rtl ? <ArrowRightIcon /> : <ArrowLeftIcon />}
         variant="default"
         onClick={() => props.onMove(-1)}
       />
       <EditorButton
         label={labels.moveLater}
-        icon={<ArrowRightIcon />}
+        icon={rtl ? <ArrowLeftIcon /> : <ArrowRightIcon />}
         variant="default"
         onClick={() => props.onMove(1)}
       />
@@ -149,7 +150,7 @@ export function EditorBar(props: EditorBarProps) {
         <Text size="sm" {...getStyles('editorTitle')}>
           {labels.editPages}
         </Text>
-        <Text size="sm" c="dimmed" aria-live="polite">
+        <Text size="sm" aria-live="polite" {...getStyles('editorCount')}>
           {labels.selectedCount(props.selectedCount)}
         </Text>
       </Group>

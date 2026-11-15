@@ -14,7 +14,9 @@ import {
   MantineRadius,
   MantineSize,
   MantineSpacing,
+  PasswordInputProps,
   rem,
+  TextInputProps,
   TooltipProps,
   StylesApiProps,
   useProps,
@@ -30,6 +32,7 @@ import { DocViewerProvider } from './DocViewer.context';
 import type { DocViewerAutoAdvance } from './kiosk';
 import classes from './DocViewer.module.css';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
+import { useBehaviorStyles } from './use-behavior-styles';
 import { useDocViewerEvents } from './use-doc-viewer-events';
 import { useDocViewerSession } from './use-doc-viewer-session';
 import { DEFAULT_THUMBNAIL_WIDTH, useResolvedProps } from './use-resolved-props';
@@ -48,6 +51,23 @@ import { CodeView, LazyView, MarkdownView } from './lazy-views';
 import { TextView } from './text/TextView';
 import { ImageView } from './views/ImageView';
 import { UnsupportedView } from './views/UnsupportedView';
+
+/** `data-*` attributes, which JSX accepts on any element but an object does not */
+type DataAttributes = { [name: `data-${string}`]: string | number | boolean | undefined };
+
+/** Props of the PDF search box that an app may set: not what the viewer controls (value, keys, size, ref, classes) */
+export type DocViewerSearchInputProps = Omit<
+  TextInputProps,
+  'value' | 'defaultValue' | 'onChange' | 'onKeyDown' | 'size' | 'className' | 'style'
+> &
+  DataAttributes;
+
+/** Props of the PDF password field that an app may set: not what the viewer controls (value, error, size, classes) */
+export type DocViewerPasswordInputProps = Omit<
+  PasswordInputProps,
+  'value' | 'defaultValue' | 'onChange' | 'error' | 'size' | 'className' | 'style'
+> &
+  DataAttributes;
 
 export type DocViewerStylesNames =
   | 'root'
@@ -82,6 +102,7 @@ export type DocViewerStylesNames =
   | 'markupInput'
   | 'markupBar'
   | 'markupDivider'
+  | 'markupSave'
   | 'search'
   | 'searchInput'
   | 'searchCount'
@@ -103,11 +124,14 @@ export type DocViewerStylesNames =
   | 'viewMode'
   | 'dropdown'
   | 'documentInfo'
+  | 'documentHeading'
+  | 'documentLayer'
   | 'properties'
   | 'presentationControls'
   | 'editor'
   | 'editorBar'
   | 'editorTitle'
+  | 'editorCount'
   | 'editorPages'
   | 'editorPage'
   | 'editorButton'
@@ -276,6 +300,12 @@ export interface DocViewerProps
 
   /** Props passed to every toolbar tooltip, for example `{ disabled: true }` or `{ position: 'bottom' }` */
   tooltipProps?: Omit<TooltipProps, 'label' | 'children'>;
+
+  /** Props passed to the search box of a PDF, for example `{ placeholder: 'Find in contract' }` or `{ 'data-testid': 'search' }`. The value, the key handling and `size` stay with the viewer; use `classNames.searchInput` for classes */
+  searchInputProps?: DocViewerSearchInputProps;
+
+  /** Props passed to the password field of a protected PDF, for example `{ description: 'Ask the sender' }`. The value, the error and `size` stay with the viewer; use `classNames.passwordInput` for classes */
+  passwordInputProps?: DocViewerPasswordInputProps;
 
   /** Props passed to the CodeHighlight that shows code files and markdown source */
   codeHighlightProps?: Omit<CodeHighlightProps, 'code' | 'language'>;
@@ -544,7 +574,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const { className, style, classNames, styles, unstyled, vars, attributes, mod, height } = props;
   const resolved = useResolvedProps(props);
 
-  const getStyles = useStyles<DocViewerFactory>({
+  const getStylesApi = useStyles<DocViewerFactory>({
     name: 'DocViewer',
     classes,
     props: {
@@ -565,6 +595,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     // The same function while the styles are the same, so the context value can stay the same
     stable: true,
   });
+
+  const getStyles = useBehaviorStyles(getStylesApi);
 
   const session = useDocViewerSession(props);
   const events = useDocViewerEvents(props, session.type);

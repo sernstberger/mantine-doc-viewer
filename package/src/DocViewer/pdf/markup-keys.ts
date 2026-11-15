@@ -1,3 +1,4 @@
+import { clamp } from '@mantine/hooks';
 import { type DocViewerMarkPoint, type DocViewerMarkupTool, toPagePoint } from './markup';
 import { type Draft, isStrokeTool } from './markup-draft';
 import type { PdfRotation } from './render-page';
@@ -53,8 +54,6 @@ const ARROWS: Record<string, DocViewerMarkPoint> = {
   ArrowDown: [0, 1],
 };
 
-const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), max);
-
 /** A move on screen as a move on the page, which the viewer may show turned */
 export function toPageDelta([right, down]: DocViewerMarkPoint, rotation: PdfRotation) {
   const [x0, y0] = toPagePoint(0, 0, 0, 0, 1, rotation);
@@ -75,8 +74,8 @@ function getMoveAction(
   const { tool, caret, width, height, rotation } = state;
   const [dx, dy] = toPageDelta(direction, rotation);
   const next: DocViewerMarkPoint = [
-    clamp(caret[0] + dx * MARKUP_KEY_STEP, width),
-    clamp(caret[1] + dy * MARKUP_KEY_STEP, height),
+    clamp(caret[0] + dx * MARKUP_KEY_STEP, 0, width),
+    clamp(caret[1] + dy * MARKUP_KEY_STEP, 0, height),
   ];
   // Shift+arrow starts a mark at the cursor, like extending a text selection
   const startsHere = shiftKey && tool !== 'text' ? [caret] : null;

@@ -39,6 +39,8 @@ const OWN_PROP_NAMES = [
   'pageGap',
   'thumbnailWidth',
   'tooltipProps',
+  'searchInputProps',
+  'passwordInputProps',
   'codeHighlightProps',
   'toolbarSection',
   'toolbarStartSection',

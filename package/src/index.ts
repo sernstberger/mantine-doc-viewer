@@ -7,6 +7,8 @@ export type {
   DocViewerThumbnailsPosition,
   DocViewerPageLayout,
   DocViewerControl,
+  DocViewerSearchInputProps,
+  DocViewerPasswordInputProps,
   DocViewerVariant,
 } from './DocViewer/DocViewer';
 export type { DocViewerAutoAdvance } from './DocViewer/kiosk';

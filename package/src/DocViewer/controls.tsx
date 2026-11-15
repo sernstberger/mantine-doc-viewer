@@ -21,7 +21,8 @@ export function useControlProps() {
     'data-toolbar-toggle': true,
     size: size.control,
     variant: pressed ? 'light' : 'subtle',
-    color: pressed ? (color ?? 'gray') : 'gray',
+    // An unset colour is the theme's primary colour, as ActionIcon does
+    color: pressed ? color : 'gray',
     'data-pressed': pressed || undefined,
   });
 }
