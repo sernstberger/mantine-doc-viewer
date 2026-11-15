@@ -2,9 +2,13 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
-import { DocViewer } from '../../../../test-utils/render-legacy';
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
-import type { DocViewerMark } from '../../utils/markup';
+import { DocViewer } from '../../../test-utils/render-legacy';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import type { DocViewerMark } from '../utils/markup';
+import { createDocViewer } from '../doc-viewer.store';
+import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
+import { DocViewerPages } from './DocViewerPages';
+import { LoadedPdfRoot } from './pdf-test-kit';
 
 /**
  * Counts thumbnail and page tile renders: each names itself with its label once per render. One
@@ -296,5 +300,64 @@ describe('thumbnail and page tile renders', () => {
     await userEvent.keyboard('{ArrowRight}');
     await act(async () => {});
     expect(rendersSince(tileRenders, before)).toEqual([1, 2]);
+  });
+});
+
+describe('renders of the parts under Root', () => {
+  it('renders no page and no thumbnail again when the app passes new handlers and labels', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const renderPageOverlay = countPageRenders();
+    function App() {
+      const [count, setCount] = useState(0);
+      return (
+        <>
+          <button type="button" onClick={() => setCount(count + 1)}>
+            Render {count}
+          </button>
+          <LoadedPdfRoot defaultThumbnailsOpened labels={countingLabels}>
+            <DocViewerThumbnails />
+            <DocViewerPages
+              renderPageOverlay={renderPageOverlay}
+              withPageTurning={{ swipe: true }}
+              onLinkClick={() => {}}
+              onTextSelect={() => {}}
+              onReadingProgress={() => {}}
+              onReachEnd={() => {}}
+            />
+          </LoadedPdfRoot>
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = renderPageOverlay.mock.calls.length;
+    const thumbnailsBefore = thumbnailRenders.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Render 0' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Render 1' }));
+    await act(async () => {});
+    expect(renderPageOverlay.mock.calls.length).toBe(before);
+    expect(thumbnailRenders.mock.calls.length).toBe(thumbnailsBefore);
+  });
+
+  it('renders no thumbnail again when the zoom changes', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const [store, actions] = createDocViewer();
+    const { container } = render(
+      <LoadedPdfRoot store={store} defaultThumbnailsOpened labels={countingLabels}>
+        <DocViewerThumbnails />
+        <DocViewerPages />
+      </LoadedPdfRoot>
+    );
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = thumbnailRenders.mock.calls.length;
+    expect(before).toBeGreaterThan(0);
+    await act(async () => actions.setZoom(2));
+    await act(async () => actions.setZoom(0.5));
+    expect(store.getState().scale).toBe(0.5);
+    expect(thumbnailRenders.mock.calls.length).toBe(before);
   });
 });

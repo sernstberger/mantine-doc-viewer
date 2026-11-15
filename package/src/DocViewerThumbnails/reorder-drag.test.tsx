@@ -2,15 +2,15 @@ import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import {
   centerOf,
   ITEM,
   LIST,
   mockItemLayout,
   pointerDrag,
-} from '../../../../test-utils/pointer-drag';
-import { DocViewer } from '../../../../test-utils/render-legacy';
+} from '../../../test-utils/pointer-drag';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 type Props = Partial<React.ComponentProps<typeof DocViewer>>;
 

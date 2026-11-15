@@ -2,11 +2,11 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
-import { getPageRects, getPointOffset } from '../../utils/page-points';
-import { ACTIVE_MATCH_HIGHLIGHT } from '../../utils/highlights';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import { getPageRects, getPointOffset } from '../utils/page-points';
+import { ACTIVE_MATCH_HIGHLIGHT } from '../utils/highlights';
 
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
 const PAGE_BOX = { left: 100, top: 1000, width: 612, height: 792 };
 

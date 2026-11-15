@@ -3,9 +3,9 @@ import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { mockPdf } from '../../../../test-utils/mock-pdf';
-import { centerOf, ITEM, mockItemLayout, pointerDrag } from '../../../../test-utils/pointer-drag';
-import { DocViewer } from '../../../../test-utils/render-legacy';
+import { mockPdf } from '../../../test-utils/mock-pdf';
+import { centerOf, ITEM, mockItemLayout, pointerDrag } from '../../../test-utils/pointer-drag';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 const items = (listbox: HTMLElement) => within(listbox).getAllByRole('option');
 

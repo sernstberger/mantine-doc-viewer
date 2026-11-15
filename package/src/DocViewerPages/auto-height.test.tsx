@@ -1,17 +1,17 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
-import { buildPageText } from '../../utils/search';
+import { buildPageText } from '../utils/search';
 import React from 'react';
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
-import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
-import { DocViewer } from '../../../../test-utils/render-legacy';
-import { computeScale } from '../../utils/geometry';
-import { useCurrentPage } from '../../hooks/pdf/use-current-page';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import { installIntersectionObserver } from '../../../test-utils/intersection-observer';
+import { DocViewer } from '../../../test-utils/render-legacy';
+import { computeScale } from '../utils/geometry';
+import { useCurrentPage } from '../hooks/pdf/use-current-page';
 import {
   scrollRangeIntoView,
   useSearchHighlights,
   useTextLayers,
-} from '../../hooks/pdf/use-search-highlights';
+} from '../hooks/pdf/use-search-highlights';
 
 function box(top: number, bottom: number, left = 0, right = 100) {
   return { top, bottom, left, right, width: right - left, height: bottom - top } as DOMRect;

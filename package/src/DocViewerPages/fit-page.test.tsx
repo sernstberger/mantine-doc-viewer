@@ -1,10 +1,10 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
-import { toPdfZoom } from '../../utils/pdf-zoom';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import { toPdfZoom } from '../utils/pdf-zoom';
 
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
 describe('toPdfZoom', () => {
   it('fits the width for fit, keeps fit-page and clamps scales', () => {

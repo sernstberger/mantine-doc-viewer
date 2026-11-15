@@ -10,10 +10,10 @@ class FakeStyleSheet {
 }
 
 /** A fresh copy of highlights.ts, which adds its styles only once per page */
-function loadHighlights(): typeof import('../../utils/highlights') {
-  let module!: typeof import('../../utils/highlights');
+function loadHighlights(): typeof import('../utils/highlights') {
+  let module!: typeof import('../utils/highlights');
   jest.isolateModules(() => {
-    module = require('../../utils/highlights');
+    module = require('../utils/highlights');
   });
   return module;
 }
