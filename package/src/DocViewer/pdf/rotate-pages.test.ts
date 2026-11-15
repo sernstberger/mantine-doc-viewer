@@ -1,4 +1,4 @@
-import { degrees, PDFDocument } from 'pdf-lib';
+import { degrees, PDFDocument } from '@cantoo/pdf-lib';
 import { applyPageRotations } from './rotate-pages';
 
 async function makePdf(rotations: number[]) {
