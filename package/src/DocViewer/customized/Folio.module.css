@@ -1,0 +1,262 @@
+/*
+ * Folio: a native macOS-style document app. Native mimicry is the point, so the type is the
+ * system stack and the details are the platform's: vibrancy sidebar, 0.5px hairlines, blue pill
+ * page numbers, a unified title bar and toolbar.
+ */
+
+.desktop {
+  --folio-chrome: light-dark(#f5f5f7, #2b2b2e);
+  --folio-sidebar: light-dark(rgb(233 232 236 / 0.82), rgb(44 44 47 / 0.82));
+  --folio-canvas: light-dark(#d9d9dc, #1c1c1e);
+  --folio-ink: light-dark(#1d1d1f, #f2f2f7);
+  --folio-secondary: light-dark(#6e6e73, #98989d);
+  --folio-hairline: light-dark(rgb(0 0 0 / 0.14), rgb(255 255 255 / 0.12));
+  --folio-hover: light-dark(rgb(0 0 0 / 0.06), rgb(255 255 255 / 0.08));
+  --folio-pressed: light-dark(rgb(0 0 0 / 0.11), rgb(255 255 255 / 0.16));
+  --folio-blue: #0a66e8;
+
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 40px 24px;
+  /* A calm wallpaper: dusk over water */
+  background:
+    radial-gradient(120% 80% at 70% 0%, #f4c9a8 0%, transparent 55%),
+    radial-gradient(90% 70% at 10% 100%, #3d5a80 0%, transparent 60%),
+    linear-gradient(180deg, #98a9c4 0%, #5f7697 100%);
+  color: var(--folio-ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.window {
+  position: relative;
+  width: min(1120px, 100%);
+  height: min(780px, calc(100vh - 80px));
+  min-height: 480px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.4),
+    inset 0 0.5px 0 rgb(255 255 255 / 0.5),
+    0 24px 60px -12px rgb(14 25 45 / 0.55);
+}
+
+.trafficLights {
+  position: absolute;
+  z-index: 3;
+  top: 19px;
+  left: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+.light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.18);
+
+  &:nth-child(1) {
+    background: #ff5f57;
+  }
+
+  &:nth-child(2) {
+    background: #febc2e;
+  }
+
+  &:nth-child(3) {
+    background: #28c840;
+  }
+}
+
+/* ---------------------------------- viewer --------------------------------- */
+
+.root {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: var(--folio-chrome);
+  font-family: inherit;
+}
+
+/* Unified title bar and toolbar; room on the left for the window buttons */
+.toolbar {
+  min-height: 52px;
+  padding-inline: 88px 12px;
+  border-bottom: 0.5px solid var(--folio-hairline);
+  background: var(--folio-chrome);
+  color: var(--folio-ink);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.control {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--folio-secondary);
+
+  &:hover {
+    background: var(--folio-hover);
+    color: var(--folio-ink);
+  }
+
+  &[data-pressed] {
+    background: var(--folio-pressed);
+    color: var(--folio-ink);
+  }
+
+  &:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--folio-blue) 55%, transparent);
+    outline-offset: 0;
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: var(--folio-secondary);
+  font-size: 12px;
+}
+
+.search {
+  border-bottom: 0.5px solid var(--folio-hairline);
+  background: var(--folio-chrome);
+}
+
+.body {
+  background: var(--folio-canvas);
+}
+
+.page {
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.18),
+    0 3px 10px rgb(0 0 0 / 0.16);
+}
+
+/* Sidebar: translucent with blur, page numbers as pills, a soft ring on the current page */
+.thumbnails {
+  border-right: 0.5px solid var(--folio-hairline);
+  background: var(--folio-sidebar);
+  backdrop-filter: blur(24px) saturate(1.8);
+}
+
+.thumbnail {
+  gap: 6px;
+  border-radius: 6px;
+  color: var(--folio-ink);
+
+  &:hover {
+    background: transparent;
+  }
+
+  &[data-active] {
+    background: transparent;
+    color: var(--folio-ink);
+  }
+
+  &:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--folio-blue) 55%, transparent);
+  }
+}
+
+.thumbnailImage {
+  border: 0;
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.2),
+    0 1px 3px rgb(0 0 0 / 0.15);
+
+  .thumbnail[data-active] > & {
+    box-shadow:
+      0 0 0 0.5px rgb(0 0 0 / 0.2),
+      0 0 0 5px light-dark(rgb(0 0 0 / 0.13), rgb(255 255 255 / 0.2));
+  }
+}
+
+.thumbnailLabel {
+  min-width: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 17px;
+  text-align: center;
+
+  .thumbnail[data-active] > & {
+    background: var(--folio-blue);
+    color: white;
+  }
+}
+
+/* Page editor: a grid of pages with a blue selection ring, the bar matches the title bar */
+.editorBar {
+  border-bottom: 0.5px solid var(--folio-hairline);
+  background: var(--folio-chrome);
+}
+
+.editorPages {
+  background: var(--folio-canvas);
+}
+
+.editorPage {
+  border-radius: 6px;
+
+  &[data-selected] {
+    outline: 3px solid var(--folio-blue);
+    outline-offset: 3px;
+  }
+}
+
+/* ---------------------------------- toast ---------------------------------- */
+
+.toast {
+  position: absolute;
+  z-index: 3;
+  top: 64px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 300px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: light-dark(rgb(246 246 248 / 0.86), rgb(50 50 54 / 0.86));
+  backdrop-filter: blur(30px) saturate(1.8);
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.15),
+    0 10px 30px rgb(0 0 0 / 0.22);
+  animation: toast-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.toastIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #4e9bff, var(--folio-blue));
+  color: white;
+}
+
+.toastTitle {
+  font-weight: 600;
+}
+
+.toastText {
+  color: var(--folio-secondary);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
