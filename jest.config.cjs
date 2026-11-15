@@ -9,6 +9,10 @@ module.exports = {
     '^.+\\.tsx?$': ['esbuild-jest', { target: 'es2022', sourcemap: true }],
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
+  // Every source file is fully covered; keep it that way
+  coverageThreshold: {
+    global: { statements: 100, branches: 100, functions: 100, lines: 100 },
+  },
   collectCoverageFrom: [
     'package/src/**/*.{ts,tsx}',
     '!package/src/**/*.story.tsx',

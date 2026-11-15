@@ -42,10 +42,8 @@ interface PdfPageProps {
 /** While text is being selected, pdf.js stretches `.endOfContent` over the layer to stop the selection jumping */
 function useSelectingClass(textLayerRef: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
-    const layer = textLayerRef.current;
-    if (!layer) {
-      return undefined;
-    }
+    // The text layer element is always rendered, so it exists once the page has mounted
+    const layer = textLayerRef.current!;
 
     const stop = () => layer.classList.remove('selecting');
     const start = () => {

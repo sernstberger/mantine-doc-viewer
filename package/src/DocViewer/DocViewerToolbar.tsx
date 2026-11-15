@@ -43,13 +43,11 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
     return null;
   }
 
-  const print = async () => {
-    if (!onPrint || printing) {
-      return;
-    }
+  // The button only exists with onPrint, and is disabled (loading) while printing
+  const print = async (printDocument: () => Promise<void> | void) => {
     setPrinting(true);
     try {
-      await onPrint();
+      await printDocument();
     } catch {
       // The browser could not print from the viewer, open the file so it can be printed from there
       window.open(src, '_blank', 'noopener,noreferrer');
@@ -74,7 +72,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
               {...controlProps()}
               aria-label={labels.print}
               loading={printing}
-              onClick={print}
+              onClick={() => print(onPrint)}
             >
               <PrintIcon />
             </ActionIcon>
