@@ -100,6 +100,9 @@ export function PdfReaderBody({
   const { currentPage, goToPage } = position;
 
   return (
+    // Once the document is ready getRegionProps makes this a focusable, labelled region (role and
+    // tabIndex come through the spread). Clicks turn pages; the keys do the same from the region
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       ref={turns.setBodyNode}
       {...getStyles('body')}

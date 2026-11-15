@@ -16,6 +16,27 @@ const config: StorybookConfig = {
   docs: {
     autodocs: false,
   },
+  // No telemetry: it also prints a notice and spawns the package manager during builds
+  core: { disableTelemetry: true },
+  viteFinal: (viteConfig) => ({
+    ...viteConfig,
+    build: {
+      ...viteConfig.build,
+      // The chunks over Vite's 500 kB default are single third-party modules that already load
+      // on demand (pdf.js, Shiki grammars, Storybook's docs renderer): nothing left to split
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: {
+        ...viteConfig.build?.rollupOptions,
+        onwarn(warning, warn) {
+          // Storybook's own preview runtime uses eval; that is Storybook's code, not ours
+          if (warning.code === 'EVAL' && warning.id?.includes('/@storybook/core/')) {
+            return;
+          }
+          warn(warning);
+        },
+      },
+    },
+  }),
 };
 
 export default config;

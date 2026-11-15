@@ -42,6 +42,9 @@ export function PageTile(props: PageTileProps) {
   const fit = sideways ? TILE_WIDTH / height : 1;
 
   return (
+    // An option in the editor's listbox: the listbox handles the keys for the focused option
+    // (Space selects, arrows move), as in the ARIA listbox pattern
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
       ref={tileRef}
       {...getStyles('editorPage')}

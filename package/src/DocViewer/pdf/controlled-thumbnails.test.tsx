@@ -59,13 +59,13 @@ describe('controlled thumbnails', () => {
     expect(onChange).toHaveBeenLastCalledWith(false);
     expect(strip()).not.toBeInTheDocument();
 
-    act(() => controller.current!.toggleThumbnails(true));
+    await act(async () => controller.current!.toggleThumbnails(true));
     expect(onChange).toHaveBeenLastCalledWith(true);
     expect(strip()).toBeInTheDocument();
 
     // Asking for the state it is already in reports nothing
     const calls = onChange.mock.calls.length;
-    act(() => controller.current!.toggleThumbnails(true));
+    await act(async () => controller.current!.toggleThumbnails(true));
     expect(onChange).toHaveBeenCalledTimes(calls);
   });
 

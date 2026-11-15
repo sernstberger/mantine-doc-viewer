@@ -61,12 +61,16 @@ const preview: Preview = {
 
       const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
 
+      // StrictMode mounts, unmounts and mounts again in development (storybook dev, e2e:dev), so
+      // effects that do not clean up after themselves show up there
       return (
-        <MantineProvider forceColorScheme={scheme}>
-          <CodeHighlightAdapterProvider adapter={shikiAdapter}>
-            {renderStory()}
-          </CodeHighlightAdapterProvider>
-        </MantineProvider>
+        <React.StrictMode>
+          <MantineProvider forceColorScheme={scheme}>
+            <CodeHighlightAdapterProvider adapter={shikiAdapter}>
+              {renderStory()}
+            </CodeHighlightAdapterProvider>
+          </MantineProvider>
+        </React.StrictMode>
       );
     },
   ],
