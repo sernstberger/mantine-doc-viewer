@@ -9334,6 +9334,7 @@ __metadata:
     "@types/node": "npm:^22.15.24"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    html-entities: "npm:^2.6.0"
     mantine-doc-viewer: "workspace:*"
     next: "npm:16.2.2"
     pdfjs-dist: "npm:^6.5.438"

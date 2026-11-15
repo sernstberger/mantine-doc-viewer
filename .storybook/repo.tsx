@@ -1,4 +1,5 @@
 // The parts of the Storybook preview that belong to this repo only
+import '@mantine/code-highlight/styles.css';
 import './fonts';
 import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight';
 import { createTheme } from '@mantine/core';

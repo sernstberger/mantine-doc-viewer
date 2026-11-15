@@ -1,0 +1,5 @@
+2026-11-14T09:12:01Z INFO  server started on :8080
+2026-11-14T09:12:04Z INFO  GET /files/report.pdf 200 18ms
+2026-11-14T09:12:09Z WARN  GET /files/missing.png 404 2ms
+2026-11-14T09:13:30Z ERROR upload failed: request entity too large (limit 10 MB, got 14.2 MB) for user upload in /api/attachments, retrying is not useful until the limit is raised
+2026-11-14T09:14:02Z INFO  GET /files/sample.md 200 4ms

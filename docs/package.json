@@ -23,6 +23,7 @@
     "@next/mdx": "16.2.2",
     "@tabler/icons-react": "^3.33.0",
     "@types/mdx": "^2.0.13",
+    "html-entities": "^2.6.0",
     "mantine-doc-viewer": "workspace:*",
     "next": "16.2.2",
     "pdfjs-dist": "^6.5.438",
