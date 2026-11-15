@@ -1,0 +1,108 @@
+import { ActionIcon } from '@mantine/core';
+import React, { useState } from 'react';
+import { DocViewerTooltip, useControlProps, useFullscreenAvailable } from './controls';
+import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
+import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
+
+/** The file name (or the custom title) and the subtitle, inside the heading */
+export function ToolbarHeading() {
+  const { getStyles, fileName, toolbarSubtitle, renderToolbarTitle } = useDocViewerContext();
+  const show = useShowControl();
+  const title = useDocumentTitle();
+
+  return (
+    <div {...getStyles('heading')}>
+      {show('title') && (
+        <>
+          <span {...getStyles('title')}>
+            {renderToolbarTitle ? renderToolbarTitle({ title, fileName }) : title}
+          </span>
+          {toolbarSubtitle && <span {...getStyles('subtitle')}>{toolbarSubtitle}</span>}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** The print button only exists with onPrint, and is disabled (loading) while printing */
+export function PrintButton({ onPrint }: { onPrint: (() => Promise<void> | void) | undefined }) {
+  const { src, withPrint, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const show = useShowControl();
+  const [printing, setPrinting] = useState(false);
+
+  if (!(withPrint && show('print') && onPrint)) {
+    return null;
+  }
+
+  const print = async () => {
+    setPrinting(true);
+    try {
+      await onPrint();
+    } catch {
+      // The browser could not print from the viewer, open the file so it can be printed from there
+      window.open(src, '_blank', 'noopener,noreferrer');
+    } finally {
+      setPrinting(false);
+    }
+  };
+
+  return (
+    <DocViewerTooltip label={labels.print}>
+      <ActionIcon {...controlProps()} aria-label={labels.print} loading={printing} onClick={print}>
+        <PrintIcon />
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
+}
+
+export function DownloadButton() {
+  const { src, fileName, withDownload, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const show = useShowControl();
+
+  if (!(withDownload && show('download'))) {
+    return null;
+  }
+
+  return (
+    <DocViewerTooltip label={labels.download}>
+      <ActionIcon
+        component="a"
+        href={src}
+        download={fileName ?? true}
+        // Browsers ignore download for other origins and open the file instead, so not in place of the app
+        target="_blank"
+        rel="noopener noreferrer"
+        {...controlProps()}
+        aria-label={labels.download}
+      >
+        <DownloadIcon />
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
+}
+
+export function FullscreenButton() {
+  const { withFullscreen, fullscreen, toggleFullscreen, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const show = useShowControl();
+  const fullscreenAvailable = useFullscreenAvailable();
+
+  if (!(withFullscreen && show('fullscreen') && fullscreenAvailable)) {
+    return null;
+  }
+
+  return (
+    <DocViewerTooltip label={fullscreen ? labels.exitFullscreen : labels.fullscreen}>
+      <ActionIcon
+        {...controlProps(fullscreen)}
+        aria-label={labels.fullscreen}
+        aria-pressed={fullscreen}
+        onClick={() => toggleFullscreen()}
+      >
+        {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
+}
