@@ -1,0 +1,329 @@
+/*
+ * Stand: a sheet music reader on a tablet. The score is the whole screen; the chrome (a thin
+ * translucent strip and invisible page edges) steps back. The story owns its colours and does
+ * not follow the Mantine colour scheme, because a music stand is dim on purpose.
+ */
+
+.stage {
+  --stand-stage: #3b1f2b;
+  --stand-deep: #2c1520;
+  --stand-brass: #d2a85a;
+  --stand-text: #f3ebe4;
+  --stand-muted: #cdbfc6;
+  --stand-line: rgb(243 235 228 / 0.12);
+  --stand-drawer: 292px;
+
+  display: grid;
+  grid-template-columns: 0 minmax(0, 1fr);
+  height: 100vh;
+  min-height: 480px;
+  background: var(--stand-stage);
+  color: var(--stand-text);
+  font-family: Figtree, system-ui, sans-serif;
+  font-size: 14px;
+  transition: grid-template-columns 240ms cubic-bezier(0.3, 0.7, 0.2, 1);
+
+  &[data-drawer] {
+    grid-template-columns: var(--stand-drawer) minmax(0, 1fr);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* ---------------------------------- setlist ---------------------------------- */
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  width: var(--stand-drawer);
+  overflow: hidden auto;
+  border-right: 1px solid var(--stand-line);
+  background: var(--stand-deep);
+  scrollbar-width: none;
+}
+
+.drawerHeader {
+  padding: 22px 24px 18px 28px;
+  border-bottom: 1px solid var(--stand-line);
+}
+
+.rehearsal {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.venue {
+  margin-top: 4px;
+  color: var(--stand-muted);
+  font-size: 13px;
+}
+
+.setlist {
+  flex: 1;
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.piece {
+  position: relative;
+  padding: 14px 24px 14px 28px;
+  color: var(--stand-muted);
+
+  &[data-current] {
+    color: var(--stand-text);
+    background: rgb(210 168 90 / 0.08);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--stand-brass);
+    }
+  }
+}
+
+.pieceTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+
+  .piece[data-current] > & {
+    color: var(--stand-brass);
+  }
+}
+
+.pieceComposer {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.pieceMeta {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.offline {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.sections {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--stand-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: rgb(243 235 228 / 0.08);
+    color: var(--stand-text);
+  }
+
+  &[data-active] {
+    color: var(--stand-brass);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--stand-brass);
+    outline-offset: 1px;
+  }
+}
+
+.sectionPage {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.hint {
+  padding: 16px 28px 22px;
+  border-top: 1px solid var(--stand-line);
+  color: var(--stand-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------------------------------- reader ----------------------------------- */
+
+.reader {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  /* Covers the setlist while the drawer track is closed */
+  background: var(--stand-stage);
+}
+
+.drawerToggle {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 6px;
+  height: 34px;
+  color: var(--stand-muted);
+
+  &:hover {
+    background: transparent;
+    color: var(--stand-brass);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--stand-brass);
+    outline-offset: -2px;
+  }
+}
+
+.root {
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: Figtree, system-ui, sans-serif;
+}
+
+/* A thin strip, with room for the setlist button at the start */
+.toolbar {
+  min-height: 34px;
+  gap: 4px;
+  padding-inline: 48px 12px;
+  border-bottom: 0;
+  background: rgb(44 21 32 / 0.55);
+  color: var(--stand-muted);
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--stand-text);
+}
+
+.pageIndicator {
+  color: var(--stand-muted);
+  font-size: 12px;
+}
+
+.control {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--stand-muted);
+
+  &:hover {
+    background: rgb(243 235 228 / 0.1);
+    color: var(--stand-brass);
+  }
+
+  &[data-pressed] {
+    background: rgb(210 168 90 / 0.18);
+    color: var(--stand-brass);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--stand-brass);
+    outline-offset: 0;
+  }
+}
+
+/* The scroll area: the stage shows through, spreads snap into place, no scrollbar */
+.body {
+  background: transparent;
+  scrollbar-width: none;
+  scroll-snap-type: y proximity;
+
+  &:focus-visible {
+    outline: 2px solid var(--stand-brass);
+    outline-offset: -2px;
+  }
+}
+
+.pages {
+  padding-block: 10px 28px;
+}
+
+.page {
+  scroll-snap-align: start;
+  scroll-margin-top: 6px;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.35) inset,
+    0 18px 40px -10px rgb(10 3 8 / 0.65),
+    0 2px 6px rgb(10 3 8 / 0.4);
+}
+
+/* ------------------------------- page turn zones ------------------------------ */
+
+/* Big invisible targets down both edges; a faint chevron shows on hover and keyboard focus */
+.turn {
+  position: absolute;
+  z-index: 3;
+  top: 34px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  width: clamp(56px, 11%, 140px);
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--stand-brass);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 160ms;
+  -webkit-tap-highlight-color: transparent;
+
+  &[data-side='previous'] {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(90deg, rgb(210 168 90 / 0.16), transparent);
+  }
+
+  &[data-side='next'] {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(270deg, rgb(210 168 90 / 0.16), transparent);
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--stand-brass);
+    outline-offset: -4px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
