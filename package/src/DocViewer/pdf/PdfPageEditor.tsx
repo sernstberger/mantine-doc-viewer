@@ -1,11 +1,14 @@
 import { Button, Group, Text, VisuallyHidden } from '@mantine/core';
+import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useState } from 'react';
 import { softDisabled } from '../a11y';
 import { useDocViewerContext } from '../DocViewer.context';
+import { DragHandleIcon } from '../icons';
 import { useAnnouncement } from './use-announcement';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
+import { ReorderList, useReorderItem, useReorderList } from './use-reorder-drag';
 import {
   buildExtractRequest,
   initialOrder,
@@ -16,7 +19,7 @@ import {
   removeSelected,
 } from './page-edits';
 
-export type PdfSaveReason = 'save' | 'extract';
+export type PdfSaveReason = 'save' | 'extract' | 'reorder';
 
 interface PdfPageEditorProps {
   document: PDFDocumentProxy;
@@ -35,9 +38,8 @@ interface PageTileProps {
   selected: boolean;
   focused: boolean;
   scrollRoot: HTMLElement | null;
+  reorder: ReorderList;
   onSelect: (event: React.MouseEvent) => void;
-  onDragStart: () => void;
-  onDrop: () => void;
 }
 
 /** Width of page previews in the editor, in px */
@@ -46,6 +48,8 @@ const TILE_WIDTH = 120;
 function PageTile(props: PageTileProps) {
   const { getStyles, labels } = useDocViewerContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(props.scrollRoot, '100% 0px');
+  const { itemRef, handleRef } = useReorderItem(props.reorder, props.page);
+  const tileRef = useMergedRef(ref, itemRef);
   const { canvasRef, size } = usePagePreview({
     document: props.document,
     pageNumber: props.page,
@@ -56,26 +60,21 @@ function PageTile(props: PageTileProps) {
 
   return (
     <div
-      ref={ref}
+      ref={tileRef}
       {...getStyles('editorPage')}
+      {...props.reorder.getItemProps(props.page, props.position - 1)}
       role="option"
       aria-selected={props.selected}
       aria-label={labels.editorPage(props.page, props.position, props.total)}
       tabIndex={props.focused ? 0 : -1}
       data-page={props.page}
       data-selected={props.selected || undefined}
-      draggable
-      onClick={props.onSelect}
-      onDragStart={(event) => {
-        event.dataTransfer.effectAllowed = 'move';
-        props.onDragStart();
-      }}
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => {
-        event.preventDefault();
-        props.onDrop();
-      }}
+      onClick={(event) => !props.reorder.isDragClick(event) && props.onSelect(event)}
     >
+      {/* Touch and pen drag from here, so that swiping the rest of the page scrolls */}
+      <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
+        <DragHandleIcon />
+      </span>
       <span {...getStyles('thumbnailImage', { style: { width: TILE_WIDTH, height } })}>
         {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       </span>
@@ -92,12 +91,22 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
   const [order, setOrder] = useState<PageOrder>(() => initialOrder(document.numPages));
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [dragging, setDragging] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const [announcement, announce] = useAnnouncement();
   const edited = isEdited(order, document.numPages);
   const selection = order.filter((page) => selected.has(page));
+  const reorder = useReorderList({
+    container: scrollRoot,
+    layout: 'grid',
+    order,
+    onReorder: (page, toIndex) => {
+      const next = movePage(order, page, toIndex);
+      setOrder(next);
+      setFocusedIndex(toIndex);
+      announce(labels.pageMoved(page, toIndex + 1));
+    },
+  });
 
   const focusIndex = (index: number) => {
     const next = Math.min(Math.max(index, 0), order.length - 1);
@@ -249,7 +258,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         aria-label={labels.pages}
         aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space Control+A"
         onKeyDown={handleKeyDown}
-        onDragEnd={() => setDragging(null)}
+        data-dragging={reorder.dragging || undefined}
       >
         {order.map((page, index) => (
           <PageTile
@@ -261,20 +270,12 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
             selected={selected.has(page)}
             focused={index === focusedIndex}
             scrollRoot={scrollRoot}
+            reorder={reorder}
             onSelect={(event) => {
               setFocusedIndex(index);
               event.shiftKey || event.metaKey || event.ctrlKey
                 ? toggle(page)
                 : setSelected(new Set(selected.has(page) && selected.size === 1 ? [] : [page]));
-            }}
-            onDragStart={() => setDragging(page)}
-            onDrop={() => {
-              if (dragging !== null && dragging !== page) {
-                const next = movePage(order, dragging, index);
-                setOrder(next);
-                announce(labels.pageMoved(dragging, next.indexOf(dragging) + 1));
-              }
-              setDragging(null);
             }}
           />
         ))}

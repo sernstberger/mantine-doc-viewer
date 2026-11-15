@@ -1,11 +1,15 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useEffect, useState } from 'react';
+import { useMergedRef } from '@mantine/hooks';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
+import { DragHandleIcon } from '../icons';
+import { initialOrder } from './page-edits';
 import { PdfRotation, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import type { PdfLayersState } from './use-pdf-layers';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
+import { ReorderList, useReorderItem, useReorderList } from './use-reorder-drag';
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
@@ -43,6 +47,7 @@ interface PdfThumbnailProps {
   layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   scrollRoot: HTMLElement | null;
+  reorder: ReorderList;
   onSelect: (pageNumber: number) => void;
 }
 
@@ -55,6 +60,7 @@ function PdfThumbnail({
   layers,
   orientation,
   scrollRoot,
+  reorder,
   onSelect,
 }: PdfThumbnailProps) {
   const { getStyles, labels, thumbnailWidth } = useDocViewerContext();
@@ -65,6 +71,8 @@ function PdfThumbnail({
     scrollRoot,
     horizontal ? '0px 100%' : '100% 0px'
   );
+  const { itemRef, handleRef } = useReorderItem(reorder, pageNumber);
+  const thumbnailRef = useMergedRef(ref, itemRef);
   const { canvasRef, size } = usePagePreview({
     document,
     pageNumber,
@@ -101,8 +109,9 @@ function PdfThumbnail({
 
   return (
     <div
-      ref={ref}
+      ref={thumbnailRef}
       {...getStyles('thumbnail')}
+      {...(reorder.enabled ? reorder.getItemProps(pageNumber, pageNumber - 1) : undefined)}
       role="option"
       aria-selected={active}
       aria-label={labels.thumbnail(pageNumber)}
@@ -110,8 +119,13 @@ function PdfThumbnail({
       tabIndex={active ? 0 : -1}
       data-page-number={pageNumber}
       data-active={active || undefined}
-      onClick={() => onSelect(pageNumber)}
+      onClick={(event) => !reorder.isDragClick(event) && onSelect(pageNumber)}
     >
+      {reorder.enabled && (
+        <span ref={handleRef} {...getStyles('dragHandle')} aria-hidden>
+          <DragHandleIcon />
+        </span>
+      )}
       <span
         {...getStyles('thumbnailImage', {
           style: { width, height: (pageSize.height / pageSize.width) * width },
@@ -134,6 +148,8 @@ interface PdfThumbnailsProps {
   layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   onSelect: (pageNumber: number) => void;
+  /** Reorders the document by dragging thumbnails; without it thumbnails do not drag */
+  onReorder?: (pageNumber: number, toIndex: number) => void;
 }
 
 export function PdfThumbnails({
@@ -144,12 +160,22 @@ export function PdfThumbnails({
   layers,
   orientation,
   onSelect,
+  onReorder,
 }: PdfThumbnailsProps) {
   const { getStyles, labels } = useDocViewerContext();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
 
   const numPages = document.numPages;
   const horizontal = orientation === 'horizontal';
+  const order = useMemo(() => initialOrder(numPages), [numPages]);
+  const reorder = useReorderList({
+    container: scrollRoot,
+    layout: horizontal ? 'horizontal' : 'vertical',
+    order,
+    // Only called when dragging is enabled, which needs onReorder
+    onReorder: (page, toIndex) => onReorder!(page, toIndex),
+    enabled: !!onReorder,
+  });
 
   // Listbox keys, with selection following focus: moving to a thumbnail shows its page
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -201,6 +227,7 @@ export function PdfThumbnails({
           layers={layers}
           orientation={orientation}
           scrollRoot={scrollRoot}
+          reorder={reorder}
           onSelect={onSelect}
         />
       ))}

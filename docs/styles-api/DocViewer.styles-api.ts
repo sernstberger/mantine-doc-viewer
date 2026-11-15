@@ -47,6 +47,7 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     editorBar: 'Buttons above the pages in the page editor',
     editorPages: 'Grid of pages in the page editor, a listbox',
     editorPage: 'One page in the page editor',
+    dragHandle: 'Grip to drag a page with touch or a pen, shown on touch screens',
   },
 
   vars: {
@@ -101,6 +102,17 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
       modifier: 'data-selected',
       selector: 'editorPage',
       condition: 'Page is selected in the page editor',
+    },
+    {
+      modifier: 'data-dragging',
+      selector: ['editorPage', 'thumbnail', 'editorPages'],
+      condition: 'Page is being dragged (on the list: a drag is in progress)',
+    },
+    {
+      modifier: 'data-drop',
+      selector: ['editorPage', 'thumbnail'],
+      value: 'before | after',
+      condition: 'A dragged page will land before or after this one',
     },
     { modifier: 'data-fullscreen', selector: 'root', condition: 'Viewer is full screen' },
     {

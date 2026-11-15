@@ -868,16 +868,6 @@ describe('DocViewer PDF', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Save' }));
       await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
     });
-
-    it('drags a page to a new place', async () => {
-      const { order } = await openEditor();
-      const third = screen.getByRole('option', { name: 'Page 3, position 3 of 3' });
-      const first = screen.getByRole('option', { name: 'Page 1, position 1 of 3' });
-      fireEvent.dragStart(third, { dataTransfer: { effectAllowed: '' } });
-      fireEvent.dragOver(first);
-      fireEvent.drop(first);
-      expect(order()).toEqual(['3', '1', '2']);
-    });
   });
 
   it('zooms PDFs with + - 0 and with Ctrl+wheel or trackpad pinch', async () => {

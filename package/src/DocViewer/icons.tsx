@@ -163,3 +163,14 @@ export const EditPagesIcon = (props: IconProps) => (
     <path d="M3 17h18M3 21h12" />
   </Icon>
 );
+
+export const DragHandleIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="9" cy="6" r="1" />
+    <circle cx="15" cy="6" r="1" />
+    <circle cx="9" cy="12" r="1" />
+    <circle cx="15" cy="12" r="1" />
+    <circle cx="9" cy="18" r="1" />
+    <circle cx="15" cy="18" r="1" />
+  </Icon>
+);

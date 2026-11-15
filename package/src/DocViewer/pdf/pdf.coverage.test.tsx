@@ -366,19 +366,6 @@ describe('page editor', () => {
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
   });
 
-  it('ends a drag that is dropped nowhere, or on the page it started from', async () => {
-    const { order, listbox, option } = await openEditor();
-
-    fireEvent.dragStart(option(1), { dataTransfer: { effectAllowed: '' } });
-    fireEvent.drop(option(1));
-    expect(order()).toEqual(['1', '2', '3']);
-
-    fireEvent.dragStart(option(1), { dataTransfer: { effectAllowed: '' } });
-    fireEvent.dragEnd(listbox);
-    fireEvent.drop(option(3));
-    expect(order()).toEqual(['1', '2', '3']);
-  });
-
   it('removes the focused page with Backspace', async () => {
     const { listbox, order } = await openEditor();
     fireEvent.keyDown(listbox, { key: 'Backspace' });

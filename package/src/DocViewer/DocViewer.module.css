@@ -679,6 +679,92 @@
   }
 }
 
+/* Drag to reorder (page editor and thumbnails), with Mantine's useDrag */
+[data-reorder-item] {
+  position: relative;
+  touch-action: manipulation;
+
+  /* The dragged page follows the pointer */
+  &[data-dragging] {
+    z-index: 2;
+    opacity: 0.85;
+    box-shadow: var(--mantine-shadow-md);
+    pointer-events: none;
+    cursor: grabbing;
+  }
+
+  /* Where the page will land: a bar in the gap before or after this item */
+  &[data-drop]::after {
+    content: '';
+    position: absolute;
+    border-radius: 2px;
+    background-color: var(--_color);
+    pointer-events: none;
+  }
+
+  &[data-drop='before']::after,
+  &[data-drop='after']::after {
+    top: 0;
+    bottom: 0;
+    width: 3px;
+  }
+
+  &[data-drop='before']::after {
+    left: calc(var(--_drop-offset, -8px) - 1.5px);
+  }
+
+  &[data-drop='after']::after {
+    right: calc(var(--_drop-offset, -8px) - 1.5px);
+  }
+
+  /* A vertical rail of thumbnails gets a horizontal bar instead */
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop]::after {
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 3px;
+  }
+
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop='before']::after {
+    top: calc(var(--_drop-offset, -6px) - 1.5px);
+    bottom: auto;
+  }
+
+  :where(.thumbnails[data-orientation='vertical']) > &[data-drop='after']::after {
+    top: auto;
+    bottom: calc(var(--_drop-offset, -6px) - 1.5px);
+  }
+
+  @media (forced-colors: active) {
+    &[data-drop]::after {
+      background-color: Highlight;
+    }
+  }
+}
+
+/* Touch and pen drag from the handle; a mouse drags the whole page */
+.dragHandle {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  right: 6px;
+  display: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--mantine-radius-sm);
+  background-color: color-mix(in srgb, var(--mantine-color-body) 85%, transparent);
+  box-shadow: var(--mantine-shadow-xs);
+  color: var(--mantine-color-text);
+  font-size: 18px;
+  touch-action: none;
+  cursor: grab;
+
+  @media (pointer: coarse) {
+    display: grid;
+  }
+}
+
 /* variant="plain": just the document, for embedding in a page */
 .root[data-variant='plain'] {
   border: 0;

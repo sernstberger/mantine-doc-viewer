@@ -160,7 +160,8 @@ Set `withPageEditing` to add an edit pages button to the PDF toolbar. It shows t
 where readers can:
 
 - select pages with a click, Shift or Ctrl click, Space, or Ctrl/Cmd+A
-- reorder them by dragging, with the move earlier and move later buttons, or Alt and the arrow keys
+- reorder them by dragging (with a mouse, or with touch or a pen by the grip on each page), with the
+  move earlier and move later buttons, or Alt and the arrow keys
 - delete them with the delete button or the Delete key (a PDF always keeps at least one page)
 - extract the selected pages as a new PDF
 
@@ -168,13 +169,19 @@ Done shows the edited document in the viewer; Save does the same and also hands 
 `onSave`. The original file is never changed. Without `onSave`, saved and extracted PDFs are
 downloaded.
 
+With page editing on, readers can also drag thumbnails in the sidebar to reorder the document
+without opening the editor. The viewer shows the reordered document and calls `onSave` with
+`reason: 'reorder'`; without `onSave` nothing is downloaded. Dragging uses Mantine's `useDrag`, so
+it works with a mouse, touch and a pen; a bar shows where the page will land.
+
 ```tsx
 <DocViewer
   src="/contract.pdf"
   pdfWorkerSrc={pdfWorkerSrc}
   withPageEditing
   onSave={async (bytes, { reason, pages }) => {
-    // reason is 'save' for the edited document and 'extract' for selected pages
+    // reason: 'save' for the edited document, 'extract' for selected pages,
+    // 'reorder' after a thumbnail was dragged to a new place
     await upload(new Blob([bytes], { type: 'application/pdf' }), { reason, pages });
   }}
 />

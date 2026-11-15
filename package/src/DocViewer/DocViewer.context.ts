@@ -52,7 +52,7 @@ export interface DocViewerContextValue {
   onSave:
     | ((
         bytes: Uint8Array,
-        info: { reason: 'save' | 'extract'; pages: number[] }
+        info: { reason: 'save' | 'extract' | 'reorder'; pages: number[] }
       ) => void | Promise<void>)
     | undefined;
   fullscreen: boolean;

@@ -88,17 +88,17 @@ export function mockPdf({
       onPassword?: (update: (value: string) => void, reason: number) => void;
     } = { destroy: jest.fn(() => Promise.resolve()) };
 
+    // Like pdf.js, every load gives a new document object (sharing the mocks above)
+    const loaded = { ...document };
+
     // Like pdf.js: asks for the password through onPassword until the right one is given
     task.promise = fail
       ? Promise.reject(new Error('Invalid PDF structure'))
       : !password
-        ? Promise.resolve(document)
+        ? Promise.resolve(loaded)
         : new Promise((resolve) => {
             const ask = (reason: number) =>
-              task.onPassword?.(
-                (value) => (value === password ? resolve(document) : ask(2)),
-                reason
-              );
+              task.onPassword?.((value) => (value === password ? resolve(loaded) : ask(2)), reason);
             setTimeout(() => ask(1));
           });
 

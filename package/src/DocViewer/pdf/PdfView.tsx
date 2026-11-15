@@ -18,7 +18,7 @@ import {
 } from './geometry';
 import { getRegionProps } from '../a11y';
 import { saveBytes } from '../files';
-import { getEditedFileName } from './page-edits';
+import { buildExtractRequest, getEditedFileName, initialOrder, movePage } from './page-edits';
 import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
 import { PdfControls } from './PdfControls';
 import { getResolvedOutline } from './PdfOutline';
@@ -215,9 +215,30 @@ export function PdfView() {
     }
   };
 
-  // An edited document starts at its first page
+  /** Moves a page by dragging its thumbnail: the viewer shows the reordered document */
+  const reorderPages = async (page: number, toIndex: number) => {
+    const order = movePage(initialOrder(numPages), page, toIndex);
+    const bytes = (await ready!.document.extractPages(buildExtractRequest(order))) as Uint8Array;
+    showEdited(bytes, toIndex + 1);
+    announce(labels.pageMoved(page, toIndex + 1));
+    // Only an app that saves edits hears about it; a drag never starts a download
+    await context.onSave?.(bytes, { reason: 'reorder', pages: order });
+  };
+
+  // An edited document starts at its first page, or where a dragged page landed. The effect
+  // waits for the new document: right after the bytes change, the old one is still loaded
+  const pageAfterEdit = useRef(1);
+  const replacedDocument = useRef<unknown>(null);
+  const showEdited = (bytes: Uint8Array, page = 1) => {
+    pageAfterEdit.current = page;
+    replacedDocument.current = ready?.document;
+    setEditedData(bytes);
+  };
   useEffect(() => {
-    editedData && ready && scrollToPage(1);
+    if (editedData && ready && ready.document !== replacedDocument.current) {
+      scrollToPage(pageAfterEdit.current);
+      replacedDocument.current = ready.document;
+    }
     // Only when a new edited document is ready
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editedData, ready?.document]);
@@ -284,6 +305,7 @@ export function PdfView() {
       orientation={thumbnailsLayout.orientation}
       // Screen readers already read the selected thumbnail, so no page announcement as well
       onSelect={(page) => goToPage(page, false)}
+      onReorder={context.withPageEditing ? reorderPages : undefined}
     />
   );
 
@@ -297,7 +319,7 @@ export function PdfView() {
           onSave={savePdf}
           onDone={(bytes) => {
             setEditing(false);
-            bytes && setEditedData(bytes);
+            bytes && showEdited(bytes);
           }}
         />
       </>

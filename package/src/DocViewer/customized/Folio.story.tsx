@@ -87,7 +87,7 @@ export function Folio() {
             editorPages: classes.editorPages,
             editorPage: classes.editorPage,
           }}
-          // MISSING: drag to reorder and Delete in the thumbnail sidebar itself, without switching to the page editor.
+          // MISSING: Delete in the thumbnail sidebar itself; reordering there works by dragging, deleting needs the page editor.
           // MISSING: markup tools (highlight, text box, shapes, signature): the annotations layer.
           // MISSING: rotating one page and saving it; rotate only turns the view of every page.
           // MISSING: a subtitle slot next to the title ("Edited") without replacing the whole toolbar.
