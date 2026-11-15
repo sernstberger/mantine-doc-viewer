@@ -39,15 +39,28 @@ import 'mantine-doc-viewer/styles.css';
 
 ## Usage
 
-PDFs need the pdf.js worker from your installed `pdfjs-dist`:
+PDFs need an adapter that loads your installed `pdfjs-dist` and its worker:
 
 ```tsx
-import { DocViewer } from 'mantine-doc-viewer';
+import '@mantine/core/styles.css';
+import '@mantine/code-highlight/styles.css';
+import 'mantine-doc-viewer/styles.css';
+
+import { MantineProvider } from '@mantine/core';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from 'mantine-doc-viewer';
 // Vite; with webpack or Next.js use new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+const pdf = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc });
 
 function Demo() {
-  return <DocViewer src="/files/report.pdf" pdfWorkerSrc={pdfWorkerSrc} h={600} />;
+  return (
+    <MantineProvider>
+      <DocViewerAdapterProvider pdf={pdf}>
+        <DocViewer src="/files/report.pdf" h={600} />
+      </DocViewerAdapterProvider>
+    </MantineProvider>
+  );
 }
 ```
 
