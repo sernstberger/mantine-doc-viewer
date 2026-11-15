@@ -918,7 +918,17 @@
  * height of its own, so it scrolls inside the viewer as usual
  */
 .root[data-auto-height]:not([data-fullscreen]) {
-  & .body {
+  /*
+   * The body is as tall as its pages. Beside side thumbnails the main part is a row, where the
+   * body must still fill the width: shrunk to its content, fit to width would fit the pages to
+   * whatever width they had, down to the smallest zoom (Safari)
+   */
+  & .main > .body {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  & .main:is([data-thumbnails-position='top'], [data-thumbnails-position='bottom']) > .body {
     flex: none;
   }
 
