@@ -1,12 +1,12 @@
 import React from 'react';
-import type { DocViewerPageLayerProps } from '../doc-viewer.types';
-import type { PdfLayerMarkup } from '../hooks/pdf/use-markup';
-import { useDocViewerState } from '../hooks/use-doc-viewer-state';
+import type { DocViewerPageLayerProps } from '../../doc-viewer.types';
+import { useDocViewerState } from '../../hooks/use-doc-viewer-state';
+import type { PdfLayerMarkup } from '../hooks/use-markup';
+import { useMarkupLayerContext } from '../markup-setup';
 import type { DocViewerMark } from '../utils/markup';
 import { NO_MARKS } from '../utils/marks-by-page';
-import { useMarkupLayerContext } from './markup-setup';
-import { PdfMarkupLayer } from './PdfMarkupLayer';
-import { PdfMarkList } from './PdfMarkupText';
+import { MarkupLayer } from './MarkupLayer';
+import { MarkList } from './MarkupText';
 
 interface MarkupPageLayerViewProps extends DocViewerPageLayerProps {
   layer: PdfLayerMarkup;
@@ -26,9 +26,9 @@ const MarkupPageLayerView = React.memo(function MarkupPageLayerView({
 }: MarkupPageLayerViewProps) {
   return (
     <>
-      {marks.length > 0 && <PdfMarkList pageNumber={page} marks={marks} />}
+      {marks.length > 0 && <MarkList pageNumber={page} marks={marks} labels={layer.labels} />}
       {near && (
-        <PdfMarkupLayer
+        <MarkupLayer
           pageNumber={page}
           numPages={numPages}
           tabStop={tabStop}

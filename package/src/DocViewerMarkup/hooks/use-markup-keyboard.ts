@@ -1,15 +1,14 @@
 import { useMergedRef } from '@mantine/hooks';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { focusIfLost } from '../../utils/a11y';
-import { useDocViewerPageContext } from '../../doc-viewer.context';
-import type { DocViewerLabels } from '../../default-labels';
-import type { DocViewerMarkPoint } from '../../utils/markup';
-import type { Draft, TextDraft } from '../../utils/markup-draft';
+import type { DocViewerMarkupLabels } from '../default-labels';
+import type { DocViewerMarkPoint } from '../utils/markup';
+import type { Draft, TextDraft } from '../utils/markup-draft';
 import {
   getMarkupKeyAction,
   MARKUP_KEY_SHORTCUTS,
   type MarkupKeyAction,
-} from '../../utils/markup-keys';
+} from '../utils/markup-keys';
 import type { MarkupLayerInput } from './use-markup';
 
 /** Keys that move focus to the markup layer of the page before or after */
@@ -82,7 +81,7 @@ interface KeyActionsInput {
   commit: (draft: Draft) => boolean;
   setTextDraft: (draft: TextDraft | null) => void;
   returnFocusLater: () => void;
-  labels: DocViewerLabels;
+  labels: DocViewerMarkupLabels;
   announce: (message: string) => void;
 }
 
@@ -119,7 +118,6 @@ function getKeyActions({
       setDraft(null);
       announce(labels.markCancelledLabel);
     },
-    // An open text box was written when focus left it for the page
     text: () => {
       returnFocusLater();
       setTextDraft({ x: caret[0], y: caret[1], text: '' });
@@ -147,11 +145,9 @@ export function useMarkupKeyboard({
   textDraft,
   setTextDraft,
 }: MarkupKeyboardInput) {
-  const { labels } = useDocViewerPageContext();
-  const { tool, announce, registerLayer } = markup;
+  const { tool, labels, announce, registerLayer } = markup;
   const { layerRef, returnFocusLater } = useLayerRef(pageNumber, registerLayer, textDraft);
   const [caretPoint, setCaret] = useState<DocViewerMarkPoint | null>(null);
-  // The cursor starts in the middle of the page
   const caret = caretPoint ?? [width / 2, height / 2];
 
   if (!tool) {
@@ -181,7 +177,6 @@ export function useMarkupKeyboard({
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    // Keys typed into the text box are its own
     if (event.target !== event.currentTarget) {
       return;
     }

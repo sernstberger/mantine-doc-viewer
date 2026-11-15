@@ -1,20 +1,17 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { createRef } from 'react';
-import {
-  type DocViewerController,
-  DocViewer,
-  DocViewerProps,
-} from '../../../../test-utils/render-legacy';
-import type { DocViewerMark } from '../../utils/markup';
-
+import React from 'react';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { createDocViewer } from '../../doc-viewer.store';
+import { saveMarkup, setMarkupTool } from '../markup-actions';
+import type { DocViewerMarkupOptions } from '../markup-extension';
+import { MarkupViewer, type MarkupViewerProps } from '../test-utils';
+import type { DocViewerMark } from '../utils/markup';
 
-function renderViewer(props: Partial<DocViewerProps> = {}) {
-  return render(
-    <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} {...props} />
-  );
+function renderViewer(markup: DocViewerMarkupOptions = {}, props: MarkupViewerProps = {}) {
+  const [store] = createDocViewer();
+  return { ...render(<MarkupViewer markup={markup} store={store} {...props} />), store };
 }
 
 async function layerOf(page: number) {
@@ -41,7 +38,7 @@ describe('markup', () => {
 
   it('moves between the markup tools with the arrow keys, from one tab stop', async () => {
     mockPdf();
-    renderViewer({ withMarkup: true, markupTools: ['pen', 'text'] });
+    renderViewer({ tools: ['pen', 'text'] });
     await userEvent.click(await screen.findByRole('button', { name: 'Markup' }));
     const bar = screen.getByRole('toolbar', { name: 'Markup' });
     const stops = () =>
@@ -60,7 +57,7 @@ describe('markup', () => {
     mockPdf();
     const onMarkupChange = jest.fn();
     const onMarkupToolChange = jest.fn();
-    renderViewer({ withMarkup: true, onMarkupChange, onMarkupToolChange });
+    renderViewer({ onChange: onMarkupChange, onToolChange: onMarkupToolChange });
 
     await userEvent.click(await screen.findByRole('button', { name: 'Markup' }));
     expect(screen.getByRole('toolbar', { name: 'Markup' })).toBeInTheDocument();
@@ -104,7 +101,7 @@ describe('markup', () => {
   it('draws boxes, ellipses and clouds, and drops drags too small to see', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ withMarkup: true, onMarkupChange, markupColor: 'blue', markupWidth: 3 });
+    renderViewer({ onChange: onMarkupChange, color: 'blue', width: 3 });
     await userEvent.click(await screen.findByRole('button', { name: 'Markup' }));
     await pickTool('Highlight');
     const layer = await layerOf(2);
@@ -142,7 +139,7 @@ describe('markup', () => {
   it('ignores other buttons, moves without a press and cancelled strokes', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ defaultMarkupTool: 'pen', onMarkupChange });
+    renderViewer({ defaultTool: 'pen', onChange: onMarkupChange });
     const layer = await layerOf(1);
 
     draw(
@@ -163,7 +160,7 @@ describe('markup', () => {
   it('types text boxes onto the page', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ markupTool: 'text', onMarkupChange, markupFontSize: 12 });
+    renderViewer({ tool: 'text', onChange: onMarkupChange, fontSize: 12 });
     const layer = await layerOf(1);
 
     // A click places a box; typing and leaving it adds the text
@@ -188,7 +185,7 @@ describe('markup', () => {
   it('commits with Mod+Enter, cancels with Escape and drops empty boxes', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ defaultMarkupTool: 'text', onMarkupChange });
+    renderViewer({ defaultTool: 'text', onChange: onMarkupChange });
     const layer = await layerOf(1);
 
     fireEvent.pointerDown(layer, { clientX: 1, clientY: 1, button: 0 });
@@ -219,10 +216,9 @@ describe('markup', () => {
     mockPdf();
     const onMarkupChange = jest.fn();
     renderViewer({
-      withMarkup: true,
-      onMarkupChange,
-      markupColor: '#1d3a8a',
-      defaultMarkup: [
+      onChange: onMarkupChange,
+      color: '#1d3a8a',
+      defaultValue: [
         { type: 'text', id: 't', page: 2, color: '#000', x: 5, y: 5, text: 'Note', fontSize: 9 },
       ],
     });
@@ -253,7 +249,7 @@ describe('markup', () => {
   it('highlights in yellow and draws in red by default', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ markupTool: 'highlight', onMarkupChange });
+    renderViewer({ tool: 'highlight', onChange: onMarkupChange });
     draw(await layerOf(1), [
       [0, 0],
       [50, 20],
@@ -267,9 +263,8 @@ describe('markup', () => {
     const { saved, annotationStorage } = mockPdf();
     const onSave = jest.fn();
     renderViewer({
-      withMarkup: true,
-      onSave,
-      defaultMarkup: [
+      onDocumentChange: onSave,
+      defaultValue: [
         {
           type: 'highlight',
           id: 'h',
@@ -305,17 +300,17 @@ describe('markup', () => {
     URL.revokeObjectURL = jest.fn();
     const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     mockPdf();
-    const controller = createRef<DocViewerController>();
-    renderViewer({
-      fileName: 'report.pdf',
-      controllerRef: controller,
-      defaultMarkup: [
-        { type: 'text', id: 't', page: 1, color: '#000', x: 5, y: 5, text: 'OK', fontSize: 10 },
-      ],
-    });
+    const { store } = renderViewer(
+      {
+        defaultValue: [
+          { type: 'text', id: 't', page: 1, color: '#000', x: 5, y: 5, text: 'OK', fontSize: 10 },
+        ],
+      },
+      { fileName: 'report.pdf' }
+    );
     await layerOf(1);
 
-    await act(() => controller.current!.saveMarkup());
+    await act(() => saveMarkup(store));
     expect(click).toHaveBeenCalled();
     expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('report-annotated.pdf');
     click.mockRestore();
@@ -326,10 +321,9 @@ describe('markup', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     pdf.saveDocument.mockImplementationOnce(() => Promise.reject(new Error('Worker gone')));
     renderViewer({
-      withMarkup: true,
-      defaultMarkupTool: 'pen',
-      onSave: jest.fn(),
-      defaultMarkup: [
+      defaultTool: 'pen',
+      onDocumentChange: jest.fn(),
+      defaultValue: [
         { type: 'pen', id: 'p', page: 1, color: '#000', width: 1, strokes: [[[1, 1]]] },
       ],
     });
@@ -344,21 +338,18 @@ describe('markup', () => {
     mockPdf();
     const onSave = jest.fn();
     const onMarkupToolChange = jest.fn();
-    const controller = createRef<DocViewerController>();
-    renderViewer({
-      withMarkup: true,
-      markupTools: ['cloud', 'text'],
-      onSave,
-      onMarkupToolChange,
-      controllerRef: controller,
+    const { store } = renderViewer({
+      tools: ['cloud', 'text'],
+      onDocumentChange: onSave,
+      onToolChange: onMarkupToolChange,
     });
     await screen.findByRole('button', { name: 'Markup' });
 
-    act(() => controller.current!.setMarkupTool('cloud'));
+    act(() => setMarkupTool('cloud', store));
     expect(screen.getAllByRole('button', { name: /^(Cloud|Text box|Pen)$/ })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute('aria-disabled', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await act(() => controller.current!.saveMarkup());
+    await act(() => saveMarkup(store));
     expect(onSave).not.toHaveBeenCalled();
 
     // The toolbar button closes the bar and puts the tool down
@@ -375,11 +366,10 @@ describe('markup', () => {
 
   it('adds no layer to pages without marks while no tool is picked', async () => {
     mockPdf();
-    renderViewer({
-      withMarkup: true,
-      toolbarControls: { markup: false },
-      markup: [{ type: 'pen', id: 'p', page: 2, color: '#000', width: 1, strokes: [[[1, 1]]] }],
-    });
+    renderViewer(
+      { value: [{ type: 'pen', id: 'p', page: 2, color: '#000', width: 1, strokes: [[[1, 1]]] }] },
+      { toolbarControls: { markup: false } }
+    );
     await layerOf(2);
 
     expect(document.querySelectorAll('.mantine-DocViewer-markupLayer')).toHaveLength(1);
@@ -389,7 +379,7 @@ describe('markup', () => {
   it('places marks on a rotated page where the pointer is', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
-    renderViewer({ markupTool: 'pen', onMarkupChange });
+    renderViewer({ tool: 'pen', onChange: onMarkupChange });
     const layer = await layerOf(1);
     await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
     await waitFor(() => expect(layer.style.transform).toContain('rotate(90deg)'));

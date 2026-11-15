@@ -19,7 +19,7 @@ import type {
   DocViewerShapeMark,
   DocViewerStrokeMark,
   DocViewerTextMark,
-} from './utils/markup.js';
+} from './DocViewerMarkup/utils/markup.js';
 
 export { DocViewerMarkupBar } from './DocViewerMarkup/DocViewerMarkupBar/DocViewerMarkupBar.js';
 export { DocViewerMarkupButton } from './DocViewerMarkup/DocViewerMarkupButton/DocViewerMarkupButton.js';

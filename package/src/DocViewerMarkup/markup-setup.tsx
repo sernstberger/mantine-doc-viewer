@@ -3,20 +3,25 @@ import React, { createContext, use, useMemo, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
 import { useDocViewerExtensionOptions } from '../DocViewerRoot/extensions-context';
-import { getSaveHandler } from '../DocViewerRoot/get-save-handler';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
-import {
-  useMarkup,
-  type DocViewerMarkupProps,
-  type PdfLayerMarkup,
-  type PdfMarkup,
-} from '../hooks/pdf/use-markup';
+import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
 import { useRegisterController } from '../hooks/use-controller-registry';
-import type { DocViewerMark } from '../utils/markup';
+import { saveBytes } from '../utils/files';
+import {
+  mergeMarkupLabels,
+  type DocViewerMarkupLabels,
+  type DocViewerMarkupLabelsInput,
+} from './default-labels';
+import { useMarkup, type PdfLayerMarkup, type PdfMarkup } from './hooks/use-markup';
 import type { DocViewerMarkupOptions } from './markup-extension';
+import { getAnnotatedFileName, getMarkedPages, type DocViewerMark } from './utils/markup';
 
-interface MarkupContextValue {
+export interface MarkupContextValue {
   markup: PdfMarkup;
+  labels: DocViewerMarkupLabels;
+
+  /** Whether the PDF is loaded, so the markup button can show */
+  ready: boolean;
 
   /** Whether the markup bar is open; it is also open while a tool is picked */
   opened: boolean;
@@ -32,7 +37,7 @@ interface MarkupLayerContextValue {
   marksByPage: ReadonlyMap<number, DocViewerMark[]>;
 }
 
-const MarkupContext = createContext<MarkupContextValue | null>(null);
+export const MarkupContext = createContext<MarkupContextValue | null>(null);
 const MarkupLayerContext = createContext<MarkupLayerContextValue | null>(null);
 
 /** The markup of the viewer, null without the markup extension or outside a PDF */
@@ -45,20 +50,14 @@ export function useMarkupLayerContext() {
   return use(MarkupLayerContext);
 }
 
-function getMarkupProps(options: DocViewerMarkupOptions): DocViewerMarkupProps {
-  return {
-    withMarkup: true,
-    markupTools: options.tools,
-    markupTool: options.tool,
-    defaultMarkupTool: options.defaultTool,
-    onMarkupToolChange: options.onToolChange,
-    markup: options.value,
-    defaultMarkup: options.defaultValue,
-    onMarkupChange: options.onChange,
-    markupColor: options.color,
-    markupWidth: options.width,
-    markupFontSize: options.fontSize,
-  };
+/** The extension's labels over the defaults, the same object while no label changes */
+function useMarkupLabels(labels: DocViewerMarkupLabelsInput | undefined) {
+  const overrides = useShallowStable(labels);
+  const toolLabels = useShallowStable(labels?.markupToolLabels);
+  return useMemo(
+    () => mergeMarkupLabels({ ...overrides, markupToolLabels: toolLabels }),
+    [overrides, toolLabels]
+  );
 }
 
 /**
@@ -66,12 +65,14 @@ function getMarkupProps(options: DocViewerMarkupOptions): DocViewerMarkupProps {
  * tool in the store, and the contexts the bar, the button and the page layers read
  */
 export function MarkupSetup({ children }: { children: React.ReactNode }) {
-  const { store, controller, labels, fileName } = useDocViewerContext();
+  const { store, controller, fileName } = useDocViewerContext();
   const session = usePdfSession()!;
   const options = useDocViewerExtensionOptions<DocViewerMarkupOptions>('markup')!;
+  const labels = useMarkupLabels(options.labels);
   const { announce, scrollToPage } = session.position;
-  const markup = useMarkup(getMarkupProps(options), announce, scrollToPage);
+  const markup = useMarkup({ options, labels, announce, scrollToPage });
   const [opened, setOpened] = useState(false);
+  const ready = !!session.loaded.ready;
 
   const save = useCallbackRef(async () => {
     const document = session.loaded.document;
@@ -79,11 +80,12 @@ export function MarkupSetup({ children }: { children: React.ReactNode }) {
       return;
     }
     const bytes = await markup.save(document);
-    const pages = [...new Set(markup.marks.map((mark) => mark.page))].sort((a, b) => a - b);
-    await getSaveHandler({ editor: undefined, markup: options, fileName })?.(bytes, {
-      reason: 'annotate',
-      pages,
-    });
+    const pages = getMarkedPages(markup.marks);
+    if (options.onDocumentChange) {
+      await options.onDocumentChange(bytes, { reason: 'annotate', pages });
+    } else {
+      saveBytes(bytes, getAnnotatedFileName(fileName), 'application/pdf');
+    }
     announce(labels.markupSavedLabel);
   });
   useRegisterController(controller, { setMarkupTool: markup.setTool, saveMarkup: save });
@@ -95,7 +97,10 @@ export function MarkupSetup({ children }: { children: React.ReactNode }) {
 
   const { layer, marksByPage } = markup;
   const layerValue = useMemo(() => ({ store, layer, marksByPage }), [store, layer, marksByPage]);
-  const value = useMemo(() => ({ markup, opened, setOpened, save }), [markup, opened, save]);
+  const value = useMemo(
+    () => ({ markup, labels, ready, opened, setOpened, save }),
+    [markup, labels, ready, opened, save]
+  );
 
   return (
     <MarkupContext value={value}>

@@ -1,5 +1,7 @@
 import {
   createMarkId,
+  getAnnotatedFileName,
+  getMarkedPages,
   getMarkLines,
   getTextRect,
   rectFromPoints,
@@ -7,6 +9,7 @@ import {
   serializeMark,
   toPagePoint,
   toPathData,
+  type DocViewerMark,
 } from './markup';
 
 // Page space has its origin at the bottom left of a 792pt high page
@@ -237,5 +240,25 @@ describe('saveMarkedDocument', () => {
       ])
     ).rejects.toThrow('Worker gone');
     expect(values.size).toBe(0);
+  });
+});
+
+describe('saving marks', () => {
+  it('lists the pages with marks once each, in page order', () => {
+    const mark = (page: number): DocViewerMark => ({
+      type: 'pen',
+      id: `${page}`,
+      page,
+      color: '#000',
+      width: 1,
+      strokes: [],
+    });
+    expect(getMarkedPages([mark(3), mark(1), mark(3)])).toEqual([1, 3]);
+    expect(getMarkedPages([])).toEqual([]);
+  });
+
+  it('names the download after the file, or after a document without a name', () => {
+    expect(getAnnotatedFileName('Report.PDF')).toBe('Report-annotated.pdf');
+    expect(getAnnotatedFileName(undefined)).toBe('document-annotated.pdf');
   });
 });

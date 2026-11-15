@@ -9,7 +9,6 @@ import {
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
-import { useReadyPdfSession } from '../../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
 import { MarkupIcon } from '../../utils/icons';
 import classes from '../../DocViewer.module.css';
@@ -27,27 +26,36 @@ export type DocViewerMarkupButtonFactory = Factory<{
   compound: true;
 }>;
 
-/** Opens and closes the markup tools, for a custom toolbar (control key `markup`) */
+/**
+ * Opens and closes the markup bar; closing it puts the tool down. For a custom toolbar
+ * (control key `markup`), shown once a PDF with the markup extension is loaded
+ */
 export const DocViewerMarkupButton = factory<DocViewerMarkupButtonFactory>((_props) => {
-  useProps('DocViewerMarkupButton', null, _props);
-  const { labels } = useDocViewerContext();
+  const { classNames, className, style, styles, vars, onClick, ...others } = useProps(
+    'DocViewerMarkupButton',
+    null,
+    _props
+  );
+  const { getStyles } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
-  const session = useReadyPdfSession();
   const context = useMarkupContext();
-  if (!session || !context || !show('markup')) {
+  if (!context?.ready || !show('markup')) {
     return null;
   }
 
-  const { markup, opened, setOpened } = context;
+  const { markup, labels, opened, setOpened } = context;
   const barOpened = opened || markup.tool !== null;
   return (
     <DocViewerTooltip label={labels.markupLabel}>
       <ActionIcon
         {...controlProps(barOpened)}
+        {...getStyles('control', { className, style, classNames, styles })}
         aria-label={labels.markupLabel}
         aria-pressed={barOpened}
-        onClick={() => {
+        {...others}
+        onClick={(event) => {
+          onClick?.(event);
           setOpened(!barOpened);
           barOpened && markup.setTool(null);
         }}

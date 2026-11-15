@@ -2,23 +2,20 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer, DocViewerProps } from '../../../../test-utils/render-legacy';
-import type { DocViewerMark, DocViewerMarkupTool } from '../../utils/markup';
-
+import type { DocViewerMarkupOptions } from '../markup-extension';
+import { MarkupViewer, type MarkupViewerProps } from '../test-utils';
+import type { DocViewerMark, DocViewerMarkupTool } from '../utils/markup';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 
-function renderViewer(tool: DocViewerMarkupTool, props: Partial<DocViewerProps> = {}) {
+function renderViewer(
+  tool: DocViewerMarkupTool,
+  markup: DocViewerMarkupOptions = {},
+  props: MarkupViewerProps = {}
+) {
   const onMarkupChange = jest.fn();
   const view = render(
-    <DocViewer
-      src="/files/report.pdf"
-      pdfWorkerSrc="/worker.mjs"
-      defaultZoom={1}
-      markupTool={tool}
-      onMarkupChange={onMarkupChange}
-      {...props}
-    />
+    <MarkupViewer markup={{ tool, onChange: onMarkupChange, ...markup }} {...props} />
   );
   return { ...view, onMarkupChange };
 }
@@ -162,12 +159,7 @@ describe('markup from the keyboard', () => {
     mockPdf();
     render(
       <>
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          defaultZoom={1}
-          markupTool="text"
-        />
+        <MarkupViewer markup={{ tool: 'text' }} />
         <button type="button">After the viewer</button>
       </>
     );
@@ -211,7 +203,7 @@ describe('markup from the keyboard', () => {
 
   it('is no tab stop without a tool', async () => {
     mockPdf();
-    renderViewer('pen', { markupTool: null, defaultMarkup: [] });
+    renderViewer('pen', { tool: null, defaultValue: [] });
     await screen.findByRole('group', { name: 'Page 1 of 3' });
     expect(screen.queryByRole('application')).not.toBeInTheDocument();
   });
@@ -245,20 +237,12 @@ describe('markup from the keyboard', () => {
 
   it('makes the layer of the current page the tab stop as the page changes', async () => {
     mockPdf();
-    const view = renderViewer('rectangle', { page: 1 });
+    const view = renderViewer('rectangle', {}, { page: 1 });
     const layer = (page: number) =>
       screen.getByRole('application', { name: `Rectangle on page ${page}` });
     await screen.findByRole('application', { name: 'Rectangle on page 3' });
 
-    view.rerender(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        markupTool="rectangle"
-        page={3}
-      />
-    );
+    view.rerender(<MarkupViewer markup={{ tool: 'rectangle' }} page={3} />);
     await waitFor(() => expect(layer(3)).toHaveAttribute('tabindex', '0'));
     expect(layer(1)).toHaveAttribute('tabindex', '-1');
   });
@@ -319,7 +303,7 @@ describe('the marks for screen readers', () => {
 
   it('lists the marks of each page beside its markup layer, and keeps the list up to date', async () => {
     mockPdf();
-    renderViewer('rectangle', { defaultMarkup: marks });
+    renderViewer('rectangle', { defaultValue: marks });
 
     const list = await screen.findByRole('list', { name: 'Page 1: 2 marks' });
     const items = within(list).getAllByRole('listitem');
@@ -337,7 +321,7 @@ describe('the marks for screen readers', () => {
 
   it('lists the marks without a tool too', async () => {
     mockPdf();
-    renderViewer('pen', { markupTool: null, defaultMarkup: marks });
+    renderViewer('pen', { tool: null, defaultValue: marks });
     expect(await screen.findByRole('list', { name: 'Page 1: 2 marks' })).toBeInTheDocument();
   });
 });
