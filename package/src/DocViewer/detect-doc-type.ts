@@ -1,4 +1,4 @@
-export type DocType = 'pdf' | 'image' | 'markdown' | 'code' | 'text' | 'unknown';
+export type DocViewerType = 'pdf' | 'image' | 'markdown' | 'code' | 'text' | 'unknown';
 
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'bmp', 'ico'];
 const MARKDOWN_EXTENSIONS = ['md', 'markdown', 'mdx'];
@@ -34,7 +34,7 @@ const CODE_EXTENSIONS = [
   'toml',
 ];
 
-function fromMimeType(mimeType: string): DocType | null {
+function fromMimeType(mimeType: string): DocViewerType | null {
   const mime = mimeType.toLowerCase().split(';')[0].trim();
   if (mime === 'application/pdf') {
     return 'pdf';
@@ -67,7 +67,7 @@ function getExtension(source: string): string | null {
   return dotIndex > 0 ? fileName.slice(dotIndex + 1).toLowerCase() : null;
 }
 
-function fromExtension(extension: string): DocType {
+function fromExtension(extension: string): DocViewerType {
   if (extension === 'pdf') {
     return 'pdf';
   }
@@ -104,7 +104,10 @@ const LANGUAGE_ALIASES: Record<string, string> = {
 };
 
 /** Highlighter language for a code file, taken from its file name or url */
-export function getCodeLanguage({ src, fileName }: Pick<DetectDocTypeInput, 'src' | 'fileName'>) {
+export function getCodeLanguage({
+  src,
+  fileName,
+}: Pick<DocViewerDetectTypeInput, 'src' | 'fileName'>) {
   for (const candidate of [fileName, src]) {
     const extension = candidate ? getExtension(candidate) : null;
     if (extension) {
@@ -115,7 +118,7 @@ export function getCodeLanguage({ src, fileName }: Pick<DetectDocTypeInput, 'src
   return undefined;
 }
 
-export interface DetectDocTypeInput {
+export interface DocViewerDetectTypeInput {
   /** File url, path or file name */
   src?: string;
 
@@ -127,7 +130,11 @@ export interface DetectDocTypeInput {
 }
 
 /** Works out how a document should be rendered from its MIME type, file name or url */
-export function detectDocType({ src, mimeType, fileName }: DetectDocTypeInput): DocType {
+export function detectDocType({
+  src,
+  mimeType,
+  fileName,
+}: DocViewerDetectTypeInput): DocViewerType {
   if (mimeType) {
     const type = fromMimeType(mimeType);
     if (type) {

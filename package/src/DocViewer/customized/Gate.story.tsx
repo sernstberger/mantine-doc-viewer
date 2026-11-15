@@ -210,10 +210,10 @@ export function Gate() {
               // Always under the pass. On a wide screen the app is drawn inside a phone frame, and a
               // responsive value would follow the window rather than the phone and squeeze the pass
               thumbnailsPosition="bottom"
-              withPrint={false}
               withFullscreen={false}
               // Only what fits a phone at the gate
               toolbarControls={{
+                print: false,
                 title: false,
                 thumbnails: false,
                 zoom: false,

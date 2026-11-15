@@ -70,7 +70,7 @@ describe('controller', () => {
     });
 
     expect(printed[0]).toContain('src="/files/photo.png"');
-    expect(onZoomChange).toHaveBeenCalledWith(2, false);
+    expect(onZoomChange).toHaveBeenCalledWith(2, { scale: 2 });
   });
 });
 

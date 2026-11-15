@@ -1,11 +1,15 @@
 import { useEffect } from 'react';
 import { useRegisterController } from '../controller';
-import type { DocType } from '../detect-doc-type';
+import type { DocViewerType } from '../detect-doc-type';
 import { useDocViewerContext } from '../DocViewer.context';
-import type { TextDocumentState } from './use-text-document';
+import type { DocViewerTextState } from './use-doc-viewer-text';
 
 /** Load events and the print action shared by the text, code and markdown views */
-export function useTextView(type: DocType, state: TextDocumentState, print: () => Promise<void>) {
+export function useTextView(
+  type: DocViewerType,
+  state: DocViewerTextState,
+  print: () => Promise<void>
+) {
   const { controller, events, mimeType } = useDocViewerContext();
 
   useEffect(() => {

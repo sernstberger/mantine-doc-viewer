@@ -1,6 +1,7 @@
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { DocViewerZoom } from '../controller';
+import type { DocViewerEvents, DocViewerZoom } from '../controller';
+import { useZoomSetting } from '../use-zoom-setting';
 import { clampZoom } from '../zoom';
 import {
   applyAnchor,
@@ -13,8 +14,15 @@ import {
 
 interface ImageZoomInput {
   stage: HTMLElement | null;
+
+  /** The zoom the app controls (`zoom`) */
+  zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
   fitScale: number;
+
+  /** The image has loaded, so its scale is known */
+  ready: boolean;
+  onZoomChange: Required<DocViewerEvents>['onZoomChange'];
 
   /** Changes that resize the image, after which the anchor point is put back */
   layoutKey: unknown;
@@ -27,12 +35,20 @@ interface ImageZoomInput {
  * Zoom of the image, keeping the point under the pointer (or the middle of the view) in place,
  * with pinch and Ctrl+wheel zoom
  */
-export function useImageZoom({ stage, defaultZoom, fitScale, layoutKey, onZoom }: ImageZoomInput) {
+export function useImageZoom(input: ImageZoomInput) {
+  const { stage, fitScale, layoutKey, onZoom } = input;
   // An image is one page: fitting the page is fitting the view
-  const [zoom, setZoom] = useState<ImageZoom>(defaultZoom === 'fit-page' ? 'fit' : defaultZoom);
+  const setting = useZoomSetting({
+    value: input.zoom,
+    defaultValue: input.defaultZoom,
+    ready: input.ready,
+    scaleOf: (zoom) => (typeof zoom === 'number' ? clampZoom(zoom) : fitScale),
+    onZoomChange: input.onZoomChange,
+  });
+  const { scale, setZoom } = setting;
+  const zoom: ImageZoom = typeof setting.zoom === 'number' ? scale : 'fit';
   const [overflowing, setOverflowing] = useState(false);
   const pendingAnchor = useRef<ZoomAnchor | null>(null);
-  const scale = zoom === 'fit' ? fitScale : zoom;
   const scaleRef = useRef(scale);
   scaleRef.current = scale;
   const handleZoom = useCallbackRef(onZoom);
@@ -43,9 +59,9 @@ export function useImageZoom({ stage, defaultZoom, fitScale, layoutKey, onZoom }
         pendingAnchor.current = getAnchor(stage, clientX, clientY);
       }
       handleZoom();
-      setZoom(typeof next === 'number' ? clampZoom(next) : 'fit');
+      setZoom(next);
     },
-    [stage, handleZoom]
+    [stage, handleZoom, setZoom]
   );
 
   // Put the anchor point back once the new size has been laid out

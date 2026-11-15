@@ -14,7 +14,7 @@ import { DEFAULT_LABELS } from './labels';
 import { getScrollBehavior, prefersReducedMotion } from './scroll';
 import { DOC_VIEWER_SIZES } from './sizes';
 import { TextStatus } from './text/TextStatus';
-import { formatFileSize } from './text/use-text-document';
+import { formatFileSize } from './text/use-doc-viewer-text';
 import { DocViewerLoading, DocViewerMessage } from './views/MessageView';
 import { UnsupportedView } from './views/UnsupportedView';
 import { clampZoom, MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from './zoom';
@@ -40,7 +40,7 @@ describe('index', () => {
     expect(api.DocViewerMessage).toBe(DocViewerMessage);
     expect(api.DocViewerBody).toBe(DocViewerBody);
     expect(api.useDocViewer).toBe(useDocViewer);
-    expect(api.useTextDocument).toBeDefined();
+    expect(api.useDocViewerText).toBeDefined();
   });
 });
 
@@ -317,7 +317,7 @@ describe('DocViewerToolbar', () => {
       <DocViewerToolbar>
         <span>child</span>
       </DocViewerToolbar>,
-      { toolbarSection: <span>section</span>, withDownload: false }
+      { toolbarSection: <span>section</span>, toolbarControls: { download: false } }
     );
     expect(screen.getByText('child')).toBeInTheDocument();
     expect(screen.getByText('section')).toBeInTheDocument();
@@ -377,11 +377,11 @@ describe('DocViewerToolbar', () => {
     open.mockRestore();
   });
 
-  it('has no print button without onPrint or when withPrint is off', () => {
+  it('has no print button without onPrint or when toolbarControls hides it', () => {
     const first = renderIn(<DocViewerToolbar />);
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
     first.unmount();
-    renderIn(<DocViewerToolbar onPrint={() => {}} />, { withPrint: false });
+    renderIn(<DocViewerToolbar onPrint={() => {}} />, { toolbarControls: { print: false } });
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
   });
 });

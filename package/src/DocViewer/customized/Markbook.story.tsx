@@ -360,10 +360,10 @@ export function Markbook() {
           pageGap="md"
           defaultZoom="fit"
           matchColor="yellow"
-          withPrint={false}
-          withDownload={false}
           withFullscreen={false}
           toolbarControls={{
+            print: false,
+            download: false,
             rotate: false,
             layout: false,
             presentation: false,

@@ -12,7 +12,7 @@ import { printHtml, printText } from '../print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from './use-text-view';
 import { ViewModeToggle } from './ViewModeToggle';
-import { useTextDocument } from './use-text-document';
+import { useDocViewerText } from './use-doc-viewer-text';
 
 /** Prints what is shown: the rendered markdown in preview, otherwise the source */
 export function getMarkdownPrintSource(
@@ -102,7 +102,7 @@ function MarkdownPreview({ text }: { text: string }) {
 export function MarkdownView() {
   const { getStyles, src, maxTextSize, labels, codeHighlightProps } = useDocViewerContext();
   const show = useShowControl();
-  const state = useTextDocument(src, maxTextSize);
+  const state = useDocViewerText(src, maxTextSize);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
   const { fileName } = useDocViewerContext();
   const bodyRef = useRef<HTMLDivElement>(null);

@@ -7,20 +7,11 @@ interface PdfEventsInput {
   state: PdfDocumentState;
   events: Required<DocViewerEvents>;
   currentPage: number;
-  scale: number;
-  fitted: boolean;
   mimeType: string | undefined;
 }
 
-/** Calls the load, error, page and zoom events. Returns the page last reported */
-export function usePdfEvents({
-  state,
-  events,
-  currentPage,
-  scale,
-  fitted,
-  mimeType,
-}: PdfEventsInput) {
+/** Calls the load, error and page events (zoom reports itself, in useZoomSetting). Returns the page last reported */
+export function usePdfEvents({ state, events, currentPage, mimeType }: PdfEventsInput) {
   const ready = state.status === 'ready';
   const pageReported = useRef(0);
 
@@ -44,10 +35,6 @@ export function usePdfEvents({
       events.onPageChange(currentPage);
     }
   }, [ready, currentPage, events]);
-
-  useEffect(() => {
-    ready && events.onZoomChange(scale, fitted);
-  }, [ready, scale, fitted, events]);
 
   return pageReported;
 }

@@ -18,7 +18,7 @@ interface PdfPageSyncInput {
 }
 
 /**
- * Keeps the page in step with the app: reports page and scale changes, goes to the page the app
+ * Keeps the page in step with the app: reports page changes, goes to the page the app
  * asks for, keeps the scroll position across reloads, and moves on by itself (`autoAdvance`)
  */
 export function usePdfPageSync({
@@ -35,8 +35,6 @@ export function usePdfPageSync({
     state,
     events: context.events,
     currentPage,
-    scale: view.scale,
-    fitted: typeof view.zoom !== 'number',
     mimeType: context.mimeType,
   });
   // The document's pages are in place in the scroll area

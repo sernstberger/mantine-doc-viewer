@@ -148,10 +148,10 @@ export function Scanbox() {
               withPageEditing
               // A phone has no room for words on the editor's buttons
               compactPageEditor
-              withPrint={false}
-              withDownload={false}
               withFullscreen={false}
               toolbarControls={{
+                print: false,
+                download: false,
                 title: false,
                 thumbnails: false,
                 zoom: false,
