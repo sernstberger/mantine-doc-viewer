@@ -45,8 +45,11 @@ export interface SearchOptions {
   matchAccents?: boolean;
 }
 
-/** Characters that can change: ASCII capitals (when case is ignored) and anything not ASCII */
-const CHANGING = { ignoreCase: /[A-Z]|[^\x00-\x7F]/gu, matchCase: /[^\x00-\x7F]/gu };
+/**
+ * Characters that can change: ASCII capitals (when case is ignored) and anything not printable
+ * ASCII. Control characters are let through too; they come out as they are
+ */
+const CHANGING = { ignoreCase: /[A-Z]|[^ -~]/gu, matchCase: /[^ -~]/gu };
 
 /**
  * Prepares text for matching one character at a time, so offsets in the result are offsets in
