@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useState } from 'react';
-import { useDocViewerContext } from '../../doc-viewer.context';
+import type { DocViewerPageEditorLabels } from '../default-labels';
 import {
   initialOrder,
   isEdited,
@@ -8,21 +8,21 @@ import {
   moveSelected,
   PageOrder,
   removeSelected,
-} from '../../utils/page-edits';
-import { useAnnouncement } from './use-announcement';
+} from '../utils/page-edits';
+import { useAnnouncement } from '../../hooks/pdf/use-announcement';
 import { usePageFocus } from './use-page-focus';
 import { usePageSelection } from './use-page-selection';
 import { usePageTurns } from './use-page-turns';
-import { useReorderList } from './use-reorder-drag';
+import { useReorderList } from '../../hooks/pdf/use-reorder-drag';
 
 interface PageEditorStateInput {
   document: PDFDocumentProxy;
   scrollRoot: HTMLDivElement | null;
+  labels: DocViewerPageEditorLabels;
 }
 
 /** The editor's pages: their order, selection, turns and focus, and the actions that change them */
-export function usePageEditorState({ document, scrollRoot }: PageEditorStateInput) {
-  const { labels } = useDocViewerContext();
+export function usePageEditorState({ document, scrollRoot, labels }: PageEditorStateInput) {
   const [order, setOrder] = useState<PageOrder>(() => initialOrder(document.numPages));
   const { turnOf, turn, clearTurns } = usePageTurns();
   const [announcement, announce] = useAnnouncement();
@@ -62,7 +62,6 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
     }
     setOrder(next);
     clear();
-    // The focused page may be gone: keep keyboard focus in the list
     refocus(focusedIndex, next);
     announce(labels.pagesRemovedLabel(order.length - next.length));
   };

@@ -25,14 +25,6 @@ describe('Styles API selectors of the document info, page editor and markup bars
     );
   });
 
-  it('applies classNames to the selected count of the page editor', async () => {
-    mockPdf();
-    render(<DocViewer {...PDF} withPageEditing classNames={{ editorCount: 'app-count' }} />);
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
-    expect(document.querySelector('.app-count')).toHaveTextContent(/selected/i);
-  });
-
   it('applies classNames to the save button of the markup bar', async () => {
     mockPdf();
     render(<DocViewer {...PDF} withMarkup classNames={{ markupSave: 'app-save' }} />);

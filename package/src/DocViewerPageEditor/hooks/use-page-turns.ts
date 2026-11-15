@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { turnPages } from '../../utils/page-selection';
+import { turnPages } from '../utils/page-selection';
 
 /** Quarter turns per page, clockwise in degrees, written into the PDF when it is saved */
 export function usePageTurns() {

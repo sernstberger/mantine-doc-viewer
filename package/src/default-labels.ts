@@ -13,22 +13,6 @@ export interface DocViewerLabels {
   downloadFileLabel: string;
   printLabel: string;
   presentationLabel: string;
-  editPagesLabel: string;
-  moveEarlierLabel: string;
-  moveLaterLabel: string;
-  deletePagesLabel: string;
-  deletePageLabel: (page: number) => string;
-  extractPagesLabel: string;
-  rotatePagesLabel: string;
-  resetPagesLabel: string;
-  cancelLabel: string;
-  doneLabel: string;
-  savePagesLabel: string;
-  selectedCountLabel: (count: number) => string;
-  editorPageLabel: (page: number, position: number, total: number) => string;
-  pageMovedLabel: (page: number, position: number) => string;
-  pagesRemovedLabel: (count: number) => string;
-  pagesRotatedLabel: (count: number) => string;
   exitPresentationLabel: string;
   /** Read out when a presentation starts */
   presentationStartedLabel: string;
@@ -164,22 +148,6 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   downloadFileLabel: 'Download file',
   printLabel: 'Print',
   presentationLabel: 'Presentation',
-  editPagesLabel: 'Edit pages',
-  moveEarlierLabel: 'Move earlier',
-  moveLaterLabel: 'Move later',
-  deletePagesLabel: 'Delete',
-  deletePageLabel: (page) => `Delete page ${page}`,
-  extractPagesLabel: 'Extract selected',
-  rotatePagesLabel: 'Rotate',
-  resetPagesLabel: 'Reset',
-  cancelLabel: 'Cancel',
-  doneLabel: 'Done',
-  savePagesLabel: 'Save',
-  selectedCountLabel: (count) => `${count} selected`,
-  editorPageLabel: (page, position, total) => `Page ${page}, position ${position} of ${total}`,
-  pageMovedLabel: (page, position) => `Page ${page} moved to position ${position}`,
-  pagesRemovedLabel: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
-  pagesRotatedLabel: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
   exitPresentationLabel: 'Exit presentation',
   presentationStartedLabel: 'Presentation started, press Escape to exit',
   fullscreenLabel: 'Full screen',

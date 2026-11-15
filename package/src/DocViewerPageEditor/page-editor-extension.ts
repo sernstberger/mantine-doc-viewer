@@ -2,7 +2,8 @@ import type { DocViewerExtension } from '../doc-viewer.types';
 import type { DocViewerPageEditorLabels } from './default-labels';
 import { DocViewerPageEditorButton } from './DocViewerPageEditorButton/DocViewerPageEditorButton';
 import { EDIT_PAGES_MODE, PageEditorSetup } from './page-editor-setup';
-import { PageEditorScreen, ThumbnailDeleteAction } from './PageEditorScreen';
+import { DocViewerPageEditor } from './DocViewerPageEditor';
+import { ThumbnailDeleteAction } from './ThumbnailDeleteAction';
 
 export interface DocViewerPageEditorOptions {
   /** Buttons show only icons, labels in tooltips, `false` by default */
@@ -36,6 +37,6 @@ export function createPageEditorExtension(
       { control: 'editPages', after: 'presentation', Component: DocViewerPageEditorButton },
     ],
     thumbnail: { action: ThumbnailDeleteAction },
-    screen: { mode: EDIT_PAGES_MODE, Component: PageEditorScreen },
+    screen: { mode: EDIT_PAGES_MODE, Component: DocViewerPageEditor },
   };
 }

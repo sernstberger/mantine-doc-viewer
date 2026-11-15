@@ -1,6 +1,6 @@
 import { clamp } from '@mantine/hooks';
 import { useState } from 'react';
-import type { PageOrder } from '../../utils/page-edits';
+import type { PageOrder } from '../utils/page-edits';
 
 /** Which page of the list has the keyboard focus (the roving tab stop), and moving it */
 export function usePageFocus(scrollRoot: HTMLElement | null, order: PageOrder) {

@@ -7,12 +7,11 @@ import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import type { DocViewerMark } from '../../utils/markup';
 
 /**
- * Counts thumbnail and page tile renders: each names itself with its label once per render. One
+ * Counts thumbnail renders: each names itself with its label once per render. One
  * labels object for the whole file, so the viewer gets the same functions on every render
  */
 const thumbnailRenders = jest.fn((page: number) => `Thumbnail ${page}`);
-const tileRenders = jest.fn((page: number, position: number) => `Page ${page} at ${position}`);
-const countingLabels = { thumbnailLabel: thumbnailRenders, editorPageLabel: tileRenders };
+const countingLabels = { thumbnailLabel: thumbnailRenders };
 
 /**
  * renderPageOverlay is called once each time a PdfPage renders, so it counts page renders.
@@ -274,27 +273,5 @@ describe('thumbnail and page tile renders', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
     await act(async () => {});
     expect(rendersSince(thumbnailRenders, before)).toEqual([1, 3]);
-  });
-
-  it('renders only the page tiles whose focus moved in the page editor', async () => {
-    mockPdf({ numPages: NUM_PAGES });
-    render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        withPageEditing
-        labels={countingLabels}
-      />
-    );
-    await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
-    const first = await screen.findByRole('option', { name: 'Page 1 at 1' });
-    await act(async () => {});
-    act(() => first.focus());
-
-    const before = tileRenders.mock.calls.length;
-    await userEvent.keyboard('{ArrowRight}');
-    await act(async () => {});
-    expect(rendersSince(tileRenders, before)).toEqual([1, 2]);
   });
 });

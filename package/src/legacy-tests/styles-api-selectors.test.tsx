@@ -54,14 +54,6 @@ describe('Styles API selectors of inner Mantine components', () => {
     expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('app-password-submit');
   });
 
-  it('applies classNames.editorTitle to the title of the page editor', async () => {
-    mockPdf();
-    render(<DocViewer {...PDF} withPageEditing classNames={{ editorTitle: 'app-editor-title' }} />);
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
-    expect(screen.getByText('Edit pages', { selector: 'p' })).toHaveClass('app-editor-title');
-  });
-
   it('applies classNames.markupDivider and classNames.markupInput', async () => {
     mockPdf();
     render(

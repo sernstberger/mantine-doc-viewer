@@ -1,19 +1,19 @@
-import { VisuallyHidden } from '@mantine/core';
+import { Box, BoxProps, ElementProps, VisuallyHidden } from '@mantine/core';
 import { useCallbackRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
 import { focusIfLost } from '../utils/a11y';
-import { useDocViewerContext } from '../doc-viewer.context';
-import { EditorBar } from './PdfEditorBar';
-import { PageTile } from './PdfPageTile';
-import { usePageEditorKeys } from '../hooks/pdf/use-page-editor-keys';
-import { usePageEditorSave } from '../hooks/pdf/use-page-editor-save';
-import { usePageEditorState } from '../hooks/pdf/use-page-editor-state';
-import type { PdfSaveReason } from '../utils/page-edits';
+import { EditorBar } from './EditorBar';
+import { usePageEditorKeys } from './hooks/use-page-editor-keys';
+import { usePageEditorSave } from './hooks/use-page-editor-save';
+import { usePageEditorState } from './hooks/use-page-editor-state';
+import { usePageEditor } from './page-editor-setup';
+import { usePageEditorStyles } from './page-editor-styles';
+import { PageTile } from './PageTile';
+import type { PdfSaveReason } from './utils/page-edits';
 
-export type { PdfSaveReason };
-
-interface PdfPageEditorProps {
+interface PageEditorViewProps extends BoxProps, Omit<ElementProps<'div'>, 'onCancel'> {
+  ref?: React.Ref<HTMLDivElement>;
   document: PDFDocumentProxy;
 
   /** Ends editing: with the edited document's bytes, or null when nothing changed */
@@ -22,11 +22,21 @@ interface PdfPageEditorProps {
   onSave: (bytes: Uint8Array, reason: PdfSaveReason, pages: number[]) => Promise<void> | void;
 }
 
-/** Reorder, remove and extract pages. Edits make a new document; the original file is not changed */
-export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEditorProps) {
-  const { getStyles, labels } = useDocViewerContext();
+/**
+ * Reorder, remove and extract pages. Edits make a new document; the original file is not changed.
+ * The page list is an ARIA listbox with a roving tab stop: the focused page takes focus, not the list
+ */
+export function PageEditorView({
+  document,
+  onDone,
+  onCancel,
+  onSave,
+  ...others
+}: PageEditorViewProps) {
+  const getStyles = usePageEditorStyles();
+  const { labels } = usePageEditor()!;
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
-  const editor = usePageEditorState({ document, scrollRoot });
+  const editor = usePageEditorState({ document, scrollRoot, labels });
   const { order, selected, selection, edited, reorder } = editor;
   const { busy, extract, finish, save } = usePageEditorSave({
     document,
@@ -35,16 +45,14 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     onSave,
   });
   const handleKeyDown = usePageEditorKeys(editor, onCancel);
-  // The same function on every render, so tiles skip renders their own props do not need
   const select = useCallbackRef(editor.select);
 
-  // The editor replaces the reader and the Edit pages button with it: focus moves to the pages
   useEffect(() => {
     focusIfLost(scrollRoot?.querySelector<HTMLElement>('[tabindex="0"]'));
   }, [scrollRoot]);
 
   return (
-    <div {...getStyles('editor')}>
+    <Box {...others}>
       <EditorBar
         order={order}
         selection={selection}
@@ -61,8 +69,6 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         onSave={() => save(order)}
       />
 
-      {/* Focus moves between the pages (roving tabindex: the focused page is the tab stop), so the
-          listbox itself does not take focus, as in the ARIA listbox pattern */}
       {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
       <div
         ref={setScrollRoot}
@@ -93,6 +99,6 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
       </div>
 
       <VisuallyHidden role="status">{editor.announcement}</VisuallyHidden>
-    </div>
+    </Box>
   );
 }

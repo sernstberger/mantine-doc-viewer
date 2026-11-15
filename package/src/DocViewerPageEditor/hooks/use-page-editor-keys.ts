@@ -1,6 +1,6 @@
 import { useDirection } from '@mantine/core';
 import React from 'react';
-import { EditorKeyAction, getEditorKeyAction } from '../../utils/editor-keys';
+import { EditorKeyAction, getEditorKeyAction } from '../utils/editor-keys';
 import type { PageEditorState } from './use-page-editor-state';
 
 type PageEditorKeysInput = Pick<
@@ -17,7 +17,10 @@ type PageEditorKeysInput = Pick<
   | 'clear'
 >;
 
-/** The keydown handler of the page list: each key runs one editor action */
+/**
+ * The keydown handler of the page list: each key runs one editor action. Escape clears the
+ * selection first, then leaves the editor like Cancel
+ */
 export function usePageEditorKeys(editor: PageEditorKeysInput, onCancel: () => void) {
   const rtl = useDirection().dir === 'rtl';
   const { order, focusedIndex, focusIndex } = editor;
@@ -30,7 +33,6 @@ export function usePageEditorKeys(editor: PageEditorKeysInput, onCancel: () => v
     remove: () => editor.remove(),
     rotate: () => editor.rotate(),
     selectAll: () => editor.selectAll(),
-    // Escape clears the selection first, then leaves the editor like Cancel
     escape: () => (editor.selected.size > 0 ? editor.clear() : onCancel()),
   };
 
