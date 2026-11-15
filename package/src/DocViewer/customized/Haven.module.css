@@ -1,0 +1,570 @@
+/*
+ * Haven: a friendly travel marketplace checkout. The story owns its white background in both
+ * colour schemes, like the real site. The bold thing is the reading meter in the booking card,
+ * which fills as the guest reaches each page, and the signature that lands on the line.
+ */
+
+.page {
+  --haven-ink: #222;
+  --haven-secondary: #6a6a6a;
+  --haven-line: #ddd;
+  --haven-rose: #e0475a;
+  --haven-rose-dark: #c93a4d;
+  --haven-green: #0b8a3e;
+
+  min-height: 100vh;
+  background: #fff;
+  color: var(--haven-ink);
+  font-family: Figtree, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color-scheme: light;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  padding-inline: clamp(16px, 5vw, 80px);
+  border-bottom: 1px solid var(--haven-line);
+}
+
+.logo {
+  color: var(--haven-rose);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.headerStep {
+  color: var(--haven-secondary);
+  font-size: 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: 40px clamp(16px, 5vw, 80px) 64px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.heading {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.lead {
+  margin: 0 0 28px;
+  max-width: 52ch;
+  color: var(--haven-secondary);
+  font-size: 16px;
+}
+
+/* ---------------------------------- viewer --------------------------------- */
+
+.frame {
+  height: min(720px, calc(100vh - 220px));
+  min-height: 460px;
+  overflow: hidden;
+  border: 1px solid var(--haven-line);
+  border-radius: 16px;
+  background: #f7f7f7;
+}
+
+.root {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: #f7f7f7;
+  font-family: inherit;
+}
+
+.toolbar {
+  min-height: 52px;
+  border-bottom: 1px solid var(--haven-line);
+  background: #fff;
+  color: var(--haven-ink);
+}
+
+.control {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--haven-ink);
+
+  &:hover {
+    background: #f2f2f2;
+  }
+
+  &[data-pressed] {
+    border-color: var(--haven-ink);
+    background: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--haven-ink);
+    outline-offset: 2px;
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: var(--haven-secondary);
+  font-size: 14px;
+}
+
+.search {
+  border-bottom: 1px solid var(--haven-line);
+  background: #fff;
+}
+
+.searchInput {
+  border-radius: 8px;
+}
+
+.body {
+  background: #f7f7f7;
+}
+
+.docPage {
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.06),
+    0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+/* --------------------------------- booking card ---------------------------- */
+
+.aside {
+  position: sticky;
+  top: 24px;
+
+  @media (max-width: 960px) {
+    position: static;
+  }
+}
+
+.card {
+  padding: 20px 24px;
+  border: 1px solid var(--haven-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.08);
+}
+
+.listing {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.photo {
+  position: relative;
+  flex-shrink: 0;
+  width: 104px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f6b49a 0%, #f2d3a6 38%, #a8c4d6 62%);
+}
+
+.photoSun {
+  position: absolute;
+  top: 22px;
+  left: 62px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff3d4;
+  box-shadow: 0 0 18px 6px rgb(255 243 212 / 0.7);
+}
+
+.photoHills {
+  position: absolute;
+  inset: 40px -10px 30px;
+  border-radius: 50% 50% 0 0;
+  background: #3f6b5a;
+  clip-path: polygon(0 100%, 0 55%, 25% 20%, 45% 50%, 70% 0, 100% 40%, 100% 100%);
+}
+
+.photoCabin {
+  position: absolute;
+  bottom: 30px;
+  left: 20px;
+  width: 30px;
+  height: 20px;
+  background: #8b4a3a;
+  clip-path: polygon(0 40%, 50% 0, 100% 40%, 100% 100%, 0 100%);
+}
+
+.photoWater {
+  position: absolute;
+  inset: 66px 0 0;
+  background: linear-gradient(180deg, #5f8fa8, #3d6a85);
+}
+
+.listingTitle {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.listingMeta {
+  margin-top: 2px;
+  color: var(--haven-secondary);
+  font-size: 13px;
+}
+
+.facts,
+.prices {
+  margin: 0;
+
+  > div {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  dt {
+    color: var(--haven-secondary);
+  }
+
+  dd {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+.facts {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--haven-line);
+  border-radius: 8px;
+  font-size: 14px;
+
+  > div + div {
+    margin-top: 4px;
+  }
+
+  dd {
+    font-weight: 600;
+  }
+}
+
+.prices {
+  margin-top: 16px;
+  font-size: 14px;
+
+  > div + div {
+    margin-top: 6px;
+  }
+}
+
+.prices > .totalRow {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--haven-line);
+  font-size: 16px;
+  font-weight: 600;
+
+  dt {
+    color: var(--haven-ink);
+  }
+}
+
+.divider {
+  height: 8px;
+  margin: 16px -24px;
+  background: #f7f7f7;
+}
+
+/* ------------------------------- reading meter ----------------------------- */
+
+.progressHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.progressTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.progressCount {
+  color: var(--haven-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+
+  &[data-done] {
+    color: var(--haven-green);
+    font-weight: 600;
+  }
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segment {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--haven-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--haven-ink);
+    outline-offset: 3px;
+  }
+
+  &[data-seen] {
+    color: var(--haven-ink);
+  }
+}
+
+.segmentBar {
+  position: relative;
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #ebebeb;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--haven-rose);
+    content: '';
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 500ms cubic-bezier(0.3, 0.8, 0.3, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  .segment[data-seen] > &::after {
+    transform: scaleX(1);
+  }
+
+  .segment[data-current] > & {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--haven-ink);
+  }
+}
+
+.segmentLabel {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.hint {
+  margin: 14px 0 0;
+  color: var(--haven-secondary);
+  font-size: 13px;
+
+  &[data-done] {
+    color: var(--haven-green);
+  }
+}
+
+/* -------------------------------- signature -------------------------------- */
+
+.sign {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
+
+  &[data-locked] {
+    opacity: 0.45;
+  }
+}
+
+.inputLabel {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.input {
+  height: 44px;
+  border: 1px solid #b0b0b0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+
+  &:focus {
+    border-color: var(--haven-ink);
+    outline: 1px solid var(--haven-ink);
+  }
+}
+
+.signature {
+  position: relative;
+  height: 56px;
+}
+
+.signatureInk {
+  position: absolute;
+  right: 4px;
+  bottom: 12px;
+  left: 4px;
+  overflow: hidden;
+  color: #2a3558;
+  font-family: Caveat, cursive;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: clip;
+  transform: rotate(-2deg);
+  transform-origin: left bottom;
+
+  .signature[data-signed] & {
+    animation: ink 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+.signatureLine {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  left: 0;
+  border-bottom: 2px dotted #b0b0b0;
+
+  .signature[data-signed] & {
+    border-bottom: 2px solid var(--haven-ink);
+  }
+}
+
+.checkLabel {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.checkInput {
+  border-radius: 4px;
+}
+
+.continue {
+  --button-bg: var(--haven-rose);
+  --button-hover: var(--haven-rose-dark);
+  --button-color: #fff;
+
+  height: 50px;
+  margin-top: 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+
+  &:disabled {
+    background: #ebebeb;
+    color: #8a8a8a;
+  }
+
+  &[data-signed] {
+    --button-bg: var(--haven-green);
+    --button-hover: #087535;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--haven-ink);
+    outline-offset: 3px;
+  }
+}
+
+.fine {
+  margin: 12px 0 0;
+  color: var(--haven-secondary);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* ---------------------------------- toast ---------------------------------- */
+
+.toast {
+  position: fixed;
+  z-index: 10;
+  bottom: 24px;
+  left: 50%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 8px;
+  background: var(--haven-ink);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  translate: -50% 0;
+  animation: toast-in 240ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.toastDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4bd18a;
+}
+
+@keyframes ink {
+  0% {
+    clip-path: inset(-20% 100% -20% 0);
+    opacity: 0.6;
+    translate: 0 -14px;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: inset(-20% 0 -20% 0);
+    translate: 0 0;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: -50% 12px;
+  }
+}
