@@ -2,6 +2,7 @@ import { ActionIcon, CloseButton, TextInput, VisuallyHidden } from '@mantine/cor
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import type { DocViewerLabels } from '../labels';
+import type { SearchOptions } from './search';
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from '../icons';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
@@ -19,6 +20,8 @@ interface PdfSearchBarProps {
   onNext: () => void;
   onPrevious: () => void;
   onClose: () => void;
+  options: SearchOptions;
+  onOptionsChange: (options: SearchOptions) => void;
 }
 
 function getCountLabel(
@@ -50,7 +53,17 @@ function getAnnouncement(
 }
 
 export function PdfSearchBar(props: PdfSearchBarProps) {
-  const { inputRef, query, onQueryChange, matchCount, onNext, onPrevious, onClose } = props;
+  const {
+    inputRef,
+    query,
+    onQueryChange,
+    matchCount,
+    onNext,
+    onPrevious,
+    onClose,
+    options,
+    onOptionsChange,
+  } = props;
   const { getStyles, labels, size } = useDocViewerContext();
   const controlProps = useControlProps();
 
@@ -79,6 +92,26 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
         leftSection={<SearchIcon />}
         {...getStyles('searchInput')}
       />
+      {(
+        [
+          ['matchCase', 'Aa'],
+          ['wholeWords', 'ab'],
+          ['matchAccents', 'é'],
+        ] as const
+      ).map(([option, glyph]) => (
+        <DocViewerTooltip key={option} label={labels[option]}>
+          <ActionIcon
+            {...controlProps(!!options[option])}
+            aria-label={labels[option]}
+            aria-pressed={!!options[option]}
+            onClick={() => onOptionsChange({ ...options, [option]: !options[option] })}
+          >
+            <span {...getStyles('searchOption')} aria-hidden data-option={option}>
+              {glyph}
+            </span>
+          </ActionIcon>
+        </DocViewerTooltip>
+      ))}
       <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
       {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
       <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>

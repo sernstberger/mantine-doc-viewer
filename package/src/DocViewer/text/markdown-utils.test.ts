@@ -5,6 +5,7 @@ import {
   rehypeHeadingIds,
   resolveMarkdownUrl,
 } from './markdown-utils';
+import { getMarkdownPrintSource } from './MarkdownView';
 
 describe('markdown utils', () => {
   const base = 'https://app.example.com/inbox/42';
@@ -78,5 +79,16 @@ describe('markdown utils', () => {
     expect(ids()).toEqual(['install', 'install-1']);
     rehypeHeadingIds()(tree);
     expect(ids()).toEqual(['install', 'install-1']);
+  });
+});
+
+describe('getMarkdownPrintSource', () => {
+  it('prints the rendered markdown in preview, otherwise the source', () => {
+    expect(getMarkdownPrintSource('preview', '<h1>Hi</h1>', '# Hi')).toEqual({
+      html: '<h1>Hi</h1>',
+    });
+    expect(getMarkdownPrintSource('preview', undefined, '# Hi')).toEqual({ text: '# Hi' });
+    expect(getMarkdownPrintSource('source', '<h1>Hi</h1>', '# Hi')).toEqual({ text: '# Hi' });
+    expect(getMarkdownPrintSource('source', undefined, null)).toBeNull();
   });
 });

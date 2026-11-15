@@ -1,4 +1,5 @@
 import React from 'react';
+import { getRegionProps } from './a11y';
 import { useControlProps } from './controls';
 import type { DocType } from './detect-doc-type';
 import { useDocumentTitle, useDocViewerContext } from './DocViewer.context';
@@ -35,25 +36,20 @@ export interface DocViewerBodyProps extends React.ComponentPropsWithoutRef<'div'
 }
 
 /** Scrollable area under the toolbar, with the viewer's styles and accessibility */
-export function DocViewerBody({
-  focusable = true,
-  className,
-  style,
-  children,
-  ...others
-}: DocViewerBodyProps) {
-  const { getStyles } = useDocViewerContext();
-  const title = useDocumentTitle();
+export const DocViewerBody = React.forwardRef<HTMLDivElement, DocViewerBodyProps>(
+  function DocViewerBody({ focusable = true, className, style, children, ...others }, ref) {
+    const { getStyles } = useDocViewerContext();
+    const title = useDocumentTitle();
 
-  return (
-    <div
-      {...getStyles('body', { className, style })}
-      tabIndex={focusable ? 0 : undefined}
-      role={focusable ? 'region' : undefined}
-      aria-label={focusable ? title : undefined}
-      {...others}
-    >
-      {children}
-    </div>
-  );
-}
+    return (
+      <div
+        ref={ref}
+        {...getStyles('body', { className, style })}
+        {...getRegionProps(focusable, title)}
+        {...others}
+      >
+        {children}
+      </div>
+    );
+  }
+);

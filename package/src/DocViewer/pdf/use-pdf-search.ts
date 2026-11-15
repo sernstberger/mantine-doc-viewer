@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 import { useEffect, useMemo, useState } from 'react';
-import { buildPageText, findMatches, PageText } from './search';
+import { buildPageText, findMatches, PageText, SearchOptions } from './search';
 import { getPageTextContent, getTextItems } from './text-content';
 
 export interface SearchablePage {
@@ -44,7 +44,12 @@ function useSearchablePages(document: PDFDocumentProxy | null, enabled: boolean)
   return pages;
 }
 
-export function usePdfSearch(document: PDFDocumentProxy | null, query: string) {
+export function usePdfSearch(
+  document: PDFDocumentProxy | null,
+  query: string,
+  options: SearchOptions = {}
+) {
+  const { matchCase, wholeWords, matchAccents } = options;
   const enabled = query.trim().length > 0;
   const pages = useSearchablePages(document, enabled);
   const matches = useMemo(
@@ -52,10 +57,11 @@ export function usePdfSearch(document: PDFDocumentProxy | null, query: string) {
       pages && enabled
         ? findMatches(
             pages.map((page) => page.text),
-            query
+            query,
+            { matchCase, wholeWords, matchAccents }
           )
         : [],
-    [pages, query, enabled]
+    [pages, query, enabled, matchCase, wholeWords, matchAccents]
   );
   const [activeIndex, setActiveIndex] = useState(0);
 

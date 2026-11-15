@@ -83,6 +83,33 @@ function Demo() {
 }
 ```
 
+## Links in PDFs
+
+Links in PDF pages are clickable. Links to another part of the document scroll the viewer to that
+spot without changing the page URL. Web links always open in a new tab, and only `http`, `https`,
+`mailto` and `tel` links open at all. Use `onLinkClick` to see or stop them, for example to confirm
+before leaving:
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  onLinkClick={(url, event) => {
+    if (!window.confirm(`Open ${url}?`)) {
+      event.preventDefault();
+    }
+  }}
+/>
+```
+
+Screen readers read links within the document as "Go to page 3", and web links by their address.
+
+## Rotate and search options
+
+The rotate button turns all PDF pages a quarter turn, for scanned documents that are on their side.
+It only changes the view; the file is not changed. The search bar has match case, whole words and
+match accents buttons. Accents are ignored by default, so "cafe" also finds "café".
+
 ## Two pages and outline
 
 The two pages button shows pages side by side. Set `defaultPageLayout` to open that way, with

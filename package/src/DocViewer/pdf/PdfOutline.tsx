@@ -2,6 +2,7 @@ import { UnstyledButton } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
+import { resolveDestination } from './link-service';
 
 type OutlineNode = Awaited<ReturnType<PDFDocumentProxy['getOutline']>>[number];
 
@@ -33,20 +34,7 @@ export async function resolveDestinationPage(
   document: PDFDocumentProxy,
   dest: OutlineNode['dest']
 ): Promise<number | null> {
-  const explicit = typeof dest === 'string' ? await document.getDestination(dest) : dest;
-  const target = explicit?.[0];
-
-  if (typeof target === 'number') {
-    return target + 1;
-  }
-
-  if (target && typeof target === 'object') {
-    return (
-      (await document.getPageIndex(target as Parameters<PDFDocumentProxy['getPageIndex']>[0])) + 1
-    );
-  }
-
-  return null;
+  return (await resolveDestination(document, dest))?.page ?? null;
 }
 
 interface PdfOutlineProps {

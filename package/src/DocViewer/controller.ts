@@ -51,6 +51,9 @@ export interface DocViewerEvents {
   onDocumentError?: (error: Error) => void;
   onPageChange?: (page: number) => void;
   onZoomChange?: (scale: number, fitted: boolean) => void;
+
+  /** Called when a web link in a PDF is clicked, before it opens in a new tab. Call `event.preventDefault()` to stop it */
+  onLinkClick?: (url: string, event: MouseEvent) => void;
 }
 
 export type ControllerImplementation = Partial<DocViewerController>;

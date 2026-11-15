@@ -1,7 +1,8 @@
 import { ActionIcon } from '@mantine/core';
 import React, { useState } from 'react';
-import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
+import { DocViewerBody } from '../renderers';
 import { WrapIcon } from '../icons';
 import { printText } from '../print';
 import { TextStatus } from './TextStatus';
@@ -12,7 +13,6 @@ import { DocViewerTooltip, useControlProps } from '../controls';
 export function TextView() {
   const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
   const controlProps = useControlProps();
-  const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const [wrap, setWrap] = useState(true);
   const { fileName } = useDocViewerContext();
@@ -36,12 +36,7 @@ export function TextView() {
           </DocViewerTooltip>
         )}
       </DocViewerToolbar>
-      <div
-        {...getStyles('body')}
-        tabIndex={state.status === 'ready' ? 0 : undefined}
-        role={state.status === 'ready' ? 'region' : undefined}
-        aria-label={state.status === 'ready' ? title : undefined}
-      >
+      <DocViewerBody focusable={state.status === 'ready'}>
         {state.status === 'ready' ? (
           <pre {...getStyles('text')} data-wrap={wrap || undefined}>
             {state.text}
@@ -49,7 +44,7 @@ export function TextView() {
         ) : (
           <TextStatus state={state} />
         )}
-      </div>
+      </DocViewerBody>
     </>
   );
 }

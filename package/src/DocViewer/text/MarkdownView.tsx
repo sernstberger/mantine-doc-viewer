@@ -1,15 +1,30 @@
 import { CodeHighlight } from '@mantine/code-highlight';
-import { SegmentedControl, Typography, VisuallyHidden } from '@mantine/core';
+import { Typography } from '@mantine/core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
+import { DocViewerBody } from '../renderers';
 import { DocViewerMessage } from '../views/MessageView';
 import { importMarkdown, MarkdownModule } from './import-markdown';
-import { getFencedCode, HastNode, rehypeHeadingIds, resolveMarkdownUrl } from './markdown-utils';
+import { createMarkdownComponents, scrollToHeading } from './markdown-components';
+import { rehypeHeadingIds, resolveMarkdownUrl } from './markdown-utils';
 import { printHtml, printText } from '../print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from './use-text-view';
+import { ViewModeToggle } from './ViewModeToggle';
 import { useTextDocument } from './use-text-document';
+
+/** Prints what is shown: the rendered markdown in preview, otherwise the source */
+export function getMarkdownPrintSource(
+  mode: 'preview' | 'source',
+  renderedHtml: string | undefined,
+  text: string | null
+): { html?: string; text?: string } | null {
+  if (mode === 'preview' && renderedHtml !== undefined) {
+    return { html: renderedHtml };
+  }
+  return text === null ? null : { text };
+}
 
 function useMarkdownModule() {
   const [module, setModule] = useState<MarkdownModule | null>(null);
@@ -34,63 +49,12 @@ function MarkdownPreview({ text }: { text: string }) {
   const { module, failed } = useMarkdownModule();
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Links to a heading scroll the viewer instead of changing the url of the page around it
-  const scrollToHeading = (event: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
-    // Never change the url of the page around the viewer, even when the heading does not exist
-    event.preventDefault();
-    const root = rootRef.current;
-    const target = root?.querySelector<HTMLElement>(
-      `[id="${CSS.escape(decodeURIComponent(hash))}"]`
-    );
-    const scrollContainer = root?.parentElement;
-    if (!target || !scrollContainer) {
-      return;
-    }
-
-    const top =
-      target.getBoundingClientRect().top -
-      scrollContainer.getBoundingClientRect().top +
-      scrollContainer.scrollTop;
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    scrollContainer.scrollTo({ top: top - 12, behavior: reduceMotion ? 'auto' : 'smooth' });
-
-    // Move focus too, so keyboard and screen reader users continue from the heading
-    target.tabIndex = -1;
-    target.focus({ preventScroll: true });
-  };
-
   const components = useMemo(
-    () => ({
-      pre: ({ node, children }: { node?: HastNode; children?: React.ReactNode }) => {
-        const fenced = getFencedCode(node);
-        return fenced ? (
-          <CodeHighlight
-            code={fenced.code}
-            language={fenced.language ?? 'text'}
-            radius="sm"
-            my="md"
-          />
-        ) : (
-          <pre>{children}</pre>
-        );
-      },
-      a: ({
-        node: _node,
-        href,
-        children,
-        ...others
-      }: React.ComponentPropsWithoutRef<'a'> & { node?: HastNode }) =>
-        href?.startsWith('#') ? (
-          <a href={href} onClick={(event) => scrollToHeading(event, href.slice(1))} {...others}>
-            {children}
-          </a>
-        ) : (
-          <a href={href} target="_blank" rel="noopener noreferrer" {...others}>
-            {children}
-            <VisuallyHidden> {labels.opensInNewTab}</VisuallyHidden>
-          </a>
-        ),
-    }),
+    () =>
+      createMarkdownComponents({
+        opensInNewTab: labels.opensInNewTab,
+        onHashLink: (hash) => rootRef.current && scrollToHeading(rootRef.current, hash),
+      }),
     [labels]
   );
 
@@ -126,19 +90,22 @@ function MarkdownPreview({ text }: { text: string }) {
 }
 
 export function MarkdownView() {
-  const { getStyles, src, maxTextSize, labels, size, codeHighlightProps } = useDocViewerContext();
-  const title = useDocumentTitle();
+  const { getStyles, src, maxTextSize, labels, codeHighlightProps } = useDocViewerContext();
   const state = useTextDocument(src, maxTextSize);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
   const { fileName } = useDocViewerContext();
   const bodyRef = useRef<HTMLDivElement>(null);
   // Prints what is shown: the rendered markdown, or its source
   const onPrint = useTextView('markdown', state, async () => {
-    const rendered = bodyRef.current?.querySelector('.mantine-Typography-root, [data-markdown]');
-    if (mode === 'preview' && rendered) {
-      await printHtml(rendered.innerHTML, fileName);
-    } else if (state.status === 'ready') {
-      await printText(state.text, fileName);
+    const source = getMarkdownPrintSource(
+      mode,
+      bodyRef.current?.querySelector('[data-markdown]')?.innerHTML,
+      state.status === 'ready' ? state.text : null
+    );
+    if (source?.html !== undefined) {
+      await printHtml(source.html, fileName);
+    } else if (source?.text !== undefined) {
+      await printText(source.text, fileName);
     }
   });
 
@@ -146,25 +113,18 @@ export function MarkdownView() {
     <>
       <DocViewerToolbar onPrint={onPrint}>
         {state.status === 'ready' && (
-          <SegmentedControl
-            size={size.input}
+          <ViewModeToggle
             value={mode}
-            onChange={(value) => setMode(value as 'preview' | 'source')}
+            onChange={setMode}
             data={[
               { value: 'preview', label: labels.preview },
               { value: 'source', label: labels.source },
             ]}
-            aria-label={labels.markdownView}
+            label={labels.markdownView}
           />
         )}
       </DocViewerToolbar>
-      <div
-        ref={bodyRef}
-        {...getStyles('body')}
-        tabIndex={state.status === 'ready' ? 0 : undefined}
-        role={state.status === 'ready' ? 'region' : undefined}
-        aria-label={state.status === 'ready' ? title : undefined}
-      >
+      <DocViewerBody ref={bodyRef} focusable={state.status === 'ready'}>
         {state.status !== 'ready' && <TextStatus state={state} />}
         {state.status === 'ready' && mode === 'preview' && <MarkdownPreview text={state.text} />}
         {state.status === 'ready' && mode === 'source' && (
@@ -181,7 +141,7 @@ export function MarkdownView() {
             })}
           />
         )}
-      </div>
+      </DocViewerBody>
     </>
   );
 }

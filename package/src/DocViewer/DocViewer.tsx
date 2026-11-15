@@ -64,9 +64,11 @@ export type DocViewerStylesNames =
   | 'page'
   | 'canvas'
   | 'textLayer'
+  | 'linkLayer'
   | 'search'
   | 'searchInput'
   | 'searchCount'
+  | 'searchOption'
   | 'main'
   | 'thumbnails'
   | 'thumbnail'
@@ -331,6 +333,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     onDocumentError,
     onPageChange,
     onZoomChange,
+    onLinkClick,
     mod,
     ref,
     ...others
@@ -369,12 +372,21 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   });
 
   // Stable, so views can call them from effects without re-running them
-  const events = {
-    onDocumentLoad: useCallbackRef(onDocumentLoad),
-    onDocumentError: useCallbackRef(onDocumentError),
-    onPageChange: useCallbackRef(onPageChange),
-    onZoomChange: useCallbackRef(onZoomChange),
-  };
+  const handleDocumentLoad = useCallbackRef(onDocumentLoad);
+  const handleDocumentError = useCallbackRef(onDocumentError);
+  const handlePageChange = useCallbackRef(onPageChange);
+  const handleZoomChange = useCallbackRef(onZoomChange);
+  const handleLinkClick = useCallbackRef(onLinkClick);
+  const events = useMemo(
+    () => ({
+      onDocumentLoad: handleDocumentLoad,
+      onDocumentError: handleDocumentError,
+      onPageChange: handlePageChange,
+      onZoomChange: handleZoomChange,
+      onLinkClick: handleLinkClick,
+    }),
+    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+  );
 
   return (
     <DocViewerProvider

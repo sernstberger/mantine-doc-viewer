@@ -9,3 +9,13 @@ export function softDisabled(disabled: boolean, onClick: () => void) {
     onClick: () => !disabled && onClick(),
   };
 }
+
+/**
+ * Props that make a loaded document's scroll area a named region that can be focused and
+ * scrolled with the keyboard. Nothing while loading, when there is nothing to scroll
+ */
+export function getRegionProps(ready: boolean, title: string, keyShortcuts?: string) {
+  return ready
+    ? { tabIndex: 0, role: 'region', 'aria-label': title, 'aria-keyshortcuts': keyShortcuts }
+    : {};
+}

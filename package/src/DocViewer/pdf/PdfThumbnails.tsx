@@ -1,18 +1,44 @@
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
-import { renderPageToCanvas } from './render-page';
+import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
+/** How many thumbnails fit in the rail, at least one */
+export function getThumbnailsPerView(railSize: number, thumbnailSize: number) {
+  return Math.max(1, Math.floor(railSize / (thumbnailSize || 1)));
+}
+
+/** Page a listbox key moves to from `page`, kept within the document, or null for other keys */
+export function getNextThumbnailPage(
+  key: string,
+  page: number,
+  numPages: number,
+  perView: number
+): number | null {
+  const moves: Record<string, number> = {
+    ArrowDown: page + 1,
+    ArrowRight: page + 1,
+    ArrowUp: page - 1,
+    ArrowLeft: page - 1,
+    PageDown: page + perView,
+    PageUp: page - perView,
+    Home: 1,
+    End: numPages,
+  };
+  return key in moves ? Math.min(Math.max(moves[key], 1), numPages) : null;
+}
+
 interface PdfThumbnailProps {
   document: PDFDocumentProxy;
   pageNumber: number;
   placeholderSize: PdfPageSize;
   active: boolean;
+  rotation: PdfRotation;
   orientation: ThumbnailsOrientation;
   scrollRoot: HTMLElement | null;
   onSelect: (pageNumber: number) => void;
@@ -23,6 +49,7 @@ function PdfThumbnail({
   pageNumber,
   placeholderSize,
   active,
+  rotation,
   orientation,
   scrollRoot,
   onSelect,
@@ -52,9 +79,9 @@ function PdfThumbnail({
         return;
       }
 
-      const { width: pageWidth, height } = page.getViewport({ scale: 1 });
+      const { width: pageWidth, height } = getPageViewport(page, 1, rotation);
       setSize({ width: pageWidth, height });
-      renderTask = renderPageToCanvas(page, canvas, width / pageWidth, maxCanvasPixels);
+      renderTask = renderPageToCanvas(page, canvas, width / pageWidth, maxCanvasPixels, rotation);
       renderTask.promise.catch(() => {});
     });
 
@@ -62,7 +89,7 @@ function PdfThumbnail({
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [document, pageNumber, near, width, maxCanvasPixels]);
+  }, [document, pageNumber, near, width, maxCanvasPixels, rotation]);
 
   useReleasePage(document, pageNumber, near);
 
@@ -89,7 +116,7 @@ function PdfThumbnail({
     }
   }, [active, scrollRoot, ref, horizontal]);
 
-  const pageSize = size ?? placeholderSize;
+  const pageSize = size ?? rotateSize(placeholderSize, rotation);
 
   return (
     <div
@@ -122,6 +149,7 @@ interface PdfThumbnailsProps {
   document: PDFDocumentProxy;
   placeholderSize: PdfPageSize;
   currentPage: number;
+  rotation: PdfRotation;
   orientation: ThumbnailsOrientation;
   onSelect: (pageNumber: number) => void;
 }
@@ -130,6 +158,7 @@ export function PdfThumbnails({
   document,
   placeholderSize,
   currentPage,
+  rotation,
   orientation,
   onSelect,
 }: PdfThumbnailsProps) {
@@ -149,23 +178,13 @@ export function PdfThumbnails({
     }
 
     // Page Up and Page Down move by the number of thumbnails that fit in the rail
-    const size = horizontal ? option!.offsetWidth : option!.offsetHeight;
-    const perView = Math.max(
-      1,
-      Math.floor((horizontal ? root.clientWidth : root.clientHeight) / (size || 1))
+    const perView = getThumbnailsPerView(
+      horizontal ? root.clientWidth : root.clientHeight,
+      horizontal ? option!.offsetWidth : option!.offsetHeight
     );
-    const next = {
-      ArrowDown: page + 1,
-      ArrowRight: page + 1,
-      ArrowUp: page - 1,
-      ArrowLeft: page - 1,
-      PageDown: page + perView,
-      PageUp: page - perView,
-      Home: 1,
-      End: numPages,
-    }[event.key];
+    const next = getNextThumbnailPage(event.key, page, numPages, perView);
 
-    if (next === undefined) {
+    if (next === null) {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         onSelect(page);
@@ -174,9 +193,8 @@ export function PdfThumbnails({
     }
 
     event.preventDefault();
-    const target = Math.min(Math.max(next, 1), numPages);
-    onSelect(target);
-    root.querySelector<HTMLElement>(`[data-page-number="${target}"]`)?.focus();
+    onSelect(next);
+    root.querySelector<HTMLElement>(`[data-page-number="${next}"]`)?.focus();
   };
 
   return (
@@ -196,6 +214,7 @@ export function PdfThumbnails({
           pageNumber={index + 1}
           placeholderSize={placeholderSize}
           active={currentPage === index + 1}
+          rotation={rotation}
           orientation={orientation}
           scrollRoot={scrollRoot}
           onSelect={onSelect}

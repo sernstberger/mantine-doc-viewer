@@ -1,5 +1,20 @@
 import type { PDFPageProxy, RenderTask } from 'pdfjs-dist';
 
+export type PdfRotation = 0 | 90 | 180 | 270;
+
+/** Viewport with the viewer's rotation added to the page's own rotation */
+export function getPageViewport(page: PDFPageProxy, scale: number, rotation: PdfRotation = 0) {
+  return page.getViewport({ scale, rotation: (page.rotate + rotation) % 360 });
+}
+
+/** Swaps width and height for quarter turns */
+export function rotateSize<T extends { width: number; height: number }>(
+  size: T,
+  rotation: PdfRotation
+): T {
+  return rotation % 180 === 0 ? size : { ...size, width: size.height, height: size.width };
+}
+
 /**
  * Largest canvas drawn for one page, in pixels. Safari refuses canvases above about 16.7
  * million pixels and draws nothing, which a page at 800% on a high density screen passes
@@ -26,9 +41,10 @@ export function renderPageToCanvas(
   page: PDFPageProxy,
   canvas: HTMLCanvasElement,
   scale: number,
-  maxPixels = MAX_CANVAS_PIXELS
+  maxPixels = MAX_CANVAS_PIXELS,
+  rotation: PdfRotation = 0
 ): RenderTask {
-  const viewport = page.getViewport({ scale });
+  const viewport = getPageViewport(page, scale, rotation);
   const pixelRatio = getCanvasPixelRatio(
     viewport.width,
     viewport.height,

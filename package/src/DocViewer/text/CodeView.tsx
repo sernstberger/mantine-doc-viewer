@@ -1,12 +1,13 @@
 import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
-import { SegmentedControl } from '@mantine/core';
 import React, { useMemo, useState } from 'react';
 import { getCodeLanguage } from '../detect-doc-type';
-import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
+import { DocViewerBody } from '../renderers';
 import { printText } from '../print';
 import { TextStatus } from './TextStatus';
 import { useTextView } from './use-text-view';
+import { ViewModeToggle } from './ViewModeToggle';
 import { useTextDocument } from './use-text-document';
 
 const NOT_JSON = Symbol('not-json');
@@ -27,9 +28,8 @@ function parseJson(text: string) {
 }
 
 export function CodeView() {
-  const { getStyles, src, fileName, language, maxTextSize, labels, size, codeHighlightProps } =
+  const { getStyles, src, fileName, language, maxTextSize, labels, codeHighlightProps } =
     useDocViewerContext();
-  const title = useDocumentTitle();
   const state = useTextDocument(src, maxTextSize);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
@@ -49,24 +49,18 @@ export function CodeView() {
     <>
       <DocViewerToolbar onPrint={onPrint}>
         {json !== NOT_JSON && (
-          <SegmentedControl
-            size={size.input}
+          <ViewModeToggle
             value={mode}
-            onChange={(value) => setMode(value as 'tree' | 'code')}
+            onChange={setMode}
             data={[
               { value: 'tree', label: labels.tree },
               { value: 'code', label: labels.code },
             ]}
-            aria-label={labels.jsonView}
+            label={labels.jsonView}
           />
         )}
       </DocViewerToolbar>
-      <div
-        {...getStyles('body')}
-        tabIndex={state.status === 'ready' ? 0 : undefined}
-        role={state.status === 'ready' ? 'region' : undefined}
-        aria-label={state.status === 'ready' ? title : undefined}
-      >
+      <DocViewerBody focusable={state.status === 'ready'}>
         {text === null && <TextStatus state={state} />}
         {text !== null && showTree && (
           <JsonViewer value={json} defaultExpandDepth={2} {...getStyles('code')} />
@@ -85,7 +79,7 @@ export function CodeView() {
             })}
           />
         )}
-      </div>
+      </DocViewerBody>
     </>
   );
 }

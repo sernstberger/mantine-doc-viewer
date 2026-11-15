@@ -34,37 +34,64 @@ export function buildPageText(items: Pick<TextItem, 'str' | 'hasEOL'>[]): PageTe
   return { text, itemStarts };
 }
 
+export interface SearchOptions {
+  /** Upper and lower case must match, off by default */
+  matchCase?: boolean;
+
+  /** Matches must be whole words, off by default */
+  wholeWords?: boolean;
+
+  /** Accents must match, off by default, so "cafe" also finds "café" */
+  matchAccents?: boolean;
+}
+
 /**
- * Case-insensitive search across pages. Lowercasing keeps string length for the
- * scripts documents usually contain, so match offsets line up with the original text.
+ * Prepares text for matching one character at a time, so offsets in the result are offsets in
+ * the original text. A character whose lowercase or unaccented form has a different length (such
+ * as İ, or the ligature ﬁ) is kept as it is
  */
-/** Lowercases one character at a time, keeping characters whose lowercase is longer (such as İ) as they are */
-function toLowerSameLength(text: string) {
-  const lower = text.toLowerCase();
-  if (lower.length === text.length) {
-    return lower;
+export function normalizeForSearch(text: string, { matchCase, matchAccents }: SearchOptions) {
+  if (matchCase && matchAccents) {
+    return text;
   }
 
   return Array.from(text, (char) => {
-    const lowerChar = char.toLowerCase();
-    return lowerChar.length === char.length ? lowerChar : char;
+    let next = matchCase ? char : char.toLowerCase();
+    if (!matchAccents) {
+      next = next.normalize('NFD').replace(/\p{M}/gu, '');
+    }
+    return next.length === char.length ? next : char;
   }).join('');
 }
 
-export function findMatches(pages: PageText[], query: string): SearchMatch[] {
-  const needle = toLowerSameLength(query.trim());
+const WORD_CHARACTER = /[\p{L}\p{N}_]/u;
+
+function isWholeWord(text: string, start: number, end: number) {
+  return !WORD_CHARACTER.test(text[start - 1] ?? '') && !WORD_CHARACTER.test(text[end] ?? '');
+}
+
+/** Search across pages, with match offsets in each page's original text */
+export function findMatches(
+  pages: PageText[],
+  query: string,
+  options: SearchOptions = {}
+): SearchMatch[] {
+  const needle = normalizeForSearch(query.trim(), options);
   if (!needle) {
     return [];
   }
 
   const matches: SearchMatch[] = [];
   pages.forEach((page, index) => {
-    const haystack = toLowerSameLength(page.text);
+    const haystack = normalizeForSearch(page.text, options);
     let start = haystack.indexOf(needle);
 
     while (start !== -1) {
-      matches.push({ pageNumber: index + 1, start, end: start + needle.length });
-      start = haystack.indexOf(needle, start + needle.length);
+      const end = start + needle.length;
+      if (!options.wholeWords || isWholeWord(haystack, start, end)) {
+        matches.push({ pageNumber: index + 1, start, end });
+      }
+      start = haystack.indexOf(needle, options.wholeWords ? start + 1 : end);
     }
   });
 

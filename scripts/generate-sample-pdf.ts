@@ -11,7 +11,40 @@ const PAGE_WIDTH = 612;
 const PAGE_HEIGHT = 792;
 const COLORS = ['0.13 0.55 0.9', '0.75 0.29 0.86', '0.07 0.72 0.53'];
 
-function pageContent(pageNumber: number, total: number) {
+/** Table of contents drawn on page 1, each entry a link to its chapter */
+interface TocEntry {
+  title: string;
+  page: number;
+}
+
+const TOC_TOP = 500;
+const TOC_LINE = 22;
+
+function tocContent(toc: TocEntry[]) {
+  return [
+    '0.2 0.2 0.2 rg',
+    `BT /F2 14 Tf 72 ${TOC_TOP + 28} Td (Contents) Tj ET`,
+    ...toc.map(
+      (entry, index) =>
+        `0.1 0.35 0.8 rg BT /F1 12 Tf 72 ${TOC_TOP - index * TOC_LINE} Td (${entry.title} ...... page ${entry.page}) Tj ET`
+    ),
+    `0.1 0.35 0.8 rg BT /F1 12 Tf 72 ${TOC_TOP - toc.length * TOC_LINE - 10} Td (mantine.dev) Tj ET`,
+  ].join('\n');
+}
+
+function pageContent(pageNumber: number, total: number, toc: TocEntry[] = []) {
+  if (pageNumber === 1 && toc.length > 0) {
+    const color = COLORS[0];
+    return [
+      `${color} rg 0 ${PAGE_HEIGHT - 160} ${PAGE_WIDTH} 160 re f`,
+      '1 1 1 rg',
+      `BT /F2 36 Tf 72 ${PAGE_HEIGHT - 100} Td (mantine-doc-viewer) Tj ET`,
+      `BT /F1 16 Tf 72 ${PAGE_HEIGHT - 132} Td (Sample document, page 1 of ${total}) Tj ET`,
+      tocContent(toc),
+      `0.6 0.6 0.6 rg BT /F1 10 Tf ${PAGE_WIDTH / 2 - 20} 40 Td (Page 1) Tj ET`,
+    ].join('\n');
+  }
+
   const color = COLORS[(pageNumber - 1) % COLORS.length];
   const lines = Array.from(
     { length: 18 },
@@ -45,18 +78,48 @@ function buildPdf(totalPages: number, chapterLength = 0) {
   // every page dictionary when a document opens, so grouping them keeps that to the start of the
   // file and lets range requests skip the content of pages that are not shown
   const firstContentId = objects.length + totalPages + 1;
+  // Link annotations on page 1 are written after the pages, so their ids are known up front
+  const toc: TocEntry[] =
+    chapterLength > 0
+      ? Array.from({ length: Math.ceil(totalPages / chapterLength) }, (_, index) => ({
+          title: `Chapter ${index + 1}`,
+          page: index * chapterLength + 1,
+        }))
+      : [];
+  const firstLinkId = firstContentId + totalPages;
+  const linkIds =
+    toc.length > 0 ? Array.from({ length: toc.length + 1 }, (_, index) => firstLinkId + index) : [];
+
   for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
     const content = firstContentId + pageNumber - 1;
+    const annots =
+      pageNumber === 1 && linkIds.length > 0
+        ? ` /Annots [${linkIds.map((id) => `${id} 0 R`).join(' ')}]`
+        : '';
     pageIds.push(
       add(
-        `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Contents ${content} 0 R /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> >> >>`
+        `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Contents ${content} 0 R /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> >>${annots} >>`
       )
     );
   }
 
   for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
-    const stream = pageContent(pageNumber, totalPages);
+    const stream = pageContent(pageNumber, totalPages, toc);
     add(`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`);
+  }
+
+  // Each contents entry links to the top of its chapter's page, the last one is a web link
+  toc.forEach((entry, index) => {
+    const y = TOC_TOP - index * TOC_LINE;
+    add(
+      `<< /Type /Annot /Subtype /Link /Rect [68 ${y - 5} 300 ${y + 14}] /Border [0 0 0] /Dest [${pageIds[entry.page - 1]} 0 R /XYZ 0 ${PAGE_HEIGHT} null] >>`
+    );
+  });
+  if (toc.length > 0) {
+    const y = TOC_TOP - toc.length * TOC_LINE - 10;
+    add(
+      `<< /Type /Annot /Subtype /Link /Rect [68 ${y - 5} 160 ${y + 14}] /Border [0 0 0] /A << /S /URI /URI (https://mantine.dev) >> >>`
+    );
   }
 
   let outlines = '';

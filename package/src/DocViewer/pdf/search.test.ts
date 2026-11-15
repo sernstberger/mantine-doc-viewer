@@ -1,4 +1,10 @@
-import { buildPageText, findMatches, getMatchRanges, getMatchSegments } from './search';
+import {
+  buildPageText,
+  findMatches,
+  getMatchRanges,
+  getMatchSegments,
+  normalizeForSearch,
+} from './search';
 
 const items = [
   { str: 'Quarterly report', hasEOL: true },
@@ -71,5 +77,34 @@ describe('pdf search', () => {
     const page = buildPageText([{ str: 'İstanbul report', hasEOL: true }]);
     const [match] = findMatches([page], 'REPORT');
     expect(page.text.slice(match.start, match.end)).toBe('report');
+  });
+
+  describe('options', () => {
+    const page = buildPageText([
+      { str: 'Café menu. Cafe prices, cafeteria and CAFE hours.', hasEOL: true },
+    ]);
+    const found = (query: string, options = {}) =>
+      findMatches([page], query, options).map((match) => page.text.slice(match.start, match.end));
+
+    it('ignores case and accents by default', () => {
+      expect(found('cafe')).toEqual(['Café', 'Cafe', 'cafe', 'CAFE']);
+    });
+
+    it('matches case', () => {
+      expect(found('Cafe', { matchCase: true })).toEqual(['Café', 'Cafe']);
+    });
+
+    it('matches accents', () => {
+      expect(found('café', { matchAccents: true })).toEqual(['Café']);
+    });
+
+    it('matches whole words only', () => {
+      expect(found('cafe', { wholeWords: true })).toEqual(['Café', 'Cafe', 'CAFE']);
+    });
+
+    it('keeps offsets for characters that change length', () => {
+      expect(normalizeForSearch('ﬁne İstanbul', {})).toHaveLength('ﬁne İstanbul'.length);
+      expect(normalizeForSearch('Exact', { matchCase: true, matchAccents: true })).toBe('Exact');
+    });
   });
 });

@@ -41,6 +41,8 @@ export interface DocViewerLabels {
   pageOf: (page: number, total: number) => string;
   /** Screen reader name of a page thumbnail */
   thumbnail: (page: number) => string;
+  /** Screen reader name of a link inside a PDF that goes to another page */
+  linkToPage: (page: number) => string;
 
   search: string;
   searchDocument: string;
@@ -51,6 +53,9 @@ export interface DocViewerLabels {
   previousMatch: string;
   nextMatch: string;
   closeSearch: string;
+  matchCase: string;
+  wholeWords: string;
+  matchAccents: string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -110,6 +115,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   nextPage: 'Next page',
   pageOf: (page, total) => `Page ${page} of ${total}`,
   thumbnail: (page) => `Page ${page}`,
+  linkToPage: (page) => `Go to page ${page}`,
 
   search: 'Search',
   searchDocument: 'Search document',
@@ -120,6 +126,9 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   previousMatch: 'Previous match',
   nextMatch: 'Next match',
   closeSearch: 'Close search',
+  matchCase: 'Match case',
+  wholeWords: 'Whole words',
+  matchAccents: 'Match accents',
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',

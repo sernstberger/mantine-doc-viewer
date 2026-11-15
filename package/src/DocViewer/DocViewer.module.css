@@ -519,3 +519,56 @@
   border-radius: var(--mantine-radius-md);
   background-color: var(--mantine-color-body);
 }
+
+/* Links in PDF pages: pdf.js's annotation layer with only link annotations, adapted from pdf_viewer.css (Apache-2.0) */
+.linkLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+
+  & :global(section) {
+    position: absolute;
+    pointer-events: auto;
+    box-sizing: border-box;
+    transform-origin: 0 0;
+    user-select: none;
+  }
+
+  & :global(.linkAnnotation) > a {
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+
+    @mixin hover {
+      background-color: color-mix(in srgb, var(--_color) 15%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--_color);
+      outline-offset: 1px;
+    }
+  }
+
+  /* Text being selected under a link should not be interrupted by it */
+  :global(.selecting) ~ & :global(section) {
+    pointer-events: none;
+  }
+
+  @media (forced-colors: active) {
+    & :global(.linkAnnotation) {
+      outline: 1.5px solid LinkText;
+    }
+  }
+}
+
+.searchOption {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+
+  &[data-option='wholeWords'] {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}

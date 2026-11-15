@@ -25,6 +25,7 @@ function mockPdf({
   unreadablePage = 0,
   outline = null as unknown[] | null,
   password = '',
+  links = [] as unknown[],
 } = {}) {
   // One render mock shared by all pages, so tests can count renders across the document
   const page = {
@@ -32,9 +33,19 @@ function mockPdf({
     cleanup: jest.fn(() => true),
   };
   const pages = Array.from({ length: numPages }, (_, index) => ({
-    getViewport: ({ scale }: { scale: number }) => ({ width: 612 * scale, height: 792 * scale }),
+    rotate: 0,
+    getViewport: ({ scale, rotation = 0 }: { scale: number; rotation?: number }) => {
+      const quarter = rotation % 180 !== 0;
+      const viewport = {
+        width: (quarter ? 792 : 612) * scale,
+        height: (quarter ? 612 : 792) * scale,
+      };
+      return { ...viewport, clone: () => viewport };
+    },
     render: page.render,
     cleanup: page.cleanup,
+    getAnnotations: jest.fn(() => Promise.resolve(index === 0 ? links : [])),
+    view: [0, 0, 612, 792],
     getTextContent: jest.fn(() =>
       index + 1 === unreadablePage
         ? Promise.reject(new Error('Corrupt content stream'))
@@ -646,5 +657,120 @@ describe('DocViewer PDF', () => {
       expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
     });
+  });
+
+  describe('links', () => {
+    const links = [
+      { id: 'toc-1', annotationType: 2, dest: [2, { name: 'Fit' }] },
+      { id: 'web', annotationType: 2, url: 'https://mantine.dev/' },
+      { id: 'form', annotationType: 20 },
+    ];
+
+    it('makes links in pages clickable, with names', async () => {
+      mockPdf({ links });
+      const onLinkClick = jest.fn((_url: string, event: MouseEvent) => event.preventDefault());
+      render(
+        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" onLinkClick={onLinkClick} />
+      );
+
+      const pageLink = await screen.findByRole('link', { name: 'Go to page 3' });
+      const webLink = screen.getByRole('link', { name: 'https://mantine.dev/' });
+      expect(webLink).toHaveAttribute('target', '_blank');
+      // Only links: other annotations stay on the canvas
+      expect(document.querySelectorAll('.mantine-DocViewer-linkLayer section')).toHaveLength(2);
+
+      await userEvent.click(pageLink);
+      await waitFor(() => expect(screen.getByText('3 / 3')).toBeInTheDocument());
+
+      await userEvent.click(webLink);
+      expect(onLinkClick).toHaveBeenCalledWith('https://mantine.dev/', expect.any(MouseEvent));
+    });
+
+    it('reports load once, however often the viewer renders', async () => {
+      mockPdf();
+      const onDocumentLoad = jest.fn();
+      function Parent() {
+        const [count, setCount] = React.useState(0);
+        return (
+          <>
+            <button type="button" onClick={() => setCount(count + 1)}>
+              Render again {count}
+            </button>
+            <DocViewer
+              src="/files/report.pdf"
+              pdfWorkerSrc="/worker.mjs"
+              onDocumentLoad={onDocumentLoad}
+            />
+          </>
+        );
+      }
+      render(<Parent />);
+
+      await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+      await userEvent.click(screen.getByRole('button', { name: /Render again/ }));
+      await userEvent.click(screen.getByRole('button', { name: /Render again/ }));
+      expect(onDocumentLoad).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('narrows search with match case and whole words', async () => {
+    mockPdf();
+    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Search document' }), 'quarter');
+    expect(await screen.findByText('1 of 3')).toBeInTheDocument();
+
+    const matchCase = screen.getByRole('button', { name: 'Match case' });
+    await userEvent.click(matchCase);
+    expect(matchCase).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findByText('1 of 2')).toBeInTheDocument();
+
+    await userEvent.click(matchCase);
+    await userEvent.click(screen.getByRole('button', { name: 'Whole words' }));
+    expect(await screen.findByText('1 of 2')).toBeInTheDocument();
+  });
+
+  it('rotates pages a quarter turn at a time', async () => {
+    mockPdf();
+    const controller = createRef<DocViewerController>();
+    render(
+      <DocViewer
+        src="/files/report.pdf"
+        pdfWorkerSrc="/worker.mjs"
+        defaultZoom={1}
+        controllerRef={controller}
+      />
+    );
+
+    const page1 = await screen.findByRole('group', { name: 'Page 1 of 3' });
+    expect(page1).toHaveStyle({ width: '612px', height: '792px' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
+    await waitFor(() => expect(page1).toHaveStyle({ width: '792px', height: '612px' }));
+
+    act(() => controller.current!.rotate());
+    await waitFor(() => expect(page1).toHaveStyle({ width: '612px', height: '792px' }));
+  });
+
+  it('scrolls to the page prop when the app changes it', async () => {
+    mockPdf();
+    function Parent() {
+      const [page, setPage] = React.useState(1);
+      return (
+        <>
+          <button type="button" onClick={() => setPage(3)}>
+            Show page 3
+          </button>
+          <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" page={page} />
+        </>
+      );
+    }
+    render(<Parent />);
+
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    expect(screen.getByText('1 / 3')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Show page 3' }));
+    expect(screen.getByText('3 / 3')).toBeInTheDocument();
   });
 });
