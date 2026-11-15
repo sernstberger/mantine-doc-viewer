@@ -9102,15 +9102,15 @@ __metadata:
     "@types/react": "npm:^19"
     react: "npm:19.2.4"
   peerDependencies:
-    "@cantoo/pdf-lib": ">=2.11.1"
+    "@cantoo/pdf-lib": ^2.11.1
     "@mantine/code-highlight": ^9.7.0
     "@mantine/core": ^9.7.0
     "@mantine/hooks": ^9.7.0
-    pdfjs-dist: ">=6.5.0"
+    pdfjs-dist: ^6.5.0
     react: ^19.2.0
     react-dom: ^19.2.0
-    react-markdown: ">=10.1.0"
-    remark-gfm: ">=4.0.1"
+    react-markdown: ^10.1.0
+    remark-gfm: ^4.0.1
   peerDependenciesMeta:
     "@cantoo/pdf-lib":
       optional: true
