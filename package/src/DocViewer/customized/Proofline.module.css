@@ -1,0 +1,632 @@
+/*
+ * Proofline: a print shop's proof approval page. The story owns its colours (a green cutting mat
+ * and a white job ticket) and looks the same in light and dark. The bold thing is the mat: pages
+ * lie on a ruled grid with crop marks drawn around each one by CSS on the `page` part.
+ */
+
+.mat {
+  --pl-mat: #2f6b53;
+  --pl-mat-deep: #275a46;
+  --pl-grid: #3e8166;
+  --pl-grid-major: #4b8f73;
+  --pl-chalk: #f2f6f0;
+  --pl-ink: #1e1e1e;
+  --pl-muted: #5d625f;
+  --pl-line: #e3e5e1;
+  --pl-trim: #e5007d;
+  --pl-safe: #00a878;
+  --pl-focus: #ffe100;
+
+  --mantine-font-family: 'Instrument Sans', system-ui, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh;
+  /* One-unit grid with a heavier line every five, like the printed grid of a cutting mat */
+  background:
+    linear-gradient(var(--pl-grid-major) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(90deg, var(--pl-grid-major) 1px, transparent 1px) 0 0 / 100px 100px,
+    linear-gradient(var(--pl-grid) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, var(--pl-grid) 1px, transparent 1px) 0 0 / 20px 20px,
+    radial-gradient(120% 100% at 40% 40%, var(--pl-mat) 40%, var(--pl-mat-deep) 100%);
+  color: var(--pl-chalk);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color-scheme: light;
+}
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding-inline: 20px;
+  background: #1c3f31;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Two crop marks meeting at a corner */
+.brandMark {
+  position: relative;
+  width: 18px;
+  height: 18px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background: var(--pl-chalk);
+  }
+
+  &::before {
+    top: 0;
+    left: 5px;
+    width: 2px;
+    height: 12px;
+  }
+
+  &::after {
+    top: 5px;
+    left: 0;
+    width: 12px;
+    height: 2px;
+  }
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #c9d8cf;
+  font-size: 13px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pl-chalk);
+  color: #1c3f31;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ---------------------------------- viewer --------------------------------- */
+
+.root {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--pl-chalk);
+  font-family: inherit;
+}
+
+.toolbar {
+  min-height: 44px;
+  padding-inline: 20px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.14);
+  background: rgb(20 52 40 / 0.78);
+  backdrop-filter: blur(6px);
+  color: var(--pl-chalk);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.control {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #d7e4dc;
+
+  &:hover {
+    border-color: rgb(255 255 255 / 0.22);
+    background: rgb(255 255 255 / 0.1);
+    color: #fff;
+  }
+
+  &[data-pressed] {
+    border-color: rgb(255 255 255 / 0.3);
+    background: rgb(255 255 255 / 0.18);
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--pl-focus);
+    outline-offset: 1px;
+  }
+}
+
+.pageIndicator,
+.zoomLevel {
+  color: #d7e4dc;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The dark-scheme rule of the default styles is more specific than a single class, so match it */
+.mat .body {
+  background: transparent;
+
+  &:focus-visible {
+    outline-color: var(--pl-focus);
+  }
+}
+
+/* Room for the crop marks and the page labels around the pages */
+.pages {
+  padding-block: 40px 56px;
+}
+
+/*
+ * The page is the PDF with its 3 mm bleed, so the crop marks sit just outside it and line up with
+ * the trim at 3 mm / 154 mm = 1.95% across and 3 mm / 216 mm = 1.39% down. Twelve 1px gradients
+ * draw them: for every edge a mark at each trim line and one at the centre. The calc() offsets
+ * correct for percentage positions being measured against the box minus the image.
+ */
+.page {
+  --mark: #fff;
+  --m: linear-gradient(var(--mark), var(--mark));
+
+  /* Mark thickness and length */
+  --t: 1.5px;
+  --l: 12px;
+
+  /* Where the trim lines are, as shares of the page */
+  --tx: 1.9466%;
+  --tx-end: 98.0534%;
+  --ty: 1.3889%;
+  --ty-end: 98.6111%;
+
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 14px 30px -10px rgb(0 0 0 / 0.5);
+
+  /* Crop marks, drawn in a box 15px larger than the page on every side */
+  /* Vertical marks above and below, horizontal marks left and right, at both trim lines and the centre */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -15px;
+    pointer-events: none;
+    background:
+      var(--m) calc(var(--tx) + 13.9px) 0 / var(--t) var(--l) no-repeat,
+      var(--m) calc(var(--tx-end) - 13.9px) 0 / var(--t) var(--l) no-repeat,
+      var(--m) 50% 0 / var(--t) var(--l) no-repeat,
+      var(--m) calc(var(--tx) + 13.9px) 100% / var(--t) var(--l) no-repeat,
+      var(--m) calc(var(--tx-end) - 13.9px) 100% / var(--t) var(--l) no-repeat,
+      var(--m) 50% 100% / var(--t) var(--l) no-repeat,
+      var(--m) 0 calc(var(--ty) + 14.1px) / var(--l) var(--t) no-repeat,
+      var(--m) 0 calc(var(--ty-end) - 14.1px) / var(--l) var(--t) no-repeat,
+      var(--m) 0 50% / var(--l) var(--t) no-repeat,
+      var(--m) 100% calc(var(--ty) + 14.1px) / var(--l) var(--t) no-repeat,
+      var(--m) 100% calc(var(--ty-end) - 14.1px) / var(--l) var(--t) no-repeat,
+      var(--m) 100% 50% / var(--l) var(--t) no-repeat;
+  }
+
+  /* Slug line under the page */
+  &::after {
+    position: absolute;
+    top: calc(100% + 22px);
+    left: 0;
+    color: #cfe0d6;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &[data-page-number='1']::after {
+    content: 'Front, page 1 of 2';
+  }
+
+  &[data-page-number='2']::after {
+    content: 'Back, page 2 of 2';
+  }
+}
+
+/* The legend of the proof marks, on the mat below the pages */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 6px 22px;
+  margin: 0;
+  padding: 10px 20px;
+  background: rgb(20 52 40 / 0.78);
+  list-style: none;
+  color: #d7e4dc;
+  font-size: 12px;
+
+  & li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.swatchBleed,
+.swatchTrim,
+.swatchSafe,
+.swatchCrop {
+  display: block;
+  width: 22px;
+  height: 10px;
+}
+
+.swatchBleed {
+  background: repeating-linear-gradient(135deg, var(--pl-trim) 0 1px, #f3d5e6 1px 4px);
+}
+
+.swatchTrim {
+  border-top: 2px solid var(--pl-trim);
+  height: 0;
+}
+
+.swatchSafe {
+  border-top: 2px dashed var(--pl-safe);
+  height: 0;
+}
+
+.swatchCrop {
+  background:
+    linear-gradient(var(--pl-chalk), var(--pl-chalk)) 6px 0 / 1px 100% no-repeat,
+    linear-gradient(var(--pl-chalk), var(--pl-chalk)) 0 5px / 5px 1px no-repeat;
+}
+
+/* ------------------------------- job ticket -------------------------------- */
+
+.ticket {
+  display: flex;
+  flex: 0 0 360px;
+  flex-direction: column;
+  gap: 14px;
+  overflow: auto;
+  margin: 16px 16px 16px 0;
+  padding: 22px 22px 20px;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--pl-ink);
+  color-scheme: light;
+  box-shadow: 0 10px 30px -8px rgb(0 0 0 / 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.ticketHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  background: #f3f4f1;
+  font-size: 12px;
+  font-weight: 600;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffe100;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.25);
+  }
+
+  &[data-status='approved']::before {
+    background: var(--pl-safe);
+  }
+
+  &[data-status='changes']::before {
+    background: var(--pl-trim);
+  }
+}
+
+.jobTitle {
+  margin: 6px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.jobSub {
+  margin: 0;
+  color: var(--pl-muted);
+  font-size: 13px;
+}
+
+.jobList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 4px 0;
+  border-block: 1px solid var(--pl-line);
+}
+
+.jobRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-size: 13px;
+
+  & dt {
+    color: var(--pl-muted);
+  }
+
+  & dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+.inks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inkBar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 16px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+
+  & span {
+    display: block;
+  }
+}
+
+.inkNames {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  color: var(--pl-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+.legendTitle {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.check {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkLabel {
+  color: var(--pl-ink);
+  font-size: 13px;
+}
+
+.warning {
+  margin: 0 0 0 26px;
+  padding: 6px 10px;
+  border-left: 3px solid #e8a900;
+  background: #fff7dc;
+  color: #5a4300;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1b5c8a;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #1b5c8a;
+    outline-offset: 2px;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.fieldLabel {
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* The ticket is paper in both colour schemes, so the dark-scheme rules of Mantine's inputs are overridden */
+.mat .ticket .field {
+  border-color: #c9ccc7;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--pl-ink);
+  font-size: 13px;
+
+  &::placeholder {
+    color: #7b807c;
+  }
+
+  &:focus {
+    border-color: var(--pl-mat);
+    outline: 2px solid rgb(47 107 83 / 0.3);
+  }
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mat .ticket .secondary {
+  border-color: #b7bbb5;
+  background: #fff;
+  color: var(--pl-ink);
+
+  &:hover:not(:disabled) {
+    background: #f3f4f1;
+  }
+
+  &:disabled {
+    border-color: #e3e5e1;
+    background: #f3f4f1;
+    color: #a3a8a4;
+  }
+}
+
+.mat .ticket .checkInput:not(:checked) {
+  border-color: #8f958f;
+  background: #fff;
+}
+
+.hint {
+  margin: 0;
+  color: var(--pl-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.result {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: #eaf4ef;
+
+  &[data-kind='changes'] {
+    background: #fbeaf3;
+  }
+}
+
+.resultTitle {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.resultText {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.quote {
+  margin: 0 0 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--pl-trim);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  padding: 10px 18px;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--pl-ink);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+  transform: translateX(-50%);
+  animation: toast-in 0.2s ease-out;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: var(--pl-safe);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+@media (width < 900px) {
+  .mat {
+    height: auto;
+  }
+
+  .workspace {
+    flex-direction: column;
+  }
+
+  .stage {
+    min-height: 520px;
+  }
+
+  .ticket {
+    flex-basis: auto;
+    margin: 0 16px 16px;
+  }
+}
