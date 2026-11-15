@@ -1,12 +1,21 @@
 import { Anchor, Avatar, Button } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useMemo, useRef, useState } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import React, { useMemo, useState } from 'react';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
 import classes from './FieldReport.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Field Report (embedded article)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 const REPORT_URL = '/stories/field-report.pdf';
@@ -98,7 +107,7 @@ function buildScatter() {
  * the full policy report as a PDF, set into the text with no app chrome around it.
  */
 export function FieldReport() {
-  const controllerRef = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [page, setPage] = useState(1);
   const [position, setPosition] = useState(0);
   const scatter = useMemo(buildScatter, []);
@@ -248,7 +257,7 @@ export function FieldReport() {
                   type="button"
                   className={classes.jump}
                   data-active={page === jump.page || undefined}
-                  onClick={() => controllerRef.current?.goToPage(jump.page)}
+                  onClick={() => viewer.goToPage(jump.page)}
                 >
                   {jump.label}
                 </button>
@@ -272,20 +281,21 @@ export function FieldReport() {
               <DocViewer
                 src={REPORT_URL}
                 fileName="Shade and the summer street.pdf"
-                pdfWorkerSrc={pdfWorkerSrc}
-                controllerRef={controllerRef}
+                store={store}
                 onPageChange={setPage}
-                onReadingProgress={(progress) => setPosition(progress.position)}
                 withToolbar={false}
                 variant="plain"
                 radius={0}
                 size="sm"
                 color="teal"
-                pageGap="lg"
                 pageBackground="white"
                 defaultZoom="fit"
+                pagesProps={{
+                  gap: 'lg',
+                  onReadingProgress: (progress) => setPosition(progress.position),
+                }}
                 // As tall as the report: the article scrolls, not a window inside it
-                height="auto"
+                autosize
                 classNames={{
                   root: classes.root,
                   body: classes.reportBody,

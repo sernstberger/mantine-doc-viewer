@@ -2,13 +2,22 @@ import { ActionIcon, Button, Drawer, Popover, TextInput, UnstyledButton } from '
 import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
-import type { DocViewerMark } from '../utils/markup';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider, useDocViewer } from '../index';
+import { createMarkupExtension, type DocViewerMark } from '../markup';
 import classes from './PlanRoom.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Plan room (construction plans)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 type Discipline = 'G' | 'A' | 'S' | 'M' | 'E';
@@ -114,7 +123,7 @@ const FIELD_MARKUP: DocViewerMark[] = [
  * on the left is the app; the viewer scrolls sideways through the sheets like a rolled-out set.
  */
 export function PlanRoom() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [page, setPage] = useState(START_PAGE);
   const [query, setQuery] = useState('');
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -138,7 +147,7 @@ export function PlanRoom() {
 
   const openSheet = (sheet: Sheet) => {
     setPage(sheet.page);
-    controller.current?.goToPage(sheet.page);
+    viewer.goToPage(sheet.page);
     setDrawerOpen(false);
   };
 
@@ -180,7 +189,7 @@ export function PlanRoom() {
           variant="default"
           size="md"
           classNames={{ root: classes.textSearch }}
-          onClick={() => controller.current?.openSearch()}
+          onClick={() => viewer.openSearch()}
         >
           Search drawing text
         </Button>
@@ -254,66 +263,77 @@ export function PlanRoom() {
         <DocViewer
           src="/stories/plan-set.pdf"
           fileName="Plan set, rev C"
-          pdfWorkerSrc={pdfWorkerSrc}
-          controllerRef={controller}
+          store={store}
           size="lg"
           color="gray"
           radius={0}
-          pageGap="xl"
           defaultPageLayout="horizontal"
           defaultZoom="fit"
           defaultPage={START_PAGE}
           onPageChange={setPage}
           // Clouds, pen and notes in red, the way markup is done on a printed set
-          withMarkup
-          markupTools={['cloud', 'pen', 'text']}
-          markupColor="#e03131"
-          markupWidth={2}
-          markupFontSize={10}
-          defaultMarkup={FIELD_MARKUP}
-          onSave={(_bytes, { reason }) => {
-            if (reason === 'annotate') {
-              setSavedAt(
-                new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-              );
-            }
+          extensions={[
+            createMarkupExtension({
+              tools: ['cloud', 'pen', 'text'],
+              color: '#e03131',
+              width: 2,
+              fontSize: 10,
+              defaultValue: FIELD_MARKUP,
+              onDocumentChange: () =>
+                setSavedAt(
+                  new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                ),
+            }),
+          ]}
+          pagesProps={{
+            gap: 'xl',
+            renderPageOverlay: ({ pageNumber, scale }) =>
+              RFIS.filter((rfi) => rfi.page === pageNumber).map((rfi) => (
+                <Popover
+                  key={rfi.number}
+                  position="bottom-start"
+                  width={280}
+                  withinPortal={false}
+                  shadow="md"
+                >
+                  <Popover.Target>
+                    <UnstyledButton
+                      className={classes.rfiPin}
+                      data-status={rfi.status}
+                      style={{ left: rfi.x * scale, top: rfi.y * scale }}
+                      aria-label={`RFI ${rfi.number}, ${rfi.status}`}
+                    >
+                      RFI {rfi.number}
+                    </UnstyledButton>
+                  </Popover.Target>
+                  <Popover.Dropdown className={classes.rfiCard}>
+                    <div className={classes.rfiHead}>
+                      <span className={classes.rfiNumber}>RFI {rfi.number}</span>
+                      <span className={classes.rfiStatus} data-status={rfi.status}>
+                        {rfi.status === 'open' ? 'Open' : 'Answered'}
+                      </span>
+                    </div>
+                    <p className={classes.rfiQuestion}>{rfi.question}</p>
+                    <p className={classes.rfiFrom}>{rfi.from}</p>
+                  </Popover.Dropdown>
+                </Popover>
+              )),
           }}
-          renderPageOverlay={({ pageNumber, scale }) =>
-            RFIS.filter((rfi) => rfi.page === pageNumber).map((rfi) => (
-              <Popover
-                key={rfi.number}
-                position="bottom-start"
-                width={280}
-                withinPortal={false}
-                shadow="md"
-              >
-                <Popover.Target>
-                  <UnstyledButton
-                    className={classes.rfiPin}
-                    data-status={rfi.status}
-                    style={{ left: rfi.x * scale, top: rfi.y * scale }}
-                    aria-label={`RFI ${rfi.number}, ${rfi.status}`}
-                  >
-                    RFI {rfi.number}
-                  </UnstyledButton>
-                </Popover.Target>
-                <Popover.Dropdown className={classes.rfiCard}>
-                  <div className={classes.rfiHead}>
-                    <span className={classes.rfiNumber}>RFI {rfi.number}</span>
-                    <span className={classes.rfiStatus} data-status={rfi.status}>
-                      {rfi.status === 'open' ? 'Open' : 'Answered'}
-                    </span>
-                  </div>
-                  <p className={classes.rfiQuestion}>{rfi.question}</p>
-                  <p className={classes.rfiFrom}>{rfi.from}</p>
-                </Popover.Dropdown>
-              </Popover>
-            ))
-          }
-          withPageEditing={false}
-          withFullscreen={false}
-          toolbarStartSection={
-            phone ? (
+          // One toolbar row on a phone: keep the sheet, pages, zoom and search
+          toolbarControls={{
+            fullscreen: false,
+            thumbnails: false,
+            presentation: false,
+            info: false,
+            layout: false,
+            zoom: !phone,
+            outline: !phone,
+            rotate: !phone,
+            print: !phone,
+            download: !phone,
+          }}
+          toolbarProps={{
+            leftSection: phone ? (
               <ActionIcon
                 variant="default"
                 size={40}
@@ -330,21 +350,16 @@ export function PlanRoom() {
                   />
                 </svg>
               </ActionIcon>
-            ) : undefined
-          }
-          // One toolbar row on a phone: keep the sheet, pages, zoom and search
-          toolbarControls={{
-            thumbnails: false,
-            presentation: false,
-            info: false,
-            layout: false,
-            zoom: !phone,
-            outline: !phone,
-            rotate: !phone,
-            print: !phone,
-            download: !phone,
+            ) : undefined,
+            // The title is the sheet in view, not the file name
+            title: currentSheet
+              ? phone
+                ? currentSheet.number
+                : `${currentSheet.number} ${currentSheet.title}`
+              : 'Plan set',
+            subtitle: phone ? undefined : 'Plan set, rev C',
+            tooltipProps: { position: 'bottom' },
           }}
-          tooltipProps={{ position: 'bottom' }}
           classNames={{
             root: classes.root,
             toolbar: classes.toolbar,
@@ -362,15 +377,6 @@ export function PlanRoom() {
             page: classes.sheetPage,
             markupBar: classes.markupBar,
           }}
-          // The title is the sheet in view, not the file name
-          renderToolbarTitle={() =>
-            currentSheet
-              ? phone
-                ? currentSheet.number
-                : `${currentSheet.number} ${currentSheet.title}`
-              : 'Plan set'
-          }
-          toolbarSubtitle={phone ? undefined : 'Plan set, rev C'}
           // MISSING: a measure tool that uses the sheet's scale, and a way to calibrate it.
           // MISSING: overlaying two revisions of a sheet to see what changed.
         />

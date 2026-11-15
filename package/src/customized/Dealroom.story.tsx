@@ -1,14 +1,28 @@
 import { Avatar, Button, Drawer, Menu, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
-import type { DocViewerPageRect } from '../utils/page-points';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  createPdfJsAdapter,
+  DocViewer,
+  DocViewerAdapterProvider,
+  useDocViewer,
+  type DocViewerPageRect,
+} from '../index';
 import classes from './Dealroom.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Dealroom (contract review)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 type Status = 'in-review' | 'changes' | 'approved';
@@ -200,7 +214,7 @@ function Initials({ person, size = 24 }: { person: Person; size?: number }) {
  * rail that shows the money and the two commercial risks the contract contains.
  */
 export function Dealroom() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [page, setPage] = useState(1);
   // Sections come from the PDF's own outline
   const [sections, setSections] = useState<Section[]>([]);
@@ -261,16 +275,16 @@ export function Dealroom() {
   // Marks what the comment is about, the quoted text or the clause of a risk, else shows its pin
   const showClause = (thread: Thread) => {
     if (thread.quote) {
-      controller.current?.highlight({ page: thread.page, rects: thread.quote.rects });
+      viewer.highlight({ page: thread.page, rects: thread.quote.rects });
     } else if (thread.risk) {
-      controller.current?.highlight({ text: thread.risk.find, page: thread.page });
+      viewer.highlight({ text: thread.risk.find, page: thread.page });
     } else {
-      controller.current?.goToPage(thread.page, { top: Math.max((thread.top ?? 0) - 80, 0) });
+      viewer.goToPage(thread.page, { top: Math.max((thread.top ?? 0) - 80, 0) });
     }
   };
 
   const setResolved = (id: string, resolved: boolean) => {
-    controller.current?.clearHighlight();
+    viewer.clearHighlight();
     setThreads((all) => all.map((thread) => (thread.id === id ? { ...thread, resolved } : thread)));
   };
 
@@ -706,7 +720,7 @@ export function Dealroom() {
                   className={classes.section}
                   title={`Page ${section.page}`}
                   data-active={current?.page === section.page || undefined}
-                  onClick={() => controller.current?.goToPage(section.page)}
+                  onClick={() => viewer.goToPage(section.page)}
                 >
                   {section.title}
                   {open > 0 && (
@@ -722,12 +736,11 @@ export function Dealroom() {
           <DocViewer
             src="/stories/msa.pdf"
             fileName="Master services agreement.pdf"
-            pdfWorkerSrc={pdfWorkerSrc}
-            controllerRef={controller}
+            store={store}
             page={page}
             onPageChange={setPage}
             onDocumentLoad={async () => {
-              const outline = (await controller.current?.getOutline()) ?? [];
+              const outline = await viewer.getOutline();
               setSections(
                 outline.flatMap((entry) =>
                   entry.page === null ? [] : [{ title: entry.title, page: entry.page }]
@@ -737,20 +750,16 @@ export function Dealroom() {
             size="xs"
             color="#5b4cdb"
             radius={8}
-            pageGap="md"
-            matchColor="#d6d0fb"
-            activeMatchColor="#9d92f4"
             // Pages follow the Mantine colour scheme too, inverted in dark mode
             pageColorScheme="auto"
             defaultZoom="fit"
-            withFullscreen={false}
             toolbarControls={{
+              fullscreen: false,
               rotate: false,
               layout: false,
               presentation: false,
               info: false,
             }}
-            tooltipProps={{ openDelay: 400, position: 'bottom' }}
             classNames={{
               root: classes.root,
               toolbar: classes.toolbar,
@@ -764,54 +773,60 @@ export function Dealroom() {
               body: classes.body,
               page: classes.page,
             }}
-            // The file name is the breadcrumb in the header, so the toolbar names the draft instead
-            renderToolbarTitle={() => 'Draft 4'}
-            toolbarSubtitle={approved ? 'Redline accepted' : 'Redline in review'}
-            toolbarStartSection={
-              <span className={classes.draftMark} aria-hidden>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M4 1.75h5l3 3v9.5H4zM9 1.75v3h3M6 8.25h4M6 10.75h4"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-            }
-            toolbarSection={
-              <span className={classes.status} data-status={status}>
-                {STATUS_LABEL[status]}
-              </span>
-            }
-            // Selecting text in the agreement starts a comment on it
-            onTextSelect={(text, selectedPage, rects) =>
-              setQuote({ text, page: selectedPage, rects })
-            }
-            // Open comments are pinned in the right margin beside their clause; risks in orange
-            renderPageOverlay={({ pageNumber, scale }) =>
-              openThreads
-                .filter((thread) => thread.page === pageNumber && thread.top !== undefined)
-                .map((thread) => (
-                  <button
-                    key={thread.id}
-                    type="button"
-                    className={classes.pin}
-                    data-risk={!!thread.risk || undefined}
-                    style={{ top: (thread.top! - 15) * scale, left: 552 * scale }}
-                    aria-label={`${thread.risk ? `Risk: ${thread.risk.label}` : 'Comment'} from ${thread.author.name}`}
-                    onClick={() => openThread(thread)}
-                  >
-                    {thread.risk ? <Icon name="flag" /> : thread.author.initials}
-                    {thread.replies.length > 0 && (
-                      <span className={classes.pinCount} aria-hidden>
-                        {thread.replies.length + 1}
-                      </span>
-                    )}
-                  </button>
-                ))
-            }
+            toolbarProps={{
+              // The file name is the breadcrumb in the header, so the toolbar names the draft instead
+              title: 'Draft 4',
+              subtitle: approved ? 'Redline accepted' : 'Redline in review',
+              leftSection: (
+                <span className={classes.draftMark} aria-hidden>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 1.75h5l3 3v9.5H4zM9 1.75v3h3M6 8.25h4M6 10.75h4"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              ),
+              rightSection: (
+                <span className={classes.status} data-status={status}>
+                  {STATUS_LABEL[status]}
+                </span>
+              ),
+              tooltipProps: { openDelay: 400, position: 'bottom' },
+            }}
+            pagesProps={{
+              gap: 'md',
+              matchColor: '#d6d0fb',
+              activeMatchColor: '#9d92f4',
+              // Selecting text in the agreement starts a comment on it
+              onTextSelect: (text, { page: selectedPage, rects }) =>
+                setQuote({ text, page: selectedPage, rects }),
+              // Open comments are pinned in the right margin beside their clause; risks in orange
+              renderPageOverlay: ({ pageNumber, scale }) =>
+                openThreads
+                  .filter((thread) => thread.page === pageNumber && thread.top !== undefined)
+                  .map((thread) => (
+                    <button
+                      key={thread.id}
+                      type="button"
+                      className={classes.pin}
+                      data-risk={!!thread.risk || undefined}
+                      style={{ top: (thread.top! - 15) * scale, left: 552 * scale }}
+                      aria-label={`${thread.risk ? `Risk: ${thread.risk.label}` : 'Comment'} from ${thread.author.name}`}
+                      onClick={() => openThread(thread)}
+                    >
+                      {thread.risk ? <Icon name="flag" /> : thread.author.initials}
+                      {thread.replies.length > 0 && (
+                        <span className={classes.pinCount} aria-hidden>
+                          {thread.replies.length + 1}
+                        </span>
+                      )}
+                    </button>
+                  )),
+            }}
           />
         </main>
 

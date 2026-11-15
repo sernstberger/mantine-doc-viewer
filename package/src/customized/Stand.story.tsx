@@ -1,14 +1,30 @@
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, useMatches } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
-import type { DocViewerOutlineItem } from '../hooks/use-controller-registry';
-import type { DocViewerMark } from '../utils/markup';
+import React, { useEffect, useState } from 'react';
+import {
+  createPdfJsAdapter,
+  DocViewer,
+  DocViewerAdapterProvider,
+  useDocViewer,
+  useDocViewerStore,
+  type DocViewerOutlineItem,
+  type DocViewerPageLayout,
+} from '../index';
+import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../markup';
 import classes from './Stand.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Stand (sheet music reader)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 interface Piece {
@@ -62,10 +78,13 @@ export function Stand() {
   const [drawer, setDrawer] = useState<boolean | null>(null);
   // Closed on arrival: the score takes the whole screen until the setlist is asked for
   const drawerOpened = drawer ?? false;
+  const [store, viewer] = useDocViewer();
   // The pages on the stand, so the setlist can mark the section being played
-  const [spread, setSpread] = useState([1, 2]);
+  const { spread } = useDocViewerStore(store);
   const [sections, setSections] = useState<DocViewerOutlineItem[]>([]);
-  const controller = useRef<DocViewerController>(null);
+  // One page at a time on a phone, a spread from Mantine's sm breakpoint (48em) up; the
+  // page being played stays in view when the screen changes
+  const pageLayout = useMatches<DocViewerPageLayout>({ base: 'horizontal', sm: 'two-page' });
   const [pencil, setPencil] = useState(false);
   const [pencilMarks, setPencilMarks] = useState<DocViewerMark[]>([]);
   const [savedNote, setSavedNote] = useState<string | null>(null);
@@ -81,7 +100,7 @@ export function Stand() {
   // Putting the pencil down writes the marks into the score, so they travel with the piece
   const togglePencil = () => {
     if (pencil && pencilMarks.length > 0) {
-      controller.current?.saveMarkup();
+      saveMarkup(store);
     }
     setPencil(!pencil);
   };
@@ -118,9 +137,10 @@ export function Stand() {
                         type="button"
                         className={classes.section}
                         data-active={
-                          (section.page !== null && spread.includes(section.page)) || undefined
+                          (section.page !== null && spread.pages.includes(section.page)) ||
+                          undefined
                         }
-                        onClick={() => section.page && controller.current?.goToPage(section.page)}
+                        onClick={() => section.page && viewer.goToPage(section.page)}
                       >
                         <span>{section.title}</span>
                         <span className={classes.sectionPage}>p. {section.page}</span>
@@ -151,21 +171,18 @@ export function Stand() {
         <DocViewer
           src="/stories/nocturne.pdf"
           fileName="Lantern Hour"
-          pdfWorkerSrc={pdfWorkerSrc}
-          controllerRef={controller}
+          store={store}
           size="xs"
           color="yellow"
           radius={0}
           // Ivory paper, so the score glows against the aubergine stage
           pageBackground="#FBF8F1"
-          pageGap="xl"
-          // One page at a time on a phone, a spread from Mantine's sm breakpoint (48em) up; the
-          // page being played stays in view when the screen changes
-          defaultPageLayout={{ base: 'horizontal', sm: 'two-page' }}
+          pageLayout={pageLayout}
           // A whole page (a phone) or spread (a tablet) fills the screen, however it is held
           defaultZoom="fit-page"
           // A thin strip: the title, the page and full screen, nothing else on stage
           toolbarControls={{
+            markup: false,
             thumbnails: false,
             zoom: false,
             rotate: false,
@@ -179,38 +196,79 @@ export function Stand() {
           }}
           // Spreads turn from the screen edges, a swipe, or a Bluetooth pedal (it sends arrow keys),
           // and scrolling stops on whole spreads
-          withPageTurning
-          withScrollSnap
-          onDocumentLoad={() => controller.current?.getOutline().then(setSections)}
-          onSpreadChange={(_spread, pages) => setSpread(pages)}
-          // Pencil: soft graphite on the ivory paper, thin enough for fingering numbers
-          markupTool={pencil ? 'pen' : null}
-          markup={pencilMarks}
-          onMarkupChange={setPencilMarks}
-          markupColor="#6f6873"
-          markupWidth={1.1}
-          onSave={(_bytes, { reason }) => {
-            reason === 'annotate' && setSavedNote('Saved with the piece');
-          }}
-          toolbarSection={
-            <>
-              {savedNote && (
-                <span className={classes.savedNote} role="status">
-                  {savedNote}
-                </span>
-              )}
-              {pencil && (
+          pagesProps={{ gap: 'xl', withPageTurning: true, withScrollSnap: true }}
+          onDocumentLoad={() => viewer.getOutline().then(setSections)}
+          extensions={[
+            // Pencil: soft graphite on the ivory paper, thin enough for fingering numbers
+            createMarkupExtension({
+              tool: pencil ? 'pen' : null,
+              value: pencilMarks,
+              onChange: setPencilMarks,
+              color: '#6f6873',
+              width: 1.1,
+              onDocumentChange: () => setSavedNote('Saved with the piece'),
+            }),
+          ]}
+          toolbarProps={{
+            // The setlist toggle sits at the start of the toolbar
+            leftSection: (
+              <ActionIcon
+                className={classes.drawerToggle}
+                variant="transparent"
+                size="lg"
+                aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
+                aria-expanded={drawerOpened}
+                onClick={() => setDrawer(!drawerOpened)}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path
+                    d="M4 5.5h12M4 10h12M4 14.5h7"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </ActionIcon>
+            ),
+            rightSection: (
+              <>
+                {savedNote && (
+                  <span className={classes.savedNote} role="status">
+                    {savedNote}
+                  </span>
+                )}
+                {pencil && (
+                  <ActionIcon
+                    className={classes.control}
+                    variant="subtle"
+                    size="sm"
+                    aria-label="Undo pencil mark"
+                    disabled={pencilMarks.length === 0}
+                    onClick={() => setPencilMarks(pencilMarks.slice(0, -1))}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                      <path
+                        d="M7.5 12L3.5 8l4-4M3.5 8h8a5 5 0 0 1 0 10H9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </ActionIcon>
+                )}
                 <ActionIcon
                   className={classes.control}
                   variant="subtle"
                   size="sm"
-                  aria-label="Undo pencil mark"
-                  disabled={pencilMarks.length === 0}
-                  onClick={() => setPencilMarks(pencilMarks.slice(0, -1))}
+                  aria-label="Pencil"
+                  aria-pressed={pencil}
+                  data-pressed={pencil || undefined}
+                  onClick={togglePencil}
                 >
                   <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
                     <path
-                      d="M7.5 12L3.5 8l4-4M3.5 8h8a5 5 0 0 1 0 10H9"
+                      d="M4 16l1-3.5L13.5 4a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2L7.5 15 4 16zM12 5.5l2.5 2.5"
                       stroke="currentColor"
                       strokeWidth="1.5"
                       strokeLinecap="round"
@@ -218,29 +276,10 @@ export function Stand() {
                     />
                   </svg>
                 </ActionIcon>
-              )}
-              <ActionIcon
-                className={classes.control}
-                variant="subtle"
-                size="sm"
-                aria-label="Pencil"
-                aria-pressed={pencil}
-                data-pressed={pencil || undefined}
-                onClick={togglePencil}
-              >
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-                  <path
-                    d="M4 16l1-3.5L13.5 4a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2L7.5 15 4 16zM12 5.5l2.5 2.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </ActionIcon>
-            </>
-          }
-          tooltipProps={{ openDelay: 600, position: 'bottom' }}
+              </>
+            ),
+            tooltipProps: { openDelay: 600, position: 'bottom' },
+          }}
           classNames={{
             root: classes.root,
             toolbar: classes.toolbar,
@@ -251,26 +290,6 @@ export function Stand() {
             pages: classes.pages,
             page: classes.page,
           }}
-          // The setlist toggle sits at the start of the toolbar
-          toolbarStartSection={
-            <ActionIcon
-              className={classes.drawerToggle}
-              variant="transparent"
-              size="lg"
-              aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
-              aria-expanded={drawerOpened}
-              onClick={() => setDrawer(!drawerOpened)}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <path
-                  d="M4 5.5h12M4 10h12M4 14.5h7"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </ActionIcon>
-          }
         />
       </main>
     </div>

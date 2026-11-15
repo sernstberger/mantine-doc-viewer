@@ -1,12 +1,28 @@
 import { Button, Checkbox, TextInput, UnstyledButton } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useEffect, useRef, useState } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
-import type { DocViewerReadingProgress } from '../hooks/use-controller-registry';
-import type { DocViewerMark } from '../utils/markup';
+import React, { useEffect, useState } from 'react';
+import {
+  createPdfJsAdapter,
+  DocViewer,
+  DocViewerAdapterProvider,
+  useDocViewer,
+  type DocViewerReadingProgress,
+} from '../index';
+import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../markup';
 import classes from './Haven.module.css';
 
-export default { title: 'DocViewer/Apps/Haven (rental agreement checkout)' };
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+
+export default {
+  title: 'DocViewer/Apps/Haven (rental agreement checkout)',
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
+};
 
 const PAGES = ['Parties and dates', 'House rules', 'Cancellation and damage', 'Signatures'];
 
@@ -32,7 +48,7 @@ function money(value: number) {
  * the guest sign, by hand, on the agreement's own line.
  */
 export function Haven() {
-  const controller = useRef<DocViewerController>(null);
+  const [store, viewer] = useDocViewer();
   const [progress, setProgress] = useState<DocViewerReadingProgress | null>(null);
   const [current, setCurrent] = useState(1);
   const [name, setName] = useState('');
@@ -69,7 +85,7 @@ export function Haven() {
 
   const startSigning = () => {
     setSigning(true);
-    controller.current?.goToPage(PAGES.length);
+    viewer.goToPage(PAGES.length);
   };
 
   return (
@@ -91,46 +107,49 @@ export function Haven() {
             <DocViewer
               src="/stories/rental-agreement.pdf"
               fileName="Birch Cabin house agreement.pdf"
-              pdfWorkerSrc={pdfWorkerSrc}
-              controllerRef={controller}
+              store={store}
               size="sm"
               color="#e0475a"
               radius="md"
-              pageGap="md"
               pageBackground="white"
-              matchColor="#ffe3a3"
-              activeMatchColor="#ffb4bd"
               onPageChange={setCurrent}
-              onReadingProgress={setProgress}
               // The guest signs with a finger or the mouse; the signature is written into the PDF
-              markupTool={signing ? 'signature' : null}
-              markup={marks}
-              onMarkupChange={setMarks}
-              markupColor="#2a3558"
-              markupWidth={1.6}
-              onSave={(bytes, { reason }) => {
-                reason === 'annotate' &&
-                  setToast(`Signed. Agreement saved, ${Math.round(bytes.length / 1024)} KB`);
+              extensions={[
+                createMarkupExtension({
+                  tool: signing ? 'signature' : null,
+                  value: marks,
+                  onChange: setMarks,
+                  color: '#2a3558',
+                  width: 1.6,
+                  onDocumentChange: (bytes) =>
+                    setToast(`Signed. Agreement saved, ${Math.round(bytes.length / 1024)} KB`),
+                }),
+              ]}
+              pagesProps={{
+                gap: 'md',
+                matchColor: '#ffe3a3',
+                activeMatchColor: '#ffb4bd',
+                onReadingProgress: setProgress,
+                renderPageOverlay: ({ pageNumber, scale }) =>
+                  pageNumber === PAGES.length &&
+                  !signed && (
+                    <div
+                      className={classes.signHere}
+                      data-active={signing || undefined}
+                      data-signed={signature ? true : undefined}
+                      style={{
+                        left: SIGN_LINE.x * scale,
+                        top: (SIGN_LINE.y - 46) * scale,
+                        width: SIGN_LINE.width * scale,
+                        height: 46 * scale,
+                      }}
+                    >
+                      {!signature && <span className={classes.signFlag}>Sign here</span>}
+                    </div>
+                  ),
               }}
-              renderPageOverlay={({ pageNumber, scale }) =>
-                pageNumber === PAGES.length &&
-                !signed && (
-                  <div
-                    className={classes.signHere}
-                    data-active={signing || undefined}
-                    data-signed={signature ? true : undefined}
-                    style={{
-                      left: SIGN_LINE.x * scale,
-                      top: (SIGN_LINE.y - 46) * scale,
-                      width: SIGN_LINE.width * scale,
-                      height: 46 * scale,
-                    }}
-                  >
-                    {!signature && <span className={classes.signFlag}>Sign here</span>}
-                  </div>
-                )
-              }
               toolbarControls={{
+                markup: false,
                 title: false,
                 thumbnails: false,
                 rotate: false,
@@ -143,7 +162,6 @@ export function Haven() {
                 viewMode: false,
                 print: false,
               }}
-              withFullscreen={false}
               classNames={{
                 root: classes.root,
                 toolbar: classes.toolbar,
@@ -230,7 +248,7 @@ export function Haven() {
                         { '--seen': Math.min(fractions[index] / READ, 1) } as React.CSSProperties
                       }
                       aria-label={`Go to page ${page}, ${title}${read ? ', read' : ''}`}
-                      onClick={() => controller.current?.goToPage(page)}
+                      onClick={() => viewer.goToPage(page)}
                     >
                       <span className={classes.segmentBar} />
                       <span className={classes.segmentLabel}>{title}</span>
@@ -310,7 +328,7 @@ export function Haven() {
                   setSigning(false);
                   setSigned(true);
                   // Writes the drawn signature into the agreement and hands the PDF to onSave
-                  await controller.current?.saveMarkup();
+                  await saveMarkup(store);
                 }}
               >
                 Sign and continue

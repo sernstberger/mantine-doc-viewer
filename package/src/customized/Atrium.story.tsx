@@ -1,11 +1,27 @@
+import { useIdle, useInterval } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useCallback, useRef, useState } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useEffect, useState } from 'react';
+import {
+  createPdfJsAdapter,
+  DocViewer,
+  DocViewerAdapterProvider,
+  useDocViewer,
+  useDocViewerStore,
+} from '../index';
 import classes from './Atrium.module.css';
+
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
 
 export default {
   title: 'DocViewer/Apps/Atrium (museum kiosk)',
   parameters: { layout: 'fullscreen' },
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
 };
 
 interface Room {
@@ -112,7 +128,20 @@ const TOOLBAR_CONTROLS = {
   fullscreen: false,
 };
 
-const TOOLTIP_PROPS = { position: 'bottom', withArrow: true, openDelay: 0 } as const;
+const TOOLBAR_PROPS = {
+  tooltipProps: { position: 'bottom', withArrow: true, openDelay: 0 },
+} as const;
+
+// The guide links to its own pages; a link must never take the kiosk anywhere else.
+// Visitors swipe the glass or use the arrows beside the guide; scrolling stops on spreads
+const PAGES_PROPS = {
+  gap: PAGE_GAP,
+  matchColor: '#f2c14e',
+  activeMatchColor: '#d4a02f',
+  withPageTurning: { tapZones: false },
+  withScrollSnap: true,
+  onLinkClick: (_url: string, event: MouseEvent) => event.preventDefault(),
+};
 
 const CLASS_NAMES = {
   root: classes.root,
@@ -145,15 +174,30 @@ function Arrow({ direction }: { direction: 'previous' | 'next' }) {
  * arrows turn the spread. Nothing leaves the kiosk: no downloads, no printing, no links.
  */
 export function Atrium() {
-  const controller = useRef<DocViewerController>(null);
-  // The viewer reports the open spread: the cover alone, then pairs of pages
-  const [spread, setSpread] = useState({ number: 1, pages: [1] });
-  const [spreadCount, setSpreadCount] = useState(0);
+  const [store, viewer] = useDocViewer();
+  // The open spread: the cover alone, then pairs of pages
+  const { spread, numPages } = useDocViewerStore(store);
+  const spreadCount = numPages > 0 ? Math.floor(numPages / 2) + 1 : 0;
   const [fullscreen, setFullscreen] = useState(false);
+
+  // After a minute nobody has touched the screen: back to the cover with the whole spread in
+  // view, then the guide turns a spread every nine seconds until the next visitor touches it
+  const idle = useIdle(IDLE_TIMEOUT, { initialState: false });
+  const attract = useInterval(() => viewer.nextSpread({ loop: true }), ATTRACT_INTERVAL);
+  useEffect(() => {
+    if (idle) {
+      viewer.goToPage(1);
+      viewer.setZoom('fit-page');
+      attract.start();
+    } else {
+      attract.stop();
+    }
+    return attract.stop;
+  }, [idle]);
 
   const first = spread.pages[0];
   const rooms = roomsOnSpread(spread.pages);
-  const goTo = useCallback((target: number) => controller.current?.goToPage(target), []);
+  const goTo = (target: number) => viewer.goToPage(target);
 
   return (
     <div className={classes.kiosk}>
@@ -199,8 +243,8 @@ export function Atrium() {
           type="button"
           className={classes.turn}
           aria-label="Vorherige Doppelseite"
-          disabled={spread.number <= 1}
-          onClick={() => controller.current?.previousSpread()}
+          disabled={spread.index <= 1}
+          onClick={() => viewer.previousSpread()}
         >
           <Arrow direction="previous" />
         </button>
@@ -209,40 +253,21 @@ export function Atrium() {
           <DocViewer
             src="/stories/exhibition-guide.pdf"
             fileName="Wasserzeichen"
-            pdfWorkerSrc={pdfWorkerSrc}
-            controllerRef={controller}
+            store={store}
             labels={GERMAN_LABELS}
             // Zoom reads 125 %, page counts and sizes follow German conventions
             locale="de-DE"
             size="xl"
             color="#f2c14e"
-            matchColor="#f2c14e"
-            activeMatchColor="#d4a02f"
             radius={0}
-            pageGap={PAGE_GAP}
             defaultPageLayout="two-page-cover"
             // The whole spread is on the screen, in the frame and full screen alike
             defaultZoom="fit-page"
-            // The cover alone, then pairs of pages
-            onDocumentLoad={(info) => setSpreadCount(Math.floor((info.numPages ?? 0) / 2) + 1)}
-            onSpreadChange={(number, pages) => setSpread({ number, pages })}
-            // Visitors swipe the glass or use the arrows beside the guide; scrolling stops on spreads
-            withPageTurning={{ tapZones: false }}
-            withScrollSnap
-            // After a minute nobody has touched the screen: back to the cover with the whole spread in
-            // view, then the guide turns a spread every nine seconds until the next visitor touches it
-            idleTimeout={IDLE_TIMEOUT}
-            onIdle={() => {
-              controller.current?.goToPage(1);
-              controller.current?.setZoom('fit-page');
-            }}
-            autoAdvance={{ interval: ATTRACT_INTERVAL }}
-            // The guide links to its own pages; a link must never take the kiosk anywhere else
-            onLinkClick={(_url, event) => event.preventDefault()}
+            pagesProps={PAGES_PROPS}
             // The band's Vollbild button and the viewer's own full screen button stay in step
             fullscreen={fullscreen}
             onFullscreenChange={setFullscreen}
-            tooltipProps={TOOLTIP_PROPS}
+            toolbarProps={TOOLBAR_PROPS}
             toolbarControls={TOOLBAR_CONTROLS}
             classNames={CLASS_NAMES}
           />
@@ -252,8 +277,8 @@ export function Atrium() {
           type="button"
           className={classes.turn}
           aria-label="Nächste Doppelseite"
-          disabled={spreadCount > 0 && spread.number >= spreadCount}
-          onClick={() => controller.current?.nextSpread()}
+          disabled={spreadCount > 0 && spread.index >= spreadCount}
+          onClick={() => viewer.nextSpread()}
         >
           <Arrow direction="next" />
         </button>

@@ -1,9 +1,22 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { createPageEditorExtension } from '../editor';
+import { createPdfJsAdapter, DocViewer, DocViewerAdapterProvider } from '../index';
+import { createMarkupExtension } from '../markup';
 import classes from './Folio.module.css';
 
-export default { title: 'DocViewer/Apps/Folio (desktop document app)' };
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+
+export default {
+  title: 'DocViewer/Apps/Folio (desktop document app)',
+  decorators: [
+    (Story: React.ComponentType) => (
+      <DocViewerAdapterProvider pdf={pdfAdapter}>
+        <Story />
+      </DocViewerAdapterProvider>
+    ),
+  ],
+};
 
 interface Toast {
   title: string;
@@ -44,45 +57,54 @@ export function Folio() {
         <DocViewer
           src="/stories/quarterly-report.pdf"
           fileName="Q3 2026 quarterly report.pdf"
-          pdfWorkerSrc={pdfWorkerSrc}
           size="xs"
           color="blue"
-          thumbnailWidth={92}
-          pageGap="lg"
+          thumbnailsProps={{ width: 92 }}
+          pagesProps={{ gap: 'lg' }}
           // Opens at actual size, like a desktop reader, so whole pages are visible
           defaultZoom={1}
           defaultThumbnailsOpened
-          withPageEditing
-          // Markup writes real PDF annotations, so the report opens marked up in any reader
-          withMarkup
-          markupTools={['highlight', 'text', 'rectangle', 'ellipse', 'signature']}
-          // A native app writes back to the file; here the bytes only feed the notification
-          onSave={(bytes, { reason, pages }) => {
-            setEdited(true);
-            setToast(
-              reason === 'extract'
-                ? {
-                    title: `Extracted ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`,
-                    text: `New document, ${formatSize(bytes.length)}`,
-                  }
-                : reason === 'delete'
-                  ? { title: 'Page deleted', text: `${pages.length} pages left` }
-                  : reason === 'annotate'
-                    ? {
-                        title: 'Markup saved',
-                        text: `Marks on ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`,
-                      }
+          extensions={[
+            createPageEditorExtension({
+              // A native app writes back to the file; here the bytes only feed the notification
+              onDocumentChange: (bytes, { reason, pages }) => {
+                setEdited(true);
+                setToast(
+                  reason === 'delete'
+                    ? { title: 'Page deleted', text: `${pages.length} pages left` }
                     : {
                         title: 'Saved',
                         text: `${pages.length} pages, ${formatSize(bytes.length)}`,
                       }
-            );
-          }}
+                );
+              },
+              onExtract: (bytes, { pages }) => {
+                setEdited(true);
+                setToast({
+                  title: `Extracted ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`,
+                  text: `New document, ${formatSize(bytes.length)}`,
+                });
+              },
+            }),
+            // Markup writes real PDF annotations, so the report opens marked up in any reader
+            createMarkupExtension({
+              tools: ['highlight', 'text', 'rectangle', 'ellipse', 'signature'],
+              onDocumentChange: (bytes, { pages }) => {
+                setEdited(true);
+                setToast({
+                  title: 'Markup saved',
+                  text: `Marks on ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`,
+                });
+              },
+            }),
+          ]}
           // Like a macOS title bar: the name with a small line under it
-          toolbarSubtitle={edited ? 'Edited' : 'On this Mac'}
+          toolbarProps={{
+            subtitle: edited ? 'Edited' : 'On this Mac',
+            tooltipProps: { openDelay: 500, position: 'bottom' },
+          }}
           // A document app opens files in place, there is nothing to download
           toolbarControls={{ download: false }}
-          tooltipProps={{ openDelay: 500, position: 'bottom' }}
           classNames={{
             root: classes.root,
             toolbar: classes.toolbar,
