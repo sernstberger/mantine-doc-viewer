@@ -8,6 +8,7 @@ import type { PdfJsModule } from './load-pdfjs';
 import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import { getPageTextContent } from './text-content';
 import { getOverlayStyle } from './page-overlay';
+import type { DocViewerPageRect } from './page-points';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -38,6 +39,9 @@ interface PdfPageProps {
 
   /** Called with the text layer spans once they are rendered, and with `null` when they are removed */
   onTextLayer: (pageNumber: number, textDivs: HTMLElement[] | null) => void;
+
+  /** Boxes marked by `controller.highlight`, in page coordinates */
+  highlightRects?: DocViewerPageRect[];
 }
 
 /** While text is being selected, pdf.js stretches `.endOfContent` over the layer to stop the selection jumping */
@@ -108,6 +112,7 @@ export function PdfPage({
   registerPage,
   linkService,
   onTextLayer,
+  highlightRects,
 }: PdfPageProps) {
   const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -297,6 +302,27 @@ export function PdfPage({
       {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
+      {highlightRects && (
+        <div
+          {...getStyles('highlightLayer', {
+            style: getOverlayStyle(overlaySize.width * scale, overlaySize.height * scale, rotation),
+          })}
+        >
+          {highlightRects.map((rect, index) => (
+            <div
+              key={index}
+              {...getStyles('highlight', {
+                style: {
+                  left: rect.x * scale,
+                  top: rect.y * scale,
+                  width: rect.width * scale,
+                  height: rect.height * scale,
+                },
+              })}
+            />
+          ))}
+        </div>
+      )}
       {overlay != null && overlay !== false && (
         <div
           {...getStyles('pageOverlay', {

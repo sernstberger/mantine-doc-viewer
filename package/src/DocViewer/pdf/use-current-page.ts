@@ -107,8 +107,11 @@ export function useCurrentPage(
 
   // Only the viewer scrolls: scrollIntoView() would also scroll the page around the viewer
   const scrollToPage = useCallback(
-    /** `offset` is the distance from the top of the page to scroll to, in px */
-    (page: number, offset = 0) => {
+    /**
+     * `offset` is the distance from the top of the page to scroll to, in px, or a function of the
+     * page's height in px that gives it
+     */
+    (page: number, offset: number | ((pageHeight: number) => number) = 0) => {
       const node = pages.current.get(page);
       setCurrentPage(page);
 
@@ -141,7 +144,8 @@ export function useCurrentPage(
           }
         : scrollRoot;
       const pageTop = viewport ? node.getBoundingClientRect().top + window.scrollY : node.offsetTop;
-      const top = pageTop - PAGE_SCROLL_OFFSET + offset;
+      const distance = typeof offset === 'function' ? offset(node.offsetHeight) : offset;
+      const top = pageTop - PAGE_SCROLL_OFFSET + distance;
       const pageLeft = node.offsetLeft - PAGE_SCROLL_OFFSET;
       const left = horizontal && !viewport ? pageLeft : view.scrollLeft;
       const far =

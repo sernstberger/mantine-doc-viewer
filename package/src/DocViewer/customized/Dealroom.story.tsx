@@ -2,6 +2,7 @@ import { Avatar, Button, Menu, Textarea } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { DocViewerController } from '../controller';
+import type { DocViewerPageRect } from '../pdf/page-points';
 import { DocViewer } from '../DocViewer';
 import classes from './Dealroom.module.css';
 
@@ -35,6 +36,8 @@ interface Thread {
   author: Person;
   time: string;
   text: string;
+  /** Text the comment was made on, selected in the agreement, with its boxes on the page */
+  quote?: { text: string; rects: DocViewerPageRect[] };
   /** Set on comments that flag a commercial risk; `find` is what "Show clause" searches for */
   risk?: { label: string; find: string };
   resolved: boolean;
@@ -206,6 +209,12 @@ export function Dealroom() {
   const [threads, setThreads] = useState(INITIAL_THREADS);
   const [tab, setTab] = useState<'open' | 'resolved'>('open');
   const [draft, setDraft] = useState('');
+  // Text legal selected in the agreement, which the next comment is about
+  const [quote, setQuote] = useState<{
+    text: string;
+    page: number;
+    rects: DocViewerPageRect[];
+  } | null>(null);
   const [toast, setToast] = useState<{ text: string; tone: 'ok' | 'risk' } | null>(null);
 
   useEffect(() => {
@@ -238,15 +247,21 @@ export function Dealroom() {
     });
   };
 
+  // Marks what the comment is about, the quoted text or the clause of a risk, else shows its pin
   const showClause = (thread: Thread) => {
-    controller.current?.goToPage(thread.page);
-    if (thread.risk) {
-      controller.current?.openSearch(thread.risk.find);
+    if (thread.quote) {
+      controller.current?.highlight({ page: thread.page, rects: thread.quote.rects });
+    } else if (thread.risk) {
+      controller.current?.highlight({ text: thread.risk.find, page: thread.page });
+    } else {
+      controller.current?.goToPage(thread.page, { top: Math.max((thread.top ?? 0) - 80, 0) });
     }
   };
 
-  const setResolved = (id: string, resolved: boolean) =>
+  const setResolved = (id: string, resolved: boolean) => {
+    controller.current?.clearHighlight();
     setThreads((all) => all.map((thread) => (thread.id === id ? { ...thread, resolved } : thread)));
+  };
 
   const approveDiscount = () => {
     setDiscountApproved(true);
@@ -291,15 +306,20 @@ export function Dealroom() {
 
   const addComment = () => {
     const text = draft.trim();
-    if (!text || !current) {
+    const section = quote ? sectionOf(sections, quote.page) : current;
+    if (!text || !section) {
       return;
     }
+    const first = quote?.rects[0];
     setThreads((all) => [
       ...all,
       {
         id: `new-${all.length}`,
-        section: current.title,
-        page,
+        section: section.title,
+        page: quote?.page ?? page,
+        // The pin sits beside the first line of the quoted text
+        top: first && first.y + first.height / 2,
+        quote: quote ? { text: quote.text, rects: quote.rects } : undefined,
         author: MAYA,
         time: 'Just now',
         text,
@@ -309,6 +329,7 @@ export function Dealroom() {
     ]);
     setTab('open');
     setDraft('');
+    setQuote(null);
     setToast({ text: 'Comment added', tone: 'ok' });
   };
 
@@ -612,7 +633,10 @@ export function Dealroom() {
                 {STATUS_LABEL[status]}
               </span>
             }
-            // MISSING: onTextSelect(text, page, rects) so legal can select a clause and comment on that text.
+            // Selecting text in the agreement starts a comment on it
+            onTextSelect={(text, selectedPage, rects) =>
+              setQuote({ text, page: selectedPage, rects })
+            }
             // Open comments are pinned in the right margin beside their clause; risks in orange
             renderPageOverlay={({ pageNumber, scale }) =>
               openThreads
@@ -636,7 +660,6 @@ export function Dealroom() {
                   </button>
                 ))
             }
-            // MISSING: highlighting a clause from outside; "Show in agreement" can only search for it.
           />
         </main>
 
@@ -680,6 +703,9 @@ export function Dealroom() {
                     <Icon name="flag" />
                     {thread.risk.label}
                   </span>
+                )}
+                {thread.quote && (
+                  <blockquote className={classes.quote}>{thread.quote.text}</blockquote>
                 )}
                 {[
                   { id: thread.id, author: thread.author, time: thread.time, text: thread.text },
@@ -725,6 +751,19 @@ export function Dealroom() {
               addComment();
             }}
           >
+            {quote && (
+              <div className={classes.quoting}>
+                <blockquote>{quote.text}</blockquote>
+                <button
+                  type="button"
+                  className={classes.quotingClear}
+                  aria-label="Comment on the page instead"
+                  onClick={() => setQuote(null)}
+                >
+                  &times;
+                </button>
+              </div>
+            )}
             <Textarea
               value={draft}
               onChange={(event) => setDraft(event.currentTarget.value)}
@@ -734,7 +773,13 @@ export function Dealroom() {
                   addComment();
                 }
               }}
-              placeholder={current ? `Comment on ${current.title}` : 'Add a comment'}
+              placeholder={
+                quote
+                  ? 'Comment on the selected text'
+                  : current
+                    ? `Comment on ${current.title}`
+                    : 'Add a comment'
+              }
               aria-label="Comment"
               autosize
               minRows={2}
@@ -743,7 +788,7 @@ export function Dealroom() {
               classNames={{ input: classes.composerInput }}
             />
             <div className={classes.composerFoot}>
-              <span>{current ? `Page ${page}` : ''}</span>
+              <span>{quote ? `Page ${quote.page}` : current ? `Page ${page}` : ''}</span>
               <Button type="submit" size="xs" radius={8} color="#5b4cdb" disabled={!draft.trim()}>
                 Comment
               </Button>

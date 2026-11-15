@@ -32,9 +32,12 @@ export type {
   DocViewerPageOverlayInfo,
   DocViewerRenderPageOverlay,
 } from './DocViewer/pdf/page-overlay';
+export type { DocViewerPageRect } from './DocViewer/pdf/page-points';
 export type {
   DocViewerController,
   DocViewerEvents,
+  DocViewerGoToPageOptions,
+  DocViewerHighlightTarget,
   DocViewerLoadInfo,
   DocViewerLoadStartInfo,
   DocViewerOutlineItem,

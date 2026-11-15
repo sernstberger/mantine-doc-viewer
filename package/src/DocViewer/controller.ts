@@ -2,14 +2,24 @@ import { useCallbackRef } from '@mantine/hooks';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import type { DocType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
+import type { DocViewerPageRect } from './pdf/page-points';
 
 /** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
 export type DocViewerZoom = number | 'fit';
 
 /** Actions available through `controllerRef`. Actions that do not apply to the current document do nothing */
 export interface DocViewerController {
-  /** Scrolls a PDF to a page, counted from 1 */
-  goToPage: (page: number) => void;
+  /** Scrolls a PDF to a page, counted from 1, or to a point in it with `{ top }` */
+  goToPage: (page: number, options?: DocViewerGoToPageOptions) => void;
+
+  /**
+   * Highlights a passage of a PDF in the colours of the active search match, and scrolls to it. A
+   * new highlight replaces the one before. Searching does not clear it, `clearHighlight` does
+   */
+  highlight: (target: DocViewerHighlightTarget) => void;
+
+  /** Removes the highlight made with `highlight` */
+  clearHighlight: () => void;
 
   /** Sets the zoom of a PDF or image */
   setZoom: (zoom: DocViewerZoom) => void;
@@ -53,6 +63,35 @@ export interface DocViewerController {
   /** Type of the document that is shown, `'unknown'` for files the viewer cannot show itself */
   readonly type: DocType;
 }
+
+export interface DocViewerGoToPageOptions {
+  /**
+   * Point to scroll to, in px at 100% (PDF points) down from the top of the page, in the
+   * coordinates of `renderPageOverlay`. It is placed at the top of the view. Pages the reader
+   * rotated use the point on their left edge
+   */
+  top?: number;
+}
+
+/** What `highlight` marks: the first place a text is found, or boxes on a page */
+export type DocViewerHighlightTarget =
+  | {
+      /** Text to find. Upper and lower case and accents are ignored unless `matchCase` is set */
+      text: string;
+
+      /** Page to look on, counted from 1. The whole document is searched when it is not set */
+      page?: number;
+
+      /** Determines whether upper and lower case must match, `false` by default */
+      matchCase?: boolean;
+    }
+  | {
+      /** Page the boxes are on, counted from 1 */
+      page: number;
+
+      /** Boxes to mark, in the coordinates of `renderPageOverlay` */
+      rects: DocViewerPageRect[];
+    };
 
 export interface DocViewerOutlineItem {
   title: string;
@@ -101,6 +140,13 @@ export interface DocViewerEvents {
 
   /** Called when a web link in a PDF is clicked, before it opens in a new tab. Call `event.preventDefault()` to stop it */
   onLinkClick?: (url: string, event: MouseEvent) => void;
+
+  /**
+   * Called when the reader has selected text in a PDF, with the text, the page it starts on
+   * (counted from 1) and its boxes on that page, in the coordinates of `renderPageOverlay`. Not
+   * called when the selection is cleared
+   */
+  onTextSelect?: (text: string, page: number, rects: DocViewerPageRect[]) => void;
 }
 
 /** What views put into the registry: the actions, and functions that answer for `canPrint` and `type` */
@@ -124,6 +170,8 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
     controllerRef,
     () => ({
       goToPage: call('goToPage'),
+      highlight: call('highlight'),
+      clearHighlight: call('clearHighlight'),
       setZoom: call('setZoom'),
       zoomIn: call('zoomIn'),
       zoomOut: call('zoomOut'),

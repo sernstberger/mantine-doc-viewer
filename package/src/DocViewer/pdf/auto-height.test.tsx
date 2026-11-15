@@ -7,7 +7,7 @@ import { installIntersectionObserver } from '../../../../test-utils/intersection
 import { DocViewer } from '../DocViewer';
 import { computeScale } from './geometry';
 import { useCurrentPage } from './use-current-page';
-import { scrollRangeIntoView, useSearchHighlights } from './use-search-highlights';
+import { scrollRangeIntoView, useSearchHighlights, useTextLayers } from './use-search-highlights';
 
 function box(top: number, bottom: number, left = 0, right = 100) {
   return { top, bottom, left, right, width: right - left, height: bottom - top } as DOMRect;
@@ -171,16 +171,20 @@ describe('search in the window', () => {
     Range.prototype.getBoundingClientRect = rangeRect;
     const items = [{ str: 'cat', hasEOL: false }];
     const match = { pageNumber: 1, start: 0, end: 3 };
-    const { result } = renderHook(() =>
+    const scrollRoot = document.createElement('div');
+    const { result } = renderHook(() => {
+      const textLayers = useTextLayers();
       useSearchHighlights({
+        textLayers,
         pages: [{ text: buildPageText(items), items }] as never,
         matches: [match],
         activeMatch: match,
-        scrollRoot: document.createElement('div'),
+        scrollRoot,
         viewport: true,
         scrollToPage: jest.fn(),
-      } as never)
-    );
+      });
+      return textLayers.onTextLayer;
+    });
     const span = document.createElement('span');
     span.textContent = 'cat';
     document.body.append(span);

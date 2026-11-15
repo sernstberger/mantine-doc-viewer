@@ -766,6 +766,20 @@
   font-weight: 600;
 }
 
+.quote {
+  display: -webkit-box;
+  margin: 0;
+  padding: 2px 0 2px 10px;
+  overflow: hidden;
+  border-inline-start: 3px solid var(--dr-violet-tint);
+  color: var(--dr-muted);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 .message {
   display: flex;
   gap: 10px;
@@ -799,6 +813,51 @@
   flex: none;
   padding: 12px 16px 14px;
   border-top: 1px solid var(--dr-line);
+}
+
+.quoting {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  padding: 6px 4px 6px 10px;
+  border-radius: 8px;
+  background: var(--dr-violet-tint);
+
+  blockquote {
+    display: -webkit-box;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--dr-violet);
+    font-size: 12.5px;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+.quotingClear {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--dr-violet);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+
+  &:hover {
+    background: var(--dr-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dr-violet);
+  }
 }
 
 .composerInput {

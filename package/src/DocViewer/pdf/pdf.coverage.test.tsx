@@ -54,6 +54,8 @@ describe('controller', () => {
     await act(async () => {
       const api = controller.current!;
       api.goToPage(2);
+      api.highlight({ text: 'quarter' });
+      api.clearHighlight();
       api.setZoom(2);
       api.zoomIn();
       api.zoomOut();

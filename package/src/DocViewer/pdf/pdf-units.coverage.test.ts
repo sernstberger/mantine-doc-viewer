@@ -29,7 +29,7 @@ import {
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePdfSearch } from './use-pdf-search';
-import { useSearchHighlights } from './use-search-highlights';
+import { useSearchHighlights, useTextLayers } from './use-search-highlights';
 
 const asDocument = (value: unknown) => value as PDFDocumentProxy;
 
@@ -461,8 +461,10 @@ describe('use-search-highlights', () => {
   it('skips matches on pages that have no text', () => {
     const items = [{ str: 'cat', hasEOL: false }];
     const text = buildPageText(items);
-    const { result } = renderHook(() =>
+    const { result } = renderHook(() => {
+      const textLayers = useTextLayers();
       useSearchHighlights({
+        textLayers,
         pages: [{ text, items }] as never,
         matches: [
           { pageNumber: 1, start: 0, end: 3 },
@@ -471,8 +473,9 @@ describe('use-search-highlights', () => {
         activeMatch: undefined,
         scrollRoot: null,
         scrollToPage: jest.fn(),
-      } as never)
-    );
+      } as never);
+      return textLayers.onTextLayer;
+    });
     const span = document.createElement('span');
     span.textContent = 'cat';
     act(() => {
