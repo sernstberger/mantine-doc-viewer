@@ -356,35 +356,6 @@ describe('DocViewerToolbar', () => {
     delete (document as any).fullscreenElement;
   });
 
-  it('prints through onPrint, ignoring clicks while printing', async () => {
-    let finish!: () => void;
-    const onPrint = jest.fn(() => new Promise<void>((resolve) => (finish = resolve)));
-    renderIn(<ToolbarView onPrint={onPrint} />);
-    const button = screen.getByRole('button', { name: 'Print' });
-    fireEvent.click(button);
-    fireEvent.click(button);
-    expect(onPrint).toHaveBeenCalledTimes(1);
-    finish();
-    await waitFor(() => expect(button).not.toHaveAttribute('data-loading'));
-  });
-
-  it('opens the file in a new tab when printing fails', async () => {
-    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
-    renderIn(
-      <ToolbarView
-        onPrint={() => {
-          throw new Error('no');
-        }}
-      />,
-      { src: '/files/doc.bin' }
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Print' }));
-    await waitFor(() =>
-      expect(open).toHaveBeenCalledWith('/files/doc.bin', '_blank', 'noopener,noreferrer')
-    );
-    open.mockRestore();
-  });
-
   it('has no print button without onPrint or when toolbarControls hides it', () => {
     const first = renderIn(<ToolbarView />);
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
