@@ -25,10 +25,10 @@ module.exports = {
     // Dynamic import() wrappers: tests replace them with mocks (moduleNameMapper below), so they
     // never run in Jest. Each is one line that loads pdf.js, pdf-lib, react-markdown, or the code
     // and markdown views
-    '!package/src/DocViewer/pdf/import-pdfjs.ts',
-    '!package/src/DocViewer/text/import-markdown.ts',
-    '!package/src/DocViewer/pdf/import-pdf-lib.ts',
-    '!package/src/DocViewer/import-views.ts',
+    '!package/src/DocViewerAdapterProvider/adapters/import-pdfjs.ts',
+    '!package/src/DocViewerAdapterProvider/adapters/import-markdown.ts',
+    '!package/src/utils/import-pdf-lib.ts',
+    '!package/src/DocViewerRoot/import-views.ts',
   ],
   setupFilesAfterEnv: ['./jsdom.mocks.cjs', './jest-console.cjs'],
   moduleNameMapper: {

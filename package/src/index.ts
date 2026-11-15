@@ -1,4 +1,4 @@
-export { DocViewer } from './DocViewer/DocViewer';
+export { DocViewer } from './DocViewerRoot/DocViewerRoot';
 export type {
   DocViewerProps,
   DocViewerCssVariables,
@@ -10,33 +10,34 @@ export type {
   DocViewerSearchInputProps,
   DocViewerPasswordInputProps,
   DocViewerVariant,
-} from './DocViewer/DocViewer';
-export type { DocViewerAutoAdvance } from './DocViewer/kiosk';
-export type { DocViewerResponsive } from './DocViewer/responsive';
-export { detectDocType } from './DocViewer/detect-doc-type';
-export type { DocViewerType, DocViewerDetectTypeInput } from './DocViewer/detect-doc-type';
-export { DEFAULT_LABELS as DOC_VIEWER_DEFAULT_LABELS } from './DocViewer/labels';
-export type { DocViewerLabels } from './DocViewer/labels';
-export { DocViewerToolbar } from './DocViewer/DocViewerToolbar';
-export type { DocViewerToolbarProps } from './DocViewer/DocViewerToolbar';
-export { DocViewerTooltip } from './DocViewer/controls';
-export { DocViewerLoading, DocViewerMessage } from './DocViewer/views/MessageView';
-export type { DocViewerMessageProps } from './DocViewer/views/MessageView';
-export { DocViewerBody, useDocViewer } from './DocViewer/renderers';
-export type { DocViewerBodyProps, DocViewerFile, DocViewerRenderer } from './DocViewer/renderers';
-export { useDocViewerText } from './DocViewer/text/use-doc-viewer-text';
-export type { DocViewerTextState } from './DocViewer/text/use-doc-viewer-text';
-export type { DocViewerPdfOptions } from './DocViewer/pdf/use-pdf-document';
-export type { DocViewerPageTurning } from './DocViewer/pdf/spreads';
+} from './DocViewerRoot/DocViewerRoot';
+export type { DocViewerAutoAdvance } from './utils/kiosk';
+export type { DocViewerResponsive } from './DocViewerRoot/responsive';
+export { detectDocType } from './utils/get-doc-viewer-type';
+export type { DocViewerType, DocViewerDetectTypeInput } from './utils/get-doc-viewer-type';
+export { DEFAULT_LABELS as DOC_VIEWER_DEFAULT_LABELS } from './default-labels';
+export type { DocViewerLabels } from './default-labels';
+export { DocViewerToolbar } from './DocViewerToolbar/ToolbarView';
+export type { DocViewerToolbarProps } from './DocViewerToolbar/ToolbarView';
+export { DocViewerTooltip } from './DocViewerToolbar/DocViewerTooltip';
+export { DocViewerLoading, DocViewerMessage } from './DocViewerMessage/MessageView';
+export type { DocViewerMessageProps } from './DocViewerMessage/MessageView';
+export { DocViewerBody, useDocViewer } from './DocViewerBody/DocViewerBody';
+export type {
+  DocViewerBodyProps,
+  DocViewerFile,
+  DocViewerRenderer,
+} from './DocViewerBody/DocViewerBody';
+export { useDocViewerText } from './hooks/text/use-doc-viewer-text';
+export type { DocViewerTextState } from './hooks/text/use-doc-viewer-text';
+export type { DocViewerPdfOptions } from './hooks/pdf/use-pdf-document';
+export type { DocViewerPageTurning } from './utils/spreads';
 export type {
   DocViewerRenderToolbarTitle,
   DocViewerToolbarTitleInfo,
-} from './DocViewer/DocViewerToolbar';
-export type {
-  DocViewerPageOverlayInfo,
-  DocViewerRenderPageOverlay,
-} from './DocViewer/pdf/page-overlay';
-export type { DocViewerPageRect } from './DocViewer/pdf/page-points';
+} from './DocViewerToolbar/ToolbarView';
+export type { DocViewerPageOverlayInfo, DocViewerRenderPageOverlay } from './utils/page-overlay';
+export type { DocViewerPageRect } from './utils/page-points';
 export type {
   DocViewerMark,
   DocViewerMarkPoint,
@@ -46,8 +47,8 @@ export type {
   DocViewerShapeMark,
   DocViewerStrokeMark,
   DocViewerTextMark,
-} from './DocViewer/pdf/markup';
-export type { DocViewerMarkupProps } from './DocViewer/pdf/use-markup';
+} from './utils/markup';
+export type { DocViewerMarkupProps } from './hooks/pdf/use-markup';
 export type {
   DocViewerController,
   DocViewerEvents,
@@ -58,4 +59,4 @@ export type {
   DocViewerOutlineItem,
   DocViewerReadingProgress,
   DocViewerZoom,
-} from './DocViewer/controller';
+} from './hooks/use-controller-registry';
