@@ -154,7 +154,7 @@
   }
 }
 
-/* Horizontal padding must match PAGES_GUTTER in pdf/zoom.ts */
+/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback) */
 .pages {
   display: flex;
   flex-direction: column;

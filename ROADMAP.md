@@ -30,8 +30,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Tap-to-toggle toolbar** on touch screens, so a page can fill a phone (Gate)
 - [ ] **Overlay controls without a toolbar** (`withOverlayControls`): full screen and zoom for an
       embedded viewer (Field Report)
-- [ ] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
-      cause a horizontal scrollbar (Proofline)
+- [x] **Padding for the pages part that fit-to-width knows about**, so marks around pages never
+      cause a horizontal scrollbar (Proofline): fit-to-width reads the padding of the `pages` element
 - [ ] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
       zones, swipe, pedal keys) (Stand, Atrium)
 - [ ] **Compact page editor bar**: a Styles API part for its buttons, and an icon-only variant for

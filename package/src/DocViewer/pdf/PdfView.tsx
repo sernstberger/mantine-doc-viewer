@@ -37,6 +37,7 @@ import { useZoomAnchor } from './use-zoom-anchor';
 import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
+import { usePagesGutter } from './use-pages-gutter';
 import { useSearchHighlights } from './use-search-highlights';
 import type { PdfZoom } from './zoom';
 
@@ -89,6 +90,7 @@ export function PdfView() {
   const setBodyRef = useMergedRef(bodyRef, setScrollRoot);
 
   const columnGap = useColumnGap(pagesNode, isTwoPages(layout));
+  const gutter = usePagesGutter(pagesNode, bodyWidth);
   const pageSize = ready ? rotateSize(ready.firstPageSize, rotation) : { width: 0, height: 0 };
   const presentation = usePresentation({
     fullscreen: context.fullscreen,
@@ -108,6 +110,7 @@ export function PdfView() {
           columnGap,
           pageWidth: pageSize.width,
           pageHeight: pageSize.height,
+          gutter,
         });
 
   const { currentPage, registerPage, scrollToPage } = useCurrentPage(

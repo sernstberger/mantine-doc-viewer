@@ -1,6 +1,6 @@
 import type { DocViewerPageLayout } from '../DocViewer';
 import type { PdfRotation } from './render-page';
-import { getFitWidthScale, PdfZoom } from './zoom';
+import { DEFAULT_PAGES_GUTTER, getFitWidthScale, PagesGutter, PdfZoom } from './zoom';
 
 /** A page number within the document, from 1 to `numPages` */
 export function clampPage(page: number, numPages: number) {
@@ -26,20 +26,24 @@ export interface ScaleInput {
   /** Size of a page at scale 1, after rotation */
   pageWidth: number;
   pageHeight: number;
+
+  /** Padding of the pages element, kept free when fitting. 16px a side by default */
+  gutter?: PagesGutter;
 }
 
 /** Scale of the pages: the zoom, or the scale that fits the layout to the view */
 export function computeScale(input: ScaleInput) {
   const { zoom, layout, bodyWidth, bodyHeight, columnGap, pageWidth, pageHeight } = input;
+  const gutter = input.gutter ?? DEFAULT_PAGES_GUTTER;
   if (zoom !== 'fit-width') {
     return zoom;
   }
   if (fitsToHeight(layout)) {
-    return getFitWidthScale(bodyHeight, pageHeight);
+    return getFitWidthScale(bodyHeight, pageHeight, gutter.y);
   }
   return isTwoPages(layout)
-    ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2)
-    : getFitWidthScale(bodyWidth, pageWidth);
+    ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2, gutter.x)
+    : getFitWidthScale(bodyWidth, pageWidth, gutter.x);
 }
 
 /** Scale that fits a whole page in the view, for presentations */
