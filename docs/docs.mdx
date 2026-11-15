@@ -3,19 +3,20 @@ import * as demos from './demos';
 
 ## Installation
 
-<InstallScript packages="mantine-doc-viewer pdfjs-dist" />
+<InstallScript packages="mantine-doc-viewer pdfjs-dist @mantine/code-highlight" />
 
 After installation, import package styles at the root of your application:
 
 ```tsx
 import '@mantine/core/styles.css';
+import '@mantine/code-highlight/styles.css';
 import 'mantine-doc-viewer/styles.css';
 ```
 
 ## Usage
 
 `DocViewer` works out the document type from `mimeType`, `fileName` or the `src` extension.
-PDF and image files are supported today; markdown, code and text previews are in progress.
+PDF, image, plain text, code and markdown files are supported.
 
 <Demo data={demos.usage} />
 
@@ -53,6 +54,20 @@ Set `defaultThumbnailsOpened` to show them when the PDF opens.
 ```tsx
 <DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} defaultThumbnailsOpened h={600} />
 ```
+
+## Text, code and markdown
+
+Text, code and markdown files are downloaded with `fetch`, so `src` must allow it (same origin or
+CORS). Files larger than `maxTextSize` bytes (2 MB by default) are not loaded; a download link is shown instead.
+
+- **Plain text** (`.txt`, `.log`, `.csv`) is shown in a monospace font, with a toggle for line wrapping
+- **Code** is shown with [CodeHighlight](https://mantine.dev/x/code-highlight/) from `@mantine/code-highlight`.
+  Colors come from the highlighting adapter of your app, the same setup as for `CodeHighlight` itself.
+  The language is detected from the file extension, set `language` to override it
+- **JSON** opens as a collapsible tree when it is valid, with a switch to the code
+- **Markdown** is rendered with GitHub flavored markdown: tables, task lists, strikethrough. Raw HTML in the file
+  is not rendered, so untrusted files are safe to preview. Relative links and images are resolved against
+  the markdown file url. A switch shows the source
 
 ## Text selection and search
 

@@ -1,4 +1,4 @@
-import { detectDocType } from './detect-doc-type';
+import { detectDocType, getCodeLanguage } from './detect-doc-type';
 
 describe('detectDocType', () => {
   it.each([
@@ -35,5 +35,13 @@ describe('detectDocType', () => {
     expect(detectDocType({ src: 'blob:https://example.com/1234', fileName: 'scan.pdf' })).toBe(
       'pdf'
     );
+  });
+
+  it('maps file extensions to highlighter languages', () => {
+    expect(getCodeLanguage({ src: '/src/App.tsx' })).toBe('tsx');
+    expect(getCodeLanguage({ src: 'build.mjs' })).toBe('js');
+    expect(getCodeLanguage({ src: 'script.py?raw=1' })).toBe('python');
+    expect(getCodeLanguage({ src: 'blob:abc', fileName: 'config.yml' })).toBe('yaml');
+    expect(getCodeLanguage({ src: 'README' })).toBeUndefined();
   });
 });

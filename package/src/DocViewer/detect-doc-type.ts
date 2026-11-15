@@ -85,6 +85,35 @@ function fromExtension(extension: string): DocType {
   return 'unknown';
 }
 
+/** Extensions whose highlighter language has a different name */
+const LANGUAGE_ALIASES: Record<string, string> = {
+  mjs: 'js',
+  cjs: 'js',
+  yml: 'yaml',
+  h: 'c',
+  kt: 'kotlin',
+  rs: 'rust',
+  rb: 'ruby',
+  py: 'python',
+  sh: 'bash',
+  cs: 'csharp',
+  md: 'markdown',
+  markdown: 'markdown',
+  mdx: 'mdx',
+};
+
+/** Highlighter language for a code file, taken from its file name or url */
+export function getCodeLanguage({ src, fileName }: Pick<DetectDocTypeInput, 'src' | 'fileName'>) {
+  for (const candidate of [fileName, src]) {
+    const extension = candidate ? getExtension(candidate) : null;
+    if (extension) {
+      return LANGUAGE_ALIASES[extension] ?? extension;
+    }
+  }
+
+  return undefined;
+}
+
 export interface DetectDocTypeInput {
   /** File url, path or file name */
   src?: string;

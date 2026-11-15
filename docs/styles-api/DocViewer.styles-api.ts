@@ -30,6 +30,9 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     thumbnail: 'Button for one page in the thumbnails sidebar',
     thumbnailImage: 'Page preview inside a thumbnail',
     thumbnailLabel: 'Page number below a thumbnail',
+    text: 'Plain text file content',
+    code: 'CodeHighlight or JsonViewer that shows code files and markdown source',
+    markdown: 'Rendered markdown',
   },
 
   vars: {
@@ -39,6 +42,7 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
   },
 
   modifiers: [
+    { modifier: 'data-wrap', selector: 'text', condition: 'Long lines are wrapped' },
     { modifier: 'data-active', selector: 'thumbnail', condition: 'Thumbnail of the current page' },
     {
       modifier: 'data-pannable',

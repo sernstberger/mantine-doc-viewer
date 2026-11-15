@@ -89,3 +89,9 @@ export const SidebarIcon = (props: IconProps) => (
     <path d="M9 4v16" />
   </Icon>
 );
+
+export const WrapIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4M4 18h5M15 16l-2 2 2 2" />
+  </Icon>
+);

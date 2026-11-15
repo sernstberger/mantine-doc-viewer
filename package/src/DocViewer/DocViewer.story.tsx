@@ -60,10 +60,50 @@ export function ImageLoadError() {
   );
 }
 
+export function Markdown() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.md" h={600} />
+    </div>
+  );
+}
+
+export function Code() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.ts" h={500} />
+    </div>
+  );
+}
+
+export function Json() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.json" h={400} />
+    </div>
+  );
+}
+
+export function Text() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.log" h={300} />
+    </div>
+  );
+}
+
+export function TextTooLarge() {
+  return (
+    <div style={{ padding: 40 }}>
+      <DocViewer src="/sample.log" maxTextSize={100} h={300} />
+    </div>
+  );
+}
+
 export function Unsupported() {
   return (
     <div style={{ padding: 40 }}>
-      <DocViewer src="/files/notes.md" h={300} />
+      <DocViewer src="/files/archive.zip" h={300} />
     </div>
   );
 }

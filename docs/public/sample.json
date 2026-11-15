@@ -1,0 +1,7 @@
+{
+  "name": "mantine-doc-viewer",
+  "types": ["pdf", "image", "text", "code", "markdown"],
+  "pdf": { "search": true, "thumbnails": true, "textSelection": true },
+  "image": { "zoom": [0.1, 8], "rotate": true, "pan": true },
+  "maxTextSize": 2000000
+}

@@ -16,6 +16,9 @@ import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import { PdfView } from './pdf/PdfView';
+import { CodeView } from './text/CodeView';
+import { MarkdownView } from './text/MarkdownView';
+import { TextView } from './text/TextView';
 import { ImageView } from './views/ImageView';
 import { UnsupportedView } from './views/UnsupportedView';
 
@@ -44,7 +47,10 @@ export type DocViewerStylesNames =
   | 'thumbnails'
   | 'thumbnail'
   | 'thumbnailImage'
-  | 'thumbnailLabel';
+  | 'thumbnailLabel'
+  | 'text'
+  | 'code'
+  | 'markdown';
 
 export type DocViewerCssVariables = {
   root: '--doc-viewer-radius';
@@ -70,6 +76,12 @@ export interface DocViewerProps
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
 
+  /** Largest text, code or markdown file that is displayed, in bytes, `2_000_000` by default */
+  maxTextSize?: number;
+
+  /** Highlighter language for code files, detected from the file extension when not set */
+  language?: string;
+
   /** Key of `theme.radius` or any valid CSS value to set `border-radius`, `theme.defaultRadius` by default */
   radius?: MantineRadius;
 
@@ -89,6 +101,7 @@ export type DocViewerFactory = Factory<{
 
 const defaultProps: Partial<DocViewerProps> = {
   withToolbar: true,
+  maxTextSize: 2_000_000,
 };
 
 const varsResolver = createVarsResolver<DocViewerFactory>((_theme, { radius }) => ({
@@ -112,6 +125,12 @@ function renderView(type: DocType) {
       return <PdfView />;
     case 'image':
       return <ImageView />;
+    case 'text':
+      return <TextView />;
+    case 'code':
+      return <CodeView />;
+    case 'markdown':
+      return <MarkdownView />;
     default:
       return <UnsupportedView type={type} />;
   }
@@ -132,6 +151,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     fileName,
     pdfWorkerSrc,
     defaultThumbnailsOpened,
+    maxTextSize,
+    language,
     radius,
     toolbarSection,
     withToolbar,
@@ -163,6 +184,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         toolbarSection,
         pdfWorkerSrc,
         defaultThumbnailsOpened,
+        maxTextSize: maxTextSize!,
+        language,
       }}
     >
       <Box {...getStyles('root')} data-doc-type={resolvedType} {...others}>

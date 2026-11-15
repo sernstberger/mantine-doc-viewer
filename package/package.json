@@ -34,11 +34,16 @@
   },
   "repository": "https://github.com/sernstberger/mantine-doc-viewer.git",
   "peerDependencies": {
-    "@mantine/core": ">=7.0.0",
-    "@mantine/hooks": ">=7.0.0",
+    "@mantine/code-highlight": ">=9.0.0",
+    "@mantine/core": ">=9.0.0",
+    "@mantine/hooks": ">=9.0.0",
     "pdfjs-dist": ">=6.0.0",
     "react": "^18.x || ^19.x",
     "react-dom": "^18.x || ^19.x"
+  },
+  "dependencies": {
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "bugs": "https://github.com/sernstberger/mantine-doc-viewer/issues"
 }

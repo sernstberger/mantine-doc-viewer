@@ -26,11 +26,11 @@ describe('DocViewer', () => {
   });
 
   it('shows a download link for types it cannot render yet', () => {
-    render(<DocViewer src="/files/report.md" />);
-    expect(screen.getByText('Preview for markdown files is not available yet')).toBeInTheDocument();
+    render(<DocViewer src="/files/archive.zip" />);
+    expect(screen.getByText('Preview is not available for this file type')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Download file' })).toHaveAttribute(
       'href',
-      '/files/report.md'
+      '/files/archive.zip'
     );
   });
 

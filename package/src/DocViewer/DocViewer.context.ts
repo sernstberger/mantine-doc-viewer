@@ -9,6 +9,8 @@ export interface DocViewerContextValue {
   toolbarSection: React.ReactNode;
   pdfWorkerSrc: string | undefined;
   defaultThumbnailsOpened: boolean | undefined;
+  maxTextSize: number;
+  language: string | undefined;
 }
 
 export const [DocViewerProvider, useDocViewerContext] = createSafeContext<DocViewerContextValue>(

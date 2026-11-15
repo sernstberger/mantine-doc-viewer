@@ -1,8 +1,18 @@
 import '@mantine/core/styles.css';
+import '@mantine/code-highlight/styles.css';
+import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight';
 import { MantineProvider } from '@mantine/core';
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
+
+const shikiAdapter = createShikiAdapter(async () => {
+  const { createHighlighter } = await import('shiki');
+  return createHighlighter({
+    langs: ['tsx', 'ts', 'json', 'markdown', 'python', 'bash'],
+    themes: [],
+  });
+});
 
 const preview: Preview = {
   parameters: {
@@ -51,7 +61,13 @@ const preview: Preview = {
 
       const scheme = (context.globals.theme || 'light') as 'light' | 'dark';
 
-      return <MantineProvider forceColorScheme={scheme}>{renderStory()}</MantineProvider>;
+      return (
+        <MantineProvider forceColorScheme={scheme}>
+          <CodeHighlightAdapterProvider adapter={shikiAdapter}>
+            {renderStory()}
+          </CodeHighlightAdapterProvider>
+        </MantineProvider>
+      );
     },
   ],
 };
