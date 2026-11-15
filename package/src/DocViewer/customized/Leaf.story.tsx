@@ -400,9 +400,9 @@ export function Leaf() {
     busy.current = true;
     overlay.replaceChildren();
 
-    const done = () => {
+    const release = () => {
       overlay.replaceChildren();
-      setTurning(null);
+      overlay.getAnimations().forEach((animation) => animation.cancel());
       busy.current = false;
       const next = queued.current;
       queued.current = null;
@@ -410,7 +410,14 @@ export function Leaf() {
         requestAnimationFrame(() => turn(next));
       }
     };
-    finishTurn.current = done;
+    // The hand-over: show the viewer under the overlay now, and take the overlay away only once
+    // the viewer has been painted. Removing it in the same frame as a state update would leave a
+    // frame with neither (React commits the update in a later task, after that frame is painted)
+    const done = () => {
+      flushSync(() => setTurning(null));
+      requestAnimationFrame(() => requestAnimationFrame(release));
+    };
+    finishTurn.current = release;
 
     // Reduced motion: no flip, the pages on screen fade into the next ones
     if (still) {
@@ -422,9 +429,11 @@ export function Leaf() {
       // The overlay covers the view: jump straight there underneath it
       controller.current?.goToPage(to, { behavior: 'instant' });
       whenSettled(to, top, () => {
+        // Held at 0 until the overlay is emptied, so the old pages do not come back for a frame
         const fade = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
           duration: 160,
           easing: 'ease-out',
+          fill: 'forwards',
         });
         fade.onfinish = done;
       });
