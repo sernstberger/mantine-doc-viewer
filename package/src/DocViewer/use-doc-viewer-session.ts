@@ -6,6 +6,7 @@ import type { DocViewerProps } from './DocViewer';
 import { useIdleTimeout } from './kiosk';
 import { DEFAULT_LABELS } from './labels';
 import { useControlledFullscreen } from './use-controlled-fullscreen';
+import { useShallowStable } from './use-shallow-stable';
 import { useTapToggle } from './use-tap-toggle';
 
 function getFileName(src: string) {
@@ -38,7 +39,9 @@ export function useDocViewerSession(
   const { src, type, mimeType, fileName, labels, idleTimeout, autoAdvance } = props;
   const tapToggle = useTapToggle(props.tapToggleToolbar);
   const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
-  const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
+  // Inline `labels={{ ... }}` is a new object on every render; the same texts keep the same labels
+  const labelsProp = useShallowStable(labels);
+  const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labelsProp }), [labelsProp]);
   const idle = useIdleTimeout(idleTimeout, props.onIdle);
   const playing = autoAdvance && (idleTimeout === undefined || idle) ? autoAdvance : undefined;
   const controller = useControllerRegistry(props.controllerRef);

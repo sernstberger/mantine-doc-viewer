@@ -46,22 +46,49 @@ export interface SearchOptions {
 }
 
 /**
+ * Characters that can change: ASCII capitals (when case is ignored) and anything not printable
+ * ASCII. Control characters are let through too; they come out as they are
+ */
+const CHANGING = { ignoreCase: /[A-Z]|[^ -~]/gu, matchCase: /[^ -~]/gu };
+
+/**
  * Prepares text for matching one character at a time, so offsets in the result are offsets in
  * the original text. A character whose lowercase or unaccented form has a different length (such
- * as İ, or the ligature ﬁ) is kept as it is
+ * as İ, or the ligature ﬁ) is kept as it is. Other ASCII characters never change, so only
+ * capitals and non-ASCII characters are looked at
  */
 export function normalizeForSearch(text: string, { matchCase, matchAccents }: SearchOptions) {
   if (matchCase && matchAccents) {
     return text;
   }
 
-  return Array.from(text, (char) => {
+  return text.replace(matchCase ? CHANGING.matchCase : CHANGING.ignoreCase, (char) => {
     let next = matchCase ? char : char.toLowerCase();
     if (!matchAccents) {
       next = next.normalize('NFD').replace(/\p{M}/gu, '');
     }
     return next.length === char.length ? next : char;
-  }).join('');
+  });
+}
+
+/** Normalised page text per page and options, so typing a query does not normalise every page again */
+const haystacks = new WeakMap<PageText, Map<string, string>>();
+
+function getHaystack(page: PageText, { matchCase = false, matchAccents = false }: SearchOptions) {
+  let forPage = haystacks.get(page);
+  if (!forPage) {
+    forPage = new Map();
+    haystacks.set(page, forPage);
+  }
+
+  const key = `${matchCase}:${matchAccents}`;
+  let haystack = forPage.get(key);
+  if (haystack === undefined) {
+    haystack = normalizeForSearch(page.text, { matchCase, matchAccents });
+    forPage.set(key, haystack);
+  }
+
+  return haystack;
 }
 
 const WORD_CHARACTER = /[\p{L}\p{N}_]/u;
@@ -83,7 +110,7 @@ export function findMatches(
 
   const matches: SearchMatch[] = [];
   pages.forEach((page, index) => {
-    const haystack = normalizeForSearch(page.text, options);
+    const haystack = getHaystack(page, options);
     let start = haystack.indexOf(needle);
 
     while (start !== -1) {

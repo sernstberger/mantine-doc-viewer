@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * Text for a status region. Saying the same thing twice changes nothing in the DOM, so screen
@@ -6,7 +6,10 @@ import { useState } from 'react';
  */
 export function useAnnouncement() {
   const [announcement, setAnnouncement] = useState('');
-  const announce = (text: string) =>
-    setAnnouncement((current) => text + (current.endsWith('​') ? '' : '​'));
+  // Stable, so objects that carry it (the markup state) do not change, and pages skip renders
+  const announce = useCallback(
+    (text: string) => setAnnouncement((current) => text + (current.endsWith('​') ? '' : '​')),
+    []
+  );
   return [announcement, announce] as const;
 }

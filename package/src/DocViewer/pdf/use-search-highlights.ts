@@ -1,20 +1,42 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getScrollBehavior } from '../scroll';
 import { ACTIVE_MATCH_HIGHLIGHT, addHighlightRanges, MATCH_HIGHLIGHT } from './highlights';
 import { getMatchRanges, getMatchSegments, SearchMatch } from './search';
 import type { SearchablePage } from './use-pdf-search';
 
-/** Text layer spans of pages that are currently rendered, with a version that changes when they do */
-export function useTextLayers() {
-  const layers = useRef(new Map<number, HTMLElement[]>());
-  const [version, setVersion] = useState(0);
+/** Text layer spans of the pages that are rendered, and who to tell when a page's spans change */
+export interface TextLayers {
+  layers: Map<number, HTMLElement[]>;
+  onTextLayer: (page: number, textDivs: HTMLElement[] | null) => void;
 
-  const onTextLayer = useCallback((page: number, textDivs: HTMLElement[] | null) => {
-    textDivs ? layers.current.set(page, textDivs) : layers.current.delete(page);
-    setVersion((current) => current + 1);
-  }, []);
+  /** Calls `listener` with the page number whenever a page's text layer renders or goes; returns the unsubscribe */
+  subscribe: (listener: (page: number) => void) => () => void;
+}
 
-  return { layers: layers.current, version, onTextLayer };
+/**
+ * Text layer spans of the pages that are rendered. Not React state: a text layer rendering
+ * re-paints the highlights of its own page, without rendering the viewer and its page list again
+ */
+export function useTextLayers(): TextLayers {
+  const [textLayers] = useState(() => {
+    const layers = new Map<number, HTMLElement[]>();
+    const listeners = new Set<(page: number) => void>();
+    return {
+      layers,
+      onTextLayer: (page: number, textDivs: HTMLElement[] | null) => {
+        textDivs ? layers.set(page, textDivs) : layers.delete(page);
+        listeners.forEach((listener) => listener(page));
+      },
+      subscribe: (listener: (page: number) => void) => {
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      },
+    };
+  });
+
+  return textLayers;
 }
 
 /** Scrolls the container so that the range is in the middle of it, or the window when there is no container */
@@ -46,7 +68,7 @@ export function scrollRangeIntoView(container: HTMLElement | null, range: Range)
 }
 
 interface SearchHighlightsInput {
-  textLayers: ReturnType<typeof useTextLayers>;
+  textLayers: TextLayers;
   pages: SearchablePage[] | null;
   matches: SearchMatch[];
   activeMatch: SearchMatch | undefined;
@@ -56,13 +78,22 @@ interface SearchHighlightsInput {
   scrollToPage: (page: number) => void;
 }
 
+function groupByPage(matches: SearchMatch[]) {
+  const byPage = new Map<number, SearchMatch[]>();
+  matches.forEach((match) => {
+    const forPage = byPage.get(match.pageNumber);
+    forPage ? forPage.push(match) : byPage.set(match.pageNumber, [match]);
+  });
+  return byPage;
+}
+
 /**
  * Highlights every match on the pages whose text layer is rendered, and brings a new active
  * match into view: first its page, so the page and its text layer render, then the match itself
- * once its ranges exist
+ * once its ranges exist. A text layer that renders or goes re-paints only its own page
  */
 export function useSearchHighlights({
-  textLayers: { layers, version },
+  textLayers: { layers, subscribe },
   pages,
   matches,
   activeMatch,
@@ -84,34 +115,48 @@ export function useSearchHighlights({
       return undefined;
     }
 
-    const matchRanges: Range[] = [];
-    let activeRanges: Range[] = [];
+    const byPage = groupByPage(matches);
+    const painted = new Map<number, () => void>();
 
-    matches.forEach((match) => {
-      const textDivs = layers.get(match.pageNumber);
-      const page = pages[match.pageNumber - 1];
-      if (!textDivs || !page) {
+    const paint = (pageNumber: number) => {
+      painted.get(pageNumber)?.();
+      painted.delete(pageNumber);
+      const textDivs = layers.get(pageNumber);
+      const page = pages[pageNumber - 1];
+      const pageMatches = byPage.get(pageNumber);
+      if (!textDivs || !page || !pageMatches) {
         return;
       }
 
-      const ranges = getMatchRanges(getMatchSegments(page.text, match, page.items), textDivs);
-      if (match === activeMatch) {
-        activeRanges = ranges;
-      } else {
-        matchRanges.push(...ranges);
+      const matchRanges: Range[] = [];
+      let activeRanges: Range[] = [];
+      pageMatches.forEach((match) => {
+        const ranges = getMatchRanges(getMatchSegments(page.text, match, page.items), textDivs);
+        if (match === activeMatch) {
+          activeRanges = ranges;
+        } else {
+          matchRanges.push(...ranges);
+        }
+      });
+
+      const removes = [
+        addHighlightRanges(MATCH_HIGHLIGHT, matchRanges),
+        addHighlightRanges(ACTIVE_MATCH_HIGHLIGHT, activeRanges),
+      ];
+      painted.set(pageNumber, () => removes.forEach((remove) => remove()));
+
+      if (pendingScroll.current && activeRanges.length > 0 && scrollRoot) {
+        pendingScroll.current = false;
+        scrollRangeIntoView(viewport ? null : scrollRoot, activeRanges[0]);
       }
-    });
+    };
 
-    const cleanups = [
-      addHighlightRanges(MATCH_HIGHLIGHT, matchRanges),
-      addHighlightRanges(ACTIVE_MATCH_HIGHLIGHT, activeRanges),
-    ];
+    Array.from(layers.keys()).forEach(paint);
+    const unsubscribe = subscribe(paint);
 
-    if (pendingScroll.current && activeRanges.length > 0 && scrollRoot) {
-      pendingScroll.current = false;
-      scrollRangeIntoView(viewport ? null : scrollRoot, activeRanges[0]);
-    }
-
-    return () => cleanups.forEach((cleanup) => cleanup());
-  }, [pages, matches, activeMatch, layers, version, scrollRoot, viewport]);
+    return () => {
+      unsubscribe();
+      painted.forEach((remove) => remove());
+    };
+  }, [pages, matches, activeMatch, layers, subscribe, scrollRoot, viewport]);
 }

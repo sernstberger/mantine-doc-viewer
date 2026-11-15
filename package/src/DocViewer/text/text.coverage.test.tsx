@@ -74,6 +74,8 @@ describe('print while loading and when ready', () => {
       const { ref, unmount } = renderWithController((r) => (
         <DocViewer src={src} controllerRef={r} />
       ));
+      // The code and markdown views load on demand first
+      await act(async () => {});
       await act(async () => {
         await ref.current!.print();
       });
@@ -337,5 +339,34 @@ describe('toolbar controls', () => {
     mockFetch('{"a":1}');
     render(<DocViewer src="/data.txt" type="code" language="json" />);
     expect(await screen.findByRole('radio', { name: 'Tree' })).toBeInTheDocument();
+  });
+});
+
+describe('markdown renders', () => {
+  it('does not parse the markdown again when the viewer renders for something else', async () => {
+    mockFetch('# Title');
+    const Markdown = jest.fn(({ children }: { children: string }) => <div>{children}</div>);
+    overrideMarkdownModule({
+      Markdown,
+      remarkGfm: () => {},
+      defaultUrlTransform: (url: string) => url,
+    });
+    function App() {
+      const [count, setCount] = React.useState(0);
+      return (
+        <>
+          <button type="button" onClick={() => setCount(count + 1)}>
+            Render {count}
+          </button>
+          <DocViewer src="/a.md" labels={{ preview: 'Preview' }} />
+        </>
+      );
+    }
+    render(<App />);
+    expect(await screen.findByText('# Title')).toBeInTheDocument();
+    const parsed = Markdown.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Render 0' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Render 1' }));
+    expect(Markdown.mock.calls.length).toBe(parsed);
   });
 });

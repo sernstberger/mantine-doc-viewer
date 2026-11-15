@@ -216,6 +216,21 @@ describe('highlight', () => {
     expect(scrollTo.mock.calls.length).toBeGreaterThan(1);
   });
 
+  it('paints the passage again when its page draws its text again', async () => {
+    const { controller, marked } = await setup();
+
+    act(() => controller.current!.highlight({ text: 'costs' }));
+    await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
+    const before = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
+
+    // Zooming draws every text layer again: the old spans go, so do their ranges
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
+    const after = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
+    expect(after[0]).not.toBe(before[0]);
+    expect(after[0].startContainer.isConnected).toBe(true);
+  });
+
   it('scrolls the window to the text when the viewer grows with its pages', async () => {
     const windowScrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
     const { controller, marked } = await setup({ height: 'auto' });

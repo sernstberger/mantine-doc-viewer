@@ -1,4 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import { useMemo } from 'react';
 import type { DocViewerContextValue } from '../DocViewer.context';
 import { useLinkService } from './use-link-service';
 import { useMarkup } from './use-markup';
@@ -31,8 +32,7 @@ export function usePdfPageContent(
   });
   const passage = usePassageHighlight({
     document,
-    layers: textLayers.layers,
-    layersVersion: textLayers.version,
+    textLayers,
     scrollRoot,
     viewport,
     scrollToPage,
@@ -42,7 +42,11 @@ export function usePdfPageContent(
   useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
   const markup = useMarkup(context.markup, announce);
   const pdfLayers = usePdfLayers(document);
-  const layers = { config: pdfLayers.config, version: pdfLayers.version };
+  // One object per layer change, so pages only draw again (and render) when a layer is toggled
+  const layers = useMemo(
+    () => ({ config: pdfLayers.config, version: pdfLayers.version }),
+    [pdfLayers.config, pdfLayers.version]
+  );
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });
 
   return { search, textLayers, passage, markup, pdfLayers, layers, linkService };

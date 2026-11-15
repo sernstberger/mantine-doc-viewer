@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useIsomorphicEffect } from '@mantine/hooks';
+import { useRef, useState } from 'react';
 import type { DocViewerPageLayout } from '../DocViewer';
 
 interface PageLayoutInput {
@@ -32,7 +33,7 @@ export function useKeepPageOnLayout(
   scrollToPage: (page: number, offset: number, instant: boolean) => void
 ) {
   const shownLayout = useRef(layout);
-  useLayoutEffect(() => {
+  useIsomorphicEffect(() => {
     if (shownLayout.current !== layout) {
       shownLayout.current = layout;
       scrollToPage(currentPage, 0, true);

@@ -1,5 +1,5 @@
-import { useCallbackRef, useIdle } from '@mantine/hooks';
-import { useEffect } from 'react';
+import { useCallbackRef } from '@mantine/hooks';
+import { useEffect, useState } from 'react';
 import type { DocViewerPageLayout } from './DocViewer';
 
 /** Plays a PDF page by page, for a screen nobody is using */
@@ -22,21 +22,36 @@ const ACTIVITY_EVENTS: (keyof DocumentEventMap)[] = [
   'wheel',
 ];
 
-/** Longest delay a timer takes, used to leave idle detection waiting when it is not on */
-const MAX_TIMER = 2_147_483_647;
-
 /**
  * True once nothing was touched for `timeout` ms, and false again at the next touch. Calls
- * `onIdle` each time it turns true. Always false without a timeout
+ * `onIdle` each time it turns true. Always false without a timeout, and then it listens to
+ * nothing: Mantine's useIdle cannot be switched off, so every viewer would reset a timer on each
+ * mouse move for a feature most apps do not use
  */
 export function useIdleTimeout(timeout: number | undefined, onIdle: (() => void) | undefined) {
-  const enabled = timeout !== undefined;
-  const idle = useIdle(enabled ? timeout : MAX_TIMER, {
-    events: ACTIVITY_EVENTS,
-    initialState: false,
-  });
+  const [idle, setIdle] = useState(false);
   const handleIdle = useCallbackRef(() => onIdle?.());
 
+  useEffect(() => {
+    if (timeout === undefined) {
+      return undefined;
+    }
+
+    let timer = window.setTimeout(() => setIdle(true), timeout);
+    const wake = () => {
+      setIdle(false);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setIdle(true), timeout);
+    };
+    ACTIVITY_EVENTS.forEach((event) => document.addEventListener(event, wake));
+    return () => {
+      ACTIVITY_EVENTS.forEach((event) => document.removeEventListener(event, wake));
+      window.clearTimeout(timer);
+      setIdle(false);
+    };
+  }, [timeout]);
+
+  const enabled = timeout !== undefined;
   useEffect(() => {
     enabled && idle && handleIdle();
   }, [enabled, idle, handleIdle]);
