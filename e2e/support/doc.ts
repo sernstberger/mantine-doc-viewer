@@ -2,6 +2,9 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, openStory, type StoryOptions } from './story';
 
+/** A cold `storybook dev` server compiles pdf.js on first use, so the first document load can take far longer than usual */
+export const firstLoad = { timeout: process.env.E2E_DEV ? 60_000 : undefined };
+
 /** Reading position in the toolbar, "Page 2 of 3" */
 export const pageIndicator = (page: Page) =>
   page.getByRole('toolbar', { name: 'Document toolbar' }).getByText(/^Page \d+ of \d+$/);
@@ -17,8 +20,8 @@ export const pdfPage = (page: Page, number: number) =>
 /** Opens a PDF story and waits until the first page has painted its canvas */
 export async function openPdf(page: Page, id: string, options?: StoryOptions) {
   await openStory(page, id, options);
-  await expect(pageIndicator(page)).toHaveText(/^Page 1 of \d+$/);
-  await expect(pdfPage(page, 1).locator('canvas')).toBeVisible();
+  await expect(pageIndicator(page)).toHaveText(/^Page 1 of \d+$/, firstLoad);
+  await expect(pdfPage(page, 1).locator('canvas')).toBeVisible(firstLoad);
 }
 
 /**

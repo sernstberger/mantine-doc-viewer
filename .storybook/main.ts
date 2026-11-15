@@ -20,6 +20,19 @@ const config: StorybookConfig = {
   core: { disableTelemetry: true },
   viteFinal: (viteConfig) => ({
     ...viteConfig,
+    // Dependencies the package imports on demand: Vite would find them only when a story first
+    // loads them, re-optimise and reload the page mid-test on a cold dev server
+    optimizeDeps: {
+      ...viteConfig.optimizeDeps,
+      include: [
+        ...(viteConfig.optimizeDeps?.include ?? []),
+        'pdfjs-dist',
+        '@cantoo/pdf-lib',
+        'react-markdown',
+        'remark-gfm',
+        '@mantine/code-highlight',
+      ],
+    },
     build: {
       ...viteConfig.build,
       // The chunks over Vite's 500 kB default are single third-party modules that already load

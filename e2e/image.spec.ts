@@ -1,6 +1,6 @@
 // The image view in a real layout: zoom and drag-to-pan need scroll sizes jsdom does not have
 import type { Page } from '@playwright/test';
-import { zoomLevel } from './support/doc';
+import { firstLoad, zoomLevel } from './support/doc';
 import { expect, openStory, test } from './support/story';
 
 const stage = (page: Page) => page.getByRole('region', { name: 'sample-image.svg' });
@@ -8,7 +8,8 @@ const fit = (page: Page) => page.getByRole('button', { name: 'Fit to view' });
 
 async function openImage(page: Page) {
   await openStory(page, 'docviewer--image');
-  await expect(page.getByRole('img', { name: 'sample-image.svg' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'sample-image.svg' })).toBeVisible(firstLoad);
+  await expect(stage(page)).toBeVisible(firstLoad);
   await expect(fit(page)).toHaveAttribute('aria-pressed', 'true');
 }
 
