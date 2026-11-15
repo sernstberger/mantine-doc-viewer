@@ -4,6 +4,7 @@
  * way they sit in a title block. Hi-vis yellow is reserved for the sheet you are looking at.
  */
 
+.theme,
 .app {
   --plan-workspace: #2a2e33;
   --plan-panel: #33383e;
@@ -18,18 +19,53 @@
   --plan-e: #b07cf2;
   --plan-g: #8d96a0;
 
-  display: grid;
-  grid-template-columns: 344px minmax(0, 1fr);
-  height: 100vh;
-  min-height: 560px;
   background: var(--plan-workspace);
   color: var(--plan-text);
   color-scheme: dark;
   font-family: Barlow, system-ui, sans-serif;
   font-size: 15px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 344px minmax(0, 1fr);
+  height: 100vh;
+  min-height: 560px;
 
   @media (max-width: 820px) {
     grid-template-columns: 252px minmax(0, 1fr);
+  }
+
+  /* On a phone the index is a drawer, the viewer takes the whole screen */
+  @mixin smaller-than 48em {
+    grid-template-columns: minmax(0, 1fr);
+    height: 100dvh;
+    min-height: 0;
+  }
+}
+
+.drawer {
+  background: var(--plan-panel);
+}
+
+.drawerBody {
+  height: 100%;
+}
+
+.drawer .index {
+  height: 100%;
+  border-right: 0;
+  padding-top: env(safe-area-inset-top);
+}
+
+.indexButton {
+  border: 1px solid var(--plan-line);
+  border-radius: 10px;
+  background: var(--plan-panel-raised);
+  color: var(--plan-text);
+
+  &:hover {
+    background: #464d55;
   }
 }
 
@@ -48,6 +84,7 @@
 }
 
 .project {
+  outline: none;
   margin: 0;
   font-size: 19px;
   font-weight: 600;
@@ -300,6 +337,28 @@
   border-bottom: 1px solid #1f2327;
   background: var(--plan-panel);
   color: var(--plan-text);
+
+  /* One row on a phone */
+  @mixin smaller-than 48em {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-height: 60px;
+    padding-inline: 10px 8px;
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+.heading {
+  @mixin smaller-than 48em {
+    flex-basis: 0;
+  }
+}
+
+.controls {
+  @mixin smaller-than 48em {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
 }
 
 .title {
