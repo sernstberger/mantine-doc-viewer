@@ -163,7 +163,7 @@ describe('highlight', () => {
     jest.restoreAllMocks();
   });
 
-  async function setup() {
+  async function setup(props: Partial<React.ComponentProps<typeof DocViewer>> = {}) {
     mockPdf();
     layout(restore);
     const scrollTo = jest.spyOn(Element.prototype, 'scrollTo');
@@ -174,6 +174,7 @@ describe('highlight', () => {
         pdfWorkerSrc="/worker.mjs"
         defaultZoom={1}
         controllerRef={controller}
+        {...props}
       />
     );
     await screen.findByText('Next quarter outlook');
@@ -192,6 +193,16 @@ describe('highlight', () => {
     // First to the page, then to the text itself
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 2000 - 12 }));
     expect(scrollTo.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('scrolls the window to the text when the viewer grows with its pages', async () => {
+    const windowScrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    const { controller, marked } = await setup({ height: 'auto' });
+
+    act(() => controller.current!.highlight({ text: 'costs' }));
+    await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
+    // Once to the page, once to the text in it
+    await waitFor(() => expect(windowScrollTo.mock.calls.length).toBeGreaterThan(1));
   });
 
   it('can be limited to a page and to matching case', async () => {

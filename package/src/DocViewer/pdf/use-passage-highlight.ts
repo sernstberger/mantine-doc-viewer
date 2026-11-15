@@ -20,7 +20,7 @@ interface PassageHighlightInput {
 
   scrollRoot: HTMLElement | null;
   /** The window scrolls instead of `scrollRoot` (`height="auto"`) */
-  viewport?: boolean;
+  viewport: boolean;
   scrollToPage: (page: number, offset?: number | ((pageHeight: number) => number)) => void;
   scale: number;
   rotation: PdfRotation;
@@ -36,7 +36,7 @@ export function usePassageHighlight({
   layers,
   layersVersion,
   scrollRoot,
-  viewport = false,
+  viewport,
   scrollToPage,
   scale,
   rotation,
