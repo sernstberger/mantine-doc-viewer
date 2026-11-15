@@ -1,0 +1,358 @@
+/*
+ * Scanbox: a phone scan-to-PDF app. The receipts are photographs of paper (tilted, torn, stained,
+ * drawn into the PDF), so the viewer's job is to frame them like photos on a light scanner bed.
+ */
+
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 32px 16px;
+  background: #e4e8e6;
+  font-family: Manrope, system-ui, sans-serif;
+}
+
+.phone {
+  width: 375px;
+  max-width: 100%;
+  height: 760px;
+  max-height: calc(100vh - 32px);
+  padding: 9px;
+  border-radius: 52px;
+  background: #101614;
+  box-shadow:
+    0 0 0 1.5px #3a4541,
+    0 30px 60px -20px rgb(20 32 29 / 0.45);
+}
+
+.screen {
+  --scanbox-ink: #14201d;
+  --scanbox-surface: #f2f4f3;
+  --scanbox-teal: #00a38c;
+  --scanbox-tint: #e3f5f1;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 43px;
+  background: #fff;
+  color: var(--scanbox-ink);
+}
+
+/* ---------------------------------- app chrome --------------------------------- */
+
+.statusBar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 6px 30px 0 32px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.statusIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topBar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 16px 10px 8px;
+}
+
+.back {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--scanbox-ink);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--scanbox-surface);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--scanbox-teal);
+    outline-offset: -3px;
+  }
+}
+
+.nameField {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nameInput {
+  width: 100%;
+  padding: 1px 6px;
+  margin-inline: -6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--scanbox-surface);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--scanbox-teal);
+    background: #fff;
+  }
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 500;
+  color: #5d6e69;
+}
+
+/* ---------------------------------- viewer --------------------------------- */
+
+.root {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  background: var(--scanbox-surface);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.toolbar {
+  flex-wrap: nowrap;
+  min-height: 52px;
+  padding-inline: 12px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 1px 0 rgb(20 32 29 / 0.08);
+}
+
+.controls {
+  flex: 1;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.control {
+  border: 0;
+  border-radius: 12px;
+  background: var(--scanbox-surface);
+  color: var(--scanbox-ink);
+
+  &:hover {
+    background: #e3e8e6;
+  }
+
+  &[data-pressed] {
+    background: var(--scanbox-tint);
+    color: #007565;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--scanbox-teal);
+    outline-offset: 2px;
+  }
+}
+
+.pageIndicator {
+  min-width: 52px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* The scanner bed: pages sit on it like photographs */
+.body {
+  background: radial-gradient(90% 60% at 50% 0%, #fff 0%, transparent 70%), var(--scanbox-surface);
+}
+
+.pages {
+  padding-block: 16px;
+}
+
+.page {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgb(20 32 29 / 0.08),
+    0 2px 4px rgb(20 32 29 / 0.1),
+    0 14px 26px -8px rgb(20 32 29 / 0.28);
+}
+
+/* Thumbnail strip: small photos, the current one framed in teal */
+.thumbnails {
+  gap: 10px;
+  padding: 10px 14px 12px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 -1px 0 rgb(20 32 29 / 0.08);
+}
+
+.thumbnail {
+  gap: 6px;
+  padding: 3px;
+  border-radius: 10px;
+  color: #5d6e69;
+
+  &:hover {
+    background: var(--scanbox-surface);
+  }
+
+  &[data-active] {
+    background: var(--scanbox-tint);
+    color: #007565;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--scanbox-teal);
+    outline-offset: 1px;
+  }
+}
+
+.thumbnailImage {
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgb(20 32 29 / 0.1);
+
+  .thumbnail[data-active] > & {
+    box-shadow: 0 0 0 2px var(--scanbox-teal);
+  }
+}
+
+.thumbnailLabel {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Page editor */
+.editorBar {
+  padding: 10px 12px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 1px 0 rgb(20 32 29 / 0.08);
+}
+
+.editorPages {
+  gap: 12px;
+  padding: 16px 12px;
+  background: var(--scanbox-surface);
+}
+
+.editorPage {
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  font-weight: 800;
+
+  &[data-selected] {
+    background: var(--scanbox-tint);
+    outline: 3px solid var(--scanbox-teal);
+    outline-offset: 0;
+    color: #007565;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--scanbox-teal);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------- export bar --------------------------------- */
+
+.exportBar {
+  flex-shrink: 0;
+  padding: 12px 16px 8px;
+  background: #fff;
+}
+
+.exportButton {
+  height: 56px;
+  border-radius: 16px;
+  background: var(--scanbox-teal);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.005em;
+  transition: transform 120ms ease;
+
+  &:hover {
+    background: #008c78;
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--scanbox-ink);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.homeIndicator {
+  display: block;
+  width: 128px;
+  height: 5px;
+  margin: 14px auto 2px;
+  border-radius: 3px;
+  background: var(--scanbox-ink);
+}
+
+/* ---------------------------------- toast ---------------------------------- */
+
+.toast {
+  position: absolute;
+  z-index: 5;
+  bottom: 96px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px 11px 14px;
+  border-radius: 999px;
+  background: var(--scanbox-ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  translate: -50% 0;
+  box-shadow: 0 10px 24px rgb(20 32 29 / 0.3);
+  animation: toast-in 240ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+
+  svg {
+    color: #4fe0c6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: -50% 12px;
+  }
+}
