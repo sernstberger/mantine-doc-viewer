@@ -30,6 +30,7 @@ import { DocViewerProvider } from './DocViewer.context';
 import type { DocViewerAutoAdvance } from './kiosk';
 import classes from './DocViewer.module.css';
 import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
+import { useBehaviorStyles } from './use-behavior-styles';
 import { useDocViewerEvents } from './use-doc-viewer-events';
 import { useDocViewerSession } from './use-doc-viewer-session';
 import { DEFAULT_THUMBNAIL_WIDTH, useResolvedProps } from './use-resolved-props';
@@ -544,7 +545,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const { className, style, classNames, styles, unstyled, vars, attributes, mod, height } = props;
   const resolved = useResolvedProps(props);
 
-  const getStyles = useStyles<DocViewerFactory>({
+  const getStylesApi = useStyles<DocViewerFactory>({
     name: 'DocViewer',
     classes,
     props: {
@@ -565,6 +566,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     // The same function while the styles are the same, so the context value can stay the same
     stable: true,
   });
+
+  const getStyles = useBehaviorStyles(getStylesApi);
 
   const session = useDocViewerSession(props);
   const events = useDocViewerEvents(props, session.type);

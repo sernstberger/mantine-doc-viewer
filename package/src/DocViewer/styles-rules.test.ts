@@ -27,7 +27,9 @@ describe('DocViewer.module.css rules', () => {
   });
 
   it('makes the thumbnail delete button untappable and hidden on touch screens until its thumbnail is current', () => {
-    const coarse = ruleOf('.thumbnailDelete').match(/@media \(pointer: coarse\) \{[\s\S]*\n {2}\}/)![0];
+    const coarse = ruleOf('.thumbnailDelete').match(
+      /@media \(pointer: coarse\) \{[\s\S]*\n {2}\}/
+    )![0];
     const [hidden, current] = coarse.split(':where(.thumbnail[data-active]) > &');
     expect(hidden).toContain('visibility: hidden');
     expect(hidden).toContain('pointer-events: none');

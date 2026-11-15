@@ -13,7 +13,10 @@ async function openEditor(dir: 'ltr' | 'rtl', compact = false) {
   mockPdf();
   render(
     <DirectionProvider initialDirection={dir} detectDirection={false}>
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" withPageEditing
+      <DocViewer
+        src="/files/report.pdf"
+        pdfWorkerSrc="/worker.mjs"
+        withPageEditing
         compactPageEditor={compact}
       />
     </DirectionProvider>

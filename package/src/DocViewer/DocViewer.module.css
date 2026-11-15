@@ -221,72 +221,28 @@
   }
 }
 
-/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback) */
+/* Fit to width reads this padding, so a `pages` class can change it freely (PAGES_GUTTER in pdf/zoom.ts is the fallback). What the layout needs is in DocViewer.behavior.module.css */
 .pages {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
+  padding: var(--mantine-spacing-md) 16px;
 
   &[data-layout='two-page'],
-  &[data-layout='two-page-cover'] {
-    display: grid;
-    grid-template-columns: repeat(2, max-content);
-    justify-content: center;
-    align-items: start;
-    column-gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
-  }
-
-  /* The first page on its own on the right, like a book cover */
-  &[data-layout='two-page-cover'] > :first-child {
-    grid-column: 2;
-  }
-
-  /* One row, scrolled sideways */
+  &[data-layout='two-page-cover'],
   &[data-layout='horizontal'] {
-    flex-direction: row;
-    align-items: flex-start;
     column-gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
   }
 
-  /* One page at a time, centred on a dark background */
-  &[data-layout='presentation'] {
-    justify-content: center;
-    min-height: 100%;
-
-    & > * {
-      box-shadow: none;
-    }
+  &[data-layout='presentation'] > * {
+    box-shadow: none;
   }
-
-  /* Rows that wrap to the width of the view */
-  &[data-layout='wrapped'] {
-    flex-flow: row wrap;
-    justify-content: center;
-    align-items: flex-start;
-    width: auto;
-  }
-
-  gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
-  width: max-content;
-  min-width: 100%;
-  padding: var(--mantine-spacing-md) 16px;
 }
 
 .page {
-  --scale-round-x: 1px;
-  --scale-round-y: 1px;
-
-  position: relative;
-  flex-shrink: 0;
   background-color: var(--_page-background);
   box-shadow: var(--mantine-shadow-sm);
 }
 
 .canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-
   /* pageColorScheme sets the filter on the root; none otherwise */
   filter: var(--_page-filter);
 }
@@ -311,86 +267,6 @@
   color: var(--mantine-color-dimmed);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-/* Selectable text over the canvas, adapted from pdfjs-dist/web/pdf_viewer.css (Apache-2.0) */
-.textLayer {
-  --min-font-size: 1;
-  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
-  --min-font-size-inv: calc(1 / var(--min-font-size));
-
-  position: absolute;
-  inset: 0;
-  overflow: clip;
-  z-index: 0;
-  opacity: 1;
-  line-height: 1;
-  text-align: initial;
-  letter-spacing: normal;
-  word-spacing: normal;
-  text-size-adjust: none;
-  forced-color-adjust: none;
-  transform-origin: 0 0;
-  caret-color: CanvasText;
-
-  & :is(span, br) {
-    position: absolute;
-    color: transparent;
-    white-space: pre;
-    cursor: text;
-    transform-origin: 0% 0%;
-    user-select: text;
-  }
-
-  & > :not(:global(.markedContent)),
-  & :global(.markedContent) span:not(:global(.markedContent)) {
-    --font-height: 0;
-    --scale-x: 1;
-    --rotate: 0deg;
-
-    z-index: 1;
-    font-size: calc(var(--text-scale-factor) * var(--font-height));
-    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
-  }
-
-  & :global(.markedContent) {
-    display: contents;
-  }
-
-  & ::selection {
-    color: transparent;
-    background: color-mix(in srgb, AccentColor, transparent 50%);
-  }
-
-  & br::selection {
-    background: transparent;
-  }
-
-  & :global(.endOfContent) {
-    position: absolute;
-    inset: 100% 0 0;
-    z-index: 0;
-    display: block;
-    cursor: default;
-    user-select: none;
-  }
-
-  &:global(.selecting) :global(.endOfContent) {
-    top: 0;
-  }
-
-  /* pdf.js sizes the layer to the unrotated page and marks the page rotation, from pdf_viewer.css */
-  &[data-main-rotation='90'] {
-    transform: rotate(90deg) translateY(-100%);
-  }
-
-  &[data-main-rotation='180'] {
-    transform: rotate(180deg) translate(-100%, -100%);
-  }
-
-  &[data-main-rotation='270'] {
-    transform: rotate(270deg) translateX(-100%);
-  }
 }
 
 /* Search match colours are added at runtime by pdf/highlights.ts: some bundlers cannot parse ::highlight() */
@@ -598,38 +474,13 @@
   background-color: var(--mantine-color-body);
 }
 
-/* Links in PDF pages: pdf.js's annotation layer with only link annotations, adapted from pdf_viewer.css (Apache-2.0) */
-/*
- * Marks drawn with the markup tools; it takes the pointer only while a tool is picked.
- * The layers over a page (markup, overlay, highlights) sit on its physical top left corner and
- * scale from there: a page is drawn the same in left-to-right and right-to-left, so no logical
- * properties here
- */
+/* Marks drawn with the markup tools. Where it sits and when it takes the pointer is in DocViewer.behavior.module.css */
 .markupLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  overflow: hidden;
-  pointer-events: none;
-  transform-origin: 0 0;
-
-  & > svg {
-    position: absolute;
-    inset: 0;
-    overflow: visible;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
   & [data-mark='highlight'] {
     opacity: 0.4;
   }
 
   &[data-tool] {
-    pointer-events: auto;
-    touch-action: none;
     cursor: crosshair;
   }
 
@@ -686,26 +537,7 @@
   margin-inline: rem(4px);
 }
 
-/* App content over a page: lets clicks through to the text, except on its own children */
-.pageOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  pointer-events: none;
-  transform-origin: 0 0;
-}
-
-/* Boxes marked from outside with controller.highlight, in the colours of the active search match */
-.highlightLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  pointer-events: none;
-  transform-origin: 0 0;
-}
-
+/* Boxes marked from outside with controller.highlight, in the colours of the active search match (the layer is in DocViewer.behavior.module.css) */
 .highlight {
   position: absolute;
   border-radius: 2px;
@@ -724,28 +556,9 @@
   outline-offset: 1px;
 }
 
-/* No specificity, so an app's own class can set pointer-events: none on a child */
-:where(.pageOverlay) > :where(*) {
-  pointer-events: auto;
-}
-
+/* Links in PDF pages (the layer itself is in DocViewer.behavior.module.css) */
 .linkLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  transform-origin: 0 0;
-
-  & :global(section) {
-    position: absolute;
-    pointer-events: auto;
-    box-sizing: border-box;
-    transform-origin: 0 0;
-    user-select: none;
-  }
-
   & :global(.linkAnnotation) > a {
-    position: absolute;
-    inset: 0;
     border-radius: 2px;
 
     @mixin hover {
@@ -756,11 +569,6 @@
       outline: 2px solid var(--_color);
       outline-offset: 1px;
     }
-  }
-
-  /* Text being selected under a link should not be interrupted by it */
-  :global(.selecting) ~ & :global(section) {
-    pointer-events: none;
   }
 
   @media (forced-colors: active) {
