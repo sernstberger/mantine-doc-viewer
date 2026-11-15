@@ -1,7 +1,7 @@
 import { ActionIcon } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { DocViewerTooltip, useControlProps } from './controls';
-import { useDocumentTitle, useDocViewerContext } from './DocViewer.context';
+import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
 import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
 
 export interface DocViewerToolbarProps {
@@ -34,6 +34,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
     labels,
   } = useDocViewerContext();
   const controlProps = useControlProps();
+  const show = useShowControl();
   const title = useDocumentTitle();
   const fullscreenAvailable = useFullscreenAvailable();
   const [printing, setPrinting] = useState(false);
@@ -59,11 +60,15 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
 
   return (
     <div {...getStyles('toolbar')}>
-      <span {...getStyles('title')}>{title}</span>
+      {show('title') ? (
+        <span {...getStyles('title')}>{title}</span>
+      ) : (
+        <span {...getStyles('title')} />
+      )}
       <div {...getStyles('controls')}>
         {children}
         {toolbarSection}
-        {withPrint && onPrint && (
+        {withPrint && show('print') && onPrint && (
           <DocViewerTooltip label={labels.print}>
             <ActionIcon
               {...controlProps()}
@@ -75,7 +80,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
             </ActionIcon>
           </DocViewerTooltip>
         )}
-        {withDownload && (
+        {withDownload && show('download') && (
           <DocViewerTooltip label={labels.download}>
             <ActionIcon
               component="a"
@@ -91,7 +96,7 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
             </ActionIcon>
           </DocViewerTooltip>
         )}
-        {withFullscreen && fullscreenAvailable && (
+        {withFullscreen && show('fullscreen') && fullscreenAvailable && (
           <DocViewerTooltip label={fullscreen ? labels.exitFullscreen : labels.fullscreen}>
             <ActionIcon
               {...controlProps(fullscreen)}

@@ -43,6 +43,9 @@ Keyboard shortcuts work while the image has focus.
 PDF files are rendered with [pdf.js](https://mozilla.github.io/pdf.js/). It is loaded only when a PDF is
 opened, so apps that never display PDFs do not download it. Pages are drawn as they scroll into view.
 
+With the pages focused, `+`, `=`, `-` and `0` zoom like they do for images, and trackpad pinch or
+Ctrl+wheel zooms too. Ctrl/Cmd+F opens search.
+
 <Demo data={demos.pdf} />
 
 ## Page thumbnails
@@ -206,12 +209,14 @@ function Demo() {
 | Prop | Description |
 | --- | --- |
 | `onDocumentLoad` | Called with `{ type, numPages }` for PDFs and `{ type, width, height }` for images |
+| `onLinkClick` | Called with the address when a web link in a PDF is clicked; `event.preventDefault()` stops it |
+| `onSave` | Called with the bytes of a PDF made by page editing |
 | `onDocumentError` | Called with the error when a document cannot be loaded |
 | `onPageChange` | Called with the PDF page that takes up most of the view |
 | `onZoomChange` | Called with the scale (1 is 100%) and whether it is fitted |
 | `page`, `defaultPage` | Page to show; the viewer scrolls to `page` whenever it changes |
 | `defaultZoom` | A scale, or `'fit'` (the default) |
-| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`, `print`, `download` and `toggleFullscreen` |
+| `controllerRef` | `goToPage`, `setZoom`, `zoomIn`, `zoomOut`, `rotate`, `setPageLayout`, `openSearch`, `closeSearch`, `toggleThumbnails`, `togglePresentation`, `editPages`, `getOutline`, `print`, `download` and `toggleFullscreen` |
 
 ## Other file types
 
@@ -365,6 +370,36 @@ be styled with the Styles API (`classNames`, `styles`, `vars` and `unstyled`).
   classNames={{ control: 'my-toolbar-button', toolbar: 'my-toolbar' }}
   vars={() => ({ root: { '--doc-viewer-page-background': 'var(--mantine-color-gray-0)' } })}
 />
+```
+
+### Choosing toolbar controls
+
+Hide any toolbar control with `toolbarControls`: `title`, `thumbnails`, `pages`, `zoom`,
+`rotate`, `layout`, `outline`, `info`, `presentation`, `editPages`, `search`, `print`,
+`download`, `fullscreen`, `wrap` (text files) and `viewMode` (JSON and markdown). Hidden
+controls' keyboard shortcuts still work, and `controllerRef` still has their actions.
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  size="xs"
+  toolbarControls={{ rotate: false, layout: false, presentation: false, fullscreen: false }}
+/>
+```
+
+### Embedding and dark mode
+
+`variant="plain"` removes the border, rounded corners, backgrounds and page shadows, for a
+document embedded in an article. Combine it with `withToolbar={false}` for just the pages.
+
+`pageBackground` sets the colour behind PDF pages and thumbnails. `pageColorScheme="dark"` inverts
+PDF pages for dark interfaces, keeping hues so images and charts stay recognisable, and
+`pageColorScheme="auto"` does so only when the Mantine color scheme is dark.
+
+```tsx
+<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} variant="plain" withToolbar={false} />
+<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} pageColorScheme="auto" />
 ```
 
 ## Accessibility

@@ -89,6 +89,27 @@ export type DocViewerStylesNames =
   | 'editorPages'
   | 'editorPage';
 
+/** Toolbar controls that `toolbarControls` can hide */
+export type DocViewerControl =
+  | 'title'
+  | 'thumbnails'
+  | 'pages'
+  | 'zoom'
+  | 'rotate'
+  | 'layout'
+  | 'outline'
+  | 'info'
+  | 'presentation'
+  | 'editPages'
+  | 'search'
+  | 'print'
+  | 'download'
+  | 'fullscreen'
+  | 'wrap'
+  | 'viewMode';
+
+export type DocViewerVariant = 'default' | 'plain';
+
 export type DocViewerPageLayout =
   | 'single'
   | 'two-page'
@@ -236,6 +257,19 @@ export interface DocViewerProps
   /** Content displayed in the toolbar before the download button */
   toolbarSection?: React.ReactNode;
 
+  /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
+  toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
+
+  /** Key of `theme.colors` or any valid CSS color behind PDF pages and thumbnails, white by default */
+  pageBackground?: MantineColor;
+
+  /**
+   * Colours of PDF pages: as printed (`'light'`, default), inverted for dark interfaces (`'dark'`),
+   * or following the Mantine color scheme (`'auto'`). Inverting keeps hues, so images and charts
+   * stay recognisable
+   */
+  pageColorScheme?: 'light' | 'dark' | 'auto';
+
   /** Determines whether the toolbar is displayed, `true` by default */
   withToolbar?: boolean;
 }
@@ -245,6 +279,7 @@ export type DocViewerFactory = Factory<{
   ref: HTMLDivElement;
   stylesNames: DocViewerStylesNames;
   vars: DocViewerCssVariables;
+  variant: DocViewerVariant;
 }>;
 
 const defaultProps: Partial<DocViewerProps> = {
@@ -260,7 +295,10 @@ const defaultProps: Partial<DocViewerProps> = {
 };
 
 const varsResolver = createVarsResolver<DocViewerFactory>(
-  (theme, { radius, size, color, matchColor, activeMatchColor, pageGap, thumbnailWidth }) => {
+  (
+    theme,
+    { radius, size, color, matchColor, activeMatchColor, pageGap, thumbnailWidth, pageBackground }
+  ) => {
     const sizeConfig = DOC_VIEWER_SIZES[size ?? 'sm'] ?? DOC_VIEWER_SIZES.sm;
 
     return {
@@ -270,7 +308,9 @@ const varsResolver = createVarsResolver<DocViewerFactory>(
         '--doc-viewer-font-size': getFontSize(sizeConfig.fontSize),
         '--doc-viewer-toolbar-height': rem(sizeConfig.toolbarHeight),
         '--doc-viewer-page-gap': pageGap === undefined ? undefined : getSpacing(pageGap),
-        '--doc-viewer-page-background': undefined,
+        '--doc-viewer-page-background': pageBackground
+          ? getThemeColor(pageBackground, theme)
+          : undefined,
         '--doc-viewer-thumbnail-width': thumbnailWidth ? rem(thumbnailWidth) : undefined,
         '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
         '--doc-viewer-active-match-color': activeMatchColor
@@ -349,6 +389,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     codeHighlightProps,
     toolbarSection,
     withToolbar,
+    toolbarControls,
+    pageBackground,
+    pageColorScheme,
     renderers,
     controllerRef,
     page,
@@ -427,6 +470,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         alt,
         labels: resolvedLabels,
         withToolbar,
+        toolbarControls,
         toolbarSection,
         pdfWorkerSrc,
         pdfOptions,
@@ -461,6 +505,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         ref={rootRef}
         {...getStyles('root')}
         data-doc-type={resolvedType}
+        data-page-color-scheme={pageColorScheme === 'light' ? undefined : pageColorScheme}
         // Like core components: data-size for size keys, not for CSS values such as 5rem
         mod={[
           { size: isNumberLike(size) ? undefined : size, fullscreen: fullscreen.fullscreen },

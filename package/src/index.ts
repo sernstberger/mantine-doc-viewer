@@ -6,6 +6,8 @@ export type {
   DocViewerStylesNames,
   DocViewerThumbnailsPosition,
   DocViewerPageLayout,
+  DocViewerControl,
+  DocViewerVariant,
 } from './DocViewer/DocViewer';
 export { detectDocType } from './DocViewer/detect-doc-type';
 export type { DocType, DetectDocTypeInput } from './DocViewer/detect-doc-type';
@@ -25,5 +27,6 @@ export type {
   DocViewerController,
   DocViewerEvents,
   DocViewerLoadInfo,
+  DocViewerOutlineItem,
   DocViewerZoom,
 } from './DocViewer/controller';

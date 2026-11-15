@@ -1,7 +1,7 @@
 import { CodeHighlight } from '@mantine/code-highlight';
 import { Typography } from '@mantine/core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext, useShowControl } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerBody } from '../renderers';
 import { DocViewerMessage } from '../views/MessageView';
@@ -91,6 +91,7 @@ function MarkdownPreview({ text }: { text: string }) {
 
 export function MarkdownView() {
   const { getStyles, src, maxTextSize, labels, codeHighlightProps } = useDocViewerContext();
+  const show = useShowControl();
   const state = useTextDocument(src, maxTextSize);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
   const { fileName } = useDocViewerContext();
@@ -112,7 +113,7 @@ export function MarkdownView() {
   return (
     <>
       <DocViewerToolbar onPrint={onPrint}>
-        {state.status === 'ready' && (
+        {state.status === 'ready' && show('viewMode') && (
           <ViewModeToggle
             value={mode}
             onChange={setMode}

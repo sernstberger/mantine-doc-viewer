@@ -1,7 +1,7 @@
 import { ActionIcon } from '@mantine/core';
 import { useElementSize, useMergedRef } from '@mantine/hooks';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useDocumentTitle, useDocViewerContext, useShowControl } from '../DocViewer.context';
 import { useRegisterController } from '../controller';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { printImage } from '../print';
@@ -20,6 +20,7 @@ export function ImageView() {
   const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom } =
     useDocViewerContext();
   const controlProps = useControlProps();
+  const show = useShowControl();
   const title = useDocumentTitle();
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState(false);
@@ -90,19 +91,23 @@ export function ImageView() {
 
   const controls = ready && (
     <>
-      <ZoomControls
-        scale={scale}
-        fitted={zoom === 'fit'}
-        fitLabel={labels.fitToView}
-        fitIcon={<FitScreenIcon />}
-        onZoom={zoomTo}
-        onFit={() => zoomTo('fit')}
-      />
-      <DocViewerTooltip label={labels.rotate}>
-        <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={rotate}>
-          <RotateIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
+      {show('zoom') && (
+        <ZoomControls
+          scale={scale}
+          fitted={zoom === 'fit'}
+          fitLabel={labels.fitToView}
+          fitIcon={<FitScreenIcon />}
+          onZoom={zoomTo}
+          onFit={() => zoomTo('fit')}
+        />
+      )}
+      {show('rotate') && (
+        <DocViewerTooltip label={labels.rotate}>
+          <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={rotate}>
+            <RotateIcon />
+          </ActionIcon>
+        </DocViewerTooltip>
+      )}
     </>
   );
 

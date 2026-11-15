@@ -312,3 +312,57 @@ export function PageEditing() {
     </Stack>
   );
 }
+
+export function Plain() {
+  return (
+    <div style={{ padding: 40, maxWidth: 720 }}>
+      <MantineText mb="sm">
+        An article with a PDF embedded in it, with no viewer chrome:
+      </MantineText>
+      <DocViewer
+        src="/sample.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        variant="plain"
+        withToolbar={false}
+        pageGap="sm"
+        h={500}
+      />
+    </div>
+  );
+}
+
+export function DarkPages() {
+  return (
+    <div style={{ padding: 40, background: 'var(--mantine-color-dark-7)' }}>
+      <DocViewer
+        src="/sample-50.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        pageColorScheme="dark"
+        defaultThumbnailsOpened
+        h={600}
+      />
+    </div>
+  );
+}
+
+export function TrimmedToolbar() {
+  return (
+    <div style={{ padding: 40, width: 420 }}>
+      <DocViewer
+        src="/sample.pdf"
+        pdfWorkerSrc={pdfWorkerSrc}
+        size="xs"
+        toolbarControls={{
+          rotate: false,
+          layout: false,
+          outline: false,
+          info: false,
+          presentation: false,
+          print: false,
+          fullscreen: false,
+        }}
+        h={500}
+      />
+    </div>
+  );
+}

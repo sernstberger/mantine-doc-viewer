@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext, useShowControl } from '../DocViewer.context';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -69,6 +69,7 @@ export interface PdfControlsProps {
 /** Toolbar buttons for PDFs: thumbnails, paging, zoom, rotation, layout, outline and search */
 export function PdfControls(props: PdfControlsProps) {
   const { getStyles, labels, size, withPageEditing } = useDocViewerContext();
+  const show = useShowControl();
   const controlProps = useControlProps();
   const outline = usePdfOutline(props.document);
   const [outlineOpened, setOutlineOpened] = useState(false);
@@ -80,193 +81,241 @@ export function PdfControls(props: PdfControlsProps) {
 
   return (
     <>
-      <DocViewerTooltip label={thumbnailsOpened ? labels.hidePages : labels.showPages}>
-        <ActionIcon
-          {...controlProps(thumbnailsOpened)}
-          aria-label={labels.pageThumbnails}
-          aria-pressed={thumbnailsOpened}
-          onClick={props.onToggleThumbnails}
-        >
-          <SidebarIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
-
-      {thumbnailsOpened && (
-        <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
-          <Popover.Target>
-            <DocViewerTooltip label={labels.thumbnailsPosition}>
-              <ActionIcon {...controlProps()} aria-label={labels.thumbnailsPosition}>
-                <PanelPositionIcon />
-              </ActionIcon>
-            </DocViewerTooltip>
-          </Popover.Target>
-          <Popover.Dropdown p={4}>
-            <SegmentedControl
-              size={size.input}
-              value={props.position}
-              onChange={(value) => props.onPositionChange(value as DocViewerThumbnailsPosition)}
-              aria-label={labels.thumbnailsPosition}
-              data={POSITIONS.map((value) => ({ value, label: labels[value] }))}
-            />
-          </Popover.Dropdown>
-        </Popover>
-      )}
-
-      <Group gap={2} wrap="nowrap">
-        <DocViewerTooltip label={labels.previousPage}>
-          <ActionIcon
-            {...controlProps()}
-            aria-label={labels.previousPage}
-            {...softDisabled(currentPage <= 1, () => onPage(currentPage - 1))}
-          >
-            <ChevronUpIcon />
-          </ActionIcon>
-        </DocViewerTooltip>
-        <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
-          {currentPage} / {numPages}
-        </Text>
-        <DocViewerTooltip label={labels.nextPage}>
-          <ActionIcon
-            {...controlProps()}
-            aria-label={labels.nextPage}
-            {...softDisabled(currentPage >= numPages, () => onPage(currentPage + 1))}
-          >
-            <ChevronDownIcon />
-          </ActionIcon>
-        </DocViewerTooltip>
-      </Group>
-
-      <ZoomControls
-        scale={props.scale}
-        fitted={props.zoom === 'fit-width'}
-        fitLabel={fitsToHeight(layout) ? labels.fitToView : labels.fitToWidth}
-        fitIcon={<FitWidthIcon />}
-        onZoom={props.onZoom}
-        onFit={() => props.onZoom('fit-width')}
-      />
-
-      <DocViewerTooltip label={labels.rotate}>
-        <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={props.onRotate}>
-          <RotateIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
-
-      <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
-        <Popover.Target>
-          <DocViewerTooltip label={labels.pageLayout}>
-            <ActionIcon {...controlProps(layout !== 'single')} aria-label={labels.pageLayout}>
-              <TwoPagesIcon />
-            </ActionIcon>
-          </DocViewerTooltip>
-        </Popover.Target>
-        <Popover.Dropdown>
-          <Radio.Group
-            value={layout}
-            onChange={(value) => props.onLayoutChange(value as DocViewerPageLayout)}
-            label={labels.pageLayout}
-            size={size.input}
-          >
-            <Stack gap={6} mt={6}>
-              {LAYOUTS.map(([value, label]) => (
-                <Radio key={value} value={value} label={labels[label]} size={size.input} />
-              ))}
-            </Stack>
-          </Radio.Group>
-        </Popover.Dropdown>
-      </Popover>
-
-      {outline && outline.length > 0 && (
-        <Popover
-          opened={outlineOpened}
-          onChange={setOutlineOpened}
-          position="bottom-end"
-          shadow="md"
-          withinPortal={false}
-          trapFocus
-          returnFocus
-        >
-          <Popover.Target>
-            <DocViewerTooltip label={labels.outline}>
-              <ActionIcon
-                {...controlProps(outlineOpened)}
-                aria-label={labels.outline}
-                aria-expanded={outlineOpened}
-                onClick={() => setOutlineOpened((opened) => !opened)}
-              >
-                <OutlineIcon />
-              </ActionIcon>
-            </DocViewerTooltip>
-          </Popover.Target>
-          <Popover.Dropdown p={4}>
-            <PdfOutline
-              document={props.document}
-              items={outline}
-              onSelect={(page) => {
-                setOutlineOpened(false);
-                onPage(page);
-              }}
-            />
-          </Popover.Dropdown>
-        </Popover>
-      )}
-
-      <Popover
-        opened={infoOpened}
-        onChange={setInfoOpened}
-        position="bottom-end"
-        shadow="md"
-        withinPortal={false}
-        trapFocus
-        returnFocus
-      >
-        <Popover.Target>
-          <DocViewerTooltip label={labels.documentInfo}>
+      {show('thumbnails') && (
+        <>
+          <DocViewerTooltip label={thumbnailsOpened ? labels.hidePages : labels.showPages}>
             <ActionIcon
-              {...controlProps(infoOpened)}
-              aria-label={labels.documentInfo}
-              aria-expanded={infoOpened}
-              onClick={() => setInfoOpened((opened) => !opened)}
+              {...controlProps(thumbnailsOpened)}
+              aria-label={labels.pageThumbnails}
+              aria-pressed={thumbnailsOpened}
+              onClick={props.onToggleThumbnails}
             >
-              <InfoIcon />
+              <SidebarIcon />
             </ActionIcon>
           </DocViewerTooltip>
-        </Popover.Target>
-        <Popover.Dropdown>
-          <PdfDocumentInfo
-            document={props.document}
-            properties={properties}
-            attachments={attachments}
-            layers={props.layers}
-            onLayerChange={props.onLayerChange}
-          />
-        </Popover.Dropdown>
-      </Popover>
 
-      <DocViewerTooltip label={labels.presentation}>
-        <ActionIcon {...controlProps()} aria-label={labels.presentation} onClick={props.onPresent}>
-          <PresentationIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
-
-      {withPageEditing && (
-        <DocViewerTooltip label={labels.editPages}>
-          <ActionIcon {...controlProps()} aria-label={labels.editPages} onClick={props.onEditPages}>
-            <EditPagesIcon />
-          </ActionIcon>
-        </DocViewerTooltip>
+          {thumbnailsOpened && (
+            <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+              <Popover.Target>
+                <DocViewerTooltip label={labels.thumbnailsPosition}>
+                  <ActionIcon {...controlProps()} aria-label={labels.thumbnailsPosition}>
+                    <PanelPositionIcon />
+                  </ActionIcon>
+                </DocViewerTooltip>
+              </Popover.Target>
+              <Popover.Dropdown p={4}>
+                <SegmentedControl
+                  size={size.input}
+                  value={props.position}
+                  onChange={(value) => props.onPositionChange(value as DocViewerThumbnailsPosition)}
+                  aria-label={labels.thumbnailsPosition}
+                  data={POSITIONS.map((value) => ({ value, label: labels[value] }))}
+                />
+              </Popover.Dropdown>
+            </Popover>
+          )}
+        </>
       )}
 
-      <DocViewerTooltip label={labels.search}>
-        <ActionIcon
-          {...controlProps(searchOpened)}
-          ref={props.searchToggleRef}
-          aria-label={labels.search}
-          aria-pressed={searchOpened}
-          onClick={props.onToggleSearch}
-        >
-          <SearchIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
+      {show('pages') && (
+        <>
+          <Group gap={2} wrap="nowrap">
+            <DocViewerTooltip label={labels.previousPage}>
+              <ActionIcon
+                {...controlProps()}
+                aria-label={labels.previousPage}
+                {...softDisabled(currentPage <= 1, () => onPage(currentPage - 1))}
+              >
+                <ChevronUpIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+            <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
+              {currentPage} / {numPages}
+            </Text>
+            <DocViewerTooltip label={labels.nextPage}>
+              <ActionIcon
+                {...controlProps()}
+                aria-label={labels.nextPage}
+                {...softDisabled(currentPage >= numPages, () => onPage(currentPage + 1))}
+              >
+                <ChevronDownIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+          </Group>
+        </>
+      )}
+
+      {show('zoom') && (
+        <>
+          <ZoomControls
+            scale={props.scale}
+            fitted={props.zoom === 'fit-width'}
+            fitLabel={fitsToHeight(layout) ? labels.fitToView : labels.fitToWidth}
+            fitIcon={<FitWidthIcon />}
+            onZoom={props.onZoom}
+            onFit={() => props.onZoom('fit-width')}
+          />
+        </>
+      )}
+
+      {show('rotate') && (
+        <>
+          <DocViewerTooltip label={labels.rotate}>
+            <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={props.onRotate}>
+              <RotateIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        </>
+      )}
+
+      {show('layout') && (
+        <>
+          <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+            <Popover.Target>
+              <DocViewerTooltip label={labels.pageLayout}>
+                <ActionIcon {...controlProps(layout !== 'single')} aria-label={labels.pageLayout}>
+                  <TwoPagesIcon />
+                </ActionIcon>
+              </DocViewerTooltip>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Radio.Group
+                value={layout}
+                onChange={(value) => props.onLayoutChange(value as DocViewerPageLayout)}
+                label={labels.pageLayout}
+                size={size.input}
+              >
+                <Stack gap={6} mt={6}>
+                  {LAYOUTS.map(([value, label]) => (
+                    <Radio key={value} value={value} label={labels[label]} size={size.input} />
+                  ))}
+                </Stack>
+              </Radio.Group>
+            </Popover.Dropdown>
+          </Popover>
+        </>
+      )}
+
+      {show('outline') && (
+        <>
+          {outline && outline.length > 0 && (
+            <Popover
+              opened={outlineOpened}
+              onChange={setOutlineOpened}
+              position="bottom-end"
+              shadow="md"
+              withinPortal={false}
+              trapFocus
+              returnFocus
+            >
+              <Popover.Target>
+                <DocViewerTooltip label={labels.outline}>
+                  <ActionIcon
+                    {...controlProps(outlineOpened)}
+                    aria-label={labels.outline}
+                    aria-expanded={outlineOpened}
+                    onClick={() => setOutlineOpened((opened) => !opened)}
+                  >
+                    <OutlineIcon />
+                  </ActionIcon>
+                </DocViewerTooltip>
+              </Popover.Target>
+              <Popover.Dropdown p={4}>
+                <PdfOutline
+                  document={props.document}
+                  items={outline}
+                  onSelect={(page) => {
+                    setOutlineOpened(false);
+                    onPage(page);
+                  }}
+                />
+              </Popover.Dropdown>
+            </Popover>
+          )}
+        </>
+      )}
+
+      {show('info') && (
+        <>
+          <Popover
+            opened={infoOpened}
+            onChange={setInfoOpened}
+            position="bottom-end"
+            shadow="md"
+            withinPortal={false}
+            trapFocus
+            returnFocus
+          >
+            <Popover.Target>
+              <DocViewerTooltip label={labels.documentInfo}>
+                <ActionIcon
+                  {...controlProps(infoOpened)}
+                  aria-label={labels.documentInfo}
+                  aria-expanded={infoOpened}
+                  onClick={() => setInfoOpened((opened) => !opened)}
+                >
+                  <InfoIcon />
+                </ActionIcon>
+              </DocViewerTooltip>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <PdfDocumentInfo
+                document={props.document}
+                properties={properties}
+                attachments={attachments}
+                layers={props.layers}
+                onLayerChange={props.onLayerChange}
+              />
+            </Popover.Dropdown>
+          </Popover>
+        </>
+      )}
+
+      {show('presentation') && (
+        <>
+          <DocViewerTooltip label={labels.presentation}>
+            <ActionIcon
+              {...controlProps()}
+              aria-label={labels.presentation}
+              onClick={props.onPresent}
+            >
+              <PresentationIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        </>
+      )}
+
+      {show('editPages') && (
+        <>
+          {withPageEditing && (
+            <DocViewerTooltip label={labels.editPages}>
+              <ActionIcon
+                {...controlProps()}
+                aria-label={labels.editPages}
+                onClick={props.onEditPages}
+              >
+                <EditPagesIcon />
+              </ActionIcon>
+            </DocViewerTooltip>
+          )}
+        </>
+      )}
+
+      {show('search') && (
+        <>
+          <DocViewerTooltip label={labels.search}>
+            <ActionIcon
+              {...controlProps(searchOpened)}
+              ref={props.searchToggleRef}
+              aria-label={labels.search}
+              aria-pressed={searchOpened}
+              onClick={props.onToggleSearch}
+            >
+              <SearchIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        </>
+      )}
     </>
   );
 }

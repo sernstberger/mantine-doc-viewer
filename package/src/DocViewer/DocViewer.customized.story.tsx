@@ -32,16 +32,6 @@ export default { title: 'DocViewer/Customized' };
 /* 1. Contract review                                                         */
 /* -------------------------------------------------------------------------- */
 
-// The outline of the PDF is only readable inside the viewer, so the sections are hard-coded here.
-// MISSING: a way to read the outline (`controller.getOutline()` or `onOutlineLoad`) to build external navigation.
-const SECTIONS = [
-  { label: '1. Definitions', page: 1 },
-  { label: '2. Payment terms', page: 7 },
-  { label: '3. Liability', page: 18 },
-  { label: '4. Termination', page: 31 },
-  { label: '5. Signatures', page: 50 },
-];
-
 type Status = 'draft' | 'in-review' | 'approved';
 
 const STATUS_COLORS: Record<Status, string> = {
@@ -54,6 +44,8 @@ export function ContractReview() {
   const controller = useRef<DocViewerController>(null);
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
+  // Sections come from the PDF's own outline
+  const [sections, setSections] = useState<{ label: string; page: number }[]>([]);
   const [status, setStatus] = useState<Status>('in-review');
   const [comments, setComments] = useState([
     { id: 1, page: 7, text: 'Net 60 is too long, ask for net 30.' },
@@ -70,15 +62,23 @@ export function ContractReview() {
         controllerRef={controller}
         page={page}
         onPageChange={setPage}
-        onDocumentLoad={(info: DocViewerLoadInfo) => setNumPages(info.numPages ?? 0)}
+        onDocumentLoad={async (info: DocViewerLoadInfo) => {
+          setNumPages(info.numPages ?? 0);
+          const outline = (await controller.current?.getOutline()) ?? [];
+          setSections(
+            outline.flatMap((item) =>
+              item.page === null ? [] : [{ label: item.title, page: item.page }]
+            )
+          );
+        }}
         defaultThumbnailsOpened
         color="indigo"
         radius="md"
         withFullscreen={false}
         style={{ flex: 1 }}
         h="85vh"
-        // Dark mode: the body and chrome follow the Mantine colour scheme already, the pages stay white.
-        // MISSING: a `pageBackground` prop and a dark-mode page treatment (invert / tint pages) so contracts are readable at night.
+        // Pages follow the Mantine colour scheme too, inverted in dark mode
+        pageColorScheme="auto"
         styles={{
           toolbar: { borderBottomColor: 'var(--mantine-color-indigo-light)' },
         }}
@@ -104,14 +104,14 @@ export function ContractReview() {
           <Text fw={600} size="sm" mb="xs">
             Jump to section
           </Text>
-          {SECTIONS.map((section) => (
+          {sections.map((section) => (
             <NavLink
               key={section.page}
               label={section.label}
               description={`Page ${section.page}`}
               active={
                 page >= section.page &&
-                page < (SECTIONS.find((s) => s.page > section.page)?.page ?? Infinity)
+                page < (sections.find((s) => s.page > section.page)?.page ?? Infinity)
               }
               onClick={() => controller.current?.goToPage(section.page)}
             />
@@ -220,14 +220,9 @@ export function EmbeddedArticle() {
         // MISSING: `height="auto"` / `autoHeight` so the viewer grows to the pages and the article scrolls instead.
         h={620}
         defaultZoom="fit"
-        // No border, no grey background, no shadows, transparent pages:
-        // MISSING: `variant="unstyled"` or `withBorder={false}` / `withShadow={false}` / `pageBackground` props, this takes four selectors.
-        vars={() => ({ root: { '--doc-viewer-page-background': 'transparent' } })}
-        styles={{
-          root: { border: 0, background: 'transparent', minHeight: 0 },
-          body: { background: 'transparent' },
-          page: { boxShadow: 'none' },
-        }}
+        // No border, no grey background, no shadows
+        variant="plain"
+        pageBackground="transparent"
       />
 
       <Text mt="lg" mb="lg">
@@ -271,9 +266,15 @@ export function MobileCompact() {
           pageGap="xs"
           withPrint={false}
           withFullscreen={false}
-          // Thumbnails, zoom, rotate, layout, outline and search are always in the toolbar, it wraps onto two lines at 375px.
-          // MISSING: `controls={{ zoom: false, rotate: false, layout: false, outline: false, thumbnails: true, search: false }}`
-          //          (or a `hiddenControls` array) to drop toolbar buttons that do not fit a phone.
+          // Only what fits a phone
+          toolbarControls={{
+            rotate: false,
+            layout: false,
+            outline: false,
+            info: false,
+            presentation: false,
+            search: false,
+          }}
           // MISSING: pinch-to-zoom on touch (only buttons are available) and a `touch` friendly tap-to-toggle toolbar.
           // MISSING: responsive props (`size={{ base: 'xs', sm: 'sm' }}`) so the same element adapts to the viewport.
           // MISSING: `thumbnailsPosition` as a responsive value (left on desktop, bottom on phones).
@@ -391,8 +392,7 @@ export function BrandedKiosk() {
         tooltipProps={{ position: 'bottom', withArrow: true }}
         h="80vh"
         // Presentation feel: dark stage, warm pages.
-        // MISSING: `pageBackground` prop; `--doc-viewer-page-background` is read by the CSS but never set by `vars` / props.
-        vars={() => ({ root: { '--doc-viewer-page-background': '#fffaf2' } })}
+        pageBackground="#fffaf2"
         styles={{ body: { background: 'var(--mantine-color-grape-8)' }, root: { border: 0 } }}
         // MISSING: kiosk behaviours: `autoAdvance={{ interval: 15000 }}` (slideshow), `idleTimeout` + `onIdle` to reset to page 1 / zoom fit,
         //          `defaultFullscreen` / `fullscreen` controlled prop (browsers need a gesture, but the app should own the state),

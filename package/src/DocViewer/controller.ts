@@ -35,6 +35,9 @@ export interface DocViewerController {
   /** Opens the PDF page editor (needs `withPageEditing`) */
   editPages: () => void;
 
+  /** The PDF's outline (bookmarks) with page numbers, empty for other documents and PDFs without one */
+  getOutline: () => Promise<DocViewerOutlineItem[]>;
+
   /** Opens the browser print dialog for the document */
   print: () => Promise<void>;
 
@@ -43,6 +46,17 @@ export interface DocViewerController {
 
   /** Shows the viewer full screen, or leaves full screen */
   toggleFullscreen: () => Promise<void>;
+}
+
+export interface DocViewerOutlineItem {
+  title: string;
+
+  /** Page the item goes to, counted from 1, or null for web links and broken destinations */
+  page: number | null;
+
+  /** Web address, for items that link outside the document */
+  url: string | null;
+  items: DocViewerOutlineItem[];
 }
 
 export interface DocViewerLoadInfo {
@@ -95,6 +109,7 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
         await implementation.current.print?.();
       },
       download: call('download'),
+      getOutline: async () => (await implementation.current.getOutline?.()) ?? [],
       toggleFullscreen: async () => {
         await implementation.current.toggleFullscreen?.();
       },

@@ -81,4 +81,41 @@ describe('DocViewer', () => {
       );
     });
   });
+
+  describe('customisation', () => {
+    it('hides toolbar controls named in toolbarControls', () => {
+      render(
+        <DocViewer
+          src="/files/archive.zip"
+          toolbarControls={{ download: false, title: false, fullscreen: false }}
+        />
+      );
+      expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
+      expect(screen.queryByText('archive.zip')).not.toBeInTheDocument();
+    });
+
+    it('sets the plain variant, page background and page colour scheme', () => {
+      const { container } = render(
+        <DocViewer
+          src="/files/archive.zip"
+          variant="plain"
+          pageBackground="gray.0"
+          pageColorScheme="auto"
+        />
+      );
+      const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
+      expect(root).toHaveAttribute('data-variant', 'plain');
+      expect(root).toHaveAttribute('data-page-color-scheme', 'auto');
+      expect(root.style.getPropertyValue('--doc-viewer-page-background')).toBe(
+        'var(--mantine-color-gray-0)'
+      );
+    });
+
+    it('leaves the default page colours alone', () => {
+      const { container } = render(<DocViewer src="/files/archive.zip" pageColorScheme="light" />);
+      expect(container.querySelector('.mantine-DocViewer-root')).not.toHaveAttribute(
+        'data-page-color-scheme'
+      );
+    });
+  });
 });

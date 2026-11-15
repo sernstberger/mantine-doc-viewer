@@ -5,7 +5,11 @@ import type { SearchOptions } from './search';
 import { usePdfSearch } from './use-pdf-search';
 
 /** Search bar state: opened, query and options, with focus moved into and out of the bar */
-export function usePdfSearchBar(document: PDFDocumentProxy | null) {
+export function usePdfSearchBar(
+  document: PDFDocumentProxy | null,
+  /** Where focus goes when search closes and the search button is hidden */
+  fallbackFocus?: HTMLElement | null
+) {
   const [opened, setOpened] = useState(false);
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<SearchOptions>({});
@@ -25,7 +29,7 @@ export function usePdfSearchBar(document: PDFDocumentProxy | null) {
     setOpened(false);
     setQuery('');
     // The search bar held focus, so return it to the button that opens search
-    requestAnimationFrame(() => toggleRef.current?.focus());
+    requestAnimationFrame(() => (toggleRef.current ?? fallbackFocus)?.focus());
   };
 
   return {

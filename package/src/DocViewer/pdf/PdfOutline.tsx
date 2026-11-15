@@ -1,6 +1,7 @@
 import { UnstyledButton } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
+import type { DocViewerOutlineItem } from '../controller';
 import { useDocViewerContext } from '../DocViewer.context';
 import { resolveDestination } from './link-service';
 
@@ -35,6 +36,21 @@ export async function resolveDestinationPage(
   dest: OutlineNode['dest']
 ): Promise<number | null> {
   return (await resolveDestination(document, dest))?.page ?? null;
+}
+
+/** The outline with page numbers resolved, for apps that show it themselves */
+export async function getResolvedOutline(
+  document: PDFDocumentProxy,
+  items: OutlineNode[] | null
+): Promise<DocViewerOutlineItem[]> {
+  return Promise.all(
+    (items ?? []).map(async (item) => ({
+      title: item.title,
+      url: item.url ?? null,
+      page: item.url ? null : await resolveDestinationPage(document, item.dest).catch(() => null),
+      items: await getResolvedOutline(document, item.items),
+    }))
+  );
 }
 
 interface PdfOutlineProps {

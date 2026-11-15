@@ -699,3 +699,42 @@
     }
   }
 }
+
+/* variant="plain": just the document, for embedding in a page */
+.root[data-variant='plain'] {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+
+  & .toolbar {
+    border-bottom: 0;
+    background-color: transparent;
+  }
+
+  & .body {
+    background-color: transparent;
+  }
+
+  & .page {
+    box-shadow: none;
+  }
+}
+
+/* pageColorScheme: inverted pages for dark interfaces, keeping hues */
+.root[data-page-color-scheme='dark'] {
+  --_page-background: var(--doc-viewer-page-background, #121212);
+
+  & .page .canvas,
+  & .thumbnailImage .canvas {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+}
+
+:where([data-mantine-color-scheme='dark']) .root[data-page-color-scheme='auto'] {
+  --_page-background: var(--doc-viewer-page-background, #121212);
+
+  & .page .canvas,
+  & .thumbnailImage .canvas {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+}

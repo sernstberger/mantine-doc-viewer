@@ -1,4 +1,5 @@
 import type {
+  DocViewerControl,
   DocViewerFactory,
   DocViewerPageLayout,
   DocViewerThumbnailsPosition,
@@ -22,6 +23,7 @@ export interface DocViewerContextValue {
   alt: string | undefined;
   labels: DocViewerLabels;
   withToolbar: boolean | undefined;
+  toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
   pdfWorkerSrc: string | undefined;
   pdfOptions: PdfLoadOptions | undefined;
@@ -65,4 +67,10 @@ export const [DocViewerProvider, useDocViewerContext] = createSafeContext<DocVie
 export function useDocumentTitle() {
   const { fileName, labels } = useDocViewerContext();
   return fileName ?? labels.document;
+}
+
+/** Whether a toolbar control is shown: hidden only when `toolbarControls` sets it to false */
+export function useShowControl() {
+  const { toolbarControls } = useDocViewerContext();
+  return (control: DocViewerControl) => toolbarControls?.[control] !== false;
 }

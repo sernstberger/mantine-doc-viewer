@@ -1,6 +1,6 @@
 import { ActionIcon } from '@mantine/core';
 import React, { useState } from 'react';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext, useShowControl } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerBody } from '../renderers';
 import { WrapIcon } from '../icons';
@@ -13,6 +13,7 @@ import { DocViewerTooltip, useControlProps } from '../controls';
 export function TextView() {
   const { getStyles, src, maxTextSize, labels } = useDocViewerContext();
   const controlProps = useControlProps();
+  const show = useShowControl();
   const state = useTextDocument(src, maxTextSize);
   const [wrap, setWrap] = useState(true);
   const { fileName } = useDocViewerContext();
@@ -23,7 +24,7 @@ export function TextView() {
   return (
     <>
       <DocViewerToolbar onPrint={onPrint}>
-        {state.status === 'ready' && (
+        {state.status === 'ready' && show('wrap') && (
           <DocViewerTooltip label={wrap ? labels.doNotWrapLines : labels.wrapLines}>
             <ActionIcon
               {...controlProps(wrap)}

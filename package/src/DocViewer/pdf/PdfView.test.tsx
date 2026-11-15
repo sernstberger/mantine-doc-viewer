@@ -305,7 +305,7 @@ describe('DocViewer PDF', () => {
 
       const region = await screen.findByRole('region', { name: 'report.pdf' });
       expect(region).toHaveAttribute('tabindex', '0');
-      expect(region).toHaveAttribute('aria-keyshortcuts', 'Control+F Meta+F');
+      expect(region).toHaveAttribute('aria-keyshortcuts', 'Control+F Meta+F Plus Minus 0');
     });
 
     it('announces the page after the page buttons, not while scrolling', async () => {
@@ -983,5 +983,54 @@ describe('DocViewer PDF', () => {
       fireEvent.drop(first);
       expect(order()).toEqual(['3', '1', '2']);
     });
+  });
+
+  it('zooms PDFs with + - 0 and with Ctrl+wheel or trackpad pinch', async () => {
+    mockPdf();
+    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} />);
+    const region = await screen.findByRole('region', { name: 'report.pdf' });
+    const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ }).textContent;
+
+    region.focus();
+    await userEvent.keyboard('+');
+    expect(zoomLevel()).toBe('125%');
+    await userEvent.keyboard('-');
+    expect(zoomLevel()).toBe('100%');
+    await userEvent.keyboard('0');
+    expect(screen.getByRole('button', { name: 'Fit to width' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+
+    await userEvent.keyboard('-');
+    fireEvent.wheel(region, { deltaY: -100, ctrlKey: true });
+    expect(zoomLevel()).not.toBe('100%');
+  });
+
+  it('gives the outline with page numbers through controllerRef', async () => {
+    mockPdf({
+      outline: [
+        {
+          title: 'Costs',
+          dest: 'costs',
+          url: null,
+          items: [{ title: 'Mantine', url: 'https://mantine.dev', dest: null, items: [] }],
+        },
+      ],
+    });
+    const controller = createRef<DocViewerController>();
+    render(
+      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
+    );
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+
+    expect(await controller.current!.getOutline()).toEqual([
+      {
+        title: 'Costs',
+        page: 2,
+        url: null,
+        items: [{ title: 'Mantine', page: null, url: 'https://mantine.dev', items: [] }],
+      },
+    ]);
   });
 });

@@ -1,7 +1,7 @@
 import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
 import React, { useMemo, useState } from 'react';
 import { getCodeLanguage } from '../detect-doc-type';
-import { useDocViewerContext } from '../DocViewer.context';
+import { useDocViewerContext, useShowControl } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { DocViewerBody } from '../renderers';
 import { printText } from '../print';
@@ -30,6 +30,7 @@ function parseJson(text: string) {
 export function CodeView() {
   const { getStyles, src, fileName, language, maxTextSize, labels, codeHighlightProps } =
     useDocViewerContext();
+  const show = useShowControl();
   const state = useTextDocument(src, maxTextSize);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
@@ -48,7 +49,7 @@ export function CodeView() {
   return (
     <>
       <DocViewerToolbar onPrint={onPrint}>
-        {json !== NOT_JSON && (
+        {json !== NOT_JSON && show('viewMode') && (
           <ViewModeToggle
             value={mode}
             onChange={setMode}

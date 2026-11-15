@@ -83,6 +83,8 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     { modifier: 'data-pressed', selector: 'control', condition: 'Toggle button is on' },
     { modifier: 'data-disabled', selector: 'control', condition: 'Button is not available' },
     { modifier: 'data-size', selector: 'root', value: 'Value of `size` prop' },
+    { modifier: 'data-variant', selector: 'root', value: 'default | plain' },
+    { modifier: 'data-page-color-scheme', selector: 'root', value: 'dark | auto' },
     {
       modifier: 'data-thumbnails-position',
       selector: 'main',

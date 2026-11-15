@@ -19,7 +19,9 @@ import {
 import { getRegionProps } from '../a11y';
 import { saveBytes } from '../files';
 import { getEditedFileName } from './page-edits';
+import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
 import { PdfControls } from './PdfControls';
+import { getResolvedOutline } from './PdfOutline';
 import { PdfPageEditor, PdfSaveReason } from './PdfPageEditor';
 import { PdfPage } from './PdfPage';
 import { PdfSearchBar } from './PdfSearchBar';
@@ -113,7 +115,7 @@ export function PdfView() {
     layout === 'horizontal'
   );
   const [pageAnnouncement, announce] = useAnnouncement();
-  const search = usePdfSearchBar(document);
+  const search = usePdfSearchBar(document, scrollRoot);
   const onTextLayer = useSearchHighlights({
     pages: search.pages,
     matches: search.matches,
@@ -160,6 +162,8 @@ export function PdfView() {
     openSearch: (query) => ready && search.open(query),
     closeSearch: () => search.opened && search.close(),
     toggleThumbnails: (opened) => setThumbnailsOpened((current) => opened ?? !current),
+    getOutline: async () =>
+      document ? getResolvedOutline(document, await document.getOutline().catch(() => null)) : [],
     editPages: () => {
       context.withPageEditing && ready && setEditing(true);
     },
@@ -218,11 +222,41 @@ export function PdfView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editedData, ready?.document]);
 
+  // Pinch on a trackpad arrives as a wheel event with ctrlKey set; Ctrl+wheel zooms too
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+  useEffect(() => {
+    if (!scrollRoot || presenting) {
+      return undefined;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        setZoom(clampZoom(getWheelScale(scaleRef.current, event.deltaY)));
+      }
+    };
+    scrollRoot.addEventListener('wheel', onWheel, { passive: false });
+    return () => scrollRoot.removeEventListener('wheel', onWheel);
+  }, [scrollRoot, presenting]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const target = presenting ? getPresentationTarget(event.key, currentPage, numPages) : null;
     if (target !== null) {
       event.preventDefault();
       target === 'exit' ? presentation.stop() : goToPage(target);
+      return;
+    }
+
+    // + = - 0 zoom like images do; rotation stays on its button, as r is common in screen readers
+    const zoomAction = ready ? getImageKeyAction(event) : null;
+    if (zoomAction && zoomAction !== 'rotate') {
+      event.preventDefault();
+      const zoomActions = {
+        'zoom-in': () => setZoom(zoomIn(scale)),
+        'zoom-out': () => setZoom(zoomOut(scale)),
+        fit: () => setZoom('fit-width'),
+      };
+      zoomActions[zoomAction]();
       return;
     }
 
@@ -327,7 +361,7 @@ export function PdfView() {
         <div
           ref={setBodyRef}
           {...getStyles('body')}
-          {...getRegionProps(!!ready, title, 'Control+F Meta+F')}
+          {...getRegionProps(!!ready, title, 'Control+F Meta+F Plus Minus 0')}
           onKeyDown={handleKeyDown}
           // In a presentation a click shows the next page
           onClick={presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : undefined}
