@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -9,8 +9,12 @@ import {
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
-import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
+import { DocViewerLayoutContext } from '../DocViewerRoot/layout-context';
+import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
+import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import classes from '../DocViewer.module.css';
 import { PdfSearchBar } from './PdfSearchBar';
 
@@ -37,32 +41,61 @@ export type DocViewerSearchFactory = Factory<{
   compound: true;
 }>;
 
-/** The PDF search bar, shown while search is open */
-export const DocViewerSearch = factory<DocViewerSearchFactory>((_props) => {
-  useProps('DocViewerSearch', null, _props);
-  useDocViewerContext();
-  const session = useReadyPdfSession();
+/** The search bar, with the tooltips of its buttons set from `tooltipProps` */
+function SearchBar({
+  inputProps,
+  tooltipProps,
+  classNames,
+  className,
+  style,
+  styles,
+  vars,
+  ref,
+  ...others
+}: DocViewerSearchProps) {
+  const context = useDocViewerContext();
+  const session = usePdfSession();
+  const stylesOptions = useShallowStable({ className, style });
+  const elementProps = useShallowStable(others);
+  const overrides = tooltipProps
+    ? { tooltipProps: { ...context.tooltipProps, ...tooltipProps } }
+    : undefined;
   const search = session?.content.search;
-  if (!search?.opened) {
+  if (!search) {
     return null;
   }
 
   return (
-    <PdfSearchBar
-      inputRef={search.inputRef}
-      query={search.query}
-      onQueryChange={search.setQuery}
-      matchCount={search.matches.length}
-      activeIndex={search.activeIndex}
-      activePage={search.activeMatch?.pageNumber}
-      searching={search.searching}
-      onNext={search.next}
-      onPrevious={search.previous}
-      onClose={search.close}
-      options={search.options}
-      onOptionsChange={search.setOptions}
-    />
+    <PartStyles classNames={classNames} styles={styles} overrides={overrides}>
+      <PdfSearchBar
+        inputRef={search.inputRef}
+        query={search.query}
+        onQueryChange={search.setQuery}
+        matchCount={search.matches.length}
+        activeIndex={search.activeIndex}
+        activePage={search.activeMatch?.pageNumber}
+        searching={search.searching}
+        onNext={search.next}
+        onPrevious={search.previous}
+        onClose={search.close}
+        options={search.options}
+        onOptionsChange={search.setOptions}
+        inputProps={inputProps}
+        stylesOptions={stylesOptions}
+        elementProps={elementProps}
+        rootRef={ref}
+      />
+    </PartStyles>
   );
+}
+
+/** The PDF search bar, shown while search is open */
+export const DocViewerSearch = factory<DocViewerSearchFactory>((_props) => {
+  const layout = use(DocViewerLayoutContext);
+  const props = useProps('DocViewerSearch', layout.searchProps ?? null, _props);
+  const { store } = useDocViewerContext();
+  const opened = useDocViewerState(store, (state) => state.searchOpened);
+  return opened ? <SearchBar {...props} /> : null;
 });
 
 DocViewerSearch.classes = classes;

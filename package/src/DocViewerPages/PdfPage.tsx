@@ -5,7 +5,7 @@ import type { PdfLinkService } from '../utils/link-service';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
 import type { PdfJsModule } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import { type PdfRotation, rotateSize } from '../utils/render-page';
-import { getOverlayStyle } from '../utils/page-overlay';
+import { type DocViewerRenderPageOverlay, getOverlayStyle } from '../utils/page-overlay';
 import type { DocViewerPageRect } from '../utils/page-points';
 import { PdfHighlightLayer } from './PdfHighlightLayer';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
@@ -45,6 +45,12 @@ interface PdfPageProps {
 
   /** Boxes marked by `controller.highlight`, in page coordinates */
   highlightRects?: DocViewerPageRect[];
+
+  /** Largest canvas drawn, in pixels */
+  maxCanvasPixels?: number;
+
+  /** Content laid over the page */
+  renderPageOverlay?: DocViewerRenderPageOverlay;
 }
 
 /** The page layers of the extensions, the same array while the extensions are */
@@ -63,10 +69,12 @@ function PdfPageView({
   scrollRoot,
   registerPage,
   highlightRects,
+  maxCanvasPixels,
+  renderPageOverlay,
   ...props
 }: PdfPageProps) {
   const { document, pageNumber, scale } = props;
-  const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerPageContext();
+  const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   const pageLayers = usePageLayers();
   // What the canvas, text and link layers draw from; each hook takes the fields it needs

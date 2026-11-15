@@ -2,9 +2,9 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
 const PAGES = /^Page \d of 3$/;
 

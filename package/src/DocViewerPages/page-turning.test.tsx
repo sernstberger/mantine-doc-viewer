@@ -5,9 +5,9 @@ import {
   type DocViewerController,
   DocViewer,
   type DocViewerProps,
-} from '../../../../test-utils/render-legacy';
+} from '../../../test-utils/render-legacy';
 
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
 const VIEW = { width: 1200, height: 900 };
 

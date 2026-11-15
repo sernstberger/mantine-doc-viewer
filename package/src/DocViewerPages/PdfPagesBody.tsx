@@ -1,33 +1,58 @@
+import { Box, BoxProps, ElementProps } from '@mantine/core';
+import { useMergedRef } from '@mantine/hooks';
 import React from 'react';
-import { useDocumentTitle, useDocViewerContext } from '../doc-viewer.context';
+import { useDocumentTitle } from '../doc-viewer.context';
+import type { DocViewerPasswordInputProps } from '../doc-viewer.types';
 import type { PdfSession } from '../DocViewerRoot/pdf-session-context';
 import { getRegionProps } from '../utils/a11y';
+import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
 import { PdfPageList } from './PdfPageList';
 import { PdfStatus } from './PdfStatus';
 
+type BodyProps = BoxProps & ElementProps<'div'>;
+
+interface PdfPagesBodyProps {
+  session: PdfSession;
+  bodyProps: BodyProps;
+  bodyRef: React.Ref<HTMLDivElement> | undefined;
+  maxCanvasPixels: number;
+  renderPageOverlay: DocViewerRenderPageOverlay | undefined;
+  passwordInputProps: DocViewerPasswordInputProps | undefined;
+}
+
 /** The scrolling region of a PDF session with the load status and the pages */
-export function PdfPagesBody({ session }: { session: PdfSession }) {
-  const { getStyles } = useDocViewerContext();
+export function PdfPagesBody({
+  session,
+  bodyProps,
+  bodyRef,
+  maxCanvasPixels,
+  renderPageOverlay,
+  passwordInputProps,
+}: PdfPagesBodyProps) {
   const title = useDocumentTitle();
   const { state, loaded, view, position, content, turns, actions } = session;
   const { ready, numPages } = loaded;
   const { presenting } = view;
   const { currentPage, goToPage } = position;
+  const { onKeyDown, onClick } = bodyProps;
+  const ref = useMergedRef(bodyRef, turns.setBodyNode);
 
   return (
-    // Once the document is ready getRegionProps makes this a focusable, labelled region (role and
-    // tabIndex come through the spread). Clicks turn pages; the keys do the same from the region
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div
-      ref={turns.setBodyNode}
-      {...getStyles('body')}
+    <Box
+      ref={ref}
+      {...bodyProps}
       {...getRegionProps(!!ready, title, turns.keyShortcuts)}
       {...turns.bodyAttributes}
-      onKeyDown={actions.handleKeyDown}
-      // In a presentation a click shows the next page; otherwise the edges may turn pages
-      onClick={presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : turns.onEdgeClick}
+      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+        onKeyDown?.(event);
+        actions.handleKeyDown(event);
+      }}
+      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+        onClick?.(event);
+        presenting ? goToPage(Math.min(currentPage + 1, numPages)) : turns.onEdgeClick(event);
+      }}
     >
-      <PdfStatus state={state} />
+      <PdfStatus state={state} passwordInputProps={passwordInputProps} />
 
       {ready && (
         <PdfPageList
@@ -48,8 +73,10 @@ export function PdfPagesBody({ session }: { session: PdfSession }) {
           registerPage={position.registerPage}
           linkService={content.linkService}
           onTextLayer={content.textLayers.onTextLayer}
+          maxCanvasPixels={maxCanvasPixels}
+          renderPageOverlay={renderPageOverlay}
         />
       )}
-    </div>
+    </Box>
   );
 }

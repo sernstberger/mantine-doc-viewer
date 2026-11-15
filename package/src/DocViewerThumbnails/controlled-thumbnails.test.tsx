@@ -2,9 +2,9 @@ import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef, useState } from 'react';
-import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 
-import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
 /** A viewer whose thumbnails the app holds, with its own button that opens them */
 function App({

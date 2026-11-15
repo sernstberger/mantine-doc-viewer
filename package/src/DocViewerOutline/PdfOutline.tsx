@@ -1,4 +1,11 @@
-import { UnstyledButton, VisuallyHidden } from '@mantine/core';
+import {
+  Box,
+  BoxProps,
+  ElementProps,
+  type GetStylesApiOptions,
+  UnstyledButton,
+  VisuallyHidden,
+} from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
 import type { DocViewerOutlineItem } from '../hooks/use-controller-registry';
@@ -57,9 +64,18 @@ interface PdfOutlineProps {
   document: PDFDocumentProxy;
   items: OutlineNode[];
   onSelect: (page: number) => void;
+
+  /** className, style, classNames and styles of the `outline` element */
+  stylesOptions?: GetStylesApiOptions;
+
+  /** Other props of the `outline` element */
+  elementProps?: BoxProps & ElementProps<'nav'>;
+  rootRef?: React.Ref<HTMLElement>;
 }
 
-function OutlineList({ document, items, onSelect }: PdfOutlineProps) {
+type OutlineListProps = Pick<PdfOutlineProps, 'document' | 'items' | 'onSelect'>;
+
+function OutlineList({ document, items, onSelect }: OutlineListProps) {
   const { getStyles, labels } = useDocViewerContext();
 
   return (
@@ -99,12 +115,25 @@ function OutlineList({ document, items, onSelect }: PdfOutlineProps) {
 }
 
 /** Table of contents of a PDF, from its bookmarks */
-export function PdfOutline(props: PdfOutlineProps) {
+export function PdfOutline({
+  document,
+  items,
+  onSelect,
+  stylesOptions,
+  elementProps,
+  rootRef,
+}: PdfOutlineProps) {
   const { getStyles, labels } = useDocViewerContext();
 
   return (
-    <nav {...getStyles('outline')} aria-label={labels.outlineLabel}>
-      <OutlineList {...props} />
-    </nav>
+    <Box
+      component="nav"
+      ref={rootRef}
+      {...getStyles('outline', stylesOptions)}
+      aria-label={labels.outlineLabel}
+      {...elementProps}
+    >
+      <OutlineList document={document} items={items} onSelect={onSelect} />
+    </Box>
   );
 }
