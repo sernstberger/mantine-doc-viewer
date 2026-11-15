@@ -48,7 +48,6 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     scrollRoot,
     goToPage,
     setZoom: zoomTo,
-    toggleThumbnails: view.thumbnailsPanel.toggle,
     togglePresentation: view.presentation.toggle,
     passage: content.passage,
     search,

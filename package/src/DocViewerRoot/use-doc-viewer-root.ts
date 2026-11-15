@@ -17,7 +17,6 @@ import {
 import type { DocViewerExtension } from '../doc-viewer.types';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
 import type { DocViewerLabels } from '../default-labels';
-import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { useDocViewerContextValue } from './doc-viewer-context-value';
 import type { DocViewerRootFactory, DocViewerRootProps } from './DocViewerRoot';
 import { DocViewerLayoutContext, type DocViewerLayoutConfig } from './layout-context';
@@ -138,8 +137,6 @@ export function useDocViewerRoot(
   useThumbnailsDefaults(props, store, session.type);
   useMissingPdfAdapterWarning(session.type === 'pdf' && !adapters.pdf);
 
-  const thumbnailsOpened = useDocViewerState(store, (state) => state.thumbnailsOpened);
-  const thumbnailsPosition = useDocViewerState(store, (state) => state.thumbnailsPosition);
   const partVars = usePartVars(layout);
   const value = useDocViewerContextValue({
     props,
@@ -149,7 +146,6 @@ export function useDocViewerRoot(
     events,
     store,
     adapters,
-    thumbnails: { thumbnailsOpened, thumbnailsPosition },
   });
 
   return { value, session, partVars, withPdfSession: session.type === 'pdf' && !!adapters.pdf };

@@ -15,7 +15,6 @@ import type {
   DocViewerPageLayout,
   DocViewerPasswordInputProps,
   DocViewerSearchInputProps,
-  DocViewerThumbnailsPosition,
   DocViewerZoom,
 } from './doc-viewer.types';
 import type { ControllerImplementation, DocViewerEvents } from './hooks/use-controller-registry';
@@ -53,14 +52,8 @@ export interface DocViewerContextValue {
   toolbarSubtitle: React.ReactNode;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
   maxCanvasPixels: number;
-  thumbnailsOpened: boolean | undefined;
-  defaultThumbnailsOpened: boolean | undefined;
-  onThumbnailsOpenedChange: ((opened: boolean) => void) | undefined;
   defaultPageLayout: DocViewerPageLayout | undefined;
   pageLayout: DocViewerPageLayout | undefined;
-  thumbnailsPosition: DocViewerThumbnailsPosition | undefined;
-  defaultThumbnailsPosition: DocViewerThumbnailsPosition | undefined;
-  onThumbnailsPositionChange: ((position: DocViewerThumbnailsPosition) => void) | undefined;
   maxTextSize: number;
   language: string | undefined;
   size: DocViewerSizeConfig;

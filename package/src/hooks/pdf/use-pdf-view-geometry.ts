@@ -13,7 +13,6 @@ import type { getLoaded } from './use-pdf-document';
 import { usePageLayout } from './use-page-layout';
 import { usePagesGutter } from './use-pages-gutter';
 import { usePresentation } from './use-presentation';
-import { useThumbnailsPanel } from './use-thumbnails-panel';
 import type { DocViewerZoom } from '../use-controller-registry';
 import { useZoomSetting } from '../use-zoom-setting';
 import { useDocViewerStateValue } from '../use-doc-viewer-state';
@@ -47,7 +46,6 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
   });
   const [storedRotation, setRotation] = useDocViewerStateValue(context.store, 'rotation');
   const rotation = storedRotation as PdfRotation;
-  const thumbnailsPanel = useThumbnailsPanel(context);
 
   const [pagesNode, setPagesNode] = useState<HTMLDivElement | null>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
@@ -95,7 +93,6 @@ export function usePdfViewGeometry(context: DocViewerContextValue, ready: PdfLoa
     setLayout,
     rotation,
     rotate: () => setRotation((current) => nextRotation(current as PdfRotation)),
-    thumbnailsPanel,
     pagesNode,
     setPagesNode,
     scrollRoot,

@@ -24,7 +24,6 @@ interface PdfControllerInput {
     behavior?: 'smooth' | 'instant'
   ) => void;
   setZoom: (zoom: PdfZoom) => void;
-  toggleThumbnails: (opened?: boolean) => void;
   togglePresentation: () => void;
   passage: Pick<ReturnType<typeof usePassageHighlight>, 'highlight' | 'clear'>;
   search: Pick<ReturnType<typeof usePdfSearchBar>, 'open' | 'close' | 'opened'>;
@@ -57,7 +56,6 @@ export function usePdfController(input: PdfControllerInput) {
     zoomOut: () => input.setZoom(zoomOut(scale)),
     openSearch: (query) => ready && search.open(query),
     closeSearch: () => search.opened && search.close(),
-    toggleThumbnails: input.toggleThumbnails,
     getOutline: async () =>
       document ? getResolvedOutline(document, await document.getOutline().catch(() => null)) : [],
     togglePresentation: () => {

@@ -1,6 +1,5 @@
-import { useCallbackRef } from '@mantine/hooks';
 import type { DocViewerContextValue } from '../doc-viewer.context';
-import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
+import type { DocViewerStore } from '../doc-viewer.store';
 import type { DocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
 import { DOC_VIEWER_SIZES } from '../utils/sizes';
 import { MAX_CANVAS_PIXELS } from '../utils/render-page';
@@ -20,12 +19,11 @@ interface DocViewerContextParts {
   events: DocViewerContextValue['events'];
   store: DocViewerStore;
   adapters: DocViewerAdapters;
-  thumbnails: Pick<DocViewerContextValue, 'thumbnailsOpened' | 'thumbnailsPosition'>;
 }
 
 /** The context value the views read, from Root's props and the layout of `DocViewer` */
 export function buildDocViewerContextValue(parts: DocViewerContextParts): DocViewerContextValue {
-  const { props, layout, getStyles, session, events, store, adapters, thumbnails } = parts;
+  const { props, layout, getStyles, session, events, store, adapters } = parts;
   const { toolbarProps, pagesProps, textProps } = layout;
 
   return {
@@ -50,16 +48,8 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
     toolbarSubtitle: toolbarProps?.subtitle,
     renderPageOverlay: pagesProps?.renderPageOverlay,
     maxCanvasPixels: pagesProps?.maxCanvasPixels ?? MAX_CANVAS_PIXELS,
-    thumbnailsOpened: thumbnails.thumbnailsOpened,
-    defaultThumbnailsOpened: undefined,
-    onThumbnailsOpenedChange: (opened) =>
-      updateDocViewerStateAction({ thumbnailsOpened: opened }, store),
     defaultPageLayout: props.defaultPageLayout,
     pageLayout: props.pageLayout,
-    thumbnailsPosition: thumbnails.thumbnailsPosition,
-    defaultThumbnailsPosition: undefined,
-    onThumbnailsPositionChange: (position) =>
-      updateDocViewerStateAction({ thumbnailsPosition: position }, store),
     maxTextSize: textProps?.maxSize ?? DEFAULT_MAX_TEXT_SIZE,
     language: textProps?.language,
     size: DOC_VIEWER_SIZES[props.size!] ?? DOC_VIEWER_SIZES.sm,
@@ -90,12 +80,5 @@ export function buildDocViewerContextValue(parts: DocViewerContextParts): DocVie
  * parent renders
  */
 export function useDocViewerContextValue(parts: DocViewerContextParts): DocViewerContextValue {
-  const value = buildDocViewerContextValue(parts);
-  const onThumbnailsOpenedChange = useCallbackRef(value.onThumbnailsOpenedChange!);
-  const onThumbnailsPositionChange = useCallbackRef(value.onThumbnailsPositionChange!);
-  return useShallowStable({
-    ...value,
-    onThumbnailsOpenedChange,
-    onThumbnailsPositionChange,
-  });
+  return useShallowStable(buildDocViewerContextValue(parts));
 }
