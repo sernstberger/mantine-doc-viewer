@@ -889,3 +889,17 @@
 .editorTitle {
   font-weight: 600;
 }
+
+.editorCount {
+  color: var(--mantine-color-dimmed);
+}
+
+.documentHeading {
+  margin-bottom: rem(4px);
+  font-weight: 600;
+}
+
+/* The save button sits at the end of the markup bar */
+.markupSave {
+  margin-inline-start: auto;
+}

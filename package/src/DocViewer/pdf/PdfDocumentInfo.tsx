@@ -29,7 +29,7 @@ export function PdfDocumentInfo({
   return (
     <div {...getStyles('documentInfo')}>
       <section aria-labelledby={`${id}-properties`}>
-        <Text id={`${id}-properties`} fw={600} size="sm" mb={4}>
+        <Text id={`${id}-properties`} size="sm" {...getStyles('documentHeading')}>
           {labels.properties}
         </Text>
         <DataList {...getStyles('properties')} size="xs" gap={4} labelWidth="6.5rem">
@@ -44,7 +44,7 @@ export function PdfDocumentInfo({
 
       {attachments.length > 0 && (
         <section aria-labelledby={`${id}-attachments`}>
-          <Text id={`${id}-attachments`} fw={600} size="sm" mb={4}>
+          <Text id={`${id}-attachments`} size="sm" {...getStyles('documentHeading')}>
             {labels.attachments}
           </Text>
           <Stack gap={2}>
@@ -65,7 +65,7 @@ export function PdfDocumentInfo({
 
       {layers.length > 0 && (
         <section aria-labelledby={`${id}-layers`}>
-          <Text id={`${id}-layers`} fw={600} size="sm" mb={4}>
+          <Text id={`${id}-layers`} size="sm" {...getStyles('documentHeading')}>
             {labels.layers}
           </Text>
           <Stack gap={6}>
@@ -73,6 +73,7 @@ export function PdfDocumentInfo({
               <Checkbox
                 key={layer.id}
                 size="xs"
+                {...getStyles('documentLayer')}
                 label={layer.name}
                 checked={layer.visible}
                 onChange={(event) => onLayerChange(layer.id, event.currentTarget.checked)}

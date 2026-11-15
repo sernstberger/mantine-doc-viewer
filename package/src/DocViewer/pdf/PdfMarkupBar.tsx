@@ -72,7 +72,7 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
         size={size.input}
         variant="default"
         loading={markup.saving}
-        ml="auto"
+        {...getStyles('markupSave')}
         data-toolbar-toggle
         {...softDisabled(empty, onSave)}
       >
