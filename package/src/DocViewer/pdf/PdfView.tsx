@@ -18,7 +18,13 @@ import {
 } from './geometry';
 import { getRegionProps } from '../a11y';
 import { saveBytes } from '../files';
-import { buildExtractRequest, getEditedFileName, initialOrder, movePage } from './page-edits';
+import {
+  buildExtractRequest,
+  getEditedFileName,
+  initialOrder,
+  movePage,
+  removeSelected,
+} from './page-edits';
 import { getImageKeyAction, getWheelScale } from '../views/image-zoom';
 import { PdfControls } from './PdfControls';
 import { getResolvedOutline } from './PdfOutline';
@@ -170,6 +176,7 @@ export function PdfView() {
     togglePresentation: () => {
       ready && presentation.toggle();
     },
+    getBytes: async () => (document ? document.getData() : null),
     print,
   });
 
@@ -223,6 +230,16 @@ export function PdfView() {
     announce(labels.pageMoved(page, toIndex + 1));
     // Only an app that saves edits hears about it; a drag never starts a download
     await context.onSave?.(bytes, { reason: 'reorder', pages: order });
+  };
+
+  /** Removes a page with its thumbnail's delete button: the viewer shows the shorter document */
+  const deletePage = async (page: number) => {
+    // Thumbnails only offer delete while there are two pages or more
+    const order = removeSelected(initialOrder(numPages), new Set([page]));
+    const bytes = (await ready!.document.extractPages(buildExtractRequest(order))) as Uint8Array;
+    showEdited(bytes, Math.min(page, order.length));
+    announce(labels.pagesRemoved(1));
+    await context.onSave?.(bytes, { reason: 'delete', pages: order });
   };
 
   // An edited document starts at its first page, or where a dragged page landed. The effect
@@ -306,6 +323,7 @@ export function PdfView() {
       // Screen readers already read the selected thumbnail, so no page announcement as well
       onSelect={(page) => goToPage(page, false)}
       onReorder={context.withPageEditing ? reorderPages : undefined}
+      onDelete={context.withPageEditing ? deletePage : undefined}
     />
   );
 

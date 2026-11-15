@@ -38,6 +38,12 @@ export interface DocViewerController {
   /** The PDF's outline (bookmarks) with page numbers, empty for other documents and PDFs without one */
   getOutline: () => Promise<DocViewerOutlineItem[]>;
 
+  /**
+   * The bytes of the document as shown: for a PDF, after any page edits (not the reader's view
+   * rotation). Null for other documents, and for a PDF that is not loaded
+   */
+  getBytes: () => Promise<Uint8Array | null>;
+
   /** Opens the browser print dialog for the document */
   print: () => Promise<void>;
 
@@ -109,6 +115,7 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
         await implementation.current.print?.();
       },
       download: call('download'),
+      getBytes: async () => (await implementation.current.getBytes?.()) ?? null,
       getOutline: async () => (await implementation.current.getOutline?.()) ?? [],
       toggleFullscreen: async () => {
         await implementation.current.toggleFullscreen?.();

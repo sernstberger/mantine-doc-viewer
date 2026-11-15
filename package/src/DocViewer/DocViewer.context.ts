@@ -51,10 +51,11 @@ export interface DocViewerContextValue {
   withDownload: boolean | undefined;
   withFullscreen: boolean | undefined;
   withPageEditing: boolean | undefined;
+  compactPageEditor: boolean | undefined;
   onSave:
     | ((
         bytes: Uint8Array,
-        info: { reason: 'save' | 'extract' | 'reorder'; pages: number[] }
+        info: { reason: 'save' | 'extract' | 'reorder' | 'delete'; pages: number[] }
       ) => void | Promise<void>)
     | undefined;
   fullscreen: boolean;

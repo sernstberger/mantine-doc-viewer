@@ -251,6 +251,28 @@
   box-shadow: 0 1px 0 rgb(20 32 29 / 0.08);
 }
 
+/* Icon-only action buttons: round, teal when they matter */
+.editorButton {
+  border-radius: 12px;
+  border-color: rgb(20 32 29 / 0.12);
+  color: var(--scanbox-ink);
+}
+
+.editorButton[data-variant='filled'] {
+  border-color: transparent;
+  background: var(--scanbox-teal);
+  color: #fff;
+}
+
+/* Trash button on a page strip thumbnail: a small white chip, always on a phone */
+.thumbnailDelete {
+  border: 0;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 4px rgb(20 32 29 / 0.25);
+  color: #b3261e;
+}
+
 .editorPages {
   gap: 12px;
   padding: 16px 12px;

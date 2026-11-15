@@ -168,3 +168,39 @@ export const DragHandleIcon = (props: IconProps) => (
     <circle cx="15" cy="18" r="1" />
   </Icon>
 );
+
+export const TrashIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12M9 7V4h6v3" />
+  </Icon>
+);
+
+export const ArrowLeftIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </Icon>
+);
+
+export const ArrowRightIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Icon>
+);
+
+export const ExtractIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+  </Icon>
+);
+
+export const CheckIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M5 12.5l4.5 4.5L19 7" />
+  </Icon>
+);
+
+export const CloseIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Icon>
+);

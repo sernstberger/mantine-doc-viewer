@@ -14,6 +14,7 @@ export interface DocViewerLabels {
   moveEarlier: string;
   moveLater: string;
   deletePages: string;
+  deletePage: (page: number) => string;
   extractPages: string;
   resetPages: string;
   cancel: string;
@@ -129,6 +130,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   moveEarlier: 'Move earlier',
   moveLater: 'Move later',
   deletePages: 'Delete',
+  deletePage: (page) => `Delete page ${page}`,
   extractPages: 'Extract selected',
   resetPages: 'Reset',
   cancel: 'Cancel',
