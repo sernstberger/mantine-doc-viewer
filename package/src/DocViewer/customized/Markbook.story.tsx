@@ -350,8 +350,10 @@ export function Markbook() {
         </div>
 
         <DocViewer
-          // The same PDF stands in for every student's submission
-          src="/stories/essay.pdf"
+          // The same PDF stands in for every student's submission; the query makes each a document of its own
+          src={`/stories/essay.pdf?student=${student.id}`}
+          // Next student opens the next essay at the same zoom and scroll position
+          keepView
           fileName={`${student.name}, persuasive essay.pdf`}
           pdfWorkerSrc={pdfWorkerSrc}
           size="xs"
@@ -424,7 +426,6 @@ export function Markbook() {
               );
             })
           }
-          // MISSING: a way to swap the document without remounting, so next student keeps zoom and scroll.
         />
       </main>
 

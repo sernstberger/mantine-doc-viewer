@@ -40,6 +40,9 @@ export function ImageView() {
   });
   const rotate = () => setRotation(nextImageRotation);
 
+  // With keepView the image is not remounted: a new src gets another try after a failure
+  useEffect(() => setFailed(false), [src]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const action = getImageKeyAction(event);
     if (!action) {

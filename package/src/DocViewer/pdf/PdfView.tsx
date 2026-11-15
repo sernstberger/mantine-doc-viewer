@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
+import { useKeepScroll } from '../keep-scroll';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { printPdfBytes } from '../print';
 import { clampZoom, zoomIn, zoomOut } from '../zoom';
@@ -63,6 +64,13 @@ export function PdfView() {
   // Page editing makes a new document, which the viewer then shows instead of `src`
   const [editing, setEditing] = useState(false);
   const [editedData, setEditedData] = useState<Uint8Array | null>(null);
+  // With keepView the view is not remounted for a new src, but edits belong to the old document
+  const [editedSrc, setEditedSrc] = useState(context.src);
+  if (editedSrc !== context.src) {
+    setEditedSrc(context.src);
+    setEditedData(null);
+    setEditing(false);
+  }
   const state = usePdfDocument(context.src, context.pdfWorkerSrc, context.pdfOptions, editedData);
   const ready = state.status === 'ready' ? state : null;
   const document = ready?.document ?? null;
@@ -142,6 +150,8 @@ export function PdfView() {
     pageReported,
     scrollToPage,
   });
+
+  useKeepScroll(scrollRoot, !!(ready && scrollRoot && pagesNode), context.src, context.keepView);
 
   /** Moves to a page, and reads it out unless something else already does (the thumbnails) */
   const goToPage = (page: number, withAnnouncement = true) => {

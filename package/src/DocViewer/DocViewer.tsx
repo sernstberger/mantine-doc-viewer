@@ -158,6 +158,14 @@ export interface DocViewerProps
   /** Alternative text for images, `fileName` by default */
   alt?: string;
 
+  /**
+   * Determines whether the viewer keeps zoom, rotation, page layout and scroll position when `src`
+   * changes to another document of the same type, for example a next button, `false` by default.
+   * Search, page edits and the loaded document itself still reset. Otherwise a new `src` starts the
+   * viewer afresh
+   */
+  keepView?: boolean;
+
   /** Text shown or read out by the viewer, override any of it to translate the viewer */
   labels?: Partial<DocViewerLabels>;
 
@@ -401,6 +409,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     mimeType,
     fileName,
     alt,
+    keepView,
     labels,
     pdfWorkerSrc,
     pdfOptions,
@@ -530,6 +539,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         mimeType,
         fileName: resolvedFileName,
         alt,
+        keepView,
         labels: resolvedLabels,
         withToolbar,
         toolbarControls,
@@ -579,8 +589,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         ]}
         {...others}
       >
-        {/* Keyed so that zoom, rotation and search reset when the document changes */}
-        <React.Fragment key={`${resolvedType}:${src}`}>
+        {/* Keyed so that zoom, rotation and search reset when the document changes, unless the view is kept */}
+        <React.Fragment key={keepView ? resolvedType : `${resolvedType}:${src}`}>
           {renderView({ src, fileName: resolvedFileName, mimeType, type: resolvedType }, renderers)}
         </React.Fragment>
       </Box>

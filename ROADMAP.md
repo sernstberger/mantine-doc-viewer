@@ -48,7 +48,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **Get the bytes of the document as shown** (after edits) from the controller, so an app's
       own Export button can save it (Scanbox)
 - [ ] **Rotate one page and save it**; rotate only turns the view today (Folio)
-- [ ] **Swap the document without remounting**, keeping zoom and scroll (Markbook)
+- [x] **Swap the document without remounting** (`keepView`), keeping zoom and scroll (Markbook)
 - [ ] **Reading progress**: the fraction of each page seen, a reached-the-end signal, a reading
       position (Haven, Field Report)
 - [ ] **Kiosk**: `idleTimeout` and `onIdle` to reset, and an auto-advance attract mode (Atrium)

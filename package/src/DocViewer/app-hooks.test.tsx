@@ -15,7 +15,11 @@ describe('onDocumentLoadStart', () => {
     );
     expect(onDocumentLoadStart).toHaveBeenCalledWith({ type: 'image', src: '/files/a.png' });
 
-    rerender(<DocViewer src="/files/b.png" onDocumentLoadStart={onDocumentLoadStart} />);
+    rerender(
+      <>
+        <DocViewer src="/files/b.png" onDocumentLoadStart={onDocumentLoadStart} />
+      </>
+    );
     expect(onDocumentLoadStart).toHaveBeenLastCalledWith({ type: 'image', src: '/files/b.png' });
     expect(onDocumentLoadStart).toHaveBeenCalledTimes(2);
   });

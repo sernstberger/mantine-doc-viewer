@@ -25,6 +25,7 @@ export interface DocViewerContextValue {
   mimeType: string | undefined;
   fileName: string | undefined;
   alt: string | undefined;
+  keepView: boolean | undefined;
   labels: DocViewerLabels;
   withToolbar: boolean | undefined;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
