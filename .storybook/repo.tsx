@@ -2,6 +2,7 @@
 import './fonts';
 import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight';
 import { createTheme } from '@mantine/core';
+import type { Decorator } from '@storybook/react-vite';
 import {
   createPdfJsAdapter,
   createReactMarkdownAdapter,
@@ -27,8 +28,8 @@ const markdownAdapter = createReactMarkdownAdapter(() =>
 export const repoTheme = createTheme({});
 
 /** Gives every story the code highlighter and the pdf.js and markdown engines */
-export const repoDecorators = [
-  (renderStory: () => React.ReactNode) => (
+export const repoDecorators: Decorator[] = [
+  (renderStory) => (
     <CodeHighlightAdapterProvider adapter={shikiAdapter}>
       <DocViewerAdapterProvider pdf={pdfAdapter} markdown={markdownAdapter}>
         {renderStory()}
