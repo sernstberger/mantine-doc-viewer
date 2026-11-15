@@ -471,7 +471,7 @@ describe('TextStatus', () => {
     const states = [
       { status: 'too-large', size: 3 * 1024 * 1024 },
       { status: 'error', error: new Error('x') },
-      { status: 'ready', text: 'hi' },
+      { status: 'ready', text: 'hi', size: 2, mimeType: undefined },
     ] as const;
     const view = (state: (typeof states)[number]) => (
       <DocViewer

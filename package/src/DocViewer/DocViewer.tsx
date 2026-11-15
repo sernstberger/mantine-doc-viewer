@@ -526,6 +526,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       value={{
         getStyles,
         src,
+        type: resolvedType,
+        mimeType,
         fileName: resolvedFileName,
         alt,
         labels: resolvedLabels,

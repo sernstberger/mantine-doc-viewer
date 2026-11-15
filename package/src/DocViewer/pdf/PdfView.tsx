@@ -132,6 +132,7 @@ export function PdfView() {
     currentPage,
     scale,
     fitted: zoom === 'fit-width',
+    mimeType: context.mimeType,
   });
   usePageSync({
     numPages,

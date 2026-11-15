@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import type { DocViewerLoadInfo } from './controller';
 import { getRegionProps } from './a11y';
 import { useControlProps } from './controls';
 import type { DocType } from './detect-doc-type';
@@ -22,12 +23,23 @@ export interface DocViewerRenderer {
   render: (file: DocViewerFile) => React.ReactNode;
 }
 
-/** Viewer state for custom renderers: Styles API, labels, events, the controller and toolbar button props */
+/**
+ * Viewer state for custom renderers: Styles API, labels, events, the controller and toolbar button
+ * props, and two helpers to report the outcome: `onLoad` when the file is shown and `onError` when it
+ * could not be loaded. They call the viewer's `onDocumentLoad` and `onDocumentError`. `onLoad` fills
+ * in the `type` and `mimeType` of the file, so `onLoad()` is enough
+ */
 export function useDocViewer() {
   const context = useDocViewerContext();
   const controlProps = useControlProps();
   const title = useDocumentTitle();
-  return { ...context, controlProps, title };
+  const { events, type, mimeType } = context;
+  const onLoad = useCallback(
+    (info?: Partial<DocViewerLoadInfo>) => events.onDocumentLoad({ type, mimeType, ...info }),
+    [events, type, mimeType]
+  );
+  const onError = events.onDocumentError;
+  return { ...context, controlProps, title, onLoad, onError };
 }
 
 export interface DocViewerBodyProps extends React.ComponentPropsWithoutRef<'div'> {

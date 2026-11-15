@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 export type TextDocumentState =
   | { status: 'loading' }
-  | { status: 'ready'; text: string }
+  | { status: 'ready'; text: string; size: number; mimeType: string | undefined }
   | { status: 'too-large'; size: number }
   | { status: 'error'; error: Error };
 
@@ -67,6 +67,8 @@ export function useTextDocument(src: string, maxSize: number): TextDocumentState
       return {
         status: 'ready',
         text: decodeText(bytes, response.headers.get('content-type')),
+        size,
+        mimeType: response.headers.get('content-type')?.split(';')[0].trim() || undefined,
       } as const;
     })()
       .then((next) => !cancelled && setState(next))

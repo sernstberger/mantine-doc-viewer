@@ -260,18 +260,17 @@ function parseCsv(text: string) {
 const isNumber = (cell: string) => cell !== '' && !Number.isNaN(Number(cell));
 
 function CsvView({ src }: { src: string }) {
-  // A custom renderer reports load / error itself, the built-in views do it for the built-in types only.
-  // MISSING: custom renderers could be given `onLoad` / `onError` helpers instead of reaching into `events`.
-  const { events } = useDocViewer();
+  // A custom renderer reports load / error itself, the built-in views do it for the built-in types only
+  const { onLoad, onError } = useDocViewer();
   const state = useTextDocument(src, 2_000_000);
 
   useEffect(() => {
     if (state.status === 'ready') {
-      events.onDocumentLoad({ type: 'text' });
+      onLoad({ type: 'text' });
     } else if (state.status === 'error') {
-      events.onDocumentError(state.error);
+      onError(state.error);
     }
-  }, [state.status, events]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, onLoad, onError]);
 
   const rows = state.status === 'ready' ? parseCsv(state.text) : [];
   const numeric = rows[0]?.map((_, index) => rows.slice(1).every((row) => isNumber(row[index])));
@@ -373,6 +372,17 @@ function describe(file: DriveFile, state: LoadState | null) {
   return { status: 'ready', text: 'Preview ready' };
 }
 
+/** Size as the viewer measured it, for the files whose size it knows: PDFs and text */
+function measuredSize(info: DocViewerLoadInfo | undefined) {
+  const bytes = info?.byteSize;
+  if (bytes === undefined) {
+    return null;
+  }
+  return bytes < 1024 * 1024
+    ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+    : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function dimensions(info: DocViewerLoadInfo | undefined) {
   if (info?.numPages) {
     return `${info.numPages} ${info.numPages === 1 ? 'page' : 'pages'}`;
@@ -395,6 +405,7 @@ export function Locker() {
   const selected = FILES.find((file) => file.id === selectedId)!;
   const { status, text } = describe(selected, load);
   const facts = load?.id === selected.id ? dimensions(load.info) : null;
+  const measured = load?.id === selected.id ? measuredSize(load.info) : null;
 
   useEffect(() => {
     if (!toast) {
@@ -610,7 +621,7 @@ export function Locker() {
               {KIND_LABEL[selected.kind]}
             </span>
             {facts && <span>{facts}</span>}
-            <span>{selected.size}</span>
+            <span>{measured ?? selected.size}</span>
           </div>
           <span className={classes.status} data-status={status} role="status">
             {text}
@@ -635,7 +646,6 @@ export function Locker() {
               </ActionIcon>
             </Tooltip>
           </div>
-          {/* MISSING: onDocumentLoad gives no byte size / mime / title metadata (PDF info dictionary, line count): sizes here come from the file list */}
         </footer>
       </aside>
 

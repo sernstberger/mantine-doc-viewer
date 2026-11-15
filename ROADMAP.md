@@ -41,8 +41,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 - [x] **`onDocumentLoadStart`** (Locker)
 - [x] **`controller.canPrint` and `controller.type`** so apps can disable their own buttons (Locker)
-- [ ] **Richer `onDocumentLoad`**: byte size, MIME type, PDF title (Locker)
-- [ ] **`onLoad` and `onError` helpers for custom renderers** instead of reaching into `events`
+- [x] **Richer `onDocumentLoad`**: `byteSize`, `mimeType`, `title` (Locker)
+- [x] **`onLoad` and `onError` helpers for custom renderers** (from `useDocViewer`) instead of reaching into `events`
       (Locker)
 - [ ] **Delete pages from the sidebar**, with a swipe or a trash button (Folio, Scanbox)
 - [ ] **Get the bytes of the document as shown** (after edits) from the controller, so an app's

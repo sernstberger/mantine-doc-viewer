@@ -12,7 +12,18 @@ export type PdfDocumentState =
   | { status: 'loading' }
   | { status: 'password'; incorrect: boolean; submit: (password: string) => void }
   | { status: 'error'; error: Error; reason: 'worker' | 'load' }
-  | { status: 'ready'; pdfjs: PdfJsModule; document: PDFDocumentProxy; firstPageSize: PdfPageSize };
+  | {
+      status: 'ready';
+      pdfjs: PdfJsModule;
+      document: PDFDocumentProxy;
+      firstPageSize: PdfPageSize;
+
+      /** Size of the file in bytes, when known */
+      byteSize: number | undefined;
+
+      /** Title from the document information */
+      title: string | undefined;
+    };
 
 export type PdfLoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
 
@@ -26,6 +37,17 @@ export const DEFAULT_PDF_LOAD_OPTIONS: PdfLoadOptions = {
   // pdf.js only stops pre-fetching when streaming is off too
   disableStream: true,
 };
+
+/** Title from the document information, undefined when there is none or it cannot be read */
+async function getPdfTitle(document: PDFDocumentProxy) {
+  try {
+    const { info } = await document.getMetadata();
+    const title = (info as Record<string, unknown>).Title;
+    return typeof title === 'string' && title.trim() ? title.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** Loads a PDF and the size of its first page, which is used as the placeholder size for every page */
 export function usePdfDocument(
@@ -60,6 +82,12 @@ export function usePdfDocument(
         });
         destroy = () => task.destroy();
 
+        // The size of the file is known once the first bytes arrive
+        let total: number | undefined;
+        task.onProgress = (progress: { total?: number }) => {
+          total = progress.total;
+        };
+
         // pdf.js asks again with reason 2 when the password was wrong
         task.onPassword = (updatePassword: (password: string) => void, reason: number) => {
           if (!cancelled) {
@@ -77,9 +105,17 @@ export function usePdfDocument(
         const document = await task.promise;
         const firstPage = await document.getPage(1);
         const { width, height } = firstPage.getViewport({ scale: 1 });
+        const title = await getPdfTitle(document);
 
         if (!cancelled) {
-          setState({ status: 'ready', pdfjs, document, firstPageSize: { width, height } });
+          setState({
+            status: 'ready',
+            pdfjs,
+            document,
+            firstPageSize: { width, height },
+            byteSize: data?.byteLength ?? total,
+            title,
+          });
         }
       })
       .catch((error: Error) => {

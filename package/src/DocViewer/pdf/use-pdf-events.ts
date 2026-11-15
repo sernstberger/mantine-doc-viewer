@@ -9,20 +9,34 @@ interface PdfEventsInput {
   currentPage: number;
   scale: number;
   fitted: boolean;
+  mimeType: string | undefined;
 }
 
 /** Calls the load, error, page and zoom events. Returns the page last reported */
-export function usePdfEvents({ state, events, currentPage, scale, fitted }: PdfEventsInput) {
+export function usePdfEvents({
+  state,
+  events,
+  currentPage,
+  scale,
+  fitted,
+  mimeType,
+}: PdfEventsInput) {
   const ready = state.status === 'ready';
   const pageReported = useRef(0);
 
   useEffect(() => {
     if (state.status === 'ready') {
-      events.onDocumentLoad({ type: 'pdf', numPages: state.document.numPages });
+      events.onDocumentLoad({
+        type: 'pdf',
+        numPages: state.document.numPages,
+        byteSize: state.byteSize,
+        mimeType: mimeType ?? 'application/pdf',
+        title: state.title,
+      });
     } else if (state.status === 'error') {
       events.onDocumentError(state.error);
     }
-  }, [state, events]);
+  }, [state, events, mimeType]);
 
   useEffect(() => {
     if (ready && currentPage !== pageReported.current) {

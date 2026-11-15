@@ -74,6 +74,15 @@ export interface DocViewerLoadInfo {
   /** Natural size of an image in px */
   width?: number;
   height?: number;
+
+  /** Size of the file in bytes, for PDFs and text, when the server says how large it is */
+  byteSize?: number;
+
+  /** MIME type: the `mimeType` prop, or what the server sent for text, or `application/pdf` for PDFs. Not set when unknown */
+  mimeType?: string;
+
+  /** Title from the PDF's document information, when it has one */
+  title?: string;
 }
 
 /** What `onDocumentLoadStart` reports */

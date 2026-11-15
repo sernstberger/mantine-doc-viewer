@@ -17,7 +17,7 @@ import { getRegionProps } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
 
 export function ImageView() {
-  const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom } =
+  const { getStyles, src, fileName, alt, labels, controller, events, defaultZoom, mimeType } =
     useDocViewerContext();
   const controlProps = useControlProps();
   const show = useShowControl();
@@ -69,9 +69,9 @@ export function ImageView() {
 
   useEffect(() => {
     if (naturalSize && !failed) {
-      events.onDocumentLoad({ type: 'image', ...naturalSize });
+      events.onDocumentLoad({ type: 'image', ...naturalSize, mimeType });
     }
-  }, [naturalSize, failed, events]);
+  }, [naturalSize, failed, events, mimeType]);
 
   useEffect(() => {
     failed && events.onDocumentError(new Error(`Image could not be loaded: ${src}`));
