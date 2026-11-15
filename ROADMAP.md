@@ -52,9 +52,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       reason `'delete'`) or the Delete key (Folio, Scanbox). No swipe: it fights scrolling
 - [x] **Get the bytes of the document as shown** (after edits) from the controller
       (`controller.getBytes()`), so an app's own Export button can save it (Scanbox)
-- [ ] **Rotate one page and save it**; rotate only turns the view today (Folio) (partial: pdf.js
-      `extractPages` cannot set a page's `/Rotate`, and it writes object streams, so the bytes cannot
-      be patched without a PDF writer such as `pdf-lib`; needs a decision on that dependency)
+- [x] **Rotate one page and save it** (Folio): the page editor's Rotate button and R key turn the
+      selected pages; Save, Done and Extract write the rotation with pdf-lib, loaded on demand
 - [x] **Swap the document without remounting** (`keepView`), keeping zoom and scroll (Markbook)
 - [x] **Reading progress** (`onReadingProgress`, `onReachEnd`, `resetReadingProgress`): the fraction
       of each page seen, a reached-the-end signal, a reading position (Haven, Field Report)
