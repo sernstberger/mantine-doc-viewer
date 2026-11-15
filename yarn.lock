@@ -8745,6 +8745,7 @@ __metadata:
     pdfjs-dist: "npm:^6.5.438"
     react: "npm:19.2.4"
     react-dom: "npm:19.2.4"
+    remark-gfm: "npm:^4.0.1"
     remark-slug: "npm:^7.0.1"
     shiki: "npm:^3.4.2"
     type-fest: "npm:^4.41.0"

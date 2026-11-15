@@ -4,7 +4,7 @@ import signale from 'signale';
 
 const withMDX = createMDX({
   options: {
-    remarkPlugins: ['remark-slug'],
+    remarkPlugins: ['remark-gfm', 'remark-slug'],
   },
 });
 
