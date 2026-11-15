@@ -10,7 +10,9 @@ import {
   DocViewerThumbnailsButtonStylesNames,
 } from './DocViewerThumbnailsButton';
 
-const { Harness } = createPartHarness(DocViewerThumbnailsButton, { state: { type: 'pdf' } });
+const { Harness } = createPartHarness(DocViewerThumbnailsButton, {
+  state: { type: 'pdf', thumbnailsAvailable: true },
+});
 
 describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
   tests.itSupportsSystemProps<DocViewerThumbnailsButtonProps, DocViewerThumbnailsButtonStylesNames>(
@@ -33,7 +35,7 @@ describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
 
   it('shows and hides the thumbnails through the store', () => {
     const { Harness: Toggle, store } = createPartHarness(DocViewerThumbnailsButton, {
-      state: { type: 'pdf' },
+      state: { type: 'pdf', thumbnailsAvailable: true },
     });
     render(<Toggle />);
     const button = screen.getByRole('button', { name: 'Page thumbnails' });
@@ -47,7 +49,7 @@ describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
   it('colours the pressed button with the theme primary colour, or the color of the viewer', () => {
     const pressedColor = (rootProps?: Record<string, unknown>) => {
       const { Harness: Pressed } = createPartHarness(DocViewerThumbnailsButton, {
-        state: { type: 'pdf', thumbnailsOpened: true },
+        state: { type: 'pdf', thumbnailsAvailable: true, thumbnailsOpened: true },
         rootProps,
       });
       const { unmount } = render(
@@ -67,7 +69,7 @@ describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
 
   it('moves the thumbnails with the position menu while they are shown', async () => {
     const { Harness: Opened, store } = createPartHarness(DocViewerThumbnailsButton, {
-      state: { type: 'pdf', thumbnailsOpened: true },
+      state: { type: 'pdf', thumbnailsAvailable: true, thumbnailsOpened: true },
     });
     render(<Opened classNames={{ dropdown: 'app-dropdown' }} />);
     await userEvent.click(screen.getByRole('button', { name: 'Pages panel position' }));
@@ -79,7 +81,7 @@ describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
 
   it('has no position menu with withPositionMenu false, or while the thumbnails are hidden', () => {
     const { Harness: Opened } = createPartHarness(DocViewerThumbnailsButton, {
-      state: { type: 'pdf', thumbnailsOpened: true },
+      state: { type: 'pdf', thumbnailsAvailable: true, thumbnailsOpened: true },
     });
     render(
       <>
@@ -95,17 +97,21 @@ describe('mantine-doc-viewer/DocViewerThumbnailsButton', () => {
       src: '/files/photo.png',
       state: { type: 'image' },
     });
-    render(
-      <>
-        <Image />
-      </>
-    );
+    render(<Image />);
+    expect(screen.queryByRole('button', { name: 'Page thumbnails' })).not.toBeInTheDocument();
+  });
+
+  it('renders nothing while no thumbnails part is mounted', () => {
+    const { Harness: Bare } = createPartHarness(DocViewerThumbnailsButton, {
+      state: { type: 'pdf' },
+    });
+    render(<Bare />);
     expect(screen.queryByRole('button', { name: 'Page thumbnails' })).not.toBeInTheDocument();
   });
 
   it('is hidden by toolbarControls of DocViewer', () => {
     const { Harness: Hidden } = createPartHarness(DocViewerThumbnailsButton, {
-      ...{ state: { type: 'pdf' } },
+      ...{ state: { type: 'pdf', thumbnailsAvailable: true } },
       viewerProps: { toolbarControls: { thumbnails: false } },
     });
     render(

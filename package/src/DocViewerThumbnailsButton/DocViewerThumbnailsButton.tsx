@@ -43,7 +43,7 @@ const defaultProps = {
   withPositionMenu: true,
 } satisfies Partial<DocViewerThumbnailsButtonProps>;
 
-/** Shows and hides the PDF page thumbnails, and moves them to another side of the viewer */
+/** Shows and hides the PDF page thumbnails, and moves them to another side of the viewer. It is shown while a `DocViewer.Thumbnails` part is mounted */
 export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactory>((_props) => {
   const { classNames, className, style, styles, vars, withPositionMenu, ...others } = useProps(
     'DocViewerThumbnailsButton',
@@ -52,13 +52,14 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
   );
   const { store, getStyles, labels, size } = useDocViewerContext();
   const ready = useReadyDocument(PDF_ONLY);
+  const available = useDocViewerState(store, (state) => state.thumbnailsAvailable);
   const opened = useDocViewerState(store, (state) => state.thumbnailsOpened);
   const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
   const show = useShowControl();
   const controlProps = useControlProps();
   const stylesApiProps = { classNames, styles };
 
-  if (!ready || !show('thumbnails')) {
+  if (!ready || !available || !show('thumbnails')) {
     return null;
   }
 

@@ -12,7 +12,7 @@ import {
   DocViewerToolbarStylesNames,
 } from './DocViewerToolbar';
 
-const pdf = { state: { type: 'pdf', numPages: 3 } } as const;
+const pdf = { state: { type: 'pdf', numPages: 3, thumbnailsAvailable: true } } as const;
 const { Harness } = createPartHarness(DocViewerToolbar, pdf);
 
 const quietExtension: DocViewerExtension = { name: 'quiet', options: {} };
