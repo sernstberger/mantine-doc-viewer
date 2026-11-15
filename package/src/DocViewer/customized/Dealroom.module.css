@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  min-width: 1120px;
+  height: 100dvh;
   /* clip, not hidden: a hidden box can still be scrolled by the viewer's scrollIntoView */
   overflow: clip;
   background: var(--dr-canvas);
@@ -49,6 +49,13 @@
   padding-inline: 16px;
   border-bottom: 1px solid var(--dr-line);
   background: var(--dr-surface);
+
+  @mixin smaller-than 48em {
+    gap: 12px;
+    height: auto;
+    min-height: 56px;
+    padding: env(safe-area-inset-top) 12px 0;
+  }
 }
 
 .brand {
@@ -57,12 +64,28 @@
   align-items: center;
   width: 264px;
   font-size: 16px;
+
+  @mixin smaller-than 70em {
+    width: auto;
+  }
+
+  @mixin smaller-than 48em {
+    span {
+      display: none;
+    }
+  }
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .crumbs {
   display: flex;
+  min-width: 0;
+
+  @mixin smaller-than 70em {
+    display: none;
+  }
+
   gap: 8px;
   color: var(--dr-muted);
   font-size: 14px;
@@ -78,6 +101,10 @@
   gap: 12px;
   align-items: center;
   margin-inline-start: auto;
+
+  @mixin smaller-than 48em {
+    gap: 6px;
+  }
 }
 
 .status {
@@ -138,8 +165,48 @@
 .shell {
   display: grid;
   flex: 1;
-  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) 260px;
   min-height: 0;
+
+  @mixin larger-than 70em {
+    grid-template-columns: 280px minmax(0, 1fr) 340px;
+  }
+
+  @mixin smaller-than 48em {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The deal rail and the comments live in drawers on narrower screens */
+.drawer {
+  background: var(--dr-surface);
+  color: var(--dr-ink);
+  font-family: inherit;
+}
+
+.drawerHeader {
+  border-bottom: 1px solid var(--dr-line);
+  background: var(--dr-surface);
+  font-weight: 600;
+}
+
+.drawerBody {
+  height: calc(100% - 60px);
+  padding: 0;
+}
+
+.rail[data-in-drawer] {
+  height: 100%;
+  border-inline-end: 0;
+}
+
+.threads[data-in-drawer] {
+  height: 100%;
+  border-inline-start: 0;
+
+  .threadsHead h2 {
+    display: none;
+  }
 }
 
 /* ----------------------------------- rail ---------------------------------- */
@@ -516,6 +583,11 @@
 .title {
   font-size: 13px;
   font-weight: 600;
+
+  /* The toolbar is too narrow for the draft name beside the controls */
+  @mixin smaller-than 70em {
+    display: none;
+  }
 }
 
 .draftMark {
@@ -526,11 +598,19 @@
   border-radius: 7px;
   background: var(--dr-violet-tint);
   color: var(--dr-violet);
+
+  @mixin smaller-than 70em {
+    display: none;
+  }
 }
 
 .subtitle {
   color: var(--dr-muted);
   font-size: 11px;
+
+  @mixin smaller-than 70em {
+    display: none;
+  }
 }
 
 .control {
