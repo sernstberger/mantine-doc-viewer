@@ -118,7 +118,7 @@ describe('onReadingProgress and onReachEnd', () => {
     Object.defineProperty(root, 'clientHeight', { value: 100, configurable: true });
 
     // Page 1 shows its lower half and page 2 its upper half
-    act(() => io.setIntersecting(pages[0], true));
+    await act(async () => io.setIntersecting(pages[0], true));
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0.5, 0, 0],
       position: 0,
@@ -130,7 +130,7 @@ describe('onReadingProgress and onReachEnd', () => {
       page.getBoundingClientRect = () => rect(index * 100 - 150, index * 100 - 50);
     });
     root.scrollTop = 100;
-    act(() => io.setIntersecting(pages[1], true));
+    await act(async () => io.setIntersecting(pages[1], true));
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0.5, 0.5, 0],
       position: 0.5,
@@ -142,7 +142,7 @@ describe('onReadingProgress and onReachEnd', () => {
       page.getBoundingClientRect = () => rect(index * 100 - 200, index * 100 - 100);
     });
     root.scrollTop = 200;
-    act(() => io.setIntersecting(pages[2], true));
+    await act(async () => io.setIntersecting(pages[2], true));
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0.5, 0.5, 1],
       position: 1,
@@ -152,7 +152,7 @@ describe('onReadingProgress and onReachEnd', () => {
 
     // Repeating what is already known says nothing new
     const calls = onReadingProgress.mock.calls.length;
-    act(() => io.setIntersecting(pages[2], true));
+    await act(async () => io.setIntersecting(pages[2], true));
     expect(onReadingProgress).toHaveBeenCalledTimes(calls);
     expect(onReachEnd).toHaveBeenCalledTimes(1);
   });
@@ -162,7 +162,7 @@ describe('onReadingProgress and onReachEnd', () => {
     pages.forEach((page, index) => {
       page.getBoundingClientRect = () => rect(index * 100 - 200, index * 100 - 100);
     });
-    act(() => io.setIntersecting(pages[2], true));
+    await act(async () => io.setIntersecting(pages[2], true));
     expect(onReachEnd).toHaveBeenCalledTimes(1);
 
     act(() => controller.current!.resetReadingProgress());
@@ -172,7 +172,7 @@ describe('onReadingProgress and onReachEnd', () => {
       reachedEnd: false,
     });
 
-    act(() => io.setIntersecting(pages[2], true));
+    await act(async () => io.setIntersecting(pages[2], true));
     expect(onReachEnd).toHaveBeenCalledTimes(2);
   });
 
@@ -185,7 +185,7 @@ describe('onReadingProgress and onReachEnd', () => {
     Object.defineProperty(root, 'scrollWidth', { value: 300, configurable: true });
     Object.defineProperty(root, 'clientWidth', { value: 100, configurable: true });
     root.scrollLeft = 100;
-    act(() => io.setIntersecting(pages[0], true));
+    await act(async () => io.setIntersecting(pages[0], true));
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0.5, 0, 0],
       position: 0.5,

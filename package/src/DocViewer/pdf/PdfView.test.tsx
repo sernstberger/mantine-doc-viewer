@@ -743,6 +743,8 @@ describe('DocViewer PDF', () => {
   it('shows properties, attachments and layers in document info', async () => {
     URL.createObjectURL = jest.fn(() => 'blob:attachment');
     URL.revokeObjectURL = jest.fn();
+    // jsdom cannot follow the download link: keep the click and check what it saves
+    const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     mockPdf({
       layers: [{ id: '5R', name: 'Annotations', visible: true }],
       attachments: new Map([['notes.txt', { filename: 'notes.txt', description: 'Notes' }]]),
@@ -760,6 +762,8 @@ describe('DocViewer PDF', () => {
       await screen.findByRole('button', { name: 'Download attachment notes.txt' })
     );
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+    expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('notes.txt');
+    click.mockRestore();
 
     const layer = screen.getByRole('checkbox', { name: 'Annotations' });
     expect(layer).toBeChecked();
@@ -955,9 +959,13 @@ describe('DocViewer PDF', () => {
     it('downloads when there is no onSave', async () => {
       URL.createObjectURL = jest.fn(() => 'blob:edited');
       URL.revokeObjectURL = jest.fn();
+      // jsdom cannot follow the download link: keep the click and check what it saves
+      const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
       await openEditor({ onSave: undefined });
       await userEvent.click(screen.getByRole('button', { name: 'Save' }));
       await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+      expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('report-edited.pdf');
+      click.mockRestore();
     });
   });
 

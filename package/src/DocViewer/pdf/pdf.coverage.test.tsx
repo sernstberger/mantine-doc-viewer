@@ -87,41 +87,41 @@ describe('controller', () => {
     await screen.findAllByRole('group', { name: PAGES });
     const zoomLevel = () => screen.getByRole('button', { name: /Reset zoom/ }).textContent;
 
-    act(() => controller.current!.zoomIn());
+    await act(async () => controller.current!.zoomIn());
     expect(zoomLevel()).toBe('125%');
-    act(() => controller.current!.zoomOut());
-    act(() => controller.current!.zoomOut());
+    await act(async () => controller.current!.zoomOut());
+    await act(async () => controller.current!.zoomOut());
     expect(zoomLevel()).toBe('75%');
 
-    act(() => controller.current!.setPageLayout('two-page'));
+    await act(async () => controller.current!.setPageLayout('two-page'));
     expect(container.querySelector('.mantine-DocViewer-pages')).toHaveAttribute(
       'data-layout',
       'two-page'
     );
 
     // Closing search that is not open does nothing
-    act(() => controller.current!.closeSearch());
-    act(() => controller.current!.openSearch('quarter'));
+    await act(async () => controller.current!.closeSearch());
+    await act(async () => controller.current!.openSearch('quarter'));
     expect(await screen.findByRole('textbox', { name: 'Search document' })).toHaveValue('quarter');
-    act(() => controller.current!.closeSearch());
+    await act(async () => controller.current!.closeSearch());
     expect(screen.queryByRole('textbox', { name: 'Search document' })).not.toBeInTheDocument();
 
     const thumbnails = screen.getByRole('button', { name: 'Page thumbnails' });
     expect(thumbnails).toHaveAttribute('aria-pressed', 'false');
-    act(() => controller.current!.toggleThumbnails());
+    await act(async () => controller.current!.toggleThumbnails());
     expect(thumbnails).toHaveAttribute('aria-pressed', 'true');
-    act(() => controller.current!.toggleThumbnails(true));
+    await act(async () => controller.current!.toggleThumbnails(true));
     expect(thumbnails).toHaveAttribute('aria-pressed', 'true');
-    act(() => controller.current!.toggleThumbnails());
+    await act(async () => controller.current!.toggleThumbnails());
     expect(thumbnails).toHaveAttribute('aria-pressed', 'false');
 
     // Page editing is off without withPageEditing
-    act(() => controller.current!.editPages());
+    await act(async () => controller.current!.editPages());
     expect(screen.queryByRole('listbox', { name: 'Pages' })).not.toBeInTheDocument();
 
-    act(() => controller.current!.togglePresentation());
+    await act(async () => controller.current!.togglePresentation());
     expect(screen.getAllByRole('group', { name: PAGES })).toHaveLength(1);
-    act(() => controller.current!.togglePresentation());
+    await act(async () => controller.current!.togglePresentation());
     expect(screen.getAllByRole('group', { name: PAGES })).toHaveLength(3);
   });
 
@@ -152,7 +152,7 @@ describe('controller', () => {
     );
     await screen.findAllByRole('group', { name: PAGES });
 
-    act(() => controller.current!.editPages());
+    await act(async () => controller.current!.editPages());
     expect(screen.getByRole('listbox', { name: 'Pages' })).toBeInTheDocument();
   });
 });
@@ -361,10 +361,14 @@ describe('page editor', () => {
   it('downloads the extracted pages when there is no onSave', async () => {
     URL.createObjectURL = jest.fn(() => 'blob:pages');
     URL.revokeObjectURL = jest.fn();
+    // jsdom cannot follow the download link: keep the click and check what it saves
+    const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     const { option } = await openEditor({ onSave: undefined });
     await userEvent.click(option(2));
     await userEvent.click(screen.getByRole('button', { name: 'Extract selected' }));
     await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+    expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('report-pages.pdf');
+    click.mockRestore();
   });
 
   it('removes the focused page with Backspace', async () => {

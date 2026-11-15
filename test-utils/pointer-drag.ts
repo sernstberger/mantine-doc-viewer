@@ -18,7 +18,7 @@ export function mockItemLayout(layout: TestLayout, rtl = false) {
       const items = Array.from(this.parentElement?.querySelectorAll('[data-reorder-item]') ?? []);
       const index = this.hasAttribute('data-reorder-item') ? items.indexOf(this) : -1;
       if (index === -1) {
-        return { left: 0, top: 0, right: LIST.width, bottom: LIST.height } as DOMRect;
+        return toRect(0, 0, LIST.width, LIST.height);
       }
       const column = layout === 'grid' ? index % PER_ROW : layout === 'horizontal' ? index : 0;
       const row =
@@ -28,8 +28,14 @@ export function mockItemLayout(layout: TestLayout, rtl = false) {
         ? LIST.width - 100 - ITEM.width - column * (ITEM.width + ITEM.gap)
         : 100 + column * (ITEM.width + ITEM.gap);
       const top = 100 + row * (ITEM.height + ITEM.gap);
-      return { left, top, right: left + ITEM.width, bottom: top + ITEM.height } as DOMRect;
+      return toRect(left, top, ITEM.width, ITEM.height);
     });
+}
+
+/** A whole box: Mantine's floating elements (tooltips) read x, y, width and height too */
+function toRect(left: number, top: number, width: number, height: number) {
+  const box = { left, top, width, height, x: left, y: top, right: left + width, bottom: top + height };
+  return { ...box, toJSON: () => box } as DOMRect;
 }
 
 /** Middle of an item's fake box */

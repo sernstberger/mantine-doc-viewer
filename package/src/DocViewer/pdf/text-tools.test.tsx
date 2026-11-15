@@ -74,8 +74,11 @@ describe('getPageRects', () => {
 
 function layout(restore: (() => void)[]) {
   const define = (name: string, get: (this: HTMLElement) => number) => {
+    // Put jsdom's own getter back afterwards: deleting it leaves the property undefined, and
+    // tooltips in later tests then place themselves at NaN
+    const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, name)!;
     Object.defineProperty(HTMLElement.prototype, name, { configurable: true, get });
-    restore.push(() => delete (HTMLElement.prototype as any)[name]);
+    restore.push(() => Object.defineProperty(HTMLElement.prototype, name, original));
   };
   define('offsetTop', function () {
     return Number(this.dataset.pageNumber ?? 0) * 1000;
