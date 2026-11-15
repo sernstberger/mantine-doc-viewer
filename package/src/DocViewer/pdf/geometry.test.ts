@@ -33,6 +33,22 @@ describe('pdf geometry', () => {
     expect(computeScale({ ...base, zoom: 'fit-width', layout: 'wrapped' })).toBe(2);
   });
 
+  it('fits a whole page or spread to the width and the height', () => {
+    const base = {
+      bodyWidth: 832,
+      bodyHeight: 632,
+      columnGap: 16,
+      pageWidth: 400,
+      pageHeight: 300,
+    };
+    // Fitting the width of a page would make it 600px high, so the height decides
+    expect(computeScale({ ...base, zoom: 'fit-page', layout: 'single' })).toBe(2);
+    expect(computeScale({ ...base, zoom: 'fit-page', layout: 'single', bodyHeight: 332 })).toBe(1);
+    // Two pages side by side are wider than they are high: the width decides
+    expect(computeScale({ ...base, zoom: 'fit-page', layout: 'two-page-cover' })).toBeCloseTo(0.98);
+    expect(computeScale({ ...base, zoom: 'fit-page', layout: 'horizontal' })).toBe(2);
+  });
+
   it('knows which layouts show two pages and which fit to height', () => {
     expect(isTwoPages('two-page-cover')).toBe(true);
     expect(isTwoPages('wrapped')).toBe(false);

@@ -3,8 +3,12 @@ import { useEffect, useImperativeHandle, useRef } from 'react';
 import type { DocType } from './detect-doc-type';
 import type { DocViewerPageLayout } from './DocViewer';
 
-/** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
-export type DocViewerZoom = number | 'fit';
+/**
+ * A scale where 1 is 100%, `'fit'` to fit PDF pages to the width of the view (images to the
+ * whole view), or `'fit-page'` to fit whole PDF pages, or spreads in two-page layouts, to both
+ * the width and the height of the view
+ */
+export type DocViewerZoom = number | 'fit' | 'fit-page';
 
 /** Actions available through `controllerRef`. Actions that do not apply to the current document do nothing */
 export interface DocViewerController {

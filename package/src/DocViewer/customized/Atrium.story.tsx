@@ -1,6 +1,5 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useElementSize } from '@mantine/hooks';
+import React, { useCallback, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
 import classes from './Atrium.module.css';
@@ -24,9 +23,7 @@ const ROOMS: Room[] = [
 ];
 
 const FIRST_ROOM_PAGE = 3;
-const PAGE_SIZE = { width: 420, height: 595 };
 const PAGE_GAP = 20;
-const TOOLBAR_HEIGHT = 68;
 
 /** The page that opens a spread in the two-page-cover layout: 1, then 2-3, 4-5, 6-7, 8 */
 const spreadStart = (page: number) => (page <= 1 ? 1 : page - (page % 2));
@@ -152,27 +149,6 @@ export function Atrium() {
   const controller = useRef<DocViewerController>(null);
   const [page, setPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
-  const [fullscreen, setFullscreen] = useState(false);
-
-  // Zoom so that a whole spread is visible without scrolling, from the room the viewer has
-  const { ref: readerRef, width, height } = useElementSize<HTMLDivElement>();
-  useEffect(() => {
-    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-  useEffect(() => {
-    if (numPages === 0) {
-      return;
-    }
-    const availableWidth = fullscreen ? window.innerWidth : width;
-    const availableHeight = (fullscreen ? window.innerHeight : height) - TOOLBAR_HEIGHT;
-    if (availableWidth > 0 && availableHeight > 0) {
-      const byWidth = (availableWidth - 48) / (PAGE_SIZE.width * 2 + PAGE_GAP);
-      const byHeight = (availableHeight - 28) / PAGE_SIZE.height;
-      controller.current?.setZoom(Math.max(0.3, Math.min(byWidth, byHeight)));
-    }
-  }, [numPages, width, height, fullscreen]);
 
   const first = spreadStart(page);
   const last = first === 1 ? 1 : Math.min(first + 1, numPages || first + 1);
@@ -233,7 +209,7 @@ export function Atrium() {
           <Arrow direction="previous" />
         </button>
 
-        <div ref={readerRef} className={classes.viewer}>
+        <div className={classes.viewer}>
           <DocViewer
             src="/stories/exhibition-guide.pdf"
             fileName="Wasserzeichen"
@@ -247,6 +223,8 @@ export function Atrium() {
             radius={0}
             pageGap={PAGE_GAP}
             defaultPageLayout="two-page-cover"
+            // The whole spread is on the screen, in the frame and full screen alike
+            defaultZoom="fit-page"
             onDocumentLoad={(info) => setNumPages(info.numPages ?? 0)}
             onPageChange={setPage}
             // A kiosk is not for taking files home
@@ -260,8 +238,7 @@ export function Atrium() {
             // MISSING: kiosk behaviours: `idleTimeout` + `onIdle` to return to the cover and reset the zoom, and an attract mode
             //          (`autoAdvance={{ interval }}`) that plays the guide until someone touches the screen.
             // MISSING: swipe to turn the page; turning is an app button that calls goToPage, with the spread arithmetic done here.
-            // MISSING: a zoom that fits the whole spread (width and height); 'fit' only fits the width, so the story computes it.
-            // MISSING: a controlled `fullscreen` prop; the story mirrors the state from the `fullscreenchange` event.
+            // MISSING: a controlled `fullscreen` prop, so the story's Vollbild button could show the state.
             // MISSING: a locale prop for the number formats the viewer uses.
           />
         </div>

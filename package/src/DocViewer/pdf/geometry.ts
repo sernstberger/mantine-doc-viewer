@@ -31,15 +31,18 @@ export interface ScaleInput {
 /** Scale of the pages: the zoom, or the scale that fits the layout to the view */
 export function computeScale(input: ScaleInput) {
   const { zoom, layout, bodyWidth, bodyHeight, columnGap, pageWidth, pageHeight } = input;
-  if (zoom !== 'fit-width') {
+  if (typeof zoom === 'number') {
     return zoom;
   }
+  const byHeight = getFitWidthScale(bodyHeight, pageHeight);
   if (fitsToHeight(layout)) {
-    return getFitWidthScale(bodyHeight, pageHeight);
+    return byHeight;
   }
-  return isTwoPages(layout)
+  const byWidth = isTwoPages(layout)
     ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2)
     : getFitWidthScale(bodyWidth, pageWidth);
+  // A whole page, or a whole spread, fits both ways
+  return zoom === 'fit-page' ? Math.min(byWidth, byHeight) : byWidth;
 }
 
 /** Scale that fits a whole page in the view, for presentations */

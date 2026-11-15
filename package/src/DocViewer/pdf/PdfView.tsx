@@ -38,7 +38,7 @@ import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
 import { useSearchHighlights } from './use-search-highlights';
-import type { PdfZoom } from './zoom';
+import { toPdfZoom, type PdfZoom } from './zoom';
 
 /** Gap between two pages side by side, read from the CSS since `pageGap` sets it */
 function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
@@ -68,9 +68,7 @@ export function PdfView() {
   const document = ready?.document ?? null;
   const numPages = document?.numPages ?? 0;
 
-  const [zoom, setZoom] = useState<PdfZoom>(
-    context.defaultZoom === 'fit' ? 'fit-width' : context.defaultZoom
-  );
+  const [zoom, setZoom] = useState<PdfZoom>(() => toPdfZoom(context.defaultZoom));
   const [layout, setLayout] = useState<DocViewerPageLayout>(defaultPageLayout ?? 'single');
   const [rotation, setRotation] = useState<PdfRotation>(0);
   const [thumbnailsOpened, setThumbnailsOpened] = useState(
@@ -131,7 +129,7 @@ export function PdfView() {
     events,
     currentPage,
     scale,
-    fitted: zoom === 'fit-width',
+    fitted: typeof zoom !== 'number',
   });
   usePageSync({
     numPages,
@@ -154,7 +152,7 @@ export function PdfView() {
 
   useRegisterController(controller, {
     goToPage: (page) => ready && goToPage(clampPage(page, numPages)),
-    setZoom: (next) => setZoom(next === 'fit' ? 'fit-width' : clampZoom(next)),
+    setZoom: (next) => setZoom(toPdfZoom(next)),
     zoomIn: () => setZoom(zoomIn(scale)),
     zoomOut: () => setZoom(zoomOut(scale)),
     setPageLayout: setLayout,

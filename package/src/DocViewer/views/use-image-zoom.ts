@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { DocViewerZoom } from '../controller';
 import { clampZoom } from '../zoom';
 import {
   applyAnchor,
@@ -11,7 +12,7 @@ import {
 
 interface ImageZoomInput {
   stage: HTMLElement | null;
-  defaultZoom: ImageZoom;
+  defaultZoom: DocViewerZoom;
   fitScale: number;
 
   /** Changes that resize the image, after which the anchor point is put back */
@@ -23,7 +24,8 @@ interface ImageZoomInput {
  * with pinch and Ctrl+wheel zoom
  */
 export function useImageZoom({ stage, defaultZoom, fitScale, layoutKey }: ImageZoomInput) {
-  const [zoom, setZoom] = useState<ImageZoom>(defaultZoom);
+  // An image is one page: fitting the page is fitting the view
+  const [zoom, setZoom] = useState<ImageZoom>(defaultZoom === 'fit-page' ? 'fit' : defaultZoom);
   const [overflowing, setOverflowing] = useState(false);
   const pendingAnchor = useRef<ZoomAnchor | null>(null);
   const scale = zoom === 'fit' ? fitScale : zoom;
@@ -31,11 +33,11 @@ export function useImageZoom({ stage, defaultZoom, fitScale, layoutKey }: ImageZ
   scaleRef.current = scale;
 
   const zoomTo = useCallback(
-    (next: ImageZoom, clientX?: number, clientY?: number) => {
+    (next: DocViewerZoom, clientX?: number, clientY?: number) => {
       if (stage) {
         pendingAnchor.current = getAnchor(stage, clientX, clientY);
       }
-      setZoom(next === 'fit' ? next : clampZoom(next));
+      setZoom(typeof next === 'number' ? clampZoom(next) : 'fit');
     },
     [stage]
   );

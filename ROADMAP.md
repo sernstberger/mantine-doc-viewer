@@ -24,7 +24,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       render prop so the title can be the current sheet (Folio, Dealroom, Plan room, Stand)
 - [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
       (Field Report)
-- [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)
+- [x] **Fit the whole page or spread** (`zoom: 'fit-page'`) (width and height), besides fit to width (Atrium, Stand)
 - [ ] **Controlled `fullscreen` prop** (Atrium)
 - [ ] **Responsive `thumbnailsPosition`**: left on desktop, bottom on phones (Gate)
 - [ ] **Tap-to-toggle toolbar** on touch screens, so a page can fill a phone (Gate)

@@ -1,5 +1,4 @@
 import { ActionIcon } from '@mantine/core';
-import { useElementSize } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -69,16 +68,6 @@ export function Stand() {
   const [numPages, setNumPages] = useState(0);
   const [sections, setSections] = useState<DocViewerOutlineItem[]>([]);
   const controller = useRef<DocViewerController>(null);
-
-  // A spread should fill the screen: zoom so that two Letter pages fit the reader, width or height
-  const { ref: readerRef, width, height } = useElementSize<HTMLElement>();
-  useEffect(() => {
-    if (numPages > 0 && width > 0 && height > 0) {
-      const byWidth = (width - 64) / (612 * 2 + 32);
-      const byHeight = (height - 34 - 40) / 792;
-      controller.current?.setZoom(Math.max(0.3, Math.min(byWidth, byHeight)));
-    }
-  }, [numPages, width, height]);
 
   const first = spreadStart(page);
   const last = Math.min(first + 1, numPages || first + 1);
@@ -163,7 +152,7 @@ export function Stand() {
         <div className={classes.hint}>Tap the page edges or use the arrow keys to turn.</div>
       </aside>
 
-      <main ref={readerRef} className={classes.reader}>
+      <main className={classes.reader}>
         <ActionIcon
           className={classes.drawerToggle}
           variant="transparent"
@@ -194,7 +183,8 @@ export function Stand() {
           pageBackground="#FBF8F1"
           pageGap="xl"
           defaultPageLayout="two-page"
-          defaultZoom={0.6}
+          // A whole spread fills the screen, however the tablet is held
+          defaultZoom="fit-page"
           // A thin strip: the title, the page and full screen, nothing else on stage
           toolbarControls={{
             thumbnails: false,
@@ -226,7 +216,6 @@ export function Stand() {
           }}
           // MISSING: a slot in the toolbar for the app's own buttons (the setlist toggle floats over it instead).
           // MISSING: built-in page turning for spreads (tap zones, swipe, pedal keys); the zones below are app code
-          // MISSING: a zoom that fits the view height ('fit' only fits the width), so the story computes the scale itself.
           // MISSING: a scroll snap or goToSpread: the viewer scrolls by page and does not know about spreads.
           // MISSING: pencil annotations for fingering and bowing, saved with the piece.
         />

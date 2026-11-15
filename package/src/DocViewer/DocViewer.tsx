@@ -231,7 +231,11 @@ export interface DocViewerProps
   /** Page of a PDF to show when it opens, counted from 1 */
   defaultPage?: number;
 
-  /** Zoom when a PDF or image opens: a scale where 1 is 100%, or `'fit'`, `'fit'` by default */
+  /**
+   * Zoom when a PDF or image opens, `'fit'` by default: a scale where 1 is 100%, `'fit'` to fit
+   * PDF pages to the width of the view, or `'fit-page'` to fit a whole page, or a whole spread
+   * in two-page layouts, in the view. Images fit the whole view with either
+   */
   defaultZoom?: DocViewerZoom;
 
   /** Determines whether readers can reorder, remove and extract PDF pages (in the page editor, and by dragging thumbnails), `false` by default. Edits make a new document; the original file is not changed */
