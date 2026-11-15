@@ -7,8 +7,9 @@ import { PageTile } from './PdfPageTile';
 import { usePageEditorKeys } from './use-page-editor-keys';
 import { usePageEditorSave } from './use-page-editor-save';
 import { usePageEditorState } from './use-page-editor-state';
+import type { PdfSaveReason } from './page-edits';
 
-export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'delete' | 'annotate';
+export type { PdfSaveReason };
 
 interface PdfPageEditorProps {
   document: PDFDocumentProxy;

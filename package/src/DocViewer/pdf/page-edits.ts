@@ -64,3 +64,5 @@ export function getEditedFileName(fileName: string | undefined, suffix: string) 
   const base = (fileName ?? 'document.pdf').replace(/\.pdf$/i, '');
   return `${base}-${suffix}.pdf`;
 }
+
+export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'delete' | 'annotate';

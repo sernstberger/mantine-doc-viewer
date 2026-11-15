@@ -8,8 +8,8 @@ import {
   initialOrder,
   movePage,
   removeSelected,
+  type PdfSaveReason,
 } from './page-edits';
-import type { PdfSaveReason } from './PdfPageEditor';
 import type { PdfMarkup } from './use-markup';
 
 /**
