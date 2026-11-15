@@ -8,6 +8,10 @@
   comment stays only where the code cannot say why (a browser or pdf.js workaround), kept short.
 - Zero warnings: any console.error/warn in a test fails it (`jest-console.cjs`), TypeScript strict,
   oxlint `--deny-warnings`, silent builds.
+- Commits use Mantine's format: `[mantine-doc-viewer] Part: message` for package changes,
+  `[docs] ...` for the docs site, `[core] ...` for repo tooling.
+- Docs: text goes before each demo; no Markdown pipe tables (use a `DataTable`-style component or
+  a list), as on mantine.dev.
 - Public API follows the official extensions (Lightbox is the closest analogue): compound parts,
   about 30 own props or fewer per component, engines through adapters.
 
