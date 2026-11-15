@@ -30,6 +30,8 @@ export interface DocViewerLabels {
   pagesRemoved: (count: number) => string;
   pagesRotated: (count: number) => string;
   exitPresentation: string;
+  /** Read out when a presentation starts */
+  presentationStarted: string;
   fullscreen: string;
   exitFullscreen: string;
   loading: string;
@@ -170,6 +172,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   pagesRemoved: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
   pagesRotated: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
   exitPresentation: 'Exit presentation',
+  presentationStarted: 'Presentation started, press Escape to exit',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
   loading: 'Loading document',

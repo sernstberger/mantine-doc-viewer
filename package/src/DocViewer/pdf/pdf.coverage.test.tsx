@@ -232,10 +232,9 @@ describe('outline', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Outline' }));
     const outline = await screen.findByRole('navigation', { name: 'Outline' });
-    expect(within(outline).getByRole('link', { name: 'Mantine' })).toHaveAttribute(
-      'href',
-      'https://mantine.dev'
-    );
+    expect(
+      within(outline).getByRole('link', { name: 'Mantine (opens in new tab)' })
+    ).toHaveAttribute('href', 'https://mantine.dev');
 
     await userEvent.click(within(outline).getByRole('button', { name: 'Broken' }));
     expect(screen.getByText('1 / 3')).toBeInTheDocument();

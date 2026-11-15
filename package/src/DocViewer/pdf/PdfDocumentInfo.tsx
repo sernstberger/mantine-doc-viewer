@@ -1,5 +1,6 @@
 import { Checkbox, DataList, Stack, Text, UnstyledButton } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import { useId } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import { downloadAttachment, PdfAttachment, PdfProperty } from './document-info';
@@ -22,11 +23,13 @@ export function PdfDocumentInfo({
   onLayerChange,
 }: PdfDocumentInfoProps) {
   const { getStyles, labels } = useDocViewerContext();
+  // Several viewers on one page each name their own sections
+  const id = useId();
 
   return (
     <div {...getStyles('documentInfo')}>
-      <section aria-labelledby="doc-viewer-properties">
-        <Text id="doc-viewer-properties" fw={600} size="sm" mb={4}>
+      <section aria-labelledby={`${id}-properties`}>
+        <Text id={`${id}-properties`} fw={600} size="sm" mb={4}>
           {labels.properties}
         </Text>
         <DataList {...getStyles('properties')} size="xs" gap={4} labelWidth="6.5rem">
@@ -40,8 +43,8 @@ export function PdfDocumentInfo({
       </section>
 
       {attachments.length > 0 && (
-        <section aria-labelledby="doc-viewer-attachments">
-          <Text id="doc-viewer-attachments" fw={600} size="sm" mb={4}>
+        <section aria-labelledby={`${id}-attachments`}>
+          <Text id={`${id}-attachments`} fw={600} size="sm" mb={4}>
             {labels.attachments}
           </Text>
           <Stack gap={2}>
@@ -61,8 +64,8 @@ export function PdfDocumentInfo({
       )}
 
       {layers.length > 0 && (
-        <section aria-labelledby="doc-viewer-layers">
-          <Text id="doc-viewer-layers" fw={600} size="sm" mb={4}>
+        <section aria-labelledby={`${id}-layers`}>
+          <Text id={`${id}-layers`} fw={600} size="sm" mb={4}>
             {labels.layers}
           </Text>
           <Stack gap={6}>

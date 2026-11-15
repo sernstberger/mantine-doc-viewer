@@ -1,4 +1,4 @@
-import { UnstyledButton } from '@mantine/core';
+import { UnstyledButton, VisuallyHidden } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useEffect, useState } from 'react';
 import type { DocViewerOutlineItem } from '../controller';
@@ -60,7 +60,7 @@ interface PdfOutlineProps {
 }
 
 function OutlineList({ document, items, onSelect }: PdfOutlineProps) {
-  const { getStyles } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
 
   return (
     <ul {...getStyles('outlineList')}>
@@ -74,6 +74,7 @@ function OutlineList({ document, items, onSelect }: PdfOutlineProps) {
               rel="noopener noreferrer"
             >
               {item.title}
+              <VisuallyHidden> {labels.opensInNewTab}</VisuallyHidden>
             </a>
           ) : (
             <UnstyledButton

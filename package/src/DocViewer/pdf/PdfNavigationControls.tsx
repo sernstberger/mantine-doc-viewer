@@ -1,4 +1,13 @@
-import { ActionIcon, Group, Popover, Radio, SegmentedControl, Stack, Text } from '@mantine/core';
+import {
+  ActionIcon,
+  Group,
+  Popover,
+  Radio,
+  SegmentedControl,
+  Stack,
+  Text,
+  VisuallyHidden,
+} from '@mantine/core';
 import React from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
@@ -113,7 +122,11 @@ export function PageNavigationControl({
           </ActionIcon>
         </DocViewerTooltip>
         <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
-          {formatNumber(currentPage, locale)} / {formatNumber(numPages, locale)}
+          {/* Read as "Page 3 of 10"; not a live region, so scrolling stays quiet */}
+          <span aria-hidden>
+            {formatNumber(currentPage, locale)} / {formatNumber(numPages, locale)}
+          </span>
+          <VisuallyHidden>{labels.pageOf(currentPage, numPages)}</VisuallyHidden>
         </Text>
         <DocViewerTooltip label={labels.nextPage}>
           <ActionIcon

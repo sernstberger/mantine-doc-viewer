@@ -14,6 +14,7 @@ import { usePdfPageTurns } from './use-pdf-page-turns';
 import { usePdfReadingPosition } from './use-pdf-reading-position';
 import { usePdfViewActions } from './use-pdf-view-actions';
 import { usePdfViewGeometry } from './use-pdf-view-geometry';
+import { usePresentationAnnouncement } from './use-presentation-announcement';
 import { useReturnFocus } from './use-return-focus';
 
 /** The PDF viewer: wires the hook groups (in this order, since effects run in call order) to the layout */
@@ -46,6 +47,7 @@ export function PdfView() {
     turns,
   });
   const { presenting, thumbnailsPanel } = view;
+  usePresentationAnnouncement(presenting, position.announce);
   const returnFocus = {
     present: useReturnFocus(presenting),
     editPages: useReturnFocus(editing),

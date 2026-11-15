@@ -33,7 +33,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     onDone,
     onSave,
   });
-  const handleKeyDown = usePageEditorKeys(editor);
+  const handleKeyDown = usePageEditorKeys(editor, onCancel);
 
   // The editor replaces the reader and the Edit pages button with it: focus moves to the pages
   useEffect(() => {
@@ -64,7 +64,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         role="listbox"
         aria-multiselectable
         aria-label={labels.pages}
-        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A"
+        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A Escape"
         onKeyDown={handleKeyDown}
         data-dragging={reorder.dragging || undefined}
       >

@@ -26,6 +26,7 @@ export function PdfPresentationControls({
         variant="transparent"
         c="white"
         aria-label={labels.exitPresentation}
+        aria-keyshortcuts="Escape"
         onClick={onExit}
       />
     </div>
