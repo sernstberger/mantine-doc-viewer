@@ -8,7 +8,9 @@ import {
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
+import { docViewerActions } from '../doc-viewer.store';
+import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
+import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { PdfPresentationControls } from '../DocViewerPresentationControls/PdfPresentationControls';
 import classes from '../DocViewer.module.css';
 
@@ -30,17 +32,29 @@ export type DocViewerPresentationControlsFactory = Factory<{
 /** Page count and exit button shown while presenting */
 export const DocViewerPresentationControls = factory<DocViewerPresentationControlsFactory>(
   (_props) => {
-    useProps('DocViewerPresentationControls', null, _props);
-    useDocViewerContext();
-    const session = usePdfSession();
-    if (!session) {
+    const { classNames, className, style, styles, vars, ref, ...others } = useProps(
+      'DocViewerPresentationControls',
+      null,
+      _props
+    );
+    const { store } = useDocViewerContext();
+    const presenting = useDocViewerState(store, (state) => state.presenting);
+    const page = useDocViewerState(store, (state) => state.page);
+    const numPages = useDocViewerState(store, (state) => state.numPages);
+    const stylesOptions = useShallowStable({ className, style, classNames, styles });
+    const elementProps = useShallowStable(others);
+    if (!presenting) {
       return null;
     }
+
     return (
       <PdfPresentationControls
-        currentPage={session.position.currentPage}
-        numPages={session.loaded.numPages}
-        onExit={session.view.presentation.stop}
+        currentPage={page}
+        numPages={numPages}
+        onExit={() => docViewerActions.togglePresentation(store)}
+        stylesOptions={stylesOptions}
+        elementProps={elementProps}
+        rootRef={ref}
       />
     );
   }

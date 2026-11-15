@@ -1,4 +1,14 @@
-import { Checkbox, DataList, Stack, Text, UnstyledButton } from '@mantine/core';
+import {
+  Box,
+  BoxProps,
+  Checkbox,
+  DataList,
+  ElementProps,
+  type GetStylesApiOptions,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useId } from '@mantine/hooks';
 import React from 'react';
@@ -12,6 +22,13 @@ interface PdfDocumentInfoProps {
   attachments: PdfAttachment[];
   layers: PdfLayer[];
   onLayerChange: (id: string, visible: boolean) => void;
+
+  /** className, style, classNames and styles of the `documentInfo` element */
+  stylesOptions?: GetStylesApiOptions;
+
+  /** Other props of the `documentInfo` element */
+  elementProps?: BoxProps & ElementProps<'div'>;
+  rootRef?: React.Ref<HTMLDivElement>;
 }
 
 /** Document properties, attachments and layers, shown in a popover from the toolbar */
@@ -21,13 +38,16 @@ export function PdfDocumentInfo({
   attachments,
   layers,
   onLayerChange,
+  stylesOptions,
+  elementProps,
+  rootRef,
 }: PdfDocumentInfoProps) {
   const { getStyles, labels } = useDocViewerContext();
   // Several viewers on one page each name their own sections
   const id = useId();
 
   return (
-    <div {...getStyles('documentInfo')}>
+    <Box ref={rootRef} {...getStyles('documentInfo', stylesOptions)} {...elementProps}>
       <section aria-labelledby={`${id}-properties`}>
         <Text id={`${id}-properties`} size="sm" {...getStyles('documentHeading')}>
           {labels.propertiesLabel}
@@ -82,6 +102,6 @@ export function PdfDocumentInfo({
           </Stack>
         </section>
       )}
-    </div>
+    </Box>
   );
 }

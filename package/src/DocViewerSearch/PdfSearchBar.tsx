@@ -1,7 +1,17 @@
-import { ActionIcon, CloseButton, TextInput, VisuallyHidden } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  BoxProps,
+  CloseButton,
+  ElementProps,
+  type GetStylesApiOptions,
+  TextInput,
+  VisuallyHidden,
+} from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
+import type { DocViewerSearchInputProps } from '../doc-viewer.types';
 import type { DocViewerLabels } from '../default-labels';
 import type { SearchOptions } from '../utils/search';
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from '../utils/icons';
@@ -23,6 +33,14 @@ interface PdfSearchBarProps {
   onClose: () => void;
   options: SearchOptions;
   onOptionsChange: (options: SearchOptions) => void;
+  inputProps?: DocViewerSearchInputProps;
+
+  /** className, style, classNames and styles of the `search` element */
+  stylesOptions?: GetStylesApiOptions;
+
+  /** Other props of the `search` element */
+  elementProps?: BoxProps & ElementProps<'div'>;
+  rootRef?: React.Ref<HTMLDivElement>;
 }
 
 function getCountLabel(
@@ -118,7 +136,8 @@ function SearchResults(props: PdfSearchBarProps) {
 
 export function PdfSearchBar(props: PdfSearchBarProps) {
   const { inputRef, query, onQueryChange, onNext, onPrevious, onClose } = props;
-  const { getStyles, labels, size, searchInputProps } = useDocViewerContext();
+  const { inputProps, stylesOptions, elementProps, rootRef } = props;
+  const { getStyles, labels, size } = useDocViewerContext();
 
   const handleKeyDown = getHotkeyHandler([
     ['Enter', onNext],
@@ -127,12 +146,12 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
   ]);
 
   return (
-    <div {...getStyles('search')} role="search">
+    <Box ref={rootRef} {...getStyles('search', stylesOptions)} {...elementProps} role="search">
       <TextInput
         placeholder={labels.searchDocumentLabel}
         aria-label={labels.searchDocumentLabel}
         leftSection={<SearchIcon />}
-        {...searchInputProps}
+        {...inputProps}
         ref={inputRef}
         size={size.input}
         value={query}
@@ -148,6 +167,6 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
         aria-label={labels.closeSearchLabel}
         onClick={onClose}
       />
-    </div>
+    </Box>
   );
 }

@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { OptionalContentConfig } from 'pdfjs-dist/types/src/display/optional_content_config';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /** What pages need to draw with the current layer visibility */
 export interface PdfLayersState {
@@ -62,5 +62,7 @@ export function usePdfLayers(document: PDFDocumentProxy | null) {
     [config]
   );
 
-  return { config, layers: getLayers(config), version, setVisible };
+  const layers = useMemo(() => getLayers(config), [config, version]);
+
+  return { config, layers, version, setVisible };
 }
