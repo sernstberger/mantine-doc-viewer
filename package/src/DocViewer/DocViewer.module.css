@@ -908,8 +908,11 @@
   touch-action: none;
   cursor: grab;
 
+  /* On touch screens on the current page only: on every thumbnail they would cover the pages */
   @media (pointer: coarse) {
-    display: grid;
+    :where(.thumbnail[data-active]) > & {
+      display: grid;
+    }
   }
 }
 
@@ -960,7 +963,9 @@
   }
 
   @media (pointer: coarse) {
-    opacity: 1;
+    :where(.thumbnail[data-active]) > & {
+      opacity: 1;
+    }
   }
 }
 
