@@ -70,6 +70,18 @@ async function release() {
     error: 'Failed to build the package',
   });
 
+  await run($`yarn run check:exports`, {
+    info: 'Checking that the package types resolve for every module system',
+    success: 'The package exports check passed',
+    error: 'The package exports check failed, nothing was published',
+  });
+
+  await run($`yarn test`, {
+    info: 'Running the tests (syncpack, format, types, lint, coverage)',
+    success: 'The tests passed',
+    error: 'The tests failed, nothing was published',
+  });
+
   await fs.copyFile(
     path.join(process.cwd(), 'README.md'),
     path.join(process.cwd(), 'package/README.md')

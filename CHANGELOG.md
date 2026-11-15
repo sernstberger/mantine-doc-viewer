@@ -7,7 +7,8 @@ First release.
 Formats
 
 - `DocViewer` for PDFs (pdf.js), images, plain text, code, JSON and markdown, with custom
-  `renderers`
+  `renderers` (the `useDocViewer()` hook gives a renderer `onLoad` and `onError` helpers that report to
+  `onDocumentLoad` and `onDocumentError`)
 - Images: fit, zoom, pinch, rotate, drag to pan
 
 PDF reading
@@ -44,7 +45,7 @@ API and styling
   `DocViewerPdfOptions`, `DocViewerTextState`, `useDocViewerText`), and `DocViewer.Props`,
   `DocViewer.StylesNames`, `DocViewer.CssVariables`, `DocViewer.Factory` and `DocViewer.Variant`
   like Mantine's components
-- `controllerRef`, events (`onDocumentLoadStart`, `onDocumentLoad`, `onLoad`, `onError`,
+- `controllerRef`, events (`onDocumentLoadStart`, `onDocumentLoad`, `onDocumentError`,
   `onFullscreenChange`), `controller.canPrint` and `controller.type`
 - Styles API (including `attributes`), `variant="plain"`, dark pages, translatable `labels`
 - Print, download, full screen

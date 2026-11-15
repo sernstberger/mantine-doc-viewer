@@ -18,7 +18,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The docs deploy only when the tests pass, the same steps as the pull request workflow
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build package
+        run: npm run build
+      - name: Check package exports
+        run: npm run check:exports
+      - name: Build docs
+        run: npm run docs:build
+      - name: Run tests
+        run: npm test
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
