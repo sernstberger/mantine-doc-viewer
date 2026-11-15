@@ -53,60 +53,42 @@ function getAnnouncement(
     : labels.matchOnPage(activeIndex + 1, matchCount, activePage);
 }
 
-export function PdfSearchBar(props: PdfSearchBarProps) {
-  const {
-    inputRef,
-    query,
-    onQueryChange,
-    matchCount,
-    onNext,
-    onPrevious,
-    onClose,
-    options,
-    onOptionsChange,
-  } = props;
-  const { getStyles, labels, size } = useDocViewerContext();
+const OPTION_GLYPHS = [
+  ['matchCase', 'Aa'],
+  ['wholeWords', 'ab'],
+  ['matchAccents', 'é'],
+] as const;
+
+function SearchOptionToggles({
+  options,
+  onOptionsChange,
+}: Pick<PdfSearchBarProps, 'options' | 'onOptionsChange'>) {
+  const { getStyles, labels } = useDocViewerContext();
   const controlProps = useControlProps();
 
-  const handleKeyDown = getHotkeyHandler([
-    ['Enter', onNext],
-    ['shift+Enter', onPrevious],
-    ['Escape', onClose],
-  ]);
+  return OPTION_GLYPHS.map(([option, glyph]) => (
+    <DocViewerTooltip key={option} label={labels[option]}>
+      <ActionIcon
+        {...controlProps(!!options[option])}
+        aria-label={labels[option]}
+        aria-pressed={!!options[option]}
+        onClick={() => onOptionsChange({ ...options, [option]: !options[option] })}
+      >
+        <span {...getStyles('searchOption')} aria-hidden data-option={option}>
+          {glyph}
+        </span>
+      </ActionIcon>
+    </DocViewerTooltip>
+  ));
+}
+
+function SearchResults(props: PdfSearchBarProps) {
+  const { getStyles, labels } = useDocViewerContext();
+  const controlProps = useControlProps();
+  const { matchCount, onNext, onPrevious } = props;
 
   return (
-    <div {...getStyles('search')} role="search">
-      <TextInput
-        ref={inputRef}
-        size={size.input}
-        value={query}
-        onChange={(event) => onQueryChange(event.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={labels.searchDocument}
-        aria-label={labels.searchDocument}
-        leftSection={<SearchIcon />}
-        {...getStyles('searchInput')}
-      />
-      {(
-        [
-          ['matchCase', 'Aa'],
-          ['wholeWords', 'ab'],
-          ['matchAccents', 'é'],
-        ] as const
-      ).map(([option, glyph]) => (
-        <DocViewerTooltip key={option} label={labels[option]}>
-          <ActionIcon
-            {...controlProps(!!options[option])}
-            aria-label={labels[option]}
-            aria-pressed={!!options[option]}
-            onClick={() => onOptionsChange({ ...options, [option]: !options[option] })}
-          >
-            <span {...getStyles('searchOption')} aria-hidden data-option={option}>
-              {glyph}
-            </span>
-          </ActionIcon>
-        </DocViewerTooltip>
-      ))}
+    <>
       <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
       {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
       <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>
@@ -128,6 +110,35 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
           <ChevronDownIcon />
         </ActionIcon>
       </DocViewerTooltip>
+    </>
+  );
+}
+
+export function PdfSearchBar(props: PdfSearchBarProps) {
+  const { inputRef, query, onQueryChange, onNext, onPrevious, onClose } = props;
+  const { getStyles, labels, size } = useDocViewerContext();
+
+  const handleKeyDown = getHotkeyHandler([
+    ['Enter', onNext],
+    ['shift+Enter', onPrevious],
+    ['Escape', onClose],
+  ]);
+
+  return (
+    <div {...getStyles('search')} role="search">
+      <TextInput
+        ref={inputRef}
+        size={size.input}
+        value={query}
+        onChange={(event) => onQueryChange(event.currentTarget.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={labels.searchDocument}
+        aria-label={labels.searchDocument}
+        leftSection={<SearchIcon />}
+        {...getStyles('searchInput')}
+      />
+      <SearchOptionToggles options={props.options} onOptionsChange={props.onOptionsChange} />
+      <SearchResults {...props} />
       <CloseButton
         {...getStyles('control')}
         size={size.control}

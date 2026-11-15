@@ -1,7 +1,15 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
 import { useEffect, useRef, useState } from 'react';
-import { loadPdfJs, PdfJsModule, PdfWorkerNotConfiguredError } from './load-pdfjs';
+import { loadPdfJs, PdfJsModule } from './load-pdfjs';
+import {
+  buildLoadParameters,
+  DEFAULT_PDF_LOAD_OPTIONS,
+  getPdfTitle,
+  isIncorrectPassword,
+  readFirstPageSize,
+  toErrorState,
+} from './pdf-document-load';
 
 export interface PdfPageSize {
   width: number;
@@ -33,27 +41,7 @@ export function getLoaded(state: PdfDocumentState) {
 
 export type PdfLoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
 
-/**
- * Only the parts of the file needed for the pages on screen are downloaded, when the server
- * supports range requests. pdf.js otherwise keeps fetching the whole file in the background.
- * Searching still reads every page
- */
-export const DEFAULT_PDF_LOAD_OPTIONS: PdfLoadOptions = {
-  disableAutoFetch: true,
-  // pdf.js only stops pre-fetching when streaming is off too
-  disableStream: true,
-};
-
-/** Title from the document information, undefined when there is none or it cannot be read */
-async function getPdfTitle(document: PDFDocumentProxy) {
-  try {
-    const { info } = await document.getMetadata();
-    const title = (info as Record<string, unknown>).Title;
-    return typeof title === 'string' && title.trim() ? title.trim() : undefined;
-  } catch {
-    return undefined;
-  }
-}
+export { DEFAULT_PDF_LOAD_OPTIONS };
 
 /** Loads a PDF and the size of its first page, which is used as the placeholder size for every page */
 export function usePdfDocument(
@@ -80,12 +68,7 @@ export function usePdfDocument(
           return;
         }
 
-        const task = pdfjs.getDocument({
-          ...DEFAULT_PDF_LOAD_OPTIONS,
-          ...optionsRef.current,
-          // pdf.js takes ownership of the buffer it is given, so it gets a copy
-          ...(data ? { data: data.slice() } : { url: src }),
-        });
+        const task = pdfjs.getDocument(buildLoadParameters(optionsRef.current, src, data));
         destroy = () => task.destroy();
 
         // The size of the file is known once the first bytes arrive
@@ -94,12 +77,11 @@ export function usePdfDocument(
           total = progress.total;
         };
 
-        // pdf.js asks again with reason 2 when the password was wrong
         task.onPassword = (updatePassword: (password: string) => void, reason: number) => {
           if (!cancelled) {
             setState({
               status: 'password',
-              incorrect: reason === 2,
+              incorrect: isIncorrectPassword(reason),
               submit: (password) => {
                 setState({ status: 'loading' });
                 updatePassword(password);
@@ -109,8 +91,7 @@ export function usePdfDocument(
         };
 
         const document = await task.promise;
-        const firstPage = await document.getPage(1);
-        const { width, height } = firstPage.getViewport({ scale: 1 });
+        const firstPageSize = await readFirstPageSize(document);
         const title = await getPdfTitle(document);
 
         if (!cancelled) {
@@ -118,7 +99,7 @@ export function usePdfDocument(
             status: 'ready',
             pdfjs,
             document,
-            firstPageSize: { width, height },
+            firstPageSize,
             byteSize: data?.byteLength ?? total,
             title,
           });
@@ -126,8 +107,7 @@ export function usePdfDocument(
       })
       .catch((error: Error) => {
         if (!cancelled) {
-          const reason = error instanceof PdfWorkerNotConfiguredError ? 'worker' : 'load';
-          setState({ status: 'error', error, reason });
+          setState(toErrorState(error));
         }
       });
 
