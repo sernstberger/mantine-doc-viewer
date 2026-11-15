@@ -6,6 +6,11 @@ export interface EssayText {
   surname: string;
   date: string;
   title: string;
+  /**
+   * The paragraph each rubric criterion's margin note is about (from 0), in rubric order:
+   * argument (its last two lines, where the thesis is), evidence, structure and language
+   */
+  marks: [number, number, number, number];
   paragraphs: string[];
 }
 
@@ -16,6 +21,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Berg',
     date: '12 November 2026',
     title: 'A Phone Is a Tool, So Teach Us to Use It',
+    marks: [0, 1, 2, 3],
     paragraphs: [
       'Every morning I walk past the lockers with my phone in my pocket, and every morning I know exactly what it can do for me. It holds my timetable, my homework list and the bus times that get me home. Banning it would not make me a better student. It would only take away something I use properly. That is why I think Fairmount High School should teach responsible use instead of locking phones away.',
       'First, phones are already part of how we learn. In science last month we filmed a falling ball and slowed the clip down to measure how fast it dropped. Nobody could have done that with a pencil. In languages, a translation app lets me check a word in two seconds instead of two minutes, and the lesson keeps moving. A school that wants us ready for the future should not treat the most common tool of our time as a threat.',
@@ -30,6 +36,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Brooks',
     date: '12 November 2026',
     title: 'Six Hours Without a Screen',
+    marks: [0, 1, 3, 2],
     paragraphs: [
       'When my little cousin visited last summer, she asked me why everyone at the table was looking at a rectangle instead of at each other. I had no good answer. I have thought about her question ever since, and it is the reason I believe our school day should be a phone-free day.',
       "The case starts with what the research says. A large study from Norway followed more than a hundred schools and found that, after phone rules were introduced, girls' marks went up and visits to the school counsellor dropped. The results were strongest for students from poorer families, who have the most to gain from every lesson. When a rule helps those who need it most and costs the rest almost nothing, it deserves our support.",
@@ -44,6 +51,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Choi',
     date: '11 November 2026',
     title: 'Why I Changed My Mind About Phones',
+    marks: [0, 1, 2, 3],
     paragraphs: [
       'At the start of the term I was sure that phones should stay in our pockets. I argued about it with my mum, and I argued about it with my friends. Then my class did a week with phones in a basket at the front, and I changed my mind. I now think the school should adopt a basket rule for lessons, though not for breaks.',
       'During that week I noticed three things. I finished my work faster. I remembered what the teacher said. And at the end of the lesson I did not feel tired in the strange way that I do after scrolling. That was surprising, because I had expected to be bored and annoyed.',
@@ -58,6 +66,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Novak',
     date: '13 November 2026',
     title: 'The Locker Rule Is the Right Rule',
+    marks: [0, 1, 3, 2],
     paragraphs: [
       'There is a rule at my old club that nobody talks about phones during training. When I started, I thought it was silly. After a month I knew it was the reason that our team worked. We looked at each other, we shouted, and we noticed when somebody was upset. I want the same thing for Fairmount, which is why I support putting phones in lockers during the school day.',
       'Start with the lessons. A teacher can tell when a room is listening. The questions get sharper, the jokes land and the quiet kids join in. When phones are out, you can feel the room split into people who are here and people who are somewhere else. Teachers spend the first five minutes of every lesson getting us back, and across a year that is days of learning lost.',
@@ -72,6 +81,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Reyes',
     date: '12 November 2026',
     title: 'Let Us Keep Our Phones, But Not Use Them Everywhere',
+    marks: [0, 1, 2, 3],
     paragraphs: [
       'I think the school has to be honest about one thing: a total ban will not work, and a total freedom does not work either. Last week I counted how often I picked up my phone during a Tuesday, and the number was forty-one. That is too many, and I want a rule that helps me bring it down. I also want a rule I can follow without feeling like I am being treated as a child.',
       'My proposal has three parts. First, phones are off and in bags during lessons unless the teacher says otherwise. Second, phones are allowed at break and lunch in the yard and the library. Third, anyone who breaks the rule hands their phone to the teacher until the end of the lesson. It is clear, it is fair and a student can explain it to a parent in one sentence.',
@@ -86,6 +96,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Silva',
     date: '12 November 2026',
     title: 'Phones Do More Good Than Harm',
+    marks: [0, 1, 2, 3],
     paragraphs: [
       'People who want to ban phones often talk as if students use them for nothing but games. My experience is different. I use my phone to scan my notes into one folder, to record the teacher when I miss a point and to ask a classmate overseas about a book we both read. A ban would take all of that away to solve a problem that most of us do not have.',
       'The first thing to say is that phones help students who find school hard. My cousin has dyslexia, and a reading app that speaks the text out loud changed how she feels about English. A ban with no exceptions would make her stand up in front of the class and ask to use it, which is exactly the kind of attention she hates. A rule that works for most people should not be written so that it is cruel to a few.',
@@ -100,6 +111,7 @@ export const OTHER_ESSAYS: EssayText[] = [
     surname: 'Whitfield',
     date: '11 November 2026',
     title: 'Give Us the Quiet Back',
+    marks: [0, 1, 3, 2],
     paragraphs: [
       'The loudest sound at my old primary school was laughter. The loudest sound at Fairmount, at lunch, is the buzzing of phones on the tables. I do not want to sound old, because I am fifteen and I like my phone as much as anyone. But I think the school day would be better if we gave the phones a break, and I want to explain why.',
       'Let me begin with the numbers. A study of English schools by the London School of Economics found that banning phones raised results by about as much as adding five days to the school year, and that it helped the weakest students most. If the school could buy that much learning for free, we would be silly to say no. The cost is that for a few hours a day, we are a little less connected.',

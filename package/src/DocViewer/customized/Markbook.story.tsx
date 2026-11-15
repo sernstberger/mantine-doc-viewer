@@ -2,6 +2,7 @@ import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
 import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
 import { DocViewer } from '../DocViewer';
+import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../../scripts/story-pdfs/essays/layout';
 import classes from './Markbook.module.css';
 
 export default {
@@ -82,22 +83,13 @@ const CRITERIA: Criterion[] = [
 const MAX_TOTAL = CRITERIA.length * 4;
 
 /**
- * Where each criterion's note goes on the essay: the paragraph it is about, from the top of the
- * page in PDF points (from scripts/story-pdfs/essay.ts). The note sits in the left margin
+ * Where each criterion's note goes on each essay: the paragraph it is about, from the top of the
+ * page in PDF points. Computed with the same layout that draws the essay PDFs, so the notes
+ * always sit beside their paragraphs. The note sits in the left margin
  */
-const NOTE_ANCHORS: { page: number; top: number; bottom: number }[] = [
-  // Argument: the thesis, the end of the first paragraph
-  { page: 1, top: 252, bottom: 292 },
-  // Evidence: the London School of Economics study
-  { page: 1, top: 302, bottom: 412 },
-  // Structure: the first counter-argument
-  { page: 1, top: 422, bottom: 532 },
-  // Language: the paragraph on how students treat each other
-  { page: 1, top: 542, bottom: 676 },
-];
-
-/** The essays the margin notes were placed on: the anchors above follow Mia's paragraphs */
-const NOTED_ESSAYS = ['okafor'];
+const NOTE_ANCHORS: Record<string, NoteAnchor[]> = Object.fromEntries(
+  ESSAYS.map((essay) => [essay.id, getNoteAnchors(essay)])
+);
 
 const STUDENTS: Student[] = [
   {
@@ -394,10 +386,9 @@ export function Markbook() {
           // The red pen: each scored criterion's note is written in the margin beside its paragraph
           renderPageOverlay={({ pageNumber, scale }) =>
             CRITERIA.map((criterion, criterionIndex) => {
-              const anchor = NOTE_ANCHORS[criterionIndex];
+              const anchor = NOTE_ANCHORS[student.id]?.[criterionIndex];
               const note = scoredNotes[criterionIndex];
-              // The notes are lined up with Mia's paragraphs, so they only go on her essay
-              if (!NOTED_ESSAYS.includes(student.id) || anchor.page !== pageNumber || !note) {
+              if (!anchor || anchor.page !== pageNumber || !note) {
                 return null;
               }
               return (
