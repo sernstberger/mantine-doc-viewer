@@ -1,0 +1,62 @@
+export type EditorKeyAction =
+  | 'move'
+  | 'focus'
+  | 'focusFirst'
+  | 'focusLast'
+  | 'toggle'
+  | 'remove'
+  | 'rotate'
+  | 'selectAll';
+
+/** An action to run, and for move and focus which way: -1 earlier, 1 later */
+export interface EditorKey {
+  action: EditorKeyAction;
+  step: -1 | 1;
+}
+
+interface EditorKeyEvent {
+  key: string;
+  altKey?: boolean;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+}
+
+const earlier = (action: EditorKeyAction): EditorKey => ({ action, step: -1 });
+const later = (action: EditorKeyAction): EditorKey => ({ action, step: 1 });
+
+/** Arrow keys: [plain, with Alt] */
+const ARROW_ACTIONS: Record<string, [EditorKey, EditorKey]> = {
+  ArrowLeft: [earlier('focus'), earlier('move')],
+  ArrowUp: [earlier('focus'), earlier('move')],
+  ArrowRight: [later('focus'), later('move')],
+  ArrowDown: [later('focus'), later('move')],
+};
+
+/** Keys that act the same whatever modifier is held */
+const PLAIN_ACTIONS: Record<string, EditorKey> = {
+  Home: later('focusFirst'),
+  End: later('focusLast'),
+  ' ': later('toggle'),
+  Delete: later('remove'),
+  Backspace: later('remove'),
+};
+
+/** Letter keys: [action, whether Ctrl/Cmd must be held] */
+const LETTER_ACTIONS: Record<string, [EditorKey, boolean]> = {
+  r: [later('rotate'), false],
+  a: [later('selectAll'), true],
+};
+
+/** Action for a key pressed in the page editor, or null when the key is not one of its shortcuts */
+export function getEditorKeyAction(event: EditorKeyEvent): EditorKey | null {
+  const arrow = ARROW_ACTIONS[event.key];
+  if (arrow) {
+    return arrow[event.altKey ? 1 : 0];
+  }
+  const letter = LETTER_ACTIONS[event.key.toLowerCase()];
+  if (letter) {
+    const command = !!(event.metaKey || event.ctrlKey);
+    return command === letter[1] ? letter[0] : null;
+  }
+  return PLAIN_ACTIONS[event.key] ?? null;
+}
