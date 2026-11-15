@@ -180,8 +180,8 @@ export interface DocViewerProps
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */
   defaultThumbnailsOpened?: boolean;
 
-  /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position */
-  thumbnailsPosition?: DocViewerThumbnailsPosition;
+  /** Side of the viewer that PDF page thumbnails are shown on, for a controlled position. Can differ per breakpoint, for example `{ base: 'bottom', sm: 'left' }` */
+  thumbnailsPosition?: DocViewerResponsive<DocViewerThumbnailsPosition>;
 
   /** Side that PDF page thumbnails are shown on at first, `'left'` by default. Readers can move them from the toolbar */
   defaultThumbnailsPosition?: DocViewerThumbnailsPosition;
@@ -311,7 +311,11 @@ const defaultProps: Partial<DocViewerProps> = {
 };
 
 /** Props after responsive values are resolved for the current viewport */
-type ResolvedDocViewerProps = Omit<DocViewerProps, 'size' | 'pageGap' | 'thumbnailWidth'> & {
+type ResolvedDocViewerProps = Omit<
+  DocViewerProps,
+  'size' | 'pageGap' | 'thumbnailWidth' | 'thumbnailsPosition'
+> & {
+  thumbnailsPosition?: DocViewerThumbnailsPosition;
   size?: MantineSize;
   pageGap?: MantineSpacing;
   thumbnailWidth?: number;
@@ -445,6 +449,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const resolvedSize = useResponsiveValue(size) ?? 'sm';
   const resolvedPageGap = useResponsiveValue(pageGap);
   const resolvedThumbnailWidth = useResponsiveValue(thumbnailWidth) ?? DEFAULT_THUMBNAIL_WIDTH;
+  const resolvedThumbnailsPosition = useResponsiveValue(thumbnailsPosition);
 
   const getStyles = useStyles<DocViewerFactory>({
     name: 'DocViewer',
@@ -454,6 +459,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       size: resolvedSize,
       pageGap: resolvedPageGap,
       thumbnailWidth: resolvedThumbnailWidth,
+      thumbnailsPosition: resolvedThumbnailsPosition,
     } satisfies ResolvedDocViewerProps,
     className,
     style,
@@ -517,7 +523,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         maxCanvasPixels: maxCanvasPixels!,
         defaultThumbnailsOpened,
         defaultPageLayout,
-        thumbnailsPosition,
+        thumbnailsPosition: resolvedThumbnailsPosition,
         defaultThumbnailsPosition,
         onThumbnailsPositionChange,
         maxTextSize: maxTextSize!,
