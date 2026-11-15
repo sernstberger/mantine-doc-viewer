@@ -1,28 +1,48 @@
 /*
  * Scanbox: a phone scan-to-PDF app. The receipts are photographs of paper (tilted, torn, stained,
  * drawn into the PDF), so the viewer's job is to frame them like photos on a light scanner bed.
+ *
+ * On a wide screen the app is drawn inside a phone. Below Mantine's sm breakpoint (48em, the
+ * same one the viewer's responsive props use) it is on a phone: the frame, the fake status bar
+ * and the home indicator go, and the app fills the screen.
  */
 
 .stage {
   display: grid;
   place-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 32px 16px;
   background: #e4e8e6;
   font-family: Manrope, system-ui, sans-serif;
+
+  @mixin smaller-than 48em {
+    display: block;
+    padding: 0;
+    background: #fff;
+  }
 }
 
 .phone {
   width: 375px;
   max-width: 100%;
   height: 760px;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 64px);
   padding: 9px;
   border-radius: 52px;
   background: #101614;
   box-shadow:
     0 0 0 1.5px #3a4541,
     0 30px 60px -20px rgb(20 32 29 / 0.45);
+
+  @mixin smaller-than 48em {
+    width: auto;
+    height: 100dvh;
+    max-height: none;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
 }
 
 .screen {
@@ -39,6 +59,10 @@
   border-radius: 43px;
   background: #fff;
   color: var(--scanbox-ink);
+
+  @mixin smaller-than 48em {
+    border-radius: 0;
+  }
 }
 
 /* ---------------------------------- app chrome --------------------------------- */
@@ -52,6 +76,11 @@
   padding: 6px 30px 0 32px;
   font-size: 15px;
   font-weight: 700;
+
+  /* The phone's own status bar, drawn only inside the mock-up frame */
+  @mixin smaller-than 48em {
+    display: none;
+  }
 }
 
 .statusIcons {
@@ -66,6 +95,11 @@
   align-items: center;
   gap: 4px;
   padding: 2px 16px 10px 8px;
+
+  /* No drawn status bar on a real phone: clear the notch instead */
+  @mixin smaller-than 48em {
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
 }
 
 .back {
@@ -304,6 +338,10 @@
   flex-shrink: 0;
   padding: 12px 16px 8px;
   background: #fff;
+
+  @mixin smaller-than 48em {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
 }
 
 .exportButton {
@@ -340,6 +378,11 @@
   margin: 14px auto 2px;
   border-radius: 3px;
   background: var(--scanbox-ink);
+
+  /* The phone draws its own */
+  @mixin smaller-than 48em {
+    display: none;
+  }
 }
 
 /* ---------------------------------- toast ---------------------------------- */

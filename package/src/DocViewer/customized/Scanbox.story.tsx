@@ -6,7 +6,11 @@ import type { DocViewerController } from '../controller';
 import { saveBytes } from '../files';
 import classes from './Scanbox.module.css';
 
-export default { title: 'DocViewer/Apps/Scanbox (phone scanner)' };
+export default {
+  title: 'DocViewer/Apps/Scanbox (phone scanner)',
+  // The stage draws its own backdrop, and on a phone the app fills the screen edge to edge
+  parameters: { layout: 'fullscreen' },
+};
 
 // Scanbox teal, so the page editor's own buttons (Save, Done) match the app
 const teal: MantineColorsTuple = [

@@ -1,15 +1,25 @@
 /*
  * Gate: an airline app at the gate. The flight header owns the screen (huge times in Manrope
  * 800), the e-ticket sits under it on pale mist, and amber is spent only on the gate change.
+ *
+ * On a wide screen the app is drawn inside a phone. Below Mantine's sm breakpoint (48em, the
+ * same one the viewer's responsive props use) it is on a phone: the frame, the fake status bar
+ * and the home indicator go, and the app fills the screen.
  */
 
 .stage {
   display: grid;
   place-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 32px 16px;
   background: radial-gradient(70% 55% at 50% 0%, #1b4175 0%, transparent 70%), #06182f;
   font-family: Manrope, system-ui, sans-serif;
+
+  @mixin smaller-than 48em {
+    display: block;
+    padding: 0;
+    background: #0b2545;
+  }
 }
 
 /* A silver-edged phone, so it reads as another product than the dark-bezel Scanbox */
@@ -17,13 +27,23 @@
   width: 375px;
   max-width: 100%;
   height: 844px;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 64px);
   padding: 6px;
   border-radius: 54px;
   background: linear-gradient(145deg, #e6ebf1, #9aa7b8 55%, #d4dbe4);
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.25),
     0 40px 80px -24px rgb(0 0 0 / 0.7);
+
+  @mixin smaller-than 48em {
+    width: auto;
+    height: 100dvh;
+    max-height: none;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
 }
 
 .screen {
@@ -41,6 +61,11 @@
   border-radius: 48px;
   background: var(--gate-mist);
   color: var(--gate-navy);
+
+  @mixin smaller-than 48em {
+    border: 0;
+    border-radius: 0;
+  }
 }
 
 /* ---------------------------------- flight header --------------------------------- */
@@ -50,8 +75,14 @@
   padding: 0 20px 18px;
   background: var(--gate-navy);
   color: #fff;
+
+  /* No drawn status bar on a real phone: clear the notch instead */
+  @mixin smaller-than 48em {
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
 }
 
+/* The phone's own status bar, drawn only inside the mock-up frame */
 .statusBar {
   display: flex;
   align-items: center;
@@ -60,6 +91,10 @@
   padding: 8px 12px 0;
   font-size: 15px;
   font-weight: 700;
+
+  @mixin smaller-than 48em {
+    display: none;
+  }
 }
 
 .statusIcons {
@@ -302,12 +337,6 @@
   border: 0;
   background: #fff;
   box-shadow: 0 -1px 0 rgb(11 37 69 / 0.08);
-
-  /* A rail beside the pass on wider screens */
-  &[data-orientation='vertical'] {
-    padding: 16px 8px;
-    box-shadow: 1px 0 0 rgb(11 37 69 / 0.08);
-  }
 }
 
 .thumbnail {
@@ -353,6 +382,10 @@
   flex-shrink: 0;
   background: #fff;
   box-shadow: 0 -1px 0 rgb(11 37 69 / 0.08);
+
+  @mixin smaller-than 48em {
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
 }
 
 .hint {
@@ -376,4 +409,9 @@
   margin: 8px auto;
   border-radius: 3px;
   background: var(--gate-navy);
+
+  /* The phone draws its own */
+  @mixin smaller-than 48em {
+    display: none;
+  }
 }
