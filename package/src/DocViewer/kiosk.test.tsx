@@ -57,6 +57,20 @@ describe('useIdleTimeout', () => {
     act(() => jest.advanceTimersByTime(500));
     expect(withHandler.result.current).toBe(true);
   });
+
+  it('listens to activity only while a timeout is set', () => {
+    const listen = jest.spyOn(document, 'addEventListener');
+    const listened = () => listen.mock.calls.filter(([event]) => event === 'mousemove').length;
+    const { rerender, result } = renderHook(({ timeout }) => useIdleTimeout(timeout, undefined), {
+      initialProps: { timeout: undefined as number | undefined },
+    });
+    expect(listened()).toBe(0);
+    rerender({ timeout: 1000 });
+    expect(listened()).toBe(1);
+    rerender({ timeout: undefined });
+    expect(result.current).toBe(false);
+    listen.mockRestore();
+  });
 });
 
 describe('idleTimeout, onIdle and autoAdvance', () => {

@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useIsomorphicEffect } from '@mantine/hooks';
+import { useRef } from 'react';
 
 /** The page under the middle of the view, and where in it the middle falls (0 is its top or left edge, 1 the other) */
 export interface ZoomAnchor {
@@ -75,7 +76,7 @@ export function useZoomAnchor(
     anchor.current = getZoomAnchor(scrollRoot);
   }
 
-  useLayoutEffect(() => {
+  useIsomorphicEffect(() => {
     const previous = previousScale.current;
     previousScale.current = scale;
     const target = anchor.current;

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useIsomorphicEffect } from '@mantine/hooks';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DocViewerZoom } from '../controller';
 import { clampZoom } from '../zoom';
 import {
@@ -43,7 +44,7 @@ export function useImageZoom({ stage, defaultZoom, fitScale, layoutKey }: ImageZ
   );
 
   // Put the anchor point back once the new size has been laid out
-  useLayoutEffect(() => {
+  useIsomorphicEffect(() => {
     if (!stage) {
       return;
     }
