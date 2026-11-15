@@ -1,5 +1,6 @@
 import type { DocViewerPageLayout } from '../DocViewer';
-import type { PdfRotation } from './render-page';
+import { type PdfRotation, rotateSize } from './render-page';
+import type { PdfPageSize } from './use-pdf-document';
 import { DEFAULT_PAGES_GUTTER, getFitWidthScale, PagesGutter, PdfZoom } from './zoom';
 
 /** A page number within the document, from 1 to `numPages` */
@@ -52,6 +53,41 @@ export function computeScale(input: ScaleInput) {
   // A whole page, or a whole spread, fits both ways; a viewer that grows with its pages has no
   // height of its own to fit, so it fits the width
   return zoom === 'fit-page' && !input.autoHeight ? Math.min(byWidth, byHeight) : byWidth;
+}
+
+export interface ViewScaleInput extends Omit<ScaleInput, 'pageWidth' | 'pageHeight'> {
+  /** Size of the first page at scale 1, after rotation */
+  pageSize: { width: number; height: number };
+  /** False while there is no document */
+  ready: boolean;
+  presenting: boolean;
+}
+
+/** Scale the pages are shown at: 1 while loading, the whole page in a presentation, else the zoom or fit */
+export function getViewScale({ pageSize, ready, presenting, ...input }: ViewScaleInput) {
+  if (!ready) {
+    return 1;
+  }
+  return presenting
+    ? computeFitPageScale(input.bodyWidth, input.bodyHeight, pageSize.width, pageSize.height)
+    : computeScale({ ...input, pageWidth: pageSize.width, pageHeight: pageSize.height });
+}
+
+/** Size of the first page after the reader's rotation, or nothing while there is no document */
+export function getPageSize(firstPageSize: PdfPageSize | undefined, rotation: PdfRotation) {
+  return firstPageSize ? rotateSize(firstPageSize, rotation) : { width: 0, height: 0 };
+}
+
+/**
+ * With height="auto" the window scrolls, except in full screen or a presentation, which have a
+ * fixed height and scroll inside the viewer
+ */
+export function scrollsWindow(
+  autoHeight: boolean | undefined,
+  fullscreen: boolean,
+  presenting: boolean
+) {
+  return !!autoHeight && !fullscreen && !presenting;
 }
 
 /** Scale that fits a whole page in the view, for presentations */

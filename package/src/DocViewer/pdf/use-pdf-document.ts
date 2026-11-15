@@ -25,6 +25,12 @@ export type PdfDocumentState =
       title: string | undefined;
     };
 
+/** The loaded state (null while loading or failed), its document, and its page count */
+export function getLoaded(state: PdfDocumentState) {
+  const ready = state.status === 'ready' ? state : null;
+  return { ready, document: ready?.document ?? null, numPages: ready?.document.numPages ?? 0 };
+}
+
 export type PdfLoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
 
 /**
