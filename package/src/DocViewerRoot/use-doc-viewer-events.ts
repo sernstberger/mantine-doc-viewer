@@ -1,73 +1,111 @@
 import { useMemo } from 'react';
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
+import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
+import type { ControllerImplementation, DocViewerEvents } from '../hooks/use-controller-registry';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
-import type { DocViewerProps } from './DocViewerRoot';
 
-/** Stable event handlers for the views, and the load-start report */
-export function useDocViewerEvents(
-  props: Pick<
-    DocViewerProps,
-    | 'src'
-    | 'onDocumentLoadStart'
-    | 'onDocumentLoad'
-    | 'onDocumentError'
-    | 'onPageChange'
-    | 'onSpreadChange'
-    | 'onZoomChange'
-    | 'onPageLayoutChange'
-    | 'onReadingProgress'
-    | 'onReachEnd'
-    | 'onLinkClick'
-    | 'onTextSelect'
-  >,
-  type: DocViewerType
-) {
-  // Stable, so views can call them from effects without re-running them
-  const handleDocumentLoadStart = useCallbackRef(props.onDocumentLoadStart);
-  const handleDocumentLoad = useCallbackRef(props.onDocumentLoad);
-  const handleDocumentError = useCallbackRef(props.onDocumentError);
-  const handlePageChange = useCallbackRef(props.onPageChange);
-  const handleSpreadChange = useCallbackRef(props.onSpreadChange);
-  const handleZoomChange = useCallbackRef(props.onZoomChange);
-  const handlePageLayoutChange = useCallbackRef(props.onPageLayoutChange);
-  const handleReadingProgress = useCallbackRef(props.onReadingProgress);
-  const handleReachEnd = useCallbackRef(props.onReachEnd);
-  const handleLinkClick = useCallbackRef(props.onLinkClick);
-  const handleTextSelect = useCallbackRef(props.onTextSelect);
-  const events = useMemo(
+interface DocViewerEventsInput {
+  props: Omit<DocViewerEvents, 'onDocumentLoadStart' | 'onSpreadChange'>;
+  src: string;
+  type: DocViewerType;
+  unsupported: boolean;
+  store: DocViewerStore;
+  controller: React.RefObject<ControllerImplementation>;
+}
+
+/** Stable event handlers for the views; each also writes what it reports into the store */
+export function useDocViewerEvents({
+  props,
+  src,
+  type,
+  unsupported,
+  store,
+  controller,
+}: DocViewerEventsInput) {
+  const update = (state: Parameters<typeof updateDocViewerStateAction>[0]) =>
+    updateDocViewerStateAction(state, store);
+
+  const onDocumentLoadStart = useCallbackRef(() =>
+    update({
+      type,
+      status: unsupported ? 'unsupported' : 'loading',
+      info: null,
+      error: null,
+      numPages: 0,
+      canPrint: false,
+    })
+  );
+  const onDocumentLoad = useCallbackRef(
+    (info: Parameters<Required<DocViewerEvents>['onDocumentLoad']>[0]) => {
+      update({
+        status: 'ready',
+        info,
+        numPages: info.numPages ?? 0,
+        canPrint: controller.current.isPrintable?.() ?? false,
+      });
+      props.onDocumentLoad?.(info);
+    }
+  );
+  const onDocumentError = useCallbackRef((error: Error) => {
+    update({ status: 'error', error });
+    props.onDocumentError?.(error);
+  });
+  const onPageChange = useCallbackRef((page: number) => {
+    update({ page });
+    props.onPageChange?.(page);
+  });
+  const onSpreadChange = useCallbackRef((index: number, pages: number[]) =>
+    update({ spread: { index, pages } })
+  );
+  const onZoomChange = useCallbackRef<Required<DocViewerEvents>['onZoomChange']>(
+    (zoom, details) => {
+      update({ zoom, scale: details.scale });
+      props.onZoomChange?.(zoom, details);
+    }
+  );
+  const onPageLayoutChange = useCallbackRef<Required<DocViewerEvents>['onPageLayoutChange']>(
+    (layout) => {
+      update({ pageLayout: layout });
+      props.onPageLayoutChange?.(layout);
+    }
+  );
+  const onReadingProgress = useCallbackRef(props.onReadingProgress);
+  const onReachEnd = useCallbackRef(props.onReachEnd);
+  const onLinkClick = useCallbackRef(props.onLinkClick);
+  const onTextSelect = useCallbackRef(props.onTextSelect);
+
+  const events = useMemo<Required<DocViewerEvents>>(
     () => ({
-      onDocumentLoadStart: handleDocumentLoadStart,
-      onDocumentLoad: handleDocumentLoad,
-      onDocumentError: handleDocumentError,
-      onPageChange: handlePageChange,
-      onSpreadChange: handleSpreadChange,
-      onZoomChange: handleZoomChange,
-      onPageLayoutChange: handlePageLayoutChange,
-      onReadingProgress: handleReadingProgress,
-      onReachEnd: handleReachEnd,
-      onLinkClick: handleLinkClick,
-      onTextSelect: handleTextSelect,
+      onDocumentLoadStart,
+      onDocumentLoad,
+      onDocumentError,
+      onPageChange,
+      onSpreadChange,
+      onZoomChange,
+      onPageLayoutChange,
+      onReadingProgress,
+      onReachEnd,
+      onLinkClick,
+      onTextSelect,
     }),
     [
-      handleDocumentLoadStart,
-      handleDocumentLoad,
-      handleDocumentError,
-      handlePageChange,
-      handleZoomChange,
-      handlePageLayoutChange,
-      handleLinkClick,
-      handleTextSelect,
-      handleReadingProgress,
-      handleReachEnd,
-      handleSpreadChange,
+      onDocumentLoadStart,
+      onDocumentLoad,
+      onDocumentError,
+      onPageChange,
+      onSpreadChange,
+      onZoomChange,
+      onPageLayoutChange,
+      onReadingProgress,
+      onReachEnd,
+      onLinkClick,
+      onTextSelect,
     ]
   );
 
-  // A layout effect, so the start is reported before any view reports that it loaded
-  const { src } = props;
   useIsomorphicEffect(() => {
-    handleDocumentLoadStart({ type, src });
-  }, [type, src, handleDocumentLoadStart]);
+    onDocumentLoadStart();
+  }, [type, src, onDocumentLoadStart]);
 
   return events;
 }

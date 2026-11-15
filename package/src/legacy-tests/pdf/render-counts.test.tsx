@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import type { DocViewerMark } from '../../utils/markup';
 

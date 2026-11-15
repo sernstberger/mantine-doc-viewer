@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import React from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 async function pressedColor(color?: string) {
   mockPdf();

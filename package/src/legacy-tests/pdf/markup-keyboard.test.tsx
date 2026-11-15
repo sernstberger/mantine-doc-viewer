@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer, DocViewerProps } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer, DocViewerProps } from '../../../../test-utils/render-legacy';
 import type { DocViewerMark, DocViewerMarkupTool } from '../../utils/markup';
 
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';

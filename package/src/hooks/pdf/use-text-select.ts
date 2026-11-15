@@ -55,11 +55,10 @@ export function useTextSelect({ scrollRoot, scale, rotation, onTextSelect }: Tex
         ) === index
     );
 
-    onTextSelect(
-      text,
-      Number(pageNode.dataset.pageNumber),
-      getPageRects(boxes, pageBox, scale, rotation)
-    );
+    onTextSelect(text, {
+      page: Number(pageNode.dataset.pageNumber),
+      rects: getPageRects(boxes, pageBox, scale, rotation),
+    });
   }, SELECT_SETTLE_TIME);
 
   useEffect(() => {

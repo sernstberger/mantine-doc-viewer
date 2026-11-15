@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
-import { PdfWorkerNotConfiguredError } from '../DocViewerAdapterProvider/adapters/load-pdfjs';
+import { PdfWorkerNotConfiguredError } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 
 type LoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
 

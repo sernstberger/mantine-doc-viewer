@@ -1,8 +1,7 @@
 import { Anchor, Avatar, Button } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useRef, useState } from 'react';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 import classes from './FieldReport.module.css';
 
 export default {

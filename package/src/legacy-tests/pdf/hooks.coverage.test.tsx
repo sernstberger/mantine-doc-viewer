@@ -3,7 +3,7 @@ import { render } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import * as pdfjs from 'pdfjs-dist';
 import React, { useLayoutEffect } from 'react';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 import { DocViewerProvider } from '../../doc-viewer.context';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';

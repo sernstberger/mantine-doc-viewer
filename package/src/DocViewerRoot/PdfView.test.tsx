@@ -5,8 +5,7 @@ import { axe } from 'jest-axe';
 import { PDFDocument } from '@cantoo/pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
 import React, { createRef } from 'react';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewer } from './DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
@@ -72,9 +71,9 @@ describe('DocViewer PDF', () => {
     render(<DocViewer src="/files/report.pdf" />);
 
     expect(
-      await screen.findByText('PDF preview is not configured: set the pdfWorkerSrc prop')
+      await screen.findByText('PDF preview is not configured: pass workerSrc to createPdfJsAdapter')
     ).toBeInTheDocument();
-    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('pdfWorkerSrc'));
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('workerSrc'));
     expect(getDocument).not.toHaveBeenCalled();
     consoleError.mockRestore();
   });

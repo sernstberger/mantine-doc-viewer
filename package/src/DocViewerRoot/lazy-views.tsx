@@ -1,8 +1,8 @@
 import React, { Suspense } from 'react';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { importCodeView, importMarkdownView } from './import-views';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
-import { DocViewerLoading } from '../DocViewerMessage/MessageView';
+import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
 
 /**
  * The code and markdown views load on demand, like pdf.js and react-markdown: they bring
@@ -22,7 +22,7 @@ export function LazyView({ children }: { children: React.ReactNode }) {
     <Suspense
       fallback={
         <>
-          <DocViewerToolbar />
+          <ToolbarView />
           <DocViewerBody focusable={false}>
             <DocViewerLoading />
           </DocViewerBody>

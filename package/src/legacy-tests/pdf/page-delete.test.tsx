@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
 import { mockFetch } from '../../../../test-utils/mock-fetch';
 import { mockPdf } from '../../../../test-utils/mock-pdf';
-import type { DocViewerController } from '../../hooks/use-controller-registry';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
 
 type Props = Partial<React.ComponentProps<typeof DocViewer>>;
 

@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 /** jsdom does not load images, so set the natural size and fire load by hand */
 function loadImage(width = 800, height = 400) {

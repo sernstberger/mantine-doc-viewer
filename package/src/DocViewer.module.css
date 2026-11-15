@@ -43,7 +43,7 @@
   gap: rem(6px);
 }
 
-.toolbarStart {
+.toolbarSection {
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -308,7 +308,7 @@
   align-items: center;
   gap: var(--mantine-spacing-sm);
   flex-shrink: 0;
-  width: calc(var(--doc-viewer-thumbnail-width, rem(112px)) + rem(40px));
+  width: calc(var(--doc-viewer-thumbnails-width, rem(112px)) + rem(40px));
   padding: var(--mantine-spacing-sm) 0;
   overflow-y: auto;
   border-inline-end: 1px solid var(--mantine-color-default-border);

@@ -1,6 +1,6 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useState } from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 import classes from './Folio.module.css';
 
 export default { title: 'DocViewer/Apps/Folio (desktop document app)' };

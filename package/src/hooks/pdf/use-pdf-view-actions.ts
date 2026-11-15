@@ -81,7 +81,6 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     announce: position.announce,
     labels: context.labels,
     onSave: context.onSave,
-    fileName: context.fileName,
     markup,
   });
 

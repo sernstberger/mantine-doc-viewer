@@ -2,7 +2,7 @@ import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
 import React, { useMemo, useState } from 'react';
 import { getCodeLanguage } from '../utils/get-doc-viewer-type';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { printText } from '../utils/print';
 import { TextStatus } from '../DocViewerText/TextStatus';
@@ -27,12 +27,13 @@ function parseJson(text: string) {
   }
 }
 
-export function CodeView() {
+export function CodeView({ language: languageOverride }: { language?: string }) {
   const { getStyles, src, fileName, language, maxTextSize, labels, codeHighlightProps } =
     useDocViewerContext();
   const show = useShowControl();
   const state = useDocViewerText(src, maxTextSize);
-  const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
+  const resolvedLanguage =
+    languageOverride ?? language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
 
   // Valid JSON can also be shown as a collapsible tree
@@ -48,7 +49,7 @@ export function CodeView() {
 
   return (
     <>
-      <DocViewerToolbar onPrint={onPrint}>
+      <ToolbarView onPrint={onPrint}>
         {json !== NOT_JSON && show('viewMode') && (
           <ViewModeToggle
             value={mode}
@@ -60,7 +61,7 @@ export function CodeView() {
             label={labels.jsonViewLabel}
           />
         )}
-      </DocViewerToolbar>
+      </ToolbarView>
       <DocViewerBody focusable={state.status === 'ready'}>
         {text === null && <TextStatus state={state} />}
         {text !== null && showTree && (

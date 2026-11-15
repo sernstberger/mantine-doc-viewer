@@ -1,7 +1,7 @@
 import { ActionIcon } from '@mantine/core';
 import React, { useState } from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { WrapIcon } from '../utils/icons';
 import { printText } from '../utils/print';
@@ -23,7 +23,7 @@ export function TextView() {
 
   return (
     <>
-      <DocViewerToolbar onPrint={onPrint}>
+      <ToolbarView onPrint={onPrint}>
         {state.status === 'ready' && show('wrap') && (
           <DocViewerTooltip label={wrap ? labels.doNotWrapLinesLabel : labels.wrapLinesLabel}>
             <ActionIcon
@@ -36,7 +36,7 @@ export function TextView() {
             </ActionIcon>
           </DocViewerTooltip>
         )}
-      </DocViewerToolbar>
+      </ToolbarView>
       <DocViewerBody focusable={state.status === 'ready'}>
         {state.status === 'ready' ? (
           <pre {...getStyles('text')} data-wrap={wrap || undefined}>

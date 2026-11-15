@@ -2,9 +2,8 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 
 function loadImage(width = 800, height = 400) {

@@ -104,10 +104,7 @@ const LANGUAGE_ALIASES: Record<string, string> = {
 };
 
 /** Highlighter language for a code file, taken from its file name or url */
-export function getCodeLanguage({
-  src,
-  fileName,
-}: Pick<DocViewerDetectTypeInput, 'src' | 'fileName'>) {
+export function getCodeLanguage({ src, fileName }: Pick<DocViewerTypeInput, 'src' | 'fileName'>) {
   for (const candidate of [fileName, src]) {
     const extension = candidate ? getExtension(candidate) : null;
     if (extension) {
@@ -118,7 +115,7 @@ export function getCodeLanguage({
   return undefined;
 }
 
-export interface DocViewerDetectTypeInput {
+export interface DocViewerTypeInput {
   /** File url, path or file name */
   src?: string;
 
@@ -130,11 +127,7 @@ export interface DocViewerDetectTypeInput {
 }
 
 /** Works out how a document should be rendered from its MIME type, file name or url */
-export function detectDocType({
-  src,
-  mimeType,
-  fileName,
-}: DocViewerDetectTypeInput): DocViewerType {
+export function getDocViewerType({ src, mimeType, fileName }: DocViewerTypeInput): DocViewerType {
   if (mimeType) {
     const type = fromMimeType(mimeType);
     if (type) {

@@ -143,6 +143,9 @@ export interface DocViewerLabels {
   opensInNewTabLabel: string;
 
   pdfWorkerMissingLabel: string;
+
+  /** Shown for a PDF when no `DocViewerAdapterProvider` gives a PDF engine */
+  pdfNotConfiguredLabel: string;
   pdfErrorLabel: string;
   imageErrorLabel: string;
   textErrorLabel: string;
@@ -285,7 +288,8 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   sourceLabel: 'Source',
   opensInNewTabLabel: '(opens in new tab)',
 
-  pdfWorkerMissingLabel: 'PDF preview is not configured: set the pdfWorkerSrc prop',
+  pdfWorkerMissingLabel: 'PDF preview is not configured: pass workerSrc to createPdfJsAdapter',
+  pdfNotConfiguredLabel: 'This PDF cannot be shown here. Download it instead.',
   pdfErrorLabel: 'This PDF could not be opened',
   imageErrorLabel: 'This image could not be loaded',
   textErrorLabel: 'This file could not be loaded',
@@ -294,3 +298,19 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   unsupportedLabel: 'Preview is not available for this file type',
   notSupportedYetLabel: (type) => `Preview for ${type} files is not available yet`,
 };
+
+const NESTED_LABELS = ['propertyNameLabels', 'markupToolLabels'] as const;
+
+/** Labels with `overrides` laid over `defaults`; the nested records are merged one level deep */
+export function mergeLabels(
+  defaults: DocViewerLabels,
+  ...overrides: (Partial<DocViewerLabels> | undefined)[]
+): DocViewerLabels {
+  return overrides.reduce<DocViewerLabels>((merged, override) => {
+    const next = { ...merged, ...override };
+    NESTED_LABELS.forEach((key) => {
+      Object.assign(next, { [key]: { ...merged[key], ...override?.[key] } });
+    });
+    return next;
+  }, defaults);
+}

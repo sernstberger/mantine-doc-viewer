@@ -1,8 +1,7 @@
 import { Button, createTheme, MantineProvider, type MantineColorsTuple } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
 import { saveBytes } from '../utils/files';
 import classes from './Scanbox.module.css';
 

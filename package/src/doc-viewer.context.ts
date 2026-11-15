@@ -1,11 +1,3 @@
-import type {
-  DocViewerControl,
-  DocViewerFactory,
-  DocViewerPageLayout,
-  DocViewerPasswordInputProps,
-  DocViewerSearchInputProps,
-  DocViewerThumbnailsPosition,
-} from './DocViewerRoot/DocViewerRoot';
 import type { CodeHighlightProps } from '@mantine/code-highlight';
 import {
   createSafeContext,
@@ -13,25 +5,37 @@ import {
   type MantineColor,
   type TooltipProps,
 } from '@mantine/core';
-import type { DocViewerType } from './utils/get-doc-viewer-type';
-import type {
-  ControllerImplementation,
-  DocViewerEvents,
-  DocViewerZoom,
-} from './hooks/use-controller-registry';
-import type { DocViewerLabels } from './default-labels';
-import type { DocViewerAutoAdvance } from './utils/kiosk';
-import type { DocViewerRenderPageOverlay } from './utils/page-overlay';
-import type { DocViewerPageTurning } from './utils/spreads';
-import type { DocViewerPdfOptions } from './hooks/pdf/use-pdf-document';
-import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar/ToolbarView';
-import type { DocViewerMarkupProps } from './hooks/pdf/use-markup';
-import type { DocViewerSizeConfig } from './utils/sizes';
 import { createElement } from 'react';
+import type { DocViewerLabels } from './default-labels';
+import type { DocViewerPdfAdapter } from './DocViewerAdapterProvider/adapters/pdfjs-adapter';
+import type { DocViewerRootFactory } from './DocViewerRoot/DocViewerRoot';
+import type { DocViewerStore } from './doc-viewer.store';
+import type {
+  DocViewerControl,
+  DocViewerPageLayout,
+  DocViewerPasswordInputProps,
+  DocViewerSearchInputProps,
+  DocViewerThumbnailsPosition,
+  DocViewerZoom,
+} from './doc-viewer.types';
+import type { ControllerImplementation, DocViewerEvents } from './hooks/use-controller-registry';
+import type { DocViewerMarkupProps } from './hooks/pdf/use-markup';
 import { useShallowStable } from './DocViewerRoot/use-shallow-stable';
+import type { DocViewerType } from './utils/get-doc-viewer-type';
+import type { DocViewerRenderPageOverlay } from './utils/page-overlay';
+import type { DocViewerSizeConfig } from './utils/sizes';
+import type { DocViewerPageTurning } from './utils/spreads';
+
+/** What happens to the bytes of a PDF the editor or the markup tools made */
+export type DocViewerSaveHandler = (
+  bytes: Uint8Array,
+  info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
+) => void | Promise<void>;
 
 export interface DocViewerContextValue {
-  getStyles: GetStylesApi<DocViewerFactory>;
+  getStyles: GetStylesApi<DocViewerRootFactory>;
+  store: DocViewerStore;
+  pdfAdapter: DocViewerPdfAdapter | undefined;
   src: string;
   type: DocViewerType;
   mimeType: string | undefined;
@@ -40,21 +44,15 @@ export interface DocViewerContextValue {
   keepView: boolean | undefined;
   labels: DocViewerLabels;
   locale: string | undefined;
-  withToolbar: boolean | undefined;
+  withToolbar: boolean;
   toolbarHidden: boolean;
-  /** The viewer grows to its content and the window scrolls */
   autoHeight: boolean;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
   toolbarStartSection: React.ReactNode;
+  toolbarTitle: React.ReactNode;
   toolbarSubtitle: React.ReactNode;
-  renderToolbarTitle: DocViewerRenderToolbarTitle | undefined;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
-
-  /** Set while the viewer should play: `autoAdvance`, once the viewer is idle when `idleTimeout` is set */
-  autoAdvance: DocViewerAutoAdvance | undefined;
-  pdfWorkerSrc: string | undefined;
-  pdfOptions: DocViewerPdfOptions | undefined;
   maxCanvasPixels: number;
   thumbnailsOpened: boolean | undefined;
   defaultThumbnailsOpened: boolean | undefined;
@@ -79,25 +77,21 @@ export interface DocViewerContextValue {
   defaultPage: number | undefined;
   zoom: DocViewerZoom | undefined;
   defaultZoom: DocViewerZoom;
-  withFullscreen: boolean | undefined;
-  withPageEditing: boolean | undefined;
+  withFullscreen: boolean;
+  withPageEditing: boolean;
+  withThumbnailEditing: boolean;
   compactPageEditor: boolean | undefined;
   withPageTurning: boolean | DocViewerPageTurning | undefined;
   withScrollSnap: boolean | undefined;
   withScroll: boolean | undefined;
-  onSave:
-    | ((
-        bytes: Uint8Array,
-        info: { reason: 'save' | 'extract' | 'reorder' | 'delete' | 'annotate'; pages: number[] }
-      ) => void | Promise<void>)
-    | undefined;
+  onSave: DocViewerSaveHandler | undefined;
   markup: DocViewerMarkupProps;
   fullscreen: boolean;
   toggleFullscreen: () => Promise<void>;
 }
 
 const [DocViewerFullProvider, useDocViewerContext] = createSafeContext<DocViewerContextValue>(
-  'DocViewer component was not found in the tree'
+  'DocViewer.Root component was not found in the tree'
 );
 export { useDocViewerContext };
 
@@ -112,7 +106,9 @@ export type DocViewerPageContextValue = Pick<
 >;
 
 const [DocViewerPageProvider, useDocViewerPageContext] =
-  createSafeContext<DocViewerPageContextValue>('DocViewer component was not found in the tree');
+  createSafeContext<DocViewerPageContextValue>(
+    'DocViewer.Root component was not found in the tree'
+  );
 export { useDocViewerPageContext };
 
 /** Provides the context, and the part of it pages read as a context of its own */

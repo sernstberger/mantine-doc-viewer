@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { DocViewerLoading, DocViewerMessage } from '../DocViewerMessage/MessageView';
+import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
+import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
 
 /** Loading spinner or error message over the stage until the image is ready */
 export function ImageOverlay({ failed }: { failed: boolean }) {

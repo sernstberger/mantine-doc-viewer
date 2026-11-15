@@ -2,8 +2,7 @@ import { ActionIcon, Button, Drawer, Popover, TextInput, UnstyledButton } from '
 import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
 import type { DocViewerMark } from '../utils/markup';
 import classes from './PlanRoom.module.css';
 

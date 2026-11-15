@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { PdfWorkerNotConfiguredError } from '../DocViewerAdapterProvider/adapters/load-pdfjs';
+import { PdfWorkerNotConfiguredError } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import {
   buildLoadParameters,
   DEFAULT_PDF_LOAD_OPTIONS,

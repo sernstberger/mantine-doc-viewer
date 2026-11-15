@@ -1,7 +1,9 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
-import { useEffect, useRef, useState } from 'react';
-import { loadPdfJs, PdfJsModule } from '../../DocViewerAdapterProvider/adapters/load-pdfjs';
+import { useEffect, useState } from 'react';
+import type {
+  DocViewerPdfAdapter,
+  PdfJsModule,
+} from '../../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import {
   buildLoadParameters,
   DEFAULT_PDF_LOAD_OPTIONS,
@@ -39,36 +41,31 @@ export function getLoaded(state: PdfDocumentState) {
   return { ready, document: ready?.document ?? null, numPages: ready?.document.numPages ?? 0 };
 }
 
-export type DocViewerPdfOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
-
 export { DEFAULT_PDF_LOAD_OPTIONS };
 
 /** Loads a PDF and the size of its first page, which is used as the placeholder size for every page */
 export function usePdfDocument(
   src: string,
-  workerSrc: string | undefined,
-  options?: DocViewerPdfOptions,
+  adapter: DocViewerPdfAdapter,
   /** Bytes to open instead of `src`, such as a document with edited pages */
   data?: Uint8Array | null
 ): PdfDocumentState {
   const [state, setState] = useState<PdfDocumentState>({ status: 'loading' });
-
-  // Read when a document starts loading, so a new options object every render does not reload it
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
 
   useEffect(() => {
     let cancelled = false;
     let destroy: (() => Promise<void>) | undefined;
     setState({ status: 'loading' });
 
-    loadPdfJs(workerSrc)
-      .then(async (pdfjs) => {
+    adapter
+      .load()
+      .then(async (engine) => {
+        const pdfjs = engine as unknown as PdfJsModule;
         if (cancelled) {
           return;
         }
 
-        const task = pdfjs.getDocument(buildLoadParameters(optionsRef.current, src, data));
+        const task = pdfjs.getDocument(buildLoadParameters(adapter.getOptions?.(src), src, data));
         destroy = () => task.destroy();
 
         // The size of the file is known once the first bytes arrive
@@ -115,7 +112,7 @@ export function usePdfDocument(
       cancelled = true;
       destroy?.().catch(() => {});
     };
-  }, [src, workerSrc, data]);
+  }, [src, adapter, data]);
 
   return state;
 }

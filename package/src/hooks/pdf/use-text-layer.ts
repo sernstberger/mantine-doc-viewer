@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useDocViewerPageContext } from '../../doc-viewer.context';
-import type { PdfJsModule } from '../../DocViewerAdapterProvider/adapters/load-pdfjs';
+import type { PdfJsModule } from '../../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import { getPageViewport, type PdfRotation } from '../../utils/render-page';
 import { getPageTextContent } from '../../utils/text-content';
 

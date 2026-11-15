@@ -3,7 +3,7 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 import { focusThumbnail, getFocusedThumbnailViewer } from './thumbnail-focus';
 
 async function openThumbnails() {

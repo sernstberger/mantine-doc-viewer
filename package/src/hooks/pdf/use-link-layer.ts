@@ -2,7 +2,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useRef } from 'react';
 import type { DocViewerLabels } from '../../default-labels';
 import { type PdfLinkService, resolveDestination } from '../../utils/link-service';
-import type { PdfJsModule } from '../../DocViewerAdapterProvider/adapters/load-pdfjs';
+import type { PdfJsModule } from '../../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import { getPageViewport, type PdfRotation } from '../../utils/render-page';
 
 interface LinkLayerInput {

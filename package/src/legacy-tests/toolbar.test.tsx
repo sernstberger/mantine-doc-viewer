@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 describe('DocViewer toolbar', () => {
   it('is a named toolbar whose buttons are reached with the arrow keys', async () => {

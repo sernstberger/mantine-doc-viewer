@@ -6,7 +6,7 @@ import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from '../
 
 /** The file name (or the custom title) and the subtitle, inside the heading */
 export function ToolbarHeading() {
-  const { getStyles, fileName, toolbarSubtitle, renderToolbarTitle } = useDocViewerContext();
+  const { getStyles, toolbarSubtitle, toolbarTitle } = useDocViewerContext();
   const show = useShowControl();
   const title = useDocumentTitle();
 
@@ -14,9 +14,7 @@ export function ToolbarHeading() {
     <div {...getStyles('heading')}>
       {show('title') && (
         <>
-          <span {...getStyles('title')}>
-            {renderToolbarTitle ? renderToolbarTitle({ title, fileName }) : title}
-          </span>
+          <span {...getStyles('title')}>{toolbarTitle ?? title}</span>
           {toolbarSubtitle && <span {...getStyles('subtitle')}>{toolbarSubtitle}</span>}
         </>
       )}

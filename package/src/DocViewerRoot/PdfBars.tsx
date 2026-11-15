@@ -2,7 +2,7 @@ import { ActionIcon } from '@mantine/core';
 import React, { useState } from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { MarkupIcon } from '../utils/icons';
 import { PdfMarkupBar } from '../DocViewerMarkup/PdfMarkupBar';
 import { PdfSearchBar } from '../DocViewerSearch/PdfSearchBar';
@@ -30,12 +30,12 @@ export function PdfBars({ ready, controls, onPrint, markup, onSaveMarkup, search
   const markupBar = !!markupProps.withMarkup && (markupOpened || markup.tool !== null);
 
   if (!ready) {
-    return <DocViewerToolbar />;
+    return <ToolbarView />;
   }
 
   return (
     <>
-      <DocViewerToolbar onPrint={onPrint}>
+      <ToolbarView onPrint={onPrint}>
         {controls}
         {markupProps.withMarkup && show('markup') && (
           <DocViewerTooltip label={labels.markupLabel}>
@@ -52,7 +52,7 @@ export function PdfBars({ ready, controls, onPrint, markup, onSaveMarkup, search
             </ActionIcon>
           </DocViewerTooltip>
         )}
-      </DocViewerToolbar>
+      </ToolbarView>
 
       {markupBar && (
         <PdfMarkupBar

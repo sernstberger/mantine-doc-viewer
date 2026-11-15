@@ -1,4 +1,4 @@
-import type { DocViewerPageLayout } from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../doc-viewer.types';
 import { isTwoPages } from './geometry';
 import { PAGES_GUTTER } from './pdf-zoom';
 
@@ -128,4 +128,23 @@ export function fitsAcross({ layout, scale, pageWidth, columnGap, bodyWidth }: F
   }
   const width = isTwoPages(layout) ? pageWidth * scale * 2 + columnGap : pageWidth * scale;
   return width + PAGES_GUTTER <= bodyWidth + 1;
+}
+
+/**
+ * Page to show after `page` when playing, or null at the end of a document that does not loop.
+ * Two-page layouts turn a spread at a time; with a cover the first spread is the page alone
+ */
+export function getNextPage(
+  page: number,
+  numPages: number,
+  layout: DocViewerPageLayout,
+  loop: boolean
+) {
+  let next = page + 1;
+  if (layout === 'two-page') {
+    next = page - ((page - 1) % 2) + 2;
+  } else if (layout === 'two-page-cover') {
+    next = page === 1 ? 2 : page - (page % 2) + 2;
+  }
+  return next <= numPages ? next : loop ? 1 : null;
 }

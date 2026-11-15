@@ -11,10 +11,7 @@ import {
 import React from 'react';
 import { softDisabled } from '../utils/a11y';
 import { DocViewerTooltip, useControlProps } from './DocViewerTooltip';
-import type {
-  DocViewerPageLayout,
-  DocViewerThumbnailsPosition,
-} from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../doc-viewer.types';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import {
   ChevronDownIcon,

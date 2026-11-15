@@ -1,8 +1,9 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, renderHook } from '@testing-library/react';
 import React from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import { getNextPage, useIdleTimeout } from './kiosk';
+import { DocViewer } from '../../../test-utils/render-legacy';
+import { getNextPage } from '../utils/spreads';
+import { useIdleTimeout } from '../../../test-utils/legacy-kiosk';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 

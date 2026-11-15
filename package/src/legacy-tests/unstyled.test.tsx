@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 import { BEHAVIOR_SELECTORS } from '../DocViewerRoot/use-behavior-styles';
 
 const behaviorCss = fs.readFileSync(

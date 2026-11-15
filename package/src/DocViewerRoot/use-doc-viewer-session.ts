@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 import { useMergedRef } from '@mantine/hooks';
-import { useControllerRegistry, useRegisterController } from '../hooks/use-controller-registry';
-import { detectDocType } from '../utils/get-doc-viewer-type';
-import type { DocViewerProps } from './DocViewerRoot';
-import { useIdleTimeout } from '../utils/kiosk';
-import { DEFAULT_LABELS } from '../default-labels';
+import { DEFAULT_LABELS, mergeLabels, type DocViewerLabels } from '../default-labels';
+import type { DocViewerStore } from '../doc-viewer.store';
+import { getControllerRegistry, useRegisterController } from '../hooks/use-controller-registry';
 import { useControlledFullscreen } from '../hooks/use-controlled-fullscreen';
-import { useShallowStable } from './use-shallow-stable';
 import { useTapToggle } from '../hooks/use-tap-toggle';
+import { getDocViewerType, type DocViewerType } from '../utils/get-doc-viewer-type';
+import { useShallowStable } from './use-shallow-stable';
 
 function getFileName(src: string) {
   if (src.startsWith('data:') || src.startsWith('blob:')) {
@@ -18,35 +17,36 @@ function getFileName(src: string) {
   return name ? decodeURIComponent(name) : undefined;
 }
 
-/** The type, file name, labels, idle and controller state, fullscreen and tap-toggle of one viewer */
-export function useDocViewerSession(
-  props: Pick<
-    DocViewerProps,
-    | 'src'
-    | 'type'
-    | 'mimeType'
-    | 'fileName'
-    | 'labels'
-    | 'idleTimeout'
-    | 'onIdle'
-    | 'autoAdvance'
-    | 'controllerRef'
-    | 'tapToggleToolbar'
-    | 'fullscreen'
-    | 'onFullscreenChange'
-  > & { ref?: React.Ref<HTMLDivElement> }
-) {
-  const { src, type, mimeType, fileName, labels, idleTimeout, autoAdvance } = props;
-  const tapToggle = useTapToggle(props.tapToggleToolbar);
-  const resolvedType = type ?? detectDocType({ src, mimeType, fileName });
-  // Inline `labels={{ ... }}` is a new object on every render; the same texts keep the same labels
-  const labelsProp = useShallowStable(labels);
-  const resolvedLabels = useMemo(() => ({ ...DEFAULT_LABELS, ...labelsProp }), [labelsProp]);
-  const idle = useIdleTimeout(idleTimeout, props.onIdle);
-  const playing = autoAdvance && (idleTimeout === undefined || idle) ? autoAdvance : undefined;
-  const controller = useControllerRegistry(props.controllerRef);
-  const fullscreen = useControlledFullscreen(props.fullscreen, props.onFullscreenChange);
-  const rootRef = useMergedRef(props.ref, fullscreen.ref);
+interface DocViewerSessionInput {
+  src: string;
+  type: DocViewerType | undefined;
+  mimeType: string | undefined;
+  fileName: string | undefined;
+  labels: Partial<DocViewerLabels> | undefined;
+  extensionLabels: (Partial<DocViewerLabels> | undefined)[];
+  toggleOnTap: boolean | undefined;
+  fullscreen: boolean | undefined;
+  onFullscreenChange: ((fullscreen: boolean) => void) | undefined;
+  ref: React.Ref<HTMLDivElement> | undefined;
+  store: DocViewerStore;
+}
+
+/** The type, file name, labels, registry, full screen and tap toggle of one viewer */
+export function useDocViewerSession(input: DocViewerSessionInput) {
+  const { src, type, mimeType, fileName, store } = input;
+  const tapToggle = useTapToggle(input.toggleOnTap);
+  const resolvedType = type ?? getDocViewerType({ src, mimeType, fileName });
+  const labelsProp = useShallowStable(input.labels);
+  const extensionLabels = useShallowStable(
+    Object.assign({}, ...input.extensionLabels) as Partial<DocViewerLabels>
+  );
+  const resolvedLabels = useMemo(
+    () => mergeLabels(DEFAULT_LABELS, extensionLabels, labelsProp),
+    [labelsProp, extensionLabels]
+  );
+  const controller = getControllerRegistry(store);
+  const fullscreen = useControlledFullscreen(input.fullscreen, input.onFullscreenChange);
+  const rootRef = useMergedRef(input.ref, fullscreen.ref);
 
   const resolvedFileName = fileName ?? getFileName(src);
   useRegisterController(controller, {
@@ -59,7 +59,6 @@ export function useDocViewerSession(
       link.click();
     },
     toggleFullscreen: () => fullscreen.toggle(),
-    getType: () => resolvedType,
   });
 
   return {
@@ -67,7 +66,6 @@ export function useDocViewerSession(
     type: resolvedType,
     fileName: resolvedFileName,
     labels: resolvedLabels,
-    playing,
     controller,
     fullscreen,
     rootRef,

@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
-import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from './DocViewerRoot';
+import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../doc-viewer.types';
 import {
   LayoutControl,
   PageNavigationControl,

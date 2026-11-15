@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { within } from '@testing-library/react';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 
 describe('pages without text', () => {
   beforeEach(() => getDocument.mockReset());

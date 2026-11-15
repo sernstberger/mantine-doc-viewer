@@ -1,7 +1,7 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
 import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../scripts/story-pdfs/essays/layout';
 import classes from './Markbook.module.css';
 

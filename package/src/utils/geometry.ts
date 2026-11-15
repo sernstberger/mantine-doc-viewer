@@ -1,5 +1,5 @@
 import { clamp } from '@mantine/hooks';
-import type { DocViewerPageLayout } from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../doc-viewer.types';
 import { type PdfRotation, rotateSize } from './render-page';
 import type { PdfPageSize } from '../hooks/pdf/use-pdf-document';
 import { DEFAULT_PAGES_GUTTER, getFitWidthScale, PagesGutter, PdfZoom } from './pdf-zoom';

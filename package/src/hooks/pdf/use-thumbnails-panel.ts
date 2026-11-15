@@ -1,5 +1,5 @@
 import { useUncontrolled } from '@mantine/hooks';
-import type { DocViewerThumbnailsPosition } from '../../DocViewerRoot/DocViewerRoot';
+import type { DocViewerThumbnailsPosition } from '../../doc-viewer.types';
 import type { DocViewerContextValue } from '../../doc-viewer.context';
 
 type ThumbnailsSettings = Pick<

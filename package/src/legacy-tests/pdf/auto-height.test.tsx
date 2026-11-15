@@ -4,7 +4,7 @@ import { buildPageText } from '../../utils/search';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 import { computeScale } from '../../utils/geometry';
 import { useCurrentPage } from '../../hooks/pdf/use-current-page';
 import {

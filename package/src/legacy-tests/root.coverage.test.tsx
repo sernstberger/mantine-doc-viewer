@@ -1,13 +1,19 @@
 import { render, screen } from '@mantine-tests/core';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import * as api from '../index';
+import { DocViewer as NewDocViewer } from '../DocViewer';
 import { getRegionProps, softDisabled } from '../utils/a11y';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewerBody, useDocViewer, DocViewerRenderer } from '../DocViewerBody/DocViewerBody';
-import { detectDocType, getCodeLanguage } from '../utils/get-doc-viewer-type';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import {
+  type DocViewerController,
+  useDocViewer,
+  DocViewerRenderer,
+  DocViewer,
+} from '../../../test-utils/render-legacy';
+import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
+import { getDocViewerType, getCodeLanguage } from '../utils/get-doc-viewer-type';
+import { DocViewerToolbar } from '../DocViewerToolbar/DocViewerToolbar';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { useDocViewerContext } from '../doc-viewer.context';
 import * as icons from '../utils/icons';
 import { DEFAULT_LABELS } from '../default-labels';
@@ -15,7 +21,8 @@ import { getScrollBehavior, prefersReducedMotion } from '../utils/scroll';
 import { DOC_VIEWER_SIZES } from '../utils/sizes';
 import { TextStatus } from '../DocViewerText/TextStatus';
 import { formatFileSize } from '../hooks/text/use-doc-viewer-text';
-import { DocViewerLoading, DocViewerMessage } from '../DocViewerMessage/MessageView';
+import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
+import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
 import { UnsupportedView } from '../DocViewerRoot/UnsupportedView';
 import { clampZoom, MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from '../utils/zoom';
 import { ZoomControls } from '../DocViewerZoomControls/ZoomControls';
@@ -31,15 +38,14 @@ function renderIn(
 
 describe('index', () => {
   it('exports the public api', () => {
-    expect(api.DocViewer).toBe(DocViewer);
-    expect(api.detectDocType).toBe(detectDocType);
-    expect(api.DOC_VIEWER_DEFAULT_LABELS).toBe(DEFAULT_LABELS);
+    expect(api.DocViewer).toBe(NewDocViewer);
+    expect(api.getDocViewerType).toBe(getDocViewerType);
+    expect(api.DEFAULT_LABELS).toBe(DEFAULT_LABELS);
     expect(api.DocViewerToolbar).toBe(DocViewerToolbar);
-    expect(api.DocViewerTooltip).toBeDefined();
     expect(api.DocViewerLoading).toBe(DocViewerLoading);
     expect(api.DocViewerMessage).toBe(DocViewerMessage);
     expect(api.DocViewerBody).toBe(DocViewerBody);
-    expect(api.useDocViewer).toBe(useDocViewer);
+    expect(api.useDocViewerContext).toBe(useDocViewer);
     expect(api.useDocViewerText).toBeDefined();
   });
 });
@@ -82,16 +88,18 @@ describe('small helpers', () => {
     expect(getCodeLanguage({ src: '/a/b.py' })).toBe('python');
     expect(getCodeLanguage({ src: 'blob:x', fileName: 'x.ts' })).toBe('ts');
     expect(getCodeLanguage({ src: 'blob:x' })).toBeUndefined();
-    expect(detectDocType({ mimeType: 'text/plain' })).toBe('text');
-    expect(detectDocType({ mimeType: 'application/x-weird', src: 'a.pdf' })).toBe('pdf');
-    expect(detectDocType({ src: 'data:image/png;base64,AAAA' })).toBe('image');
-    expect(detectDocType({ src: 'data:application/x-weird,1', fileName: 'a.md' })).toBe('markdown');
-    expect(detectDocType({ src: '/a.json' })).toBe('code');
-    expect(detectDocType({ src: '/a.csv' })).toBe('text');
-    expect(detectDocType({ src: '/a.zip' })).toBe('unknown');
-    expect(detectDocType({ mimeType: 'text/markdown' })).toBe('markdown');
-    expect(detectDocType({ mimeType: 'application/json' })).toBe('code');
-    expect(detectDocType({})).toBe('unknown');
+    expect(getDocViewerType({ mimeType: 'text/plain' })).toBe('text');
+    expect(getDocViewerType({ mimeType: 'application/x-weird', src: 'a.pdf' })).toBe('pdf');
+    expect(getDocViewerType({ src: 'data:image/png;base64,AAAA' })).toBe('image');
+    expect(getDocViewerType({ src: 'data:application/x-weird,1', fileName: 'a.md' })).toBe(
+      'markdown'
+    );
+    expect(getDocViewerType({ src: '/a.json' })).toBe('code');
+    expect(getDocViewerType({ src: '/a.csv' })).toBe('text');
+    expect(getDocViewerType({ src: '/a.zip' })).toBe('unknown');
+    expect(getDocViewerType({ mimeType: 'text/markdown' })).toBe('markdown');
+    expect(getDocViewerType({ mimeType: 'application/json' })).toBe('code');
+    expect(getDocViewerType({})).toBe('unknown');
   });
 
   it('handles zoom steps', () => {
@@ -176,13 +184,13 @@ describe('DocViewer root', () => {
   });
 
   it('uses file names from encoded urls and none for data or blob urls', () => {
-    const first = renderIn(<DocViewerToolbar />, { src: '/files/my%20doc.bin?x=1#y' });
+    const first = renderIn(<ToolbarView />, { src: '/files/my%20doc.bin?x=1#y' });
     expect(screen.getByText('my doc.bin')).toBeInTheDocument();
     first.unmount();
-    const second = renderIn(<DocViewerToolbar />, { src: 'blob:abc' });
+    const second = renderIn(<ToolbarView />, { src: 'blob:abc' });
     expect(screen.getByText('Document')).toBeInTheDocument();
     second.unmount();
-    renderIn(<DocViewerToolbar />, { src: '/files/' });
+    renderIn(<ToolbarView />, { src: '/files/' });
     expect(screen.getByText('Document')).toBeInTheDocument();
   });
 
@@ -206,7 +214,7 @@ describe('DocViewer root', () => {
     ref.current!.rotate();
     ref.current!.openSearch();
     ref.current!.closeSearch();
-    ref.current!.toggleThumbnails();
+    act(() => ref.current!.toggleThumbnails());
     ref.current!.togglePresentation();
     ref.current!.editPages();
     ref.current!.setPageLayout('single');
@@ -243,7 +251,7 @@ describe('DocViewer root', () => {
     const ref = React.createRef<DocViewerController>();
     renderIn(<View />, { controllerRef: ref });
     ref.current!.goToPage(3);
-    expect(goToPage).toHaveBeenCalledWith(3);
+    expect(goToPage).toHaveBeenCalledWith(3, undefined);
     await expect(ref.current!.getOutline()).resolves.toHaveLength(1);
     await ref.current!.print();
     expect(print).toHaveBeenCalled();
@@ -266,7 +274,7 @@ describe('DocViewer root', () => {
       useDocViewerContext();
       return null;
     }
-    expect(() => render(<Orphan />)).toThrow('DocViewer component was not found in the tree');
+    expect(() => render(<Orphan />)).toThrow('DocViewer.Root component was not found in the tree');
     spy.mockRestore();
   });
 });
@@ -303,20 +311,20 @@ describe('DocViewerToolbar', () => {
   });
 
   it('hides the title when toolbarControls turns it off', () => {
-    renderIn(<DocViewerToolbar />, { fileName: 'doc.bin', toolbarControls: { title: false } });
+    renderIn(<ToolbarView />, { fileName: 'doc.bin', toolbarControls: { title: false } });
     expect(screen.queryByText('doc.bin')).not.toBeInTheDocument();
   });
 
   it('renders nothing when the toolbar is off', () => {
-    renderIn(<DocViewerToolbar />, { withToolbar: false });
+    renderIn(<ToolbarView />, { withToolbar: false });
     expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
   });
 
   it('shows download, children and the section, and hides what is turned off', () => {
     renderIn(
-      <DocViewerToolbar>
+      <ToolbarView>
         <span>child</span>
-      </DocViewerToolbar>,
+      </ToolbarView>,
       { toolbarSection: <span>section</span>, toolbarControls: { download: false } }
     );
     expect(screen.getByText('child')).toBeInTheDocument();
@@ -325,13 +333,13 @@ describe('DocViewerToolbar', () => {
   });
 
   it('shows the download link without a file name as a plain download', () => {
-    renderIn(<DocViewerToolbar />, { src: 'blob:abc' });
+    renderIn(<ToolbarView />, { src: 'blob:abc' });
     expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('download', '');
   });
 
   it('toggles full screen when the browser supports it', async () => {
     Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
-    renderIn(<DocViewerToolbar />);
+    renderIn(<ToolbarView />);
     const button = await screen.findByRole('button', { name: 'Full screen' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(button);
@@ -339,7 +347,7 @@ describe('DocViewerToolbar', () => {
 
   it('shows the exit label while in full screen', async () => {
     Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: true });
-    renderIn(<DocViewerToolbar />);
+    renderIn(<ToolbarView />);
     const button = await screen.findByRole('button', { name: 'Full screen' });
     const root = document.querySelector('[data-doc-type]')!;
     Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: root });
@@ -351,7 +359,7 @@ describe('DocViewerToolbar', () => {
   it('prints through onPrint, ignoring clicks while printing', async () => {
     let finish!: () => void;
     const onPrint = jest.fn(() => new Promise<void>((resolve) => (finish = resolve)));
-    renderIn(<DocViewerToolbar onPrint={onPrint} />);
+    renderIn(<ToolbarView onPrint={onPrint} />);
     const button = screen.getByRole('button', { name: 'Print' });
     fireEvent.click(button);
     fireEvent.click(button);
@@ -363,7 +371,7 @@ describe('DocViewerToolbar', () => {
   it('opens the file in a new tab when printing fails', async () => {
     const open = jest.spyOn(window, 'open').mockImplementation(() => null);
     renderIn(
-      <DocViewerToolbar
+      <ToolbarView
         onPrint={() => {
           throw new Error('no');
         }}
@@ -378,10 +386,10 @@ describe('DocViewerToolbar', () => {
   });
 
   it('has no print button without onPrint or when toolbarControls hides it', () => {
-    const first = renderIn(<DocViewerToolbar />);
+    const first = renderIn(<ToolbarView />);
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
     first.unmount();
-    renderIn(<DocViewerToolbar onPrint={() => {}} />, { toolbarControls: { print: false } });
+    renderIn(<ToolbarView onPrint={() => {}} />, { toolbarControls: { print: false } });
     expect(screen.queryByRole('button', { name: 'Print' })).not.toBeInTheDocument();
   });
 });
@@ -454,9 +462,11 @@ describe('messages and unsupported view', () => {
     expect(screen.getByRole('link', { name: 'Download file' })).toHaveAttribute('download', '');
   });
 
-  it('says which type is not supported yet', () => {
+  it('says a PDF needs an adapter', () => {
     renderIn(<UnsupportedView type="pdf" />);
-    expect(screen.getByText('Preview for pdf files is not available yet')).toBeInTheDocument();
+    expect(
+      screen.getByText('This PDF cannot be shown here. Download it instead.')
+    ).toBeInTheDocument();
   });
 
   it('shows the generic message for unknown types', () => {

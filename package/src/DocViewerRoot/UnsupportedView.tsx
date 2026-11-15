@@ -1,18 +1,18 @@
 import React from 'react';
 import type { DocViewerType } from '../utils/get-doc-viewer-type';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
-import { DocViewerMessage } from '../DocViewerMessage/MessageView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
+import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
 
 export function UnsupportedView({ type }: { type: DocViewerType }) {
   const { getStyles, labels } = useDocViewerContext();
 
   return (
     <>
-      <DocViewerToolbar />
+      <ToolbarView />
       <div {...getStyles('body')}>
         <DocViewerMessage withDownload>
-          {type === 'unknown' ? labels.unsupportedLabel : labels.notSupportedYetLabel(type)}
+          {type === 'pdf' ? labels.pdfNotConfiguredLabel : labels.unsupportedLabel}
         </DocViewerMessage>
       </div>
     </>

@@ -1,8 +1,7 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
 import React, { createRef } from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
 import {
   getReadingPosition,
   getSeenSummary,

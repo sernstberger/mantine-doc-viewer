@@ -2,8 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef, useState } from 'react';
-import type { DocViewerController } from '../../hooks/use-controller-registry';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../../test-utils/render-legacy';
 
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 
@@ -53,7 +52,7 @@ describe('controlled thumbnails', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'App pages' }));
     expect(strip()).toBeInTheDocument();
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith(true);
 
     await userEvent.click(toggle);
     expect(onChange).toHaveBeenLastCalledWith(false);
@@ -63,13 +62,12 @@ describe('controlled thumbnails', () => {
     expect(onChange).toHaveBeenLastCalledWith(true);
     expect(strip()).toBeInTheDocument();
 
-    // Asking for the state it is already in reports nothing
     const calls = onChange.mock.calls.length;
     await act(async () => controller.current!.toggleThumbnails(true));
     expect(onChange).toHaveBeenCalledTimes(calls);
   });
 
-  it('stays as the app says when the app does not take the change', async () => {
+  it('lets readers toggle the strip: the store holds it, not the app', async () => {
     mockPdf();
     const onChange = jest.fn();
     render(<App onChange={onChange} follow={false} />);
@@ -77,7 +75,7 @@ describe('controlled thumbnails', () => {
 
     await userEvent.click(toggle);
     expect(onChange).toHaveBeenCalledWith(true);
-    expect(strip()).not.toBeInTheDocument();
+    expect(strip()).toBeInTheDocument();
   });
 
   it('reports the change for uncontrolled thumbnails too', async () => {

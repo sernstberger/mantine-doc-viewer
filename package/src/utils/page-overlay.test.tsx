@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 import { getOverlayStyle } from './page-overlay';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';

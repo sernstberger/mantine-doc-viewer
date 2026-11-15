@@ -11,10 +11,9 @@ import {
 } from '../../utils/document-info';
 import { addHighlightRanges, supportsHighlights } from '../../utils/highlights';
 import { createLinkService } from '../../utils/link-service';
-import {
-  loadPdfJs,
-  PdfWorkerNotConfiguredError,
-} from '../../DocViewerAdapterProvider/adapters/load-pdfjs';
+import { PdfWorkerNotConfiguredError } from '../../DocViewerAdapterProvider/adapters/pdfjs-adapter';
+import { createTestPdfAdapter } from '../../../../test-utils/adapters';
+import { setNextPdfJsImport } from '../../../../test-utils/import-pdfjs.mock';
 import { getResolvedOutline, usePdfOutline } from '../../DocViewerOutline/PdfOutline';
 import {
   getCanvasPixelRatio,
@@ -47,42 +46,34 @@ afterEach(() => {
   getDocument.mockReset();
 });
 
-describe('load-pdfjs', () => {
+describe('createPdfJsAdapter', () => {
   it('loads pdf.js once, applies the worker and reports a missing worker', async () => {
-    let loader!: typeof loadPdfJs;
-    let NotConfigured!: typeof PdfWorkerNotConfiguredError;
-    jest.isolateModules(() => {
-      const fresh = require('../../DocViewerAdapterProvider/adapters/load-pdfjs');
-      loader = fresh.loadPdfJs;
-      NotConfigured = fresh.PdfWorkerNotConfiguredError;
-    });
+    const adapter = createTestPdfAdapter('/worker.mjs');
+    const engine = await adapter.load();
+    expect(engine.GlobalWorkerOptions.workerSrc).toBe('/worker.mjs');
+    expect(await adapter.load()).toBe(engine);
+    expect(await createTestPdfAdapter().load()).toBe(engine);
 
-    const pdfjs = await loader('/worker.mjs');
-    expect(pdfjs.GlobalWorkerOptions.workerSrc).toBe('/worker.mjs');
-    // Cached, and the worker is left alone when it is already set or not given
-    expect(await loader(undefined)).toBe(pdfjs);
-    expect(await loader('/worker.mjs')).toBe(pdfjs);
-
-    pdfjs.GlobalWorkerOptions.workerSrc = '';
-    await expect(loader(undefined)).rejects.toBeInstanceOf(NotConfigured);
-    await expect(loader('')).rejects.toThrow('pdfWorkerSrc');
+    engine.GlobalWorkerOptions.workerSrc = '';
+    await expect(createTestPdfAdapter().load()).rejects.toBeInstanceOf(PdfWorkerNotConfiguredError);
+    await expect(createTestPdfAdapter('').load()).rejects.toThrow('workerSrc');
   });
 
   it('forgets a failed import so the next call tries again', async () => {
-    let loader!: typeof loadPdfJs;
-    let setNextImport!: (load: () => Promise<unknown>) => void;
-    jest.isolateModules(() => {
-      loader = require('../../DocViewerAdapterProvider/adapters/load-pdfjs').loadPdfJs;
-      // The same module instance load-pdfjs got through moduleNameMapper
-      setNextImport = require('../../../../test-utils/import-pdfjs.mock').setNextPdfJsImport;
-    });
-
+    const adapter = createTestPdfAdapter('/worker.mjs');
     const failure = new Error('network down');
-    setNextImport(() => Promise.reject(failure));
-    await expect(loader('/worker.mjs')).rejects.toBe(failure);
+    setNextPdfJsImport(() => Promise.reject(failure));
+    await expect(adapter.load()).rejects.toBe(failure);
+    expect((await adapter.load()).GlobalWorkerOptions.workerSrc).toBe('/worker.mjs');
+  });
 
-    const pdfjs = await loader('/worker.mjs');
-    expect(pdfjs.GlobalWorkerOptions.workerSrc).toBe('/worker.mjs');
+  it('gives getDocument options, as an object or per document', () => {
+    expect(createTestPdfAdapter('/w', { password: 'a' }).getOptions!('/x.pdf')).toEqual({
+      password: 'a',
+    });
+    expect(
+      createTestPdfAdapter('/w', (src) => ({ httpHeaders: { src } })).getOptions!('/x.pdf')
+    ).toEqual({ httpHeaders: { src: '/x.pdf' } });
   });
 });
 
@@ -368,10 +359,11 @@ describe('outline', () => {
 
 describe('use-pdf-document', () => {
   const flush = () => act(async () => {});
+  const adapter = createTestPdfAdapter('/worker.mjs');
 
   it('does not open the document when it is unmounted while pdf.js loads', async () => {
     mockPdf();
-    const { unmount } = renderHook(() => usePdfDocument('/a.pdf', '/worker.mjs'));
+    const { unmount } = renderHook(() => usePdfDocument('/a.pdf', adapter));
     unmount();
     await flush();
     expect(getDocument).not.toHaveBeenCalled();
@@ -385,7 +377,7 @@ describe('use-pdf-document', () => {
       task.destroy = jest.fn(() => Promise.reject(new Error('already destroyed')));
       return task;
     });
-    const { result, unmount } = renderHook(() => usePdfDocument('/a.pdf', '/worker.mjs'));
+    const { result, unmount } = renderHook(() => usePdfDocument('/a.pdf', adapter));
     await waitFor(() => expect(result.current.status).toBe('ready'));
     unmount();
     await flush();
@@ -394,9 +386,7 @@ describe('use-pdf-document', () => {
   it('opens bytes instead of src, asks for the password again after a wrong one', async () => {
     mockPdf({ password: 'secret' });
     const bytes = new Uint8Array([1, 2]);
-    const { result, unmount } = renderHook(() =>
-      usePdfDocument('/a.pdf', '/worker.mjs', undefined, bytes)
-    );
+    const { result, unmount } = renderHook(() => usePdfDocument('/a.pdf', adapter, bytes));
     await waitFor(() => expect(result.current.status).toBe('password'));
     expect(getDocument.mock.calls[0][0]).toMatchObject({ data: expect.any(Uint8Array) });
     expect(getDocument.mock.calls[0][0]).not.toHaveProperty('url');
@@ -413,7 +403,7 @@ describe('use-pdf-document', () => {
 
   it('ignores a password request that arrives after unmounting', async () => {
     mockPdf({ password: 'secret' });
-    const { unmount } = renderHook(() => usePdfDocument('/a.pdf', '/worker.mjs'));
+    const { unmount } = renderHook(() => usePdfDocument('/a.pdf', adapter));
     await waitFor(() => expect(getDocument).toHaveBeenCalled());
     unmount();
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -422,7 +412,8 @@ describe('use-pdf-document', () => {
   it('reports a worker that is not set', async () => {
     mockPdf();
     pdfjs.GlobalWorkerOptions.workerSrc = '';
-    const { result } = renderHook(() => usePdfDocument('/a.pdf', ''));
+    const noWorker = createTestPdfAdapter('');
+    const { result } = renderHook(() => usePdfDocument('/a.pdf', noWorker));
     await waitFor(() =>
       expect(result.current).toMatchObject({ status: 'error', reason: 'worker' })
     );

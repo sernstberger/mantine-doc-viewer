@@ -1,6 +1,6 @@
 import { useIsomorphicEffect } from '@mantine/hooks';
 import { useRef, useState } from 'react';
-import type { DocViewerPageLayout } from '../../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../../doc-viewer.types';
 
 interface PageLayoutInput {
   /** The layout the app controls (`pageLayout`), already resolved for the screen */

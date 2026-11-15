@@ -7,8 +7,7 @@ import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { mockFetch } from '../../../../test-utils/mock-fetch';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../../test-utils/render-legacy';
 import { getMarkdownPrintSource } from '../../DocViewerMarkdown/MarkdownView';
 import {
   createMarkdownComponents,

@@ -1,4 +1,4 @@
-import type { DocViewerPageLayout } from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../doc-viewer.types';
 
 interface BodyAttributesInput {
   presenting: boolean;

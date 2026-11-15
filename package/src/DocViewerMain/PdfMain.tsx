@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DocViewerThumbnailsPosition } from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerThumbnailsPosition } from '../doc-viewer.types';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { getThumbnailsLayout } from '../utils/geometry';
 import { PdfThumbnails, type PdfThumbnailsProps } from '../DocViewerThumbnails/PdfThumbnails';
@@ -64,12 +64,12 @@ export function PdfThumbnailsPanel({
   onDelete,
   ...props
 }: PdfThumbnailsPanelProps) {
-  const { withPageEditing } = useDocViewerContext();
+  const { withPageEditing, withThumbnailEditing } = useDocViewerContext();
   if (!ready || !opened || presenting) {
     return null;
   }
   // Page editing lets the thumbnails reorder and delete pages too
-  const edits = withPageEditing ? { onReorder, onDelete } : {};
+  const edits = withPageEditing && withThumbnailEditing ? { onReorder, onDelete } : {};
 
   return (
     <PdfThumbnails

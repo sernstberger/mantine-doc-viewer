@@ -6,8 +6,7 @@ import {
 } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useRef, useState } from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
 import classes from './Gate.module.css';
 
 export default {

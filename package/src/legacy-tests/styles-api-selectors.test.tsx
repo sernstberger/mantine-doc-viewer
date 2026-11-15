@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 const PDF = { src: '/files/report.pdf', pdfWorkerSrc: '/worker.mjs' } as const;
 

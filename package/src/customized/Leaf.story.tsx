@@ -3,8 +3,7 @@ import { useElementSize, useHotkeys, useReducedMotion } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
 import classes from './Leaf.module.css';
 
 export default {

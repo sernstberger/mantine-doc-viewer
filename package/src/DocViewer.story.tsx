@@ -1,12 +1,16 @@
 import { Button, Group, Stack, Table, Text as MantineText } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useRef, useState } from 'react';
-import type { DocViewerController } from './hooks/use-controller-registry';
-import { DocViewer } from './DocViewerRoot/DocViewerRoot';
-import { DocViewerToolbar } from './DocViewerToolbar/ToolbarView';
-import { DocViewerBody, DocViewerRenderer } from './DocViewerBody/DocViewerBody';
+import {
+  type DocViewerController,
+  DocViewer,
+  DocViewerRenderer,
+} from '../../test-utils/render-legacy';
+import { DocViewerToolbar } from './DocViewerToolbar/DocViewerToolbar';
+import { DocViewerBody } from './DocViewerBody/DocViewerBody';
 import { useDocViewerText } from './hooks/text/use-doc-viewer-text';
-import { DocViewerLoading, DocViewerMessage } from './DocViewerMessage/MessageView';
+import { DocViewerLoading } from './DocViewerLoading/DocViewerLoading';
+import { DocViewerMessage } from './DocViewerMessage/DocViewerMessage';
 
 export default { title: 'DocViewer' };
 

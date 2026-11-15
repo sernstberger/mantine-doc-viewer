@@ -2,7 +2,7 @@ import { VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef } from '@mantine/hooks';
 import React, { useState } from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { printImage } from '../utils/print';
 import { getRegionProps } from '../utils/a11y';
 import { useAnnouncement } from '../hooks/pdf/use-announcement';
@@ -57,9 +57,9 @@ export function ImageView() {
 
   return (
     <>
-      <DocViewerToolbar onPrint={ready ? print : undefined}>
+      <ToolbarView onPrint={ready ? print : undefined}>
         {ready && <ImageControls scale={scale} zoom={zoom} zoomTo={zoomTo} rotate={rotate} />}
-      </DocViewerToolbar>
+      </ToolbarView>
       <div {...getStyles('body')}>
         {/* Once the image is ready getRegionProps makes this a focusable, labelled region (role and
             tabIndex come through the spread), and the keys are for that region */}

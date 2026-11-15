@@ -1,8 +1,11 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import React, { createRef } from 'react';
-import type { DocViewerController } from '../../hooks/use-controller-registry';
-import { DocViewer, type DocViewerProps } from '../../DocViewerRoot/DocViewerRoot';
+import {
+  type DocViewerController,
+  DocViewer,
+  type DocViewerProps,
+} from '../../../../test-utils/render-legacy';
 
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 

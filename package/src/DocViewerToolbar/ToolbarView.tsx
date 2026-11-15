@@ -3,19 +3,7 @@ import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DownloadButton, FullscreenButton, PrintButton, ToolbarHeading } from './ToolbarParts';
 
-/** What `renderToolbarTitle` gets */
-export interface DocViewerToolbarTitleInfo {
-  /** The text the toolbar shows by default: the file name, or the `document` label without one */
-  title: string;
-
-  /** Name of the file, `undefined` for blob and data urls without a `fileName` */
-  fileName: string | undefined;
-}
-
-/** Renders the toolbar title in place of the file name, for example the current sheet of a set */
-export type DocViewerRenderToolbarTitle = (info: DocViewerToolbarTitleInfo) => React.ReactNode;
-
-export interface DocViewerToolbarProps {
+export interface ToolbarViewProps {
   /** Controls specific to the document type, for example, PDF paging and zoom */
   children?: React.ReactNode;
 
@@ -23,7 +11,7 @@ export interface DocViewerToolbarProps {
   onPrint?: () => Promise<void> | void;
 }
 
-export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
+export function ToolbarView({ children, onPrint }: ToolbarViewProps) {
   const { getStyles, toolbarSection, toolbarStartSection, withToolbar, toolbarHidden, labels } =
     useDocViewerContext();
 
@@ -33,7 +21,11 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
 
   return (
     <div {...getStyles('toolbar')} data-doc-viewer-toolbar data-hidden={toolbarHidden || undefined}>
-      {toolbarStartSection && <div {...getStyles('toolbarStart')}>{toolbarStartSection}</div>}
+      {toolbarStartSection && (
+        <div {...getStyles('toolbarSection')} data-position="left">
+          {toolbarStartSection}
+        </div>
+      )}
       <ToolbarHeading />
       {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
       <Toolbar
@@ -43,7 +35,11 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
         {...getStyles('controls')}
       >
         {children}
-        {toolbarSection}
+        {toolbarSection && (
+          <div {...getStyles('toolbarSection')} data-position="right">
+            {toolbarSection}
+          </div>
+        )}
         <PrintButton onPrint={onPrint} />
         <DownloadButton />
         <FullscreenButton />

@@ -3,7 +3,7 @@ import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 
 const renderPdf = (props: Partial<React.ComponentProps<typeof DocViewer>> = {}) =>
   render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" {...props} />);

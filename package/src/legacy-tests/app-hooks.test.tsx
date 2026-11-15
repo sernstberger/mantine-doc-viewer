@@ -3,9 +3,13 @@ import { fireEvent, waitFor } from '@testing-library/react';
 import React, { createRef, useEffect } from 'react';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
-import { DocViewerBody, DocViewerRenderer, useDocViewer } from '../DocViewerBody/DocViewerBody';
+import {
+  type DocViewerController,
+  DocViewer,
+  DocViewerRenderer,
+  useDocViewer,
+} from '../../../test-utils/render-legacy';
+import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 
 describe('onDocumentLoadStart', () => {
   it('is called on mount and again when src changes', () => {
@@ -67,12 +71,12 @@ describe('controller.canPrint and controller.type', () => {
     expect(controller.current!.canPrint).toBe(false);
   });
 
-  it('falls back once the viewer is gone', () => {
+  it('keeps the last state in the store once the viewer is gone', () => {
     const controller = createRef<DocViewerController>();
     const { unmount } = render(<DocViewer src="/files/photo.png" controllerRef={controller} />);
     const { current } = controller;
     unmount();
-    expect(current!.type).toBe('unknown');
+    expect(current!.type).toBe('image');
     expect(current!.canPrint).toBe(false);
   });
 });

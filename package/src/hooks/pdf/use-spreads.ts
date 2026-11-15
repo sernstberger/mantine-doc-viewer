@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import type { DocViewerPageLayout } from '../../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../../doc-viewer.types';
 import { clampPage } from '../../utils/geometry';
 import {
   getSpreadIndex,

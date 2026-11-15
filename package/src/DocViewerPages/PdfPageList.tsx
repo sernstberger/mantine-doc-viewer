@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DocViewerPageLayout } from '../DocViewerRoot/DocViewerRoot';
+import type { DocViewerPageLayout } from '../doc-viewer.types';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerMark } from '../utils/markup';
 import { NO_MARKS } from '../utils/marks-by-page';

@@ -2,8 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef } from 'react';
-import type { DocViewerController } from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 

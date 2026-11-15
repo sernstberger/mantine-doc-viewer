@@ -1,28 +1,58 @@
-import { Anchor, EmptyState, Loader, VisuallyHidden } from '@mantine/core';
 import React from 'react';
+import {
+  Anchor,
+  BoxProps,
+  CompoundStylesApiProps,
+  ElementProps,
+  EmptyState,
+  EmptyStateProps,
+  factory,
+  Factory,
+  useProps,
+} from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
+import classes from '../DocViewer.module.css';
 
-export interface DocViewerMessageProps {
-  children: React.ReactNode;
+export type DocViewerMessageStylesNames = 'empty';
+
+export interface DocViewerMessageProps
+  extends BoxProps, CompoundStylesApiProps<DocViewerMessageFactory>, ElementProps<'div'> {
+  /** Message content */
+  children?: React.ReactNode;
+
+  /** Adds a link that downloads the document */
   withDownload?: boolean;
 
   /** Announces the message straight away, for errors */
   error?: boolean;
 }
 
+export type DocViewerMessageFactory = Factory<{
+  props: DocViewerMessageProps;
+  ref: HTMLDivElement;
+  stylesNames: DocViewerMessageStylesNames;
+  compound: true;
+}>;
+
 /** Centered message inside the body, used for loading, errors and unsupported types */
-export function DocViewerMessage({ children, withDownload, error }: DocViewerMessageProps) {
+export const DocViewerMessage = factory<DocViewerMessageFactory>((_props) => {
+  const { classNames, className, style, styles, vars, children, withDownload, error, ...others } =
+    useProps('DocViewerMessage', null, _props);
   const { getStyles, src, fileName, labels } = useDocViewerContext();
 
   return (
-    <EmptyState {...getStyles('empty')} size="sm" role={error ? 'alert' : 'status'}>
+    <EmptyState
+      {...getStyles('empty', { className, style, classNames, styles })}
+      size="sm"
+      role={error ? 'alert' : 'status'}
+      {...(others as EmptyStateProps)}
+    >
       {children}
       {withDownload && (
         <EmptyState.Actions>
           <Anchor
             href={src}
             download={fileName ?? true}
-            // Browsers ignore download for other origins and open the file instead, so not in place of the app
             target="_blank"
             rel="noopener noreferrer"
             size="sm"
@@ -33,16 +63,7 @@ export function DocViewerMessage({ children, withDownload, error }: DocViewerMes
       )}
     </EmptyState>
   );
-}
+});
 
-/** Spinner with text for screen readers, a label on the spinner itself is not read out */
-export function DocViewerLoading() {
-  const { labels } = useDocViewerContext();
-
-  return (
-    <DocViewerMessage>
-      <Loader size="sm" />
-      <VisuallyHidden>{labels.loadingLabel}</VisuallyHidden>
-    </DocViewerMessage>
-  );
-}
+DocViewerMessage.classes = classes;
+DocViewerMessage.displayName = 'mantine-doc-viewer/DocViewerMessage';

@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 function loadImage() {
   const image = screen.getByRole('img', { hidden: true }) as HTMLImageElement;

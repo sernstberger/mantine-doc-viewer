@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import type { PdfLinkService } from '../utils/link-service';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
-import type { PdfJsModule } from '../DocViewerAdapterProvider/adapters/load-pdfjs';
+import type { PdfJsModule } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import { type PdfRotation, rotateSize } from '../utils/render-page';
 import { getOverlayStyle } from '../utils/page-overlay';
 import type { DocViewerPageRect } from '../utils/page-points';

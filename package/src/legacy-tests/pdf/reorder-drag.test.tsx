@@ -10,7 +10,7 @@ import {
   mockItemLayout,
   pointerDrag,
 } from '../../../../test-utils/pointer-drag';
-import { DocViewer } from '../../DocViewerRoot/DocViewerRoot';
+import { DocViewer } from '../../../../test-utils/render-legacy';
 
 type Props = Partial<React.ComponentProps<typeof DocViewer>>;
 

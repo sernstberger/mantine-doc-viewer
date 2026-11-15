@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { DocViewerLoading, DocViewerMessage } from '../DocViewerMessage/MessageView';
+import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
+import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
 import { formatFileSize, DocViewerTextState } from '../hooks/text/use-doc-viewer-text';
 
 /** Loading, error and too-large messages shared by the text, code and markdown views */

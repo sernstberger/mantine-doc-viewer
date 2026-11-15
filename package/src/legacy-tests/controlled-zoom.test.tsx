@@ -2,8 +2,8 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { createRef, useState } from 'react';
-import type { DocViewerController, DocViewerZoom } from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import type { DocViewerZoom } from '../hooks/use-controller-registry';
 import { normalizeZoom } from '../hooks/use-zoom-setting';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';

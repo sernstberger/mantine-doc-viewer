@@ -1,11 +1,13 @@
 import { VisuallyHidden } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { PdfMain } from '../DocViewerMain/PdfMain';
 import { PdfPageEditor } from '../DocViewerPageEditor/PdfPageEditor';
 import { PdfPresentationControls } from '../DocViewerPresentationControls/PdfPresentationControls';
 import { PdfReaderBars, PdfReaderBody, PdfReaderThumbnails } from './PdfReader';
+import { useRegisterController } from '../hooks/use-controller-registry';
+import { PdfSessionContext } from './pdf-session-context';
 import { useEditedDocument } from '../hooks/pdf/use-pdf-edits';
 import { getLoaded, usePdfDocument } from '../hooks/pdf/use-pdf-document';
 import { usePdfPageContent } from '../hooks/pdf/use-pdf-page-content';
@@ -21,19 +23,14 @@ export function PdfView() {
   const context = useDocViewerContext();
   const edited = useEditedDocument(context.src);
   const { editing, setEditing } = edited;
-  const state = usePdfDocument(
-    context.src,
-    context.pdfWorkerSrc,
-    context.pdfOptions,
-    edited.editedData
-  );
+  const state = usePdfDocument(context.src, context.pdfAdapter!, edited.editedData);
   const loaded = getLoaded(state);
   const { ready, numPages } = loaded;
 
   const view = usePdfViewGeometry(context, ready);
   const position = usePdfReadingPosition(context, loaded, view);
   const content = usePdfPageContent(context, loaded.document, view, position);
-  usePdfPageSync({ context, state, loaded, view, position, editing });
+  usePdfPageSync({ context, state, loaded, view, position });
   const turns = usePdfPageTurns(context, loaded, view, position);
   const actions = usePdfViewActions({
     context,
@@ -47,11 +44,13 @@ export function PdfView() {
   });
   const { presenting, thumbnailsPanel } = view;
   const modes = usePdfModes(edited, presenting, position.announce);
+  useRegisterController(context.controller, { closePageEditor: () => setEditing(false) });
+  const session = { state, loaded, view, position, content, turns, actions, modes };
 
   if (editing && ready) {
     return (
       <>
-        <DocViewerToolbar />
+        <ToolbarView />
         <PdfPageEditor
           document={ready.document}
           onCancel={() => setEditing(false)}
@@ -67,7 +66,7 @@ export function PdfView() {
 
   const parts = { view, position, content };
   return (
-    <>
+    <PdfSessionContext value={session}>
       {!presenting && <PdfReaderBars ready={ready} {...parts} actions={actions} modes={modes} />}
 
       <PdfMain
@@ -92,6 +91,6 @@ export function PdfView() {
       </PdfMain>
 
       {ready && <VisuallyHidden role="status">{position.pageAnnouncement}</VisuallyHidden>}
-    </>
+    </PdfSessionContext>
   );
 }

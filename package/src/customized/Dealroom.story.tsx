@@ -2,9 +2,8 @@ import { Avatar, Button, Drawer, Menu, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { DocViewerController } from '../hooks/use-controller-registry';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
 import type { DocViewerPageRect } from '../utils/page-points';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
 import classes from './Dealroom.module.css';
 
 export default {

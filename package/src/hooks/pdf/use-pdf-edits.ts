@@ -1,10 +1,8 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useRef, useState } from 'react';
 import type { DocViewerContextValue } from '../../doc-viewer.context';
-import { saveBytes } from '../../utils/files';
 import {
   buildExtractRequest,
-  getEditedFileName,
   initialOrder,
   movePage,
   removeSelected,
@@ -39,7 +37,6 @@ interface PdfEditsInput {
   announce: (message: string) => void;
   labels: DocViewerContextValue['labels'];
   onSave: DocViewerContextValue['onSave'];
-  fileName: string | undefined;
   markup: PdfMarkup;
 }
 
@@ -53,17 +50,10 @@ export function usePdfEdits({
   announce,
   labels,
   onSave,
-  fileName,
   markup,
 }: PdfEditsInput) {
   const savePdf = async (bytes: Uint8Array, reason: PdfSaveReason, pages: number[]) => {
-    if (onSave) {
-      await onSave(bytes, { reason, pages });
-    } else {
-      const suffixes = { extract: 'pages', annotate: 'annotated' } as Record<string, string>;
-      const suffix = suffixes[reason] ?? 'edited';
-      saveBytes(bytes, getEditedFileName(fileName, suffix), 'application/pdf');
-    }
+    await onSave?.(bytes, { reason, pages });
   };
 
   // An edited document starts at its first page, or where a dragged page landed. The effect

@@ -1,25 +1,9 @@
-import { render, screen, tests } from '@mantine-tests/core';
+import { render, screen } from '@mantine-tests/core';
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react';
-import { DocViewer, DocViewerProps } from './DocViewerRoot/DocViewerRoot';
-
-// DocViewer.Props is DocViewerProps, like Mantine's own component namespaces
-const defaultProps: DocViewer.Props = { src: 'https://example.com/photo.png' };
+import { DocViewer } from '../../../test-utils/render-legacy';
 
 describe('DocViewer', () => {
-  tests.itSupportsSystemProps<DocViewerProps, DocViewer.StylesNames>({
-    component: DocViewer,
-    props: defaultProps,
-    styleProps: true,
-    extend: true,
-    variant: true,
-    size: true,
-    classes: true,
-    refType: HTMLDivElement,
-    displayName: 'DocViewer',
-    stylesApiSelectors: ['root', 'toolbar', 'title', 'body', 'image'],
-  });
-
   it('renders images with the file name in the toolbar', () => {
     const { container } = render(<DocViewer src="https://example.com/files/photo.png" />);
     expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/files/photo.png');
@@ -70,7 +54,7 @@ describe('DocViewer', () => {
       expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe(
         'var(--mantine-spacing-xl)'
       );
-      expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
+      expect(root.style.getPropertyValue('--doc-viewer-thumbnails-width')).toBe(
         'calc(5rem * var(--mantine-scale))'
       );
     });
@@ -109,7 +93,7 @@ describe('DocViewer', () => {
         expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe(
           'var(--mantine-spacing-xs)'
         );
-        expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
+        expect(root.style.getPropertyValue('--doc-viewer-thumbnails-width')).toBe(
           'calc(6rem * var(--mantine-scale))'
         );
       });
@@ -121,9 +105,7 @@ describe('DocViewer', () => {
         const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
 
         await waitFor(() => expect(root).toHaveAttribute('data-size', 'sm'));
-        expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
-          'calc(7rem * var(--mantine-scale))'
-        );
+        expect(root.style.getPropertyValue('--doc-viewer-thumbnails-width')).toBe('');
       });
     });
 

@@ -2,13 +2,11 @@ import { CodeHighlight } from '@mantine/code-highlight';
 import { Typography } from '@mantine/core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
-import { DocViewerToolbar } from '../DocViewerToolbar/ToolbarView';
+import { ToolbarView } from '../DocViewerToolbar/ToolbarView';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
-import { DocViewerMessage } from '../DocViewerMessage/MessageView';
-import {
-  importMarkdown,
-  MarkdownModule,
-} from '../DocViewerAdapterProvider/adapters/import-markdown';
+import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';
+import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
+import type { DocViewerMarkdownEngine } from '../DocViewerAdapterProvider/adapters/react-markdown-adapter';
 import { createMarkdownComponents, scrollToHeading } from './markdown-components';
 import { rehypeHeadingIds, resolveMarkdownUrl } from '../utils/markdown-utils';
 import { printHtml, printText } from '../utils/print';
@@ -30,19 +28,20 @@ export function getMarkdownPrintSource(
 }
 
 function useMarkdownModule() {
-  const [module, setModule] = useState<MarkdownModule | null>(null);
+  const { markdown } = useDocViewerAdapters();
+  const [module, setModule] = useState<DocViewerMarkdownEngine | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    importMarkdown().then(
+    markdown!.load().then(
       (loaded) => !cancelled && setModule(loaded),
       () => !cancelled && setFailed(true)
     );
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [markdown]);
 
   return { module, failed };
 }
@@ -125,7 +124,7 @@ export function MarkdownView() {
 
   return (
     <>
-      <DocViewerToolbar onPrint={onPrint}>
+      <ToolbarView onPrint={onPrint}>
         {state.status === 'ready' && show('viewMode') && (
           <ViewModeToggle
             value={mode}
@@ -137,7 +136,7 @@ export function MarkdownView() {
             label={labels.markdownViewLabel}
           />
         )}
-      </DocViewerToolbar>
+      </ToolbarView>
       <DocViewerBody ref={bodyRef} focusable={state.status === 'ready'}>
         {state.status !== 'ready' && <TextStatus state={state} />}
         {state.status === 'ready' && mode === 'preview' && <MarkdownPreview text={state.text} />}

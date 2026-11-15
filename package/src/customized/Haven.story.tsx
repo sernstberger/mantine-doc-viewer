@@ -1,11 +1,8 @@
 import { Button, Checkbox, TextInput, UnstyledButton } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import type {
-  DocViewerController,
-  DocViewerReadingProgress,
-} from '../hooks/use-controller-registry';
-import { DocViewer } from '../DocViewerRoot/DocViewerRoot';
+import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import type { DocViewerReadingProgress } from '../hooks/use-controller-registry';
 import type { DocViewerMark } from '../utils/markup';
 import classes from './Haven.module.css';
 
