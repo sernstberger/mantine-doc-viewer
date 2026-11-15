@@ -3,6 +3,7 @@ import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerController } from '../controller';
+import { saveBytes } from '../files';
 import classes from './Scanbox.module.css';
 
 export default { title: 'DocViewer/Apps/Scanbox (phone scanner)' };
@@ -141,6 +142,8 @@ export function Scanbox() {
               defaultPageLayout="horizontal"
               defaultZoom="fit"
               withPageEditing
+              // A phone has no room for words on the editor's buttons
+              compactPageEditor
               withPrint={false}
               withDownload={false}
               withFullscreen={false}
@@ -160,7 +163,9 @@ export function Scanbox() {
                 setToast(
                   reason === 'extract'
                     ? `Extracted ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}`
-                    : `Saved ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`
+                    : reason === 'delete'
+                      ? 'Page deleted'
+                      : `Saved ${saved.length} ${saved.length === 1 ? 'page' : 'pages'}, ${formatSize(bytes.length)}`
                 );
               }}
               labels={{
@@ -185,12 +190,12 @@ export function Scanbox() {
                 thumbnailImage: classes.thumbnailImage,
                 thumbnailLabel: classes.thumbnailLabel,
                 editorBar: classes.editorBar,
+                editorButton: classes.editorButton,
+                thumbnailDelete: classes.thumbnailDelete,
                 editorPages: classes.editorPages,
                 editorPage: classes.editorPage,
               }}
-              // MISSING: delete a page from the thumbnail strip with a swipe or a trash button; deleting needs the page editor.
               // MISSING: crop and perspective-correct a page, and filters (black and white, enhance).
-              // MISSING: a compact, icon-only variant of the page editor's action buttons; they are Mantine Buttons without a Styles API part.
             />
 
             <div className={classes.exportBar}>
@@ -198,9 +203,13 @@ export function Scanbox() {
                 className={classes.exportButton}
                 size="lg"
                 fullWidth
-                onClick={() => {
-                  controllerRef.current?.download();
-                  setToast('Exported');
+                onClick={async () => {
+                  // The bytes as shown, after any deleted, moved or extracted pages
+                  const bytes = await controllerRef.current?.getBytes();
+                  if (bytes) {
+                    saveBytes(bytes, fileName, 'application/pdf');
+                    setToast(`Exported ${formatSize(bytes.length)}`);
+                  }
                 }}
               >
                 Export PDF
@@ -224,7 +233,6 @@ export function Scanbox() {
             )}
           </div>
         </div>
-        {/* MISSING: onSave is only called by the page editor, so Export PDF downloads the document as it is displayed and cannot hand the bytes to the app. */}
       </div>
     </MantineProvider>
   );

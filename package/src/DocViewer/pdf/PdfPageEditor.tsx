@@ -1,10 +1,21 @@
-import { Button, Group, Text, VisuallyHidden } from '@mantine/core';
+import { ActionIcon, Button, ButtonProps, Group, Text, VisuallyHidden } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useState } from 'react';
 import { softDisabled } from '../a11y';
+import { DocViewerTooltip } from '../controls';
 import { useDocViewerContext } from '../DocViewer.context';
-import { DragHandleIcon } from '../icons';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  CloseIcon,
+  DownloadIcon,
+  DragHandleIcon,
+  ExtractIcon,
+  RotateIcon,
+  TrashIcon,
+} from '../icons';
 import { useAnnouncement } from './use-announcement';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
@@ -19,7 +30,7 @@ import {
   removeSelected,
 } from './page-edits';
 
-export type PdfSaveReason = 'save' | 'extract' | 'reorder';
+export type PdfSaveReason = 'save' | 'extract' | 'reorder' | 'delete';
 
 interface PdfPageEditorProps {
   document: PDFDocumentProxy;
@@ -85,9 +96,51 @@ function PageTile(props: PageTileProps) {
   );
 }
 
+interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  /** Props from `softDisabled`: they carry the click handler */
+  [key: string]: unknown;
+}
+
+/** An action of the editor bar: a labelled button, or an icon with the label as tooltip when `compactPageEditor` is set */
+function EditorButton({ label, icon, variant, loading, ...others }: EditorButtonProps) {
+  const { getStyles, size, compactPageEditor } = useDocViewerContext();
+
+  if (!compactPageEditor) {
+    return (
+      <Button
+        {...getStyles('editorButton')}
+        size={size.input}
+        variant={variant}
+        loading={loading}
+        {...others}
+      >
+        {label}
+      </Button>
+    );
+  }
+
+  return (
+    <DocViewerTooltip label={label}>
+      <ActionIcon
+        {...getStyles('editorButton')}
+        size={size.input}
+        variant={variant}
+        loading={loading}
+        aria-label={label}
+        {...others}
+      >
+        {icon}
+      </ActionIcon>
+    </DocViewerTooltip>
+  );
+}
+
 /** Reorder, remove and extract pages. Edits make a new document; the original file is not changed */
 export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEditorProps) {
-  const { getStyles, labels, size } = useDocViewerContext();
+  const { getStyles, labels } = useDocViewerContext();
   const [order, setOrder] = useState<PageOrder>(() => initialOrder(document.numPages));
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -195,47 +248,57 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
           </Text>
         </Group>
         <Group gap={6} wrap="wrap">
-          <Button size={size.input} variant="default" onClick={() => move(-1)}>
-            {labels.moveEarlier}
-          </Button>
-          <Button size={size.input} variant="default" onClick={() => move(1)}>
-            {labels.moveLater}
-          </Button>
-          <Button size={size.input} variant="default" {...softDisabled(order.length <= 1, remove)}>
-            {labels.deletePages}
-          </Button>
-          <Button
-            size={size.input}
+          <EditorButton
+            label={labels.moveEarlier}
+            icon={<ArrowLeftIcon />}
+            variant="default"
+            onClick={() => move(-1)}
+          />
+          <EditorButton
+            label={labels.moveLater}
+            icon={<ArrowRightIcon />}
+            variant="default"
+            onClick={() => move(1)}
+          />
+          <EditorButton
+            label={labels.deletePages}
+            icon={<TrashIcon />}
+            variant="default"
+            {...softDisabled(order.length <= 1, remove)}
+          />
+          <EditorButton
+            label={labels.extractPages}
+            icon={<ExtractIcon />}
             variant="default"
             {...softDisabled(selection.length === 0 || busy, () =>
               run(async () => onSave(await build(selection), 'extract', selection))
             )}
-          >
-            {labels.extractPages}
-          </Button>
-          <Button
-            size={size.input}
+          />
+          <EditorButton
+            label={labels.resetPages}
+            icon={<RotateIcon />}
             variant="subtle"
             {...softDisabled(!edited, () => {
               setOrder(initialOrder(document.numPages));
               setSelected(new Set());
             })}
-          >
-            {labels.resetPages}
-          </Button>
-          <Button size={size.input} variant="subtle" onClick={onCancel}>
-            {labels.cancel}
-          </Button>
-          <Button
-            size={size.input}
+          />
+          <EditorButton
+            label={labels.cancel}
+            icon={<CloseIcon />}
+            variant="subtle"
+            onClick={onCancel}
+          />
+          <EditorButton
+            label={labels.done}
+            icon={<CheckIcon />}
             variant="default"
             loading={busy}
             onClick={() => run(async () => onDone(edited ? await build(order) : null))}
-          >
-            {labels.done}
-          </Button>
-          <Button
-            size={size.input}
+          />
+          <EditorButton
+            label={labels.savePages}
+            icon={<DownloadIcon />}
             loading={busy}
             onClick={() =>
               run(async () => {
@@ -244,9 +307,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
                 onDone(bytes);
               })
             }
-          >
-            {labels.savePages}
-          </Button>
+          />
         </Group>
       </Group>
 

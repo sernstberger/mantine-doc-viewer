@@ -851,6 +851,25 @@
   }
 }
 
+/* Delete button on a sidebar thumbnail: shown on hover and focus, always on touch screens */
+.thumbnailDelete {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  left: 6px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  :where(.thumbnail:hover, .thumbnail:focus-visible) > &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (pointer: coarse) {
+    opacity: 1;
+  }
+}
+
 /* variant="plain": just the document, for embedding in a page */
 .root[data-variant='plain'] {
   border: 0;

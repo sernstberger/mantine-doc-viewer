@@ -62,10 +62,12 @@ export function Folio() {
                     title: `Extracted ${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`,
                     text: `New document, ${formatSize(bytes.length)}`,
                   }
-                : {
-                    title: 'Saved',
-                    text: `${pages.length} pages, ${formatSize(bytes.length)}`,
-                  }
+                : reason === 'delete'
+                  ? { title: 'Page deleted', text: `${pages.length} pages left` }
+                  : {
+                      title: 'Saved',
+                      text: `${pages.length} pages, ${formatSize(bytes.length)}`,
+                    }
             );
           }}
           // Like a macOS title bar: the name with a small line under it
@@ -89,10 +91,10 @@ export function Folio() {
             thumbnailImage: classes.thumbnailImage,
             thumbnailLabel: classes.thumbnailLabel,
             editorBar: classes.editorBar,
+            thumbnailDelete: classes.thumbnailDelete,
             editorPages: classes.editorPages,
             editorPage: classes.editorPage,
           }}
-          // MISSING: Delete in the thumbnail sidebar itself; reordering there works by dragging, deleting needs the page editor.
           // MISSING: markup tools (highlight, text box, shapes, signature): the annotations layer.
           // MISSING: rotating one page and saving it; rotate only turns the view of every page.
         />

@@ -196,6 +196,17 @@
   }
 }
 
+/* Delete in the sidebar: a small round control, like the one macOS shows on hover */
+.thumbnailDelete {
+  border: 0;
+  border-radius: 999px;
+  background: light-dark(rgb(255 255 255 / 0.92), rgb(60 60 64 / 0.92));
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.2),
+    0 1px 3px rgb(0 0 0 / 0.2);
+  color: light-dark(#d70015, #ff6961);
+}
+
 /* Page editor: a grid of pages with a blue selection ring, the bar matches the title bar */
 .editorBar {
   border-bottom: 0.5px solid var(--folio-hairline);

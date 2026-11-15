@@ -36,8 +36,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
       cause a horizontal scrollbar (Proofline): fit-to-width reads the padding of the `pages` element
 - [ ] **Spreads**: `goToSpread` and snapping by spread, plus built-in spread page turning (tap
       zones, swipe, pedal keys) (Stand, Atrium)
-- [ ] **Compact page editor bar**: a Styles API part for its buttons, and an icon-only variant for
-      phones (Scanbox)
+- [x] **Compact page editor bar** (`compactPageEditor`, `editorButton` Styles API part): a Styles API
+      part for its buttons, and an icon-only variant for phones (Scanbox)
 
 ## 3. App hooks and controller
 
@@ -46,10 +46,13 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [x] **Richer `onDocumentLoad`**: `byteSize`, `mimeType`, `title` (Locker)
 - [x] **`onLoad` and `onError` helpers for custom renderers** (from `useDocViewer`) instead of reaching into `events`
       (Locker)
-- [ ] **Delete pages from the sidebar**, with a swipe or a trash button (Folio, Scanbox)
-- [ ] **Get the bytes of the document as shown** (after edits) from the controller, so an app's
-      own Export button can save it (Scanbox)
-- [ ] **Rotate one page and save it**; rotate only turns the view today (Folio)
+- [x] **Delete pages from the sidebar**, with a trash button (`thumbnailDelete` part, `onSave`
+      reason `'delete'`) or the Delete key (Folio, Scanbox). No swipe: it fights scrolling
+- [x] **Get the bytes of the document as shown** (after edits) from the controller
+      (`controller.getBytes()`), so an app's own Export button can save it (Scanbox)
+- [ ] **Rotate one page and save it**; rotate only turns the view today (Folio) (partial: pdf.js
+      `extractPages` cannot set a page's `/Rotate`, and it writes object streams, so the bytes cannot
+      be patched without a PDF writer such as `pdf-lib`; needs a decision on that dependency)
 - [x] **Swap the document without remounting** (`keepView`), keeping zoom and scroll (Markbook)
 - [x] **Reading progress** (`onReadingProgress`, `onReachEnd`, `resetReadingProgress`): the fraction
       of each page seen, a reached-the-end signal, a reading position (Haven, Field Report)

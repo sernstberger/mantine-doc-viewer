@@ -103,6 +103,8 @@ export type DocViewerStylesNames =
   | 'editorBar'
   | 'editorPages'
   | 'editorPage'
+  | 'editorButton'
+  | 'thumbnailDelete'
   | 'dragHandle';
 
 /** Toolbar controls that `toolbarControls` can hide */
@@ -257,18 +259,22 @@ export interface DocViewerProps
   /** Zoom when a PDF or image opens: a scale where 1 is 100%, or `'fit'`, `'fit'` by default */
   defaultZoom?: DocViewerZoom;
 
-  /** Determines whether readers can reorder, remove and extract PDF pages (in the page editor, and by dragging thumbnails), `false` by default. Edits make a new document; the original file is not changed */
+  /** Determines whether readers can reorder, remove and extract PDF pages (in the page editor, and by dragging or deleting thumbnails), `false` by default. Edits make a new document; the original file is not changed */
   withPageEditing?: boolean;
+
+  /** Determines whether the page editor's buttons show only an icon, with the label as tooltip and screen reader name, for narrow screens, `false` by default */
+  compactPageEditor?: boolean;
 
   /**
    * Called with the bytes of a PDF made by page editing: the edited document (`reason: 'save'`),
    * the extracted pages (`reason: 'extract'`), or the document after a thumbnail was dragged to a
-   * new place (`reason: 'reorder'`). Without it, saved and extracted PDFs are downloaded; a
-   * reorder only changes what the viewer shows
+   * new place (`reason: 'reorder'`), or after a thumbnail's delete button was used (`reason:
+   * 'delete'`). Without it, saved and extracted PDFs are downloaded; a reorder or delete only
+   * changes what the viewer shows
    */
   onSave?: (
     bytes: Uint8Array,
-    info: { reason: 'save' | 'extract' | 'reorder'; pages: number[] }
+    info: { reason: 'save' | 'extract' | 'reorder' | 'delete'; pages: number[] }
   ) => void | Promise<void>;
 
   /** Determines whether the toolbar has a print button, `true` by default */
@@ -532,6 +538,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     fullscreen: fullscreenProp,
     onFullscreenChange,
     withPageEditing,
+    compactPageEditor,
     onSave,
     onDocumentLoadStart,
     onDocumentLoad,
@@ -680,6 +687,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withDownload,
         withFullscreen,
         withPageEditing,
+        compactPageEditor,
         onSave,
         fullscreen: fullscreen.fullscreen,
         toggleFullscreen: fullscreen.toggle,

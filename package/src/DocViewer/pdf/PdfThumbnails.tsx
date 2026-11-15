@@ -1,8 +1,9 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import { ActionIcon } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
-import { DragHandleIcon } from '../icons';
+import { DragHandleIcon, TrashIcon } from '../icons';
 import { initialOrder } from './page-edits';
 import { PdfRotation, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -49,6 +50,7 @@ interface PdfThumbnailProps {
   scrollRoot: HTMLElement | null;
   reorder: ReorderList;
   onSelect: (pageNumber: number) => void;
+  onDelete?: (pageNumber: number) => void;
 }
 
 function PdfThumbnail({
@@ -62,6 +64,7 @@ function PdfThumbnail({
   scrollRoot,
   reorder,
   onSelect,
+  onDelete,
 }: PdfThumbnailProps) {
   const { getStyles, labels, thumbnailWidth } = useDocViewerContext();
   const horizontal = orientation === 'horizontal';
@@ -126,6 +129,22 @@ function PdfThumbnail({
           <DragHandleIcon />
         </span>
       )}
+      {onDelete && (
+        // Not a tab stop: keyboard users press Delete on the thumbnail instead
+        <ActionIcon
+          {...getStyles('thumbnailDelete')}
+          size="sm"
+          variant="default"
+          tabIndex={-1}
+          aria-label={labels.deletePage(pageNumber)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete(pageNumber);
+          }}
+        >
+          <TrashIcon />
+        </ActionIcon>
+      )}
       <span
         {...getStyles('thumbnailImage', {
           style: { width, height: (pageSize.height / pageSize.width) * width },
@@ -150,6 +169,8 @@ interface PdfThumbnailsProps {
   onSelect: (pageNumber: number) => void;
   /** Reorders the document by dragging thumbnails; without it thumbnails do not drag */
   onReorder?: (pageNumber: number, toIndex: number) => void;
+  /** Adds a delete button to each thumbnail, and makes Delete remove the focused page */
+  onDelete?: (pageNumber: number) => void;
 }
 
 export function PdfThumbnails({
@@ -161,6 +182,7 @@ export function PdfThumbnails({
   orientation,
   onSelect,
   onReorder,
+  onDelete,
 }: PdfThumbnailsProps) {
   const { getStyles, labels } = useDocViewerContext();
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
@@ -194,7 +216,10 @@ export function PdfThumbnails({
     const next = getNextThumbnailPage(event.key, page, numPages, perView);
 
     if (next === null) {
-      if (event.key === 'Enter' || event.key === ' ') {
+      if (onDelete && (event.key === 'Delete' || event.key === 'Backspace')) {
+        event.preventDefault();
+        onDelete(page);
+      } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         onSelect(page);
       }
@@ -229,6 +254,7 @@ export function PdfThumbnails({
           scrollRoot={scrollRoot}
           reorder={reorder}
           onSelect={onSelect}
+          onDelete={numPages > 1 ? onDelete : undefined}
         />
       ))}
     </div>
