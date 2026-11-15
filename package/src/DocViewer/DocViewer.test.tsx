@@ -1,5 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import React from 'react';
+import { waitFor } from '@testing-library/react';
 import { DocViewer, DocViewerProps, DocViewerStylesNames } from './DocViewer';
 
 const defaultProps: DocViewerProps = { src: 'https://example.com/photo.png' };
@@ -71,6 +72,58 @@ describe('DocViewer', () => {
       expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
         'calc(5rem * var(--mantine-scale))'
       );
+    });
+
+    describe('responsive values', () => {
+      const { matchMedia } = window;
+
+      // Viewport between theme.breakpoints.sm and md: min-width queries up to sm match
+      beforeEach(() => {
+        window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+          matches: /min-width: (36|48)em/.test(query),
+          media: query,
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+        }));
+      });
+
+      afterEach(() => {
+        window.matchMedia = matchMedia;
+      });
+
+      it('uses the value of the largest matching breakpoint', async () => {
+        const { container } = render(
+          <DocViewer
+            src="/files/archive.zip"
+            size={{ base: 'lg', sm: 'xs', lg: 'xl' }}
+            pageGap={{ base: 'xs', md: 'xl' }}
+            thumbnailWidth={{ base: 64, sm: 96 }}
+          />
+        );
+        const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
+
+        await waitFor(() => expect(root).toHaveAttribute('data-size', 'xs'));
+        expect(root.style.getPropertyValue('--doc-viewer-page-gap')).toBe(
+          'var(--mantine-spacing-xs)'
+        );
+        expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
+          'calc(6rem * var(--mantine-scale))'
+        );
+      });
+
+      it('falls back to the defaults when no breakpoint has a value', async () => {
+        const { container } = render(
+          <DocViewer src="/files/archive.zip" size={{ xl: 'xl' }} thumbnailWidth={{ xl: 200 }} />
+        );
+        const root = container.querySelector('.mantine-DocViewer-root') as HTMLElement;
+
+        await waitFor(() => expect(root).toHaveAttribute('data-size', 'sm'));
+        expect(root.style.getPropertyValue('--doc-viewer-thumbnail-width')).toBe(
+          'calc(7rem * var(--mantine-scale))'
+        );
+      });
     });
 
     it('gives toolbar buttons the control selector and classNames', () => {

@@ -37,6 +37,7 @@ import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
+import { DocViewerResponsive, useResponsiveValue } from './responsive';
 import { DOC_VIEWER_SIZES } from './sizes';
 import { PdfView } from './pdf/PdfView';
 import { CodeView } from './text/CodeView';
@@ -194,8 +195,8 @@ export interface DocViewerProps
   /** Key of `theme.radius` or any valid CSS value to set `border-radius`, `theme.defaultRadius` by default */
   radius?: MantineRadius;
 
-  /** Size of the toolbar, its buttons and text, `'sm'` by default */
-  size?: MantineSize;
+  /** Size of the toolbar, its buttons and text, `'sm'` by default. Can differ per breakpoint, for example `{ base: 'md', sm: 'sm' }` */
+  size?: DocViewerResponsive<MantineSize>;
 
   /** Key of `theme.colors` or any valid CSS color for pressed toolbar buttons, the current thumbnail and focus outlines, `theme.primaryColor` by default */
   color?: MantineColor;
@@ -206,11 +207,11 @@ export interface DocViewerProps
   /** Key of `theme.colors` or any valid CSS color of the PDF search match that is currently selected, `'orange'` by default */
   activeMatchColor?: MantineColor;
 
-  /** Key of `theme.spacing` or any valid CSS value for the space between PDF pages, `'md'` by default */
-  pageGap?: MantineSpacing;
+  /** Key of `theme.spacing` or any valid CSS value for the space between PDF pages, `'md'` by default. Can differ per breakpoint */
+  pageGap?: DocViewerResponsive<MantineSpacing>;
 
-  /** Width of PDF page thumbnails in the side rail in px, half of it in the top or bottom strip, `112` by default */
-  thumbnailWidth?: number;
+  /** Width of PDF page thumbnails in the side rail in px, half of it in the top or bottom strip, `112` by default. Can differ per breakpoint */
+  thumbnailWidth?: DocViewerResponsive<number>;
 
   /** Props passed to every toolbar tooltip, for example `{ disabled: true }` or `{ position: 'bottom' }` */
   tooltipProps?: Omit<TooltipProps, 'label' | 'children'>;
@@ -282,11 +283,13 @@ export type DocViewerFactory = Factory<{
   variant: DocViewerVariant;
 }>;
 
+const DEFAULT_THUMBNAIL_WIDTH = 112;
+
 const defaultProps: Partial<DocViewerProps> = {
   withToolbar: true,
   maxTextSize: 2_000_000,
   size: 'sm',
-  thumbnailWidth: 112,
+  thumbnailWidth: DEFAULT_THUMBNAIL_WIDTH,
   maxCanvasPixels: MAX_CANVAS_PIXELS,
   defaultZoom: 'fit',
   withPrint: true,
@@ -294,32 +297,45 @@ const defaultProps: Partial<DocViewerProps> = {
   withFullscreen: true,
 };
 
-const varsResolver = createVarsResolver<DocViewerFactory>(
-  (
-    theme,
-    { radius, size, color, matchColor, activeMatchColor, pageGap, thumbnailWidth, pageBackground }
-  ) => {
-    const sizeConfig = DOC_VIEWER_SIZES[size ?? 'sm'] ?? DOC_VIEWER_SIZES.sm;
+/** Props after responsive values are resolved for the current viewport */
+type ResolvedDocViewerProps = Omit<DocViewerProps, 'size' | 'pageGap' | 'thumbnailWidth'> & {
+  size?: MantineSize;
+  pageGap?: MantineSpacing;
+  thumbnailWidth?: number;
+};
 
-    return {
-      root: {
-        '--doc-viewer-radius': getRadius(radius),
-        '--doc-viewer-color': color ? getThemeColor(color, theme) : undefined,
-        '--doc-viewer-font-size': getFontSize(sizeConfig.fontSize),
-        '--doc-viewer-toolbar-height': rem(sizeConfig.toolbarHeight),
-        '--doc-viewer-page-gap': pageGap === undefined ? undefined : getSpacing(pageGap),
-        '--doc-viewer-page-background': pageBackground
-          ? getThemeColor(pageBackground, theme)
-          : undefined,
-        '--doc-viewer-thumbnail-width': thumbnailWidth ? rem(thumbnailWidth) : undefined,
-        '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
-        '--doc-viewer-active-match-color': activeMatchColor
-          ? getThemeColor(activeMatchColor, theme)
-          : undefined,
-      },
-    };
-  }
-);
+const varsResolver = createVarsResolver<DocViewerFactory>((theme, props) => {
+  const {
+    radius,
+    size,
+    color,
+    matchColor,
+    activeMatchColor,
+    pageGap,
+    thumbnailWidth,
+    pageBackground,
+  } = props as ResolvedDocViewerProps;
+  // size is resolved for the viewport before it gets here; CSS sizes such as 5rem fall back to sm
+  const sizeConfig = DOC_VIEWER_SIZES[size!] ?? DOC_VIEWER_SIZES.sm;
+
+  return {
+    root: {
+      '--doc-viewer-radius': getRadius(radius),
+      '--doc-viewer-color': color ? getThemeColor(color, theme) : undefined,
+      '--doc-viewer-font-size': getFontSize(sizeConfig.fontSize),
+      '--doc-viewer-toolbar-height': rem(sizeConfig.toolbarHeight),
+      '--doc-viewer-page-gap': pageGap === undefined ? undefined : getSpacing(pageGap),
+      '--doc-viewer-page-background': pageBackground
+        ? getThemeColor(pageBackground, theme)
+        : undefined,
+      '--doc-viewer-thumbnail-width': thumbnailWidth ? rem(thumbnailWidth) : undefined,
+      '--doc-viewer-match-color': matchColor ? getThemeColor(matchColor, theme) : undefined,
+      '--doc-viewer-active-match-color': activeMatchColor
+        ? getThemeColor(activeMatchColor, theme)
+        : undefined,
+    },
+  };
+});
 
 function getFileName(src: string) {
   if (src.startsWith('data:') || src.startsWith('blob:')) {
@@ -412,10 +428,19 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     ...others
   } = props;
 
+  const resolvedSize = useResponsiveValue(size) ?? 'sm';
+  const resolvedPageGap = useResponsiveValue(pageGap);
+  const resolvedThumbnailWidth = useResponsiveValue(thumbnailWidth) ?? DEFAULT_THUMBNAIL_WIDTH;
+
   const getStyles = useStyles<DocViewerFactory>({
     name: 'DocViewer',
     classes,
-    props,
+    props: {
+      ...props,
+      size: resolvedSize,
+      pageGap: resolvedPageGap,
+      thumbnailWidth: resolvedThumbnailWidth,
+    } satisfies ResolvedDocViewerProps,
     className,
     style,
     classNames,
@@ -482,9 +507,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         onThumbnailsPositionChange,
         maxTextSize: maxTextSize!,
         language,
-        size: DOC_VIEWER_SIZES[size!] ?? DOC_VIEWER_SIZES.sm,
+        size: DOC_VIEWER_SIZES[resolvedSize] ?? DOC_VIEWER_SIZES.sm,
         color,
-        thumbnailWidth: thumbnailWidth!,
+        thumbnailWidth: resolvedThumbnailWidth,
         tooltipProps,
         codeHighlightProps,
         controller,
@@ -508,7 +533,10 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         data-page-color-scheme={pageColorScheme === 'light' ? undefined : pageColorScheme}
         // Like core components: data-size for size keys, not for CSS values such as 5rem
         mod={[
-          { size: isNumberLike(size) ? undefined : size, fullscreen: fullscreen.fullscreen },
+          {
+            size: isNumberLike(resolvedSize) ? undefined : resolvedSize,
+            fullscreen: fullscreen.fullscreen,
+          },
           mod,
         ]}
         {...others}

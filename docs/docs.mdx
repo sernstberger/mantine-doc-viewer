@@ -372,6 +372,26 @@ be styled with the Styles API (`classNames`, `styles`, `vars` and `unstyled`).
 />
 ```
 
+### Responsive values
+
+`size`, `pageGap` and `thumbnailWidth` also take values per `theme.breakpoints` key, like
+Mantine style props. Here phones get bigger touch targets, tighter page gaps and smaller
+thumbnails:
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  size={{ base: 'lg', sm: 'sm' }}
+  pageGap={{ base: 'xs', md: 'xl' }}
+  thumbnailWidth={{ base: 72, sm: 112 }}
+/>
+```
+
+The values are chosen with media queries in the browser, like Mantine's `useMatches` hook. On the
+server and on the first render the `base` value is used, so set `base` to what most visitors
+should see first.
+
 ### Choosing toolbar controls
 
 Hide any toolbar control with `toolbarControls`: `title`, `thumbnails`, `pages`, `zoom`,
