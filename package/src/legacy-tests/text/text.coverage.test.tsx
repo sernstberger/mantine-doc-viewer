@@ -361,7 +361,7 @@ describe('markdown renders', () => {
           <button type="button" onClick={() => setCount(count + 1)}>
             Render {count}
           </button>
-          <DocViewer src="/a.md" labels={{ preview: 'Preview' }} />
+          <DocViewer src="/a.md" labels={{ previewLabel: 'Preview' }} />
         </>
       );
     }

@@ -48,8 +48,13 @@ export function PrintButton({ onPrint }: { onPrint: (() => Promise<void> | void)
   };
 
   return (
-    <DocViewerTooltip label={labels.print}>
-      <ActionIcon {...controlProps()} aria-label={labels.print} loading={printing} onClick={print}>
+    <DocViewerTooltip label={labels.printLabel}>
+      <ActionIcon
+        {...controlProps()}
+        aria-label={labels.printLabel}
+        loading={printing}
+        onClick={print}
+      >
         <PrintIcon />
       </ActionIcon>
     </DocViewerTooltip>
@@ -66,7 +71,7 @@ export function DownloadButton() {
   }
 
   return (
-    <DocViewerTooltip label={labels.download}>
+    <DocViewerTooltip label={labels.downloadLabel}>
       <ActionIcon
         component="a"
         href={src}
@@ -75,7 +80,7 @@ export function DownloadButton() {
         target="_blank"
         rel="noopener noreferrer"
         {...controlProps()}
-        aria-label={labels.download}
+        aria-label={labels.downloadLabel}
       >
         <DownloadIcon />
       </ActionIcon>
@@ -94,10 +99,10 @@ export function FullscreenButton() {
   }
 
   return (
-    <DocViewerTooltip label={fullscreen ? labels.exitFullscreen : labels.fullscreen}>
+    <DocViewerTooltip label={fullscreen ? labels.exitFullscreenLabel : labels.fullscreenLabel}>
       <ActionIcon
         {...controlProps(fullscreen)}
-        aria-label={labels.fullscreen}
+        aria-label={labels.fullscreenLabel}
         aria-pressed={fullscreen}
         onClick={() => toggleFullscreen()}
       >

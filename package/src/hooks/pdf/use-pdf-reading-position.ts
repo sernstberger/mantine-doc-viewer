@@ -50,7 +50,7 @@ export function usePdfReadingPosition(
         : (pageHeight) => getPointOffset(Math.max(top, 0), scale, rotation, pageHeight),
       behavior === 'instant'
     );
-    withAnnouncement && announce(context.labels.pageOf(page, numPages));
+    withAnnouncement && announce(context.labels.pageOfLabel(page, numPages));
   };
 
   return {

@@ -54,8 +54,8 @@ function ThumbnailsPositionPopover(props: ThumbnailsControlProps) {
   return (
     <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
       <Popover.Target>
-        <DocViewerTooltip label={labels.thumbnailsPosition}>
-          <ActionIcon {...controlProps()} aria-label={labels.thumbnailsPosition}>
+        <DocViewerTooltip label={labels.thumbnailsPositionLabel}>
+          <ActionIcon {...controlProps()} aria-label={labels.thumbnailsPositionLabel}>
             <PanelPositionIcon />
           </ActionIcon>
         </DocViewerTooltip>
@@ -65,8 +65,8 @@ function ThumbnailsPositionPopover(props: ThumbnailsControlProps) {
           size={size.input}
           value={props.position}
           onChange={(value) => props.onPositionChange(value as DocViewerThumbnailsPosition)}
-          aria-label={labels.thumbnailsPosition}
-          data={POSITIONS.map((value) => ({ value, label: labels[value] }))}
+          aria-label={labels.thumbnailsPositionLabel}
+          data={POSITIONS.map((value) => ({ value, label: labels[`${value}Label`] }))}
         />
       </Popover.Dropdown>
     </Popover>
@@ -81,10 +81,10 @@ export function ThumbnailsControl(props: ThumbnailsControlProps) {
   return (
     show('thumbnails') && (
       <>
-        <DocViewerTooltip label={props.opened ? labels.hidePages : labels.showPages}>
+        <DocViewerTooltip label={props.opened ? labels.hidePagesLabel : labels.showPagesLabel}>
           <ActionIcon
             {...controlProps(props.opened)}
-            aria-label={labels.pageThumbnails}
+            aria-label={labels.pageThumbnailsLabel}
             aria-pressed={props.opened}
             onClick={props.onToggle}
           >
@@ -115,26 +115,26 @@ export function PageNavigationControl({
   return (
     show('pages') && (
       <Group gap={2} wrap="nowrap">
-        <DocViewerTooltip label={labels.previousPage}>
+        <DocViewerTooltip label={labels.previousPageLabel}>
           <ActionIcon
             {...controlProps()}
-            aria-label={labels.previousPage}
+            aria-label={labels.previousPageLabel}
             {...softDisabled(currentPage <= 1, () => onPage(currentPage - 1))}
           >
             <ChevronUpIcon />
           </ActionIcon>
         </DocViewerTooltip>
-        <Text {...getStyles('pageIndicator')} title={labels.pageOf(currentPage, numPages)}>
+        <Text {...getStyles('pageIndicator')} title={labels.pageOfLabel(currentPage, numPages)}>
           {/* Read as "Page 3 of 10"; not a live region, so scrolling stays quiet */}
           <span aria-hidden>
             {formatNumber(currentPage, locale)} / {formatNumber(numPages, locale)}
           </span>
-          <VisuallyHidden>{labels.pageOf(currentPage, numPages)}</VisuallyHidden>
+          <VisuallyHidden>{labels.pageOfLabel(currentPage, numPages)}</VisuallyHidden>
         </Text>
-        <DocViewerTooltip label={labels.nextPage}>
+        <DocViewerTooltip label={labels.nextPageLabel}>
           <ActionIcon
             {...controlProps()}
-            aria-label={labels.nextPage}
+            aria-label={labels.nextPageLabel}
             {...softDisabled(currentPage >= numPages, () => onPage(currentPage + 1))}
           >
             <ChevronDownIcon />
@@ -161,7 +161,7 @@ export function PdfZoomControl(props: PdfZoomControlProps) {
       <ZoomControls
         scale={props.scale}
         fitted={props.zoom === 'fit-width'}
-        fitLabel={fitsToHeight(props.layout) ? labels.fitToView : labels.fitToWidth}
+        fitLabel={fitsToHeight(props.layout) ? labels.fitToViewLabel : labels.fitToWidthLabel}
         fitIcon={<FitWidthIcon />}
         onZoom={props.onZoom}
         onFit={() => props.onZoom('fit-width')}
@@ -177,8 +177,8 @@ export function RotateControl({ onRotate }: { onRotate: () => void }) {
   const controlProps = useControlProps();
   return (
     show('rotate') && (
-      <DocViewerTooltip label={labels.rotate}>
-        <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={onRotate}>
+      <DocViewerTooltip label={labels.rotateLabel}>
+        <ActionIcon {...controlProps()} aria-label={labels.rotateLabel} onClick={onRotate}>
           <RotateIcon />
         </ActionIcon>
       </DocViewerTooltip>
@@ -200,8 +200,8 @@ export function LayoutControl({ layout, onLayoutChange }: LayoutControlProps) {
     show('layout') && (
       <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
         <Popover.Target>
-          <DocViewerTooltip label={labels.pageLayout}>
-            <ActionIcon {...controlProps(layout !== 'single')} aria-label={labels.pageLayout}>
+          <DocViewerTooltip label={labels.pageLayoutLabel}>
+            <ActionIcon {...controlProps(layout !== 'single')} aria-label={labels.pageLayoutLabel}>
               <TwoPagesIcon />
             </ActionIcon>
           </DocViewerTooltip>
@@ -210,12 +210,17 @@ export function LayoutControl({ layout, onLayoutChange }: LayoutControlProps) {
           <Radio.Group
             value={layout}
             onChange={(value) => onLayoutChange(value as DocViewerPageLayout)}
-            label={labels.pageLayout}
+            label={labels.pageLayoutLabel}
             size={size.input}
           >
             <Stack gap={6} mt={6}>
               {LAYOUTS.map(([value, label]) => (
-                <Radio key={value} value={value} label={labels[label]} size={size.input} />
+                <Radio
+                  key={value}
+                  value={value}
+                  label={labels[`${label}Label`]}
+                  size={size.input}
+                />
               ))}
             </Stack>
           </Radio.Group>

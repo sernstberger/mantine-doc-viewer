@@ -493,9 +493,9 @@ function makeContext(overrides: Record<string, unknown> = {}) {
       style: options?.style,
     }),
     labels: {
-      thumbnail: (n: number) => `Thumbnail ${n}`,
-      pages: 'Pages',
-      pageOf: (n: number, total: number) => `Page ${n} of ${total}`,
+      thumbnailLabel: (n: number) => `Thumbnail ${n}`,
+      pagesLabel: 'Pages',
+      pageOfLabel: (n: number, total: number) => `Page ${n} of ${total}`,
     },
     thumbnailWidth: 100,
     maxCanvasPixels: 2 ** 24,

@@ -96,7 +96,7 @@ export function usePdfEdits({
     const bytes = await markup.save(document);
     const pages = [...new Set(markup.marks.map((mark) => mark.page))].sort((a, b) => a - b);
     await savePdf(bytes, 'annotate', pages);
-    announce(labels.markupSaved);
+    announce(labels.markupSavedLabel);
   };
 
   /** Moves a page by dragging its thumbnail: the viewer shows the reordered document */
@@ -105,7 +105,7 @@ export function usePdfEdits({
     const order = movePage(initialOrder(numPages), page, toIndex);
     const bytes = (await document!.extractPages(buildExtractRequest(order))) as Uint8Array;
     showEdited(bytes, toIndex + 1);
-    announce(labels.pageMoved(page, toIndex + 1));
+    announce(labels.pageMovedLabel(page, toIndex + 1));
     // Only an app that saves edits hears about it; a drag never starts a download
     await onSave?.(bytes, { reason: 'reorder', pages: order });
   };
@@ -117,7 +117,7 @@ export function usePdfEdits({
     const order = removeSelected(initialOrder(numPages), new Set([page]));
     const bytes = (await document!.extractPages(buildExtractRequest(order))) as Uint8Array;
     showEdited(bytes, Math.min(page, order.length));
-    announce(labels.pagesRemoved(1));
+    announce(labels.pagesRemovedLabel(1));
     await onSave?.(bytes, { reason: 'delete', pages: order });
   };
 

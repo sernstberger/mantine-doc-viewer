@@ -14,7 +14,7 @@ export function useZoomAnnouncement(scale: number, announce: (message: string) =
   const { labels, locale } = useDocViewerContext();
   const requested = useRef(false);
   const say = useDebouncedCallback(
-    (value: number) => announce(labels.zoomLevel(formatPercent(value, locale))),
+    (value: number) => announce(labels.zoomLevelLabel(formatPercent(value, locale))),
     ZOOM_ANNOUNCE_DELAY
   );
 

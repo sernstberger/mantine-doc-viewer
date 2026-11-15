@@ -35,10 +35,10 @@ function OutlinePopover({ document, onPage }: OutlineControlProps) {
       returnFocus
     >
       <Popover.Target>
-        <DocViewerTooltip label={labels.outline}>
+        <DocViewerTooltip label={labels.outlineLabel}>
           <ActionIcon
             {...controlProps(opened)}
-            aria-label={labels.outline}
+            aria-label={labels.outlineLabel}
             aria-expanded={opened}
             onClick={popover.toggle}
           >
@@ -90,10 +90,10 @@ function InfoPopover({ document, layers, onLayerChange }: InfoControlProps) {
       returnFocus
     >
       <Popover.Target>
-        <DocViewerTooltip label={labels.documentInfo}>
+        <DocViewerTooltip label={labels.documentInfoLabel}>
           <ActionIcon
             {...controlProps(opened)}
-            aria-label={labels.documentInfo}
+            aria-label={labels.documentInfoLabel}
             aria-expanded={opened}
             onClick={popover.toggle}
           >
@@ -133,11 +133,11 @@ export function PresentationControl({
   const controlProps = useControlProps();
   return (
     show('presentation') && (
-      <DocViewerTooltip label={labels.presentation}>
+      <DocViewerTooltip label={labels.presentationLabel}>
         <ActionIcon
           ref={buttonRef}
           {...controlProps()}
-          aria-label={labels.presentation}
+          aria-label={labels.presentationLabel}
           onClick={onPresent}
         >
           <PresentationIcon />
@@ -161,11 +161,11 @@ export function EditPagesControl({
   return (
     show('editPages') &&
     withPageEditing && (
-      <DocViewerTooltip label={labels.editPages}>
+      <DocViewerTooltip label={labels.editPagesLabel}>
         <ActionIcon
           ref={buttonRef}
           {...controlProps()}
-          aria-label={labels.editPages}
+          aria-label={labels.editPagesLabel}
           onClick={onEditPages}
         >
           <EditPagesIcon />
@@ -188,11 +188,11 @@ export function SearchControl({ opened, toggleRef, onToggle }: SearchControlProp
   const controlProps = useControlProps();
   return (
     show('search') && (
-      <DocViewerTooltip label={labels.search}>
+      <DocViewerTooltip label={labels.searchLabel}>
         <ActionIcon
           {...controlProps(opened)}
           ref={toggleRef}
-          aria-label={labels.search}
+          aria-label={labels.searchLabel}
           aria-pressed={opened}
           onClick={onToggle}
         >

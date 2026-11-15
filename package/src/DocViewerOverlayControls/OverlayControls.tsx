@@ -18,29 +18,29 @@ export function OverlayControls() {
 
   return (
     <div {...getStyles('overlayControls')}>
-      <DocViewerTooltip label={labels.zoomIn}>
+      <DocViewerTooltip label={labels.zoomInLabel}>
         <ActionIcon
           {...buttonProps}
-          aria-label={labels.zoomIn}
+          aria-label={labels.zoomInLabel}
           onClick={() => controller.current.zoomIn?.()}
         >
           <PlusIcon />
         </ActionIcon>
       </DocViewerTooltip>
-      <DocViewerTooltip label={labels.zoomOut}>
+      <DocViewerTooltip label={labels.zoomOutLabel}>
         <ActionIcon
           {...buttonProps}
-          aria-label={labels.zoomOut}
+          aria-label={labels.zoomOutLabel}
           onClick={() => controller.current.zoomOut?.()}
         >
           <MinusIcon />
         </ActionIcon>
       </DocViewerTooltip>
       {withFullscreen && fullscreenAvailable && (
-        <DocViewerTooltip label={fullscreen ? labels.exitFullscreen : labels.fullscreen}>
+        <DocViewerTooltip label={fullscreen ? labels.exitFullscreenLabel : labels.fullscreenLabel}>
           <ActionIcon
             {...buttonProps}
-            aria-label={labels.fullscreen}
+            aria-label={labels.fullscreenLabel}
             aria-pressed={fullscreen}
             onClick={() => toggleFullscreen()}
           >

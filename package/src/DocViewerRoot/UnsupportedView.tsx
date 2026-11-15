@@ -12,7 +12,7 @@ export function UnsupportedView({ type }: { type: DocViewerType }) {
       <DocViewerToolbar />
       <div {...getStyles('body')}>
         <DocViewerMessage withDownload>
-          {type === 'unknown' ? labels.unsupported : labels.notSupportedYet(type)}
+          {type === 'unknown' ? labels.unsupportedLabel : labels.notSupportedYetLabel(type)}
         </DocViewerMessage>
       </div>
     </>

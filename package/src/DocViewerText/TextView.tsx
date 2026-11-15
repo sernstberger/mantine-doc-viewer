@@ -25,10 +25,10 @@ export function TextView() {
     <>
       <DocViewerToolbar onPrint={onPrint}>
         {state.status === 'ready' && show('wrap') && (
-          <DocViewerTooltip label={wrap ? labels.doNotWrapLines : labels.wrapLines}>
+          <DocViewerTooltip label={wrap ? labels.doNotWrapLinesLabel : labels.wrapLinesLabel}>
             <ActionIcon
               {...controlProps(wrap)}
-              aria-label={labels.wrapLines}
+              aria-label={labels.wrapLinesLabel}
               aria-pressed={wrap}
               onClick={() => setWrap((current) => !current)}
             >

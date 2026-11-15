@@ -10,7 +10,7 @@ export function ImageOverlay({ failed }: { failed: boolean }) {
     <div {...getStyles('imageOverlay')}>
       {failed ? (
         <DocViewerMessage withDownload error>
-          {labels.imageError}
+          {labels.imageErrorLabel}
         </DocViewerMessage>
       ) : (
         <DocViewerLoading />

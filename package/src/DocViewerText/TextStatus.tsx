@@ -14,7 +14,7 @@ export function TextStatus({ state }: { state: DocViewerTextState }) {
   if (state.status === 'too-large') {
     return (
       <DocViewerMessage withDownload error>
-        {labels.tooLarge(formatFileSize(state.size, locale))}
+        {labels.tooLargeLabel(formatFileSize(state.size, locale))}
       </DocViewerMessage>
     );
   }
@@ -22,7 +22,7 @@ export function TextStatus({ state }: { state: DocViewerTextState }) {
   if (state.status === 'error') {
     return (
       <DocViewerMessage withDownload error>
-        {labels.textError}
+        {labels.textErrorLabel}
       </DocViewerMessage>
     );
   }

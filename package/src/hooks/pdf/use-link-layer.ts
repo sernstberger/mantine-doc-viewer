@@ -46,7 +46,7 @@ async function nameLinks(
         link.setAttribute('aria-label', link.title || annotation.url);
       } else if (annotation.dest) {
         const destination = await resolveDestination(document, annotation.dest).catch(() => null);
-        destination && link.setAttribute('aria-label', labels.linkToPage(destination.page));
+        destination && link.setAttribute('aria-label', labels.linkToPageLabel(destination.page));
       }
     })
   );

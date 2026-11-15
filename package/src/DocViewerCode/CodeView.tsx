@@ -54,10 +54,10 @@ export function CodeView() {
             value={mode}
             onChange={setMode}
             data={[
-              { value: 'tree', label: labels.tree },
-              { value: 'code', label: labels.code },
+              { value: 'tree', label: labels.treeLabel },
+              { value: 'code', label: labels.codeLabel },
             ]}
-            label={labels.jsonView}
+            label={labels.jsonViewLabel}
           />
         )}
       </DocViewerToolbar>

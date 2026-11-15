@@ -173,11 +173,11 @@ export function Scanbox() {
                 );
               }}
               labels={{
-                moveEarlier: 'Earlier',
-                moveLater: 'Later',
-                deletePages: 'Delete',
-                extractPages: 'Extract',
-                savePages: 'Save',
+                moveEarlierLabel: 'Earlier',
+                moveLaterLabel: 'Later',
+                deletePagesLabel: 'Delete',
+                extractPagesLabel: 'Extract',
+                savePagesLabel: 'Save',
               }}
               tooltipProps={{ disabled: true }}
               classNames={{

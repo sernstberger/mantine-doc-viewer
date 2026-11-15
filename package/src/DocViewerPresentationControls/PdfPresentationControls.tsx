@@ -25,7 +25,7 @@ export function PdfPresentationControls({
         size="sm"
         variant="transparent"
         c="white"
-        aria-label={labels.exitPresentation}
+        aria-label={labels.exitPresentationLabel}
         aria-keyshortcuts="Escape"
         onClick={onExit}
       />

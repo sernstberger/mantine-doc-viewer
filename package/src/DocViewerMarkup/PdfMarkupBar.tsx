@@ -40,15 +40,20 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
 
   return (
     // Mantine's Toolbar: one tab stop, the arrow keys move between the tools
-    <Toolbar unstyled withBorder={false} aria-label={labels.markup} {...getStyles('markupBar')}>
+    <Toolbar
+      unstyled
+      withBorder={false}
+      aria-label={labels.markupLabel}
+      {...getStyles('markupBar')}
+    >
       {markup.tools.map((tool) => {
         const ToolIcon = TOOL_ICONS[tool];
         const active = markup.tool === tool;
         return (
-          <DocViewerTooltip key={tool} label={labels.markupTools[tool]}>
+          <DocViewerTooltip key={tool} label={labels.markupToolLabels[tool]}>
             <ActionIcon
               {...controlProps(active)}
-              aria-label={labels.markupTools[tool]}
+              aria-label={labels.markupToolLabels[tool]}
               aria-pressed={active}
               data-tool={tool}
               onClick={() => markup.setTool(active ? null : tool)}
@@ -59,10 +64,10 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
         );
       })}
       <Divider orientation="vertical" {...getStyles('markupDivider')} />
-      <DocViewerTooltip label={labels.undoMark}>
+      <DocViewerTooltip label={labels.undoMarkLabel}>
         <ActionIcon
           {...controlProps()}
-          aria-label={labels.undoMark}
+          aria-label={labels.undoMarkLabel}
           {...softDisabled(empty, markup.undo)}
         >
           <UndoIcon />
@@ -76,12 +81,12 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
         data-toolbar-toggle
         {...softDisabled(empty, onSave)}
       >
-        {labels.saveMarkup}
+        {labels.saveMarkupLabel}
       </Button>
       <CloseButton
         {...getStyles('control')}
         size={size.control}
-        aria-label={labels.closeMarkup}
+        aria-label={labels.closeMarkupLabel}
         data-toolbar-toggle
         onClick={onClose}
       />

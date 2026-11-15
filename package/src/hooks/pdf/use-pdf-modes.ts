@@ -15,7 +15,7 @@ export function usePdfModes(
   const { labels } = useDocViewerContext();
 
   useEffect(() => {
-    presenting && announce(labels.presentationStarted);
+    presenting && announce(labels.presentationStartedLabel);
     // Only when a presentation starts
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presenting]);

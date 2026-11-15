@@ -107,7 +107,7 @@ function PdfPageView({
       data-rendered={rendered || undefined}
       // A group, not an image: screen readers read the page from its text layer
       role="group"
-      aria-label={labels.pageOf(pageNumber, numPages)}
+      aria-label={labels.pageOfLabel(pageNumber, numPages)}
     >
       {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />

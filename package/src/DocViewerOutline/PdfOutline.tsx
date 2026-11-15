@@ -74,7 +74,7 @@ function OutlineList({ document, items, onSelect }: PdfOutlineProps) {
               rel="noopener noreferrer"
             >
               {item.title}
-              <VisuallyHidden> {labels.opensInNewTab}</VisuallyHidden>
+              <VisuallyHidden> {labels.opensInNewTabLabel}</VisuallyHidden>
             </a>
           ) : (
             <UnstyledButton
@@ -103,7 +103,7 @@ export function PdfOutline(props: PdfOutlineProps) {
   const { getStyles, labels } = useDocViewerContext();
 
   return (
-    <nav {...getStyles('outline')} aria-label={labels.outline}>
+    <nav {...getStyles('outline')} aria-label={labels.outlineLabel}>
       <OutlineList {...props} />
     </nav>
   );

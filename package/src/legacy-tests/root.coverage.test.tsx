@@ -47,21 +47,21 @@ describe('index', () => {
 describe('labels', () => {
   it('formats every default label function', () => {
     const l = DEFAULT_LABELS;
-    expect(l.selectedCount(3)).toBe('3 selected');
-    expect(l.editorPage(2, 3, 4)).toBe('Page 2, position 3 of 4');
-    expect(l.pageMoved(2, 3)).toBe('Page 2 moved to position 3');
-    expect(l.pagesRemoved(1)).toBe('1 page removed');
-    expect(l.pagesRemoved(3)).toBe('3 pages removed');
-    expect(l.pagesRotated(1)).toBe('1 page turned');
-    expect(l.pagesRotated(2)).toBe('2 pages turned');
-    expect(l.downloadAttachment('a.txt')).toBe('Download attachment a.txt');
-    expect(l.pageOf(1, 5)).toBe('Page 1 of 5');
-    expect(l.thumbnail(2)).toBe('Page 2');
-    expect(l.linkToPage(4)).toBe('Go to page 4');
-    expect(l.matchOf(1, 2)).toBe('1 of 2');
-    expect(l.matchOnPage(1, 2, 3)).toBe('Match 1 of 2, page 3');
-    expect(l.tooLarge('3 MB')).toBe('This file is too large to preview (3 MB)');
-    expect(l.notSupportedYet('pdf')).toBe('Preview for pdf files is not available yet');
+    expect(l.selectedCountLabel(3)).toBe('3 selected');
+    expect(l.editorPageLabel(2, 3, 4)).toBe('Page 2, position 3 of 4');
+    expect(l.pageMovedLabel(2, 3)).toBe('Page 2 moved to position 3');
+    expect(l.pagesRemovedLabel(1)).toBe('1 page removed');
+    expect(l.pagesRemovedLabel(3)).toBe('3 pages removed');
+    expect(l.pagesRotatedLabel(1)).toBe('1 page turned');
+    expect(l.pagesRotatedLabel(2)).toBe('2 pages turned');
+    expect(l.downloadAttachmentLabel('a.txt')).toBe('Download attachment a.txt');
+    expect(l.pageOfLabel(1, 5)).toBe('Page 1 of 5');
+    expect(l.thumbnailLabel(2)).toBe('Page 2');
+    expect(l.linkToPageLabel(4)).toBe('Go to page 4');
+    expect(l.matchOfLabel(1, 2)).toBe('1 of 2');
+    expect(l.matchOnPageLabel(1, 2, 3)).toBe('Match 1 of 2, page 3');
+    expect(l.tooLargeLabel('3 MB')).toBe('This file is too large to preview (3 MB)');
+    expect(l.notSupportedYetLabel('pdf')).toBe('Preview for pdf files is not available yet');
   });
 });
 

@@ -67,7 +67,7 @@ export function useTextLayer({
   onTextLayer,
 }: TextLayerInput) {
   const textLayerRef = useRef<HTMLDivElement>(null);
-  const { pageHasNoText } = useDocViewerPageContext().labels;
+  const { pageHasNoTextLabel: pageHasNoText } = useDocViewerPageContext().labels;
 
   useEffect(() => {
     const container = textLayerRef.current;

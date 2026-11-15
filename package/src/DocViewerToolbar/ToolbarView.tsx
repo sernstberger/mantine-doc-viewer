@@ -36,7 +36,12 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
       {toolbarStartSection && <div {...getStyles('toolbarStart')}>{toolbarStartSection}</div>}
       <ToolbarHeading />
       {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
-      <Toolbar unstyled withBorder={false} aria-label={labels.toolbar} {...getStyles('controls')}>
+      <Toolbar
+        unstyled
+        withBorder={false}
+        aria-label={labels.toolbarLabel}
+        {...getStyles('controls')}
+      >
         {children}
         {toolbarSection}
         <PrintButton onPrint={onPrint} />

@@ -25,7 +25,7 @@ describe('pages without text', () => {
       <DocViewer
         src="/files/scan.pdf"
         pdfWorkerSrc="/worker.mjs"
-        labels={{ pageHasNoText: 'Seite ohne Text' }}
+        labels={{ pageHasNoTextLabel: 'Seite ohne Text' }}
       />
     );
     const scanned = await screen.findByRole('group', { name: 'Page 4 of 4' });

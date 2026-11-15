@@ -38,7 +38,7 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
       const next = movePage(order, page, toIndex);
       setOrder(next);
       setFocusedIndex(toIndex);
-      announce(labels.pageMoved(page, toIndex + 1));
+      announce(labels.pageMovedLabel(page, toIndex + 1));
     },
   });
 
@@ -50,7 +50,7 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
     const next = moveSelected(order, pages, direction);
     setOrder(next);
     const moved = [...pages][0];
-    announce(labels.pageMoved(moved, next.indexOf(moved) + 1));
+    announce(labels.pageMovedLabel(moved, next.indexOf(moved) + 1));
     refocus(next.indexOf(order[focusedIndex]), next);
   };
 
@@ -64,13 +64,13 @@ export function usePageEditorState({ document, scrollRoot }: PageEditorStateInpu
     clear();
     // The focused page may be gone: keep keyboard focus in the list
     refocus(focusedIndex, next);
-    announce(labels.pagesRemoved(order.length - next.length));
+    announce(labels.pagesRemovedLabel(order.length - next.length));
   };
 
   const rotate = () => {
     const pages = targets();
     turn(pages);
-    announce(labels.pagesRotated(pages.size));
+    announce(labels.pagesRotatedLabel(pages.size));
   };
 
   const reset = () => {

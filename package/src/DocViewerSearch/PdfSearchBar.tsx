@@ -34,10 +34,12 @@ function getCountLabel(
   }
 
   if (searching) {
-    return labels.searching;
+    return labels.searchingLabel;
   }
 
-  return matchCount === 0 ? labels.noMatches : labels.matchOf(activeIndex + 1, matchCount);
+  return matchCount === 0
+    ? labels.noMatchesLabel
+    : labels.matchOfLabel(activeIndex + 1, matchCount);
 }
 
 function getAnnouncement(
@@ -49,8 +51,8 @@ function getAnnouncement(
   }
 
   return matchCount === 0 || activePage === undefined
-    ? labels.noMatches
-    : labels.matchOnPage(activeIndex + 1, matchCount, activePage);
+    ? labels.noMatchesLabel
+    : labels.matchOnPageLabel(activeIndex + 1, matchCount, activePage);
 }
 
 const OPTION_GLYPHS = [
@@ -67,10 +69,10 @@ function SearchOptionToggles({
   const controlProps = useControlProps();
 
   return OPTION_GLYPHS.map(([option, glyph]) => (
-    <DocViewerTooltip key={option} label={labels[option]}>
+    <DocViewerTooltip key={option} label={labels[`${option}Label`]}>
       <ActionIcon
         {...controlProps(!!options[option])}
-        aria-label={labels[option]}
+        aria-label={labels[`${option}Label`]}
         aria-pressed={!!options[option]}
         onClick={() => onOptionsChange({ ...options, [option]: !options[option] })}
       >
@@ -92,19 +94,19 @@ function SearchResults(props: PdfSearchBarProps) {
       <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
       {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
       <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>
-      <DocViewerTooltip label={labels.previousMatch}>
+      <DocViewerTooltip label={labels.previousMatchLabel}>
         <ActionIcon
           {...controlProps()}
-          aria-label={labels.previousMatch}
+          aria-label={labels.previousMatchLabel}
           {...softDisabled(matchCount === 0, onPrevious)}
         >
           <ChevronUpIcon />
         </ActionIcon>
       </DocViewerTooltip>
-      <DocViewerTooltip label={labels.nextMatch}>
+      <DocViewerTooltip label={labels.nextMatchLabel}>
         <ActionIcon
           {...controlProps()}
-          aria-label={labels.nextMatch}
+          aria-label={labels.nextMatchLabel}
           {...softDisabled(matchCount === 0, onNext)}
         >
           <ChevronDownIcon />
@@ -127,8 +129,8 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
   return (
     <div {...getStyles('search')} role="search">
       <TextInput
-        placeholder={labels.searchDocument}
-        aria-label={labels.searchDocument}
+        placeholder={labels.searchDocumentLabel}
+        aria-label={labels.searchDocumentLabel}
         leftSection={<SearchIcon />}
         {...searchInputProps}
         ref={inputRef}
@@ -143,7 +145,7 @@ export function PdfSearchBar(props: PdfSearchBarProps) {
       <CloseButton
         {...getStyles('control')}
         size={size.control}
-        aria-label={labels.closeSearch}
+        aria-label={labels.closeSearchLabel}
         onClick={onClose}
       />
     </div>

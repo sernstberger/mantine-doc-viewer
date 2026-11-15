@@ -69,7 +69,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         {...getStyles('editorPages')}
         role="listbox"
         aria-multiselectable
-        aria-label={labels.pages}
+        aria-label={labels.pagesLabel}
         aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A Escape"
         onKeyDown={handleKeyDown}
         data-dragging={reorder.dragging || undefined}

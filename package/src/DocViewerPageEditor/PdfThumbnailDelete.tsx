@@ -18,7 +18,7 @@ export function PdfThumbnailDelete({ pageNumber, onDelete }: PdfThumbnailDeleteP
       size="sm"
       variant="default"
       tabIndex={-1}
-      aria-label={labels.deletePage(pageNumber)}
+      aria-label={labels.deletePageLabel(pageNumber)}
       onClick={(event) => {
         event.stopPropagation();
         onDelete(pageNumber);

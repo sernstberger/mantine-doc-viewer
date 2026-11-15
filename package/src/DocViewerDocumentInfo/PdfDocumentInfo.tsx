@@ -30,12 +30,12 @@ export function PdfDocumentInfo({
     <div {...getStyles('documentInfo')}>
       <section aria-labelledby={`${id}-properties`}>
         <Text id={`${id}-properties`} size="sm" {...getStyles('documentHeading')}>
-          {labels.properties}
+          {labels.propertiesLabel}
         </Text>
         <DataList {...getStyles('properties')} size="xs" gap={4} labelWidth="6.5rem">
           {(properties ?? []).map((property) => (
             <DataList.Item key={property.key}>
-              <DataList.ItemLabel>{labels.propertyNames[property.key]}</DataList.ItemLabel>
+              <DataList.ItemLabel>{labels.propertyNameLabels[property.key]}</DataList.ItemLabel>
               <DataList.ItemValue>{property.value}</DataList.ItemValue>
             </DataList.Item>
           ))}
@@ -45,7 +45,7 @@ export function PdfDocumentInfo({
       {attachments.length > 0 && (
         <section aria-labelledby={`${id}-attachments`}>
           <Text id={`${id}-attachments`} size="sm" {...getStyles('documentHeading')}>
-            {labels.attachments}
+            {labels.attachmentsLabel}
           </Text>
           <Stack gap={2}>
             {attachments.map((attachment) => (
@@ -53,7 +53,7 @@ export function PdfDocumentInfo({
                 key={attachment.id}
                 {...getStyles('outlineItem')}
                 title={attachment.description || undefined}
-                aria-label={labels.downloadAttachment(attachment.filename)}
+                aria-label={labels.downloadAttachmentLabel(attachment.filename)}
                 onClick={() => downloadAttachment(document, attachment)}
               >
                 {attachment.filename}
@@ -66,7 +66,7 @@ export function PdfDocumentInfo({
       {layers.length > 0 && (
         <section aria-labelledby={`${id}-layers`}>
           <Text id={`${id}-layers`} size="sm" {...getStyles('documentHeading')}>
-            {labels.layers}
+            {labels.layersLabel}
           </Text>
           <Stack gap={6}>
             {layers.map((layer) => (

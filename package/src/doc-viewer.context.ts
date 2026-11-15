@@ -141,7 +141,7 @@ export function DocViewerProvider({
 /** Name of the document for the toolbar title and the scroll area's screen reader name */
 export function useDocumentTitle() {
   const { fileName, labels } = useDocViewerContext();
-  return fileName ?? labels.document;
+  return fileName ?? labels.documentLabel;
 }
 
 /** Whether a toolbar control is shown: hidden only when `toolbarControls` sets it to false */

@@ -62,8 +62,8 @@ export function PdfMarkupTextInput({
       autosize
       minRows={1}
       autoFocus
-      aria-label={labels.markupText}
-      aria-description={labels.markupTextKeys}
+      aria-label={labels.markupTextLabel}
+      aria-description={labels.markupTextKeysLabel}
       aria-keyshortcuts="Control+Enter Meta+Enter Escape"
       value={textDraft.text}
       onChange={(event) => setTextDraft({ ...textDraft, text: event.currentTarget.value })}
@@ -91,12 +91,12 @@ export function PdfMarkList({ pageNumber, marks }: { pageNumber: number; marks: 
   const { labels } = useDocViewerPageContext();
 
   return (
-    <VisuallyHidden role="list" aria-label={labels.pageMarks(pageNumber, marks.length)}>
+    <VisuallyHidden role="list" aria-label={labels.pageMarksLabel(pageNumber, marks.length)}>
       {marks.map((mark) => {
-        const tool = labels.markupTools[mark.type];
+        const tool = labels.markupToolLabels[mark.type];
         return (
           <span key={mark.id} role="listitem">
-            {mark.type === 'text' ? labels.textMark(tool, mark.text) : tool}
+            {mark.type === 'text' ? labels.textMarkLabel(tool, mark.text) : tool}
           </span>
         );
       })}

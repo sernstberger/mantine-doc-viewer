@@ -16,7 +16,7 @@ export function PdfStatus({ state }: { state: PdfDocumentState }) {
     case 'error':
       return (
         <DocViewerMessage withDownload error>
-          {state.reason === 'worker' ? labels.pdfWorkerMissing : labels.pdfError}
+          {state.reason === 'worker' ? labels.pdfWorkerMissingLabel : labels.pdfErrorLabel}
         </DocViewerMessage>
       );
     default:

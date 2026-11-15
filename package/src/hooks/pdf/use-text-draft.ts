@@ -28,12 +28,12 @@ export function useTextDraft({
       text,
       fontSize: markup.fontSize,
     });
-    markup.announce(labels.markAdded(labels.markupTools.text));
+    markup.announce(labels.markAddedLabel(labels.markupToolLabels.text));
   };
 
   const cancelText = () => {
     setTextDraft(null);
-    markup.announce(labels.markCancelled);
+    markup.announce(labels.markCancelledLabel);
   };
 
   return { textDraft, setTextDraft, commitText, cancelText };

@@ -231,8 +231,8 @@ describe('DocViewer PDF', () => {
           src="/files/report.pdf"
           pdfWorkerSrc="/worker.mjs"
           labels={{
-            nextPage: 'Nächste Seite',
-            pageOf: (page, total) => `Seite ${page} von ${total}`,
+            nextPageLabel: 'Nächste Seite',
+            pageOfLabel: (page, total) => `Seite ${page} von ${total}`,
           }}
         />
       );

@@ -58,7 +58,7 @@ function PageTileView(props: PageTileProps) {
       {...getReorderItemProps(props.dragState)}
       role="option"
       aria-selected={props.selected}
-      aria-label={labels.editorPage(props.page, props.position, props.total)}
+      aria-label={labels.editorPageLabel(props.page, props.position, props.total)}
       tabIndex={props.focused ? 0 : -1}
       data-page={props.page}
       data-selected={props.selected || undefined}

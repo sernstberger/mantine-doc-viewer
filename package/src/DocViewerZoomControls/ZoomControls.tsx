@@ -33,10 +33,10 @@ export function ZoomControls({
 
   return (
     <Group gap={2} wrap="nowrap">
-      <DocViewerTooltip label={labels.zoomOut}>
+      <DocViewerTooltip label={labels.zoomOutLabel}>
         <ActionIcon
           {...controlProps()}
-          aria-label={labels.zoomOut}
+          aria-label={labels.zoomOutLabel}
           {...softDisabled(scale <= MIN_ZOOM + 0.001, () => onZoom(zoomOut(scale)))}
         >
           <MinusIcon />
@@ -47,14 +47,14 @@ export function ZoomControls({
         data-toolbar-toggle
         onClick={() => onZoom(1)}
         // The name starts with the visible text, for voice control
-        aria-label={`${percent}, ${labels.resetZoom}`}
+        aria-label={`${percent}, ${labels.resetZoomLabel}`}
       >
         {percent}
       </UnstyledButton>
-      <DocViewerTooltip label={labels.zoomIn}>
+      <DocViewerTooltip label={labels.zoomInLabel}>
         <ActionIcon
           {...controlProps()}
-          aria-label={labels.zoomIn}
+          aria-label={labels.zoomInLabel}
           {...softDisabled(scale >= MAX_ZOOM - 0.001, () => onZoom(zoomIn(scale)))}
         >
           <PlusIcon />

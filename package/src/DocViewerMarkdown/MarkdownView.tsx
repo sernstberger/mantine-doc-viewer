@@ -55,7 +55,7 @@ function MarkdownPreview({ text }: { text: string }) {
   const components = useMemo(
     () =>
       createMarkdownComponents({
-        opensInNewTab: labels.opensInNewTab,
+        opensInNewTab: labels.opensInNewTabLabel,
         onHashLink: (hash) => rootRef.current && scrollToHeading(rootRef.current, hash),
       }),
     [labels]
@@ -86,7 +86,7 @@ function MarkdownPreview({ text }: { text: string }) {
   if (failed) {
     return (
       <DocViewerMessage withDownload error>
-        {labels.markdownError}
+        {labels.markdownErrorLabel}
       </DocViewerMessage>
     );
   }
@@ -131,10 +131,10 @@ export function MarkdownView() {
             value={mode}
             onChange={setMode}
             data={[
-              { value: 'preview', label: labels.preview },
-              { value: 'source', label: labels.source },
+              { value: 'preview', label: labels.previewLabel },
+              { value: 'source', label: labels.sourceLabel },
             ]}
-            label={labels.markdownView}
+            label={labels.markdownViewLabel}
           />
         )}
       </DocViewerToolbar>

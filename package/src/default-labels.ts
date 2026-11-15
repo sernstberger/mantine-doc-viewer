@@ -3,56 +3,56 @@ import type { DocViewerMarkupTool } from './utils/markup';
 /** Text shown or read out by the viewer, override any of it with the `labels` prop to translate it */
 export interface DocViewerLabels {
   /** Name used when the file has no name, for the title and the screen reader name of the viewer */
-  document: string;
-  toolbar: string;
+  documentLabel: string;
+  toolbarLabel: string;
 
   /** Alternative text of images when neither `alt` nor `fileName` is set */
-  image: string;
+  imageLabel: string;
 
-  download: string;
-  downloadFile: string;
-  print: string;
-  presentation: string;
-  editPages: string;
-  moveEarlier: string;
-  moveLater: string;
-  deletePages: string;
-  deletePage: (page: number) => string;
-  extractPages: string;
-  rotatePages: string;
-  resetPages: string;
-  cancel: string;
-  done: string;
-  savePages: string;
-  selectedCount: (count: number) => string;
-  editorPage: (page: number, position: number, total: number) => string;
-  pageMoved: (page: number, position: number) => string;
-  pagesRemoved: (count: number) => string;
-  pagesRotated: (count: number) => string;
-  exitPresentation: string;
+  downloadLabel: string;
+  downloadFileLabel: string;
+  printLabel: string;
+  presentationLabel: string;
+  editPagesLabel: string;
+  moveEarlierLabel: string;
+  moveLaterLabel: string;
+  deletePagesLabel: string;
+  deletePageLabel: (page: number) => string;
+  extractPagesLabel: string;
+  rotatePagesLabel: string;
+  resetPagesLabel: string;
+  cancelLabel: string;
+  doneLabel: string;
+  savePagesLabel: string;
+  selectedCountLabel: (count: number) => string;
+  editorPageLabel: (page: number, position: number, total: number) => string;
+  pageMovedLabel: (page: number, position: number) => string;
+  pagesRemovedLabel: (count: number) => string;
+  pagesRotatedLabel: (count: number) => string;
+  exitPresentationLabel: string;
   /** Read out when a presentation starts */
-  presentationStarted: string;
-  fullscreen: string;
-  exitFullscreen: string;
-  loading: string;
+  presentationStartedLabel: string;
+  fullscreenLabel: string;
+  exitFullscreenLabel: string;
+  loadingLabel: string;
 
-  zoomIn: string;
-  zoomOut: string;
-  resetZoom: string;
+  zoomInLabel: string;
+  zoomOutLabel: string;
+  resetZoomLabel: string;
   /** Read out after zooming, with the zoom as a percentage */
-  zoomLevel: (percent: string) => string;
-  fitToWidth: string;
-  fitToView: string;
-  rotate: string;
+  zoomLevelLabel: (percent: string) => string;
+  fitToWidthLabel: string;
+  fitToViewLabel: string;
+  rotateLabel: string;
 
-  pageThumbnails: string;
-  showPages: string;
-  hidePages: string;
-  pages: string;
-  outline: string;
-  documentInfo: string;
-  properties: string;
-  propertyNames: Record<
+  pageThumbnailsLabel: string;
+  showPagesLabel: string;
+  hidePagesLabel: string;
+  pagesLabel: string;
+  outlineLabel: string;
+  documentInfoLabel: string;
+  propertiesLabel: string;
+  propertyNameLabels: Record<
     | 'title'
     | 'author'
     | 'subject'
@@ -67,138 +67,138 @@ export interface DocViewerLabels {
     | 'pageSize',
     string
   >;
-  attachments: string;
-  downloadAttachment: (fileName: string) => string;
-  layers: string;
-  noOutline: string;
-  pageLayout: string;
-  layoutSingle: string;
-  layoutTwoPage: string;
-  layoutTwoPageCover: string;
-  layoutHorizontal: string;
-  layoutWrapped: string;
-  passwordRequired: string;
-  passwordIncorrect: string;
-  password: string;
-  unlock: string;
-  thumbnailsPosition: string;
-  left: string;
-  right: string;
-  top: string;
-  bottom: string;
-  previousPage: string;
-  nextPage: string;
-  pageOf: (page: number, total: number) => string;
+  attachmentsLabel: string;
+  downloadAttachmentLabel: (fileName: string) => string;
+  layersLabel: string;
+  noOutlineLabel: string;
+  pageLayoutLabel: string;
+  layoutSingleLabel: string;
+  layoutTwoPageLabel: string;
+  layoutTwoPageCoverLabel: string;
+  layoutHorizontalLabel: string;
+  layoutWrappedLabel: string;
+  passwordRequiredLabel: string;
+  passwordIncorrectLabel: string;
+  passwordLabel: string;
+  unlockLabel: string;
+  thumbnailsPositionLabel: string;
+  leftLabel: string;
+  rightLabel: string;
+  topLabel: string;
+  bottomLabel: string;
+  previousPageLabel: string;
+  nextPageLabel: string;
+  pageOfLabel: (page: number, total: number) => string;
   /** Read inside a page that has no text layer, such as a scanned page */
-  pageHasNoText: string;
+  pageHasNoTextLabel: string;
   /** Screen reader name of a page thumbnail */
-  thumbnail: (page: number) => string;
+  thumbnailLabel: (page: number) => string;
   /** Screen reader name of a link inside a PDF that goes to another page */
-  linkToPage: (page: number) => string;
+  linkToPageLabel: (page: number) => string;
 
-  search: string;
-  searchDocument: string;
-  searching: string;
-  noMatches: string;
-  matchOf: (match: number, total: number) => string;
-  matchOnPage: (match: number, total: number, page: number) => string;
-  previousMatch: string;
-  nextMatch: string;
-  closeSearch: string;
-  matchCase: string;
-  wholeWords: string;
-  matchAccents: string;
+  searchLabel: string;
+  searchDocumentLabel: string;
+  searchingLabel: string;
+  noMatchesLabel: string;
+  matchOfLabel: (match: number, total: number) => string;
+  matchOnPageLabel: (match: number, total: number, page: number) => string;
+  previousMatchLabel: string;
+  nextMatchLabel: string;
+  closeSearchLabel: string;
+  matchCaseLabel: string;
+  wholeWordsLabel: string;
+  matchAccentsLabel: string;
 
   /** Toolbar button that opens the markup bar, and the bar's screen reader name */
-  markup: string;
-  markupTools: Record<DocViewerMarkupTool, string>;
-  undoMark: string;
-  saveMarkup: string;
-  closeMarkup: string;
+  markupLabel: string;
+  markupToolLabels: Record<DocViewerMarkupTool, string>;
+  undoMarkLabel: string;
+  saveMarkupLabel: string;
+  closeMarkupLabel: string;
   /** Screen reader name of the box a text mark is typed into */
-  markupText: string;
+  markupTextLabel: string;
   /** How to add or cancel the text being typed, read after the text box's name */
-  markupTextKeys: string;
-  markupSaved: string;
+  markupTextKeysLabel: string;
+  markupSavedLabel: string;
   /** Screen reader name of a page while a markup tool is picked, where keys place marks */
-  markupLayer: (tool: string, page: number) => string;
+  markupLayerLabel: (tool: string, page: number) => string;
   /** How to place marks with the keyboard, read after the page's markup name */
-  markupKeys: string;
-  markStarted: (tool: string) => string;
-  markAdded: (tool: string) => string;
-  markCancelled: string;
+  markupKeysLabel: string;
+  markStartedLabel: (tool: string) => string;
+  markAddedLabel: (tool: string) => string;
+  markCancelledLabel: string;
   /** Screen reader name of the hidden list of a page's marks */
-  pageMarks: (page: number, count: number) => string;
+  pageMarksLabel: (page: number, count: number) => string;
   /** A text mark in that list, after the tool's name */
-  textMark: (tool: string, text: string) => string;
+  textMarkLabel: (tool: string, text: string) => string;
 
-  wrapLines: string;
-  doNotWrapLines: string;
-  jsonView: string;
-  tree: string;
-  code: string;
-  markdownView: string;
-  preview: string;
-  source: string;
-  opensInNewTab: string;
+  wrapLinesLabel: string;
+  doNotWrapLinesLabel: string;
+  jsonViewLabel: string;
+  treeLabel: string;
+  codeLabel: string;
+  markdownViewLabel: string;
+  previewLabel: string;
+  sourceLabel: string;
+  opensInNewTabLabel: string;
 
-  pdfWorkerMissing: string;
-  pdfError: string;
-  imageError: string;
-  textError: string;
-  markdownError: string;
-  tooLarge: (size: string) => string;
-  unsupported: string;
-  notSupportedYet: (type: string) => string;
+  pdfWorkerMissingLabel: string;
+  pdfErrorLabel: string;
+  imageErrorLabel: string;
+  textErrorLabel: string;
+  markdownErrorLabel: string;
+  tooLargeLabel: (size: string) => string;
+  unsupportedLabel: string;
+  notSupportedYetLabel: (type: string) => string;
 }
 
 export const DEFAULT_LABELS: DocViewerLabels = {
-  document: 'Document',
-  toolbar: 'Document toolbar',
-  image: 'Image',
+  documentLabel: 'Document',
+  toolbarLabel: 'Document toolbar',
+  imageLabel: 'Image',
 
-  download: 'Download',
-  downloadFile: 'Download file',
-  print: 'Print',
-  presentation: 'Presentation',
-  editPages: 'Edit pages',
-  moveEarlier: 'Move earlier',
-  moveLater: 'Move later',
-  deletePages: 'Delete',
-  deletePage: (page) => `Delete page ${page}`,
-  extractPages: 'Extract selected',
-  rotatePages: 'Rotate',
-  resetPages: 'Reset',
-  cancel: 'Cancel',
-  done: 'Done',
-  savePages: 'Save',
-  selectedCount: (count) => `${count} selected`,
-  editorPage: (page, position, total) => `Page ${page}, position ${position} of ${total}`,
-  pageMoved: (page, position) => `Page ${page} moved to position ${position}`,
-  pagesRemoved: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
-  pagesRotated: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
-  exitPresentation: 'Exit presentation',
-  presentationStarted: 'Presentation started, press Escape to exit',
-  fullscreen: 'Full screen',
-  exitFullscreen: 'Exit full screen',
-  loading: 'Loading document',
+  downloadLabel: 'Download',
+  downloadFileLabel: 'Download file',
+  printLabel: 'Print',
+  presentationLabel: 'Presentation',
+  editPagesLabel: 'Edit pages',
+  moveEarlierLabel: 'Move earlier',
+  moveLaterLabel: 'Move later',
+  deletePagesLabel: 'Delete',
+  deletePageLabel: (page) => `Delete page ${page}`,
+  extractPagesLabel: 'Extract selected',
+  rotatePagesLabel: 'Rotate',
+  resetPagesLabel: 'Reset',
+  cancelLabel: 'Cancel',
+  doneLabel: 'Done',
+  savePagesLabel: 'Save',
+  selectedCountLabel: (count) => `${count} selected`,
+  editorPageLabel: (page, position, total) => `Page ${page}, position ${position} of ${total}`,
+  pageMovedLabel: (page, position) => `Page ${page} moved to position ${position}`,
+  pagesRemovedLabel: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
+  pagesRotatedLabel: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
+  exitPresentationLabel: 'Exit presentation',
+  presentationStartedLabel: 'Presentation started, press Escape to exit',
+  fullscreenLabel: 'Full screen',
+  exitFullscreenLabel: 'Exit full screen',
+  loadingLabel: 'Loading document',
 
-  zoomIn: 'Zoom in',
-  zoomOut: 'Zoom out',
-  resetZoom: 'Reset zoom to 100%',
-  zoomLevel: (percent) => `Zoom ${percent}`,
-  fitToWidth: 'Fit to width',
-  fitToView: 'Fit to view',
-  rotate: 'Rotate',
+  zoomInLabel: 'Zoom in',
+  zoomOutLabel: 'Zoom out',
+  resetZoomLabel: 'Reset zoom to 100%',
+  zoomLevelLabel: (percent) => `Zoom ${percent}`,
+  fitToWidthLabel: 'Fit to width',
+  fitToViewLabel: 'Fit to view',
+  rotateLabel: 'Rotate',
 
-  pageThumbnails: 'Page thumbnails',
-  showPages: 'Show pages',
-  hidePages: 'Hide pages',
-  pages: 'Pages',
-  outline: 'Outline',
-  documentInfo: 'Document info',
-  properties: 'Properties',
-  propertyNames: {
+  pageThumbnailsLabel: 'Page thumbnails',
+  showPagesLabel: 'Show pages',
+  hidePagesLabel: 'Hide pages',
+  pagesLabel: 'Pages',
+  outlineLabel: 'Outline',
+  documentInfoLabel: 'Document info',
+  propertiesLabel: 'Properties',
+  propertyNameLabels: {
     title: 'Title',
     author: 'Author',
     subject: 'Subject',
@@ -212,46 +212,46 @@ export const DEFAULT_LABELS: DocViewerLabels = {
     pageCount: 'Pages',
     pageSize: 'Page size',
   },
-  attachments: 'Attachments',
-  downloadAttachment: (fileName) => `Download attachment ${fileName}`,
-  layers: 'Layers',
-  noOutline: 'This document has no outline',
-  pageLayout: 'Page layout',
-  layoutSingle: 'Single pages',
-  layoutTwoPage: 'Two pages',
-  layoutTwoPageCover: 'Two pages, cover on its own',
-  layoutHorizontal: 'Horizontal scrolling',
-  layoutWrapped: 'Wrapped',
-  passwordRequired: 'This PDF is protected with a password',
-  passwordIncorrect: 'The password is incorrect',
-  password: 'Password',
-  unlock: 'Open',
-  thumbnailsPosition: 'Pages panel position',
-  left: 'Left',
-  right: 'Right',
-  top: 'Top',
-  bottom: 'Bottom',
-  previousPage: 'Previous page',
-  nextPage: 'Next page',
-  pageOf: (page, total) => `Page ${page} of ${total}`,
-  pageHasNoText: 'No text on this page',
-  thumbnail: (page) => `Page ${page}`,
-  linkToPage: (page) => `Go to page ${page}`,
+  attachmentsLabel: 'Attachments',
+  downloadAttachmentLabel: (fileName) => `Download attachment ${fileName}`,
+  layersLabel: 'Layers',
+  noOutlineLabel: 'This document has no outline',
+  pageLayoutLabel: 'Page layout',
+  layoutSingleLabel: 'Single pages',
+  layoutTwoPageLabel: 'Two pages',
+  layoutTwoPageCoverLabel: 'Two pages, cover on its own',
+  layoutHorizontalLabel: 'Horizontal scrolling',
+  layoutWrappedLabel: 'Wrapped',
+  passwordRequiredLabel: 'This PDF is protected with a password',
+  passwordIncorrectLabel: 'The password is incorrect',
+  passwordLabel: 'Password',
+  unlockLabel: 'Open',
+  thumbnailsPositionLabel: 'Pages panel position',
+  leftLabel: 'Left',
+  rightLabel: 'Right',
+  topLabel: 'Top',
+  bottomLabel: 'Bottom',
+  previousPageLabel: 'Previous page',
+  nextPageLabel: 'Next page',
+  pageOfLabel: (page, total) => `Page ${page} of ${total}`,
+  pageHasNoTextLabel: 'No text on this page',
+  thumbnailLabel: (page) => `Page ${page}`,
+  linkToPageLabel: (page) => `Go to page ${page}`,
 
-  search: 'Search',
-  searchDocument: 'Search document',
-  searching: 'Searching…',
-  noMatches: 'No matches',
-  matchOf: (match, total) => `${match} of ${total}`,
-  matchOnPage: (match, total, page) => `Match ${match} of ${total}, page ${page}`,
-  previousMatch: 'Previous match',
-  nextMatch: 'Next match',
-  closeSearch: 'Close search',
-  matchCase: 'Match case',
-  wholeWords: 'Whole words',
-  matchAccents: 'Match accents',
-  markup: 'Markup',
-  markupTools: {
+  searchLabel: 'Search',
+  searchDocumentLabel: 'Search document',
+  searchingLabel: 'Searching…',
+  noMatchesLabel: 'No matches',
+  matchOfLabel: (match, total) => `${match} of ${total}`,
+  matchOnPageLabel: (match, total, page) => `Match ${match} of ${total}, page ${page}`,
+  previousMatchLabel: 'Previous match',
+  nextMatchLabel: 'Next match',
+  closeSearchLabel: 'Close search',
+  matchCaseLabel: 'Match case',
+  wholeWordsLabel: 'Whole words',
+  matchAccentsLabel: 'Match accents',
+  markupLabel: 'Markup',
+  markupToolLabels: {
     highlight: 'Highlight',
     pen: 'Pen',
     text: 'Text box',
@@ -260,37 +260,37 @@ export const DEFAULT_LABELS: DocViewerLabels = {
     cloud: 'Cloud',
     signature: 'Signature',
   },
-  undoMark: 'Undo',
-  saveMarkup: 'Save',
-  closeMarkup: 'Close markup',
-  markupText: 'Text box text',
-  markupTextKeys: 'Control or Command with Enter adds the text, Escape cancels.',
-  markupSaved: 'Markup saved',
-  markupLayer: (tool, page) => `${tool} on page ${page}`,
-  markupKeys:
+  undoMarkLabel: 'Undo',
+  saveMarkupLabel: 'Save',
+  closeMarkupLabel: 'Close markup',
+  markupTextLabel: 'Text box text',
+  markupTextKeysLabel: 'Control or Command with Enter adds the text, Escape cancels.',
+  markupSavedLabel: 'Markup saved',
+  markupLayerLabel: (tool, page) => `${tool} on page ${page}`,
+  markupKeysLabel:
     'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels. Page Up and Page Down go to the previous and next page.',
-  markStarted: (tool) => `${tool} started`,
-  markAdded: (tool) => `${tool} added`,
-  markCancelled: 'Mark cancelled',
-  pageMarks: (page, count) => `Page ${page}: ${count} ${count === 1 ? 'mark' : 'marks'}`,
-  textMark: (tool, text) => `${tool}: ${text}`,
+  markStartedLabel: (tool) => `${tool} started`,
+  markAddedLabel: (tool) => `${tool} added`,
+  markCancelledLabel: 'Mark cancelled',
+  pageMarksLabel: (page, count) => `Page ${page}: ${count} ${count === 1 ? 'mark' : 'marks'}`,
+  textMarkLabel: (tool, text) => `${tool}: ${text}`,
 
-  wrapLines: 'Wrap lines',
-  doNotWrapLines: 'Do not wrap lines',
-  jsonView: 'JSON view',
-  tree: 'Tree',
-  code: 'Code',
-  markdownView: 'Markdown view',
-  preview: 'Preview',
-  source: 'Source',
-  opensInNewTab: '(opens in new tab)',
+  wrapLinesLabel: 'Wrap lines',
+  doNotWrapLinesLabel: 'Do not wrap lines',
+  jsonViewLabel: 'JSON view',
+  treeLabel: 'Tree',
+  codeLabel: 'Code',
+  markdownViewLabel: 'Markdown view',
+  previewLabel: 'Preview',
+  sourceLabel: 'Source',
+  opensInNewTabLabel: '(opens in new tab)',
 
-  pdfWorkerMissing: 'PDF preview is not configured: set the pdfWorkerSrc prop',
-  pdfError: 'This PDF could not be opened',
-  imageError: 'This image could not be loaded',
-  textError: 'This file could not be loaded',
-  markdownError: 'Markdown preview could not be loaded',
-  tooLarge: (size) => `This file is too large to preview (${size})`,
-  unsupported: 'Preview is not available for this file type',
-  notSupportedYet: (type) => `Preview for ${type} files is not available yet`,
+  pdfWorkerMissingLabel: 'PDF preview is not configured: set the pdfWorkerSrc prop',
+  pdfErrorLabel: 'This PDF could not be opened',
+  imageErrorLabel: 'This image could not be loaded',
+  textErrorLabel: 'This file could not be loaded',
+  markdownErrorLabel: 'Markdown preview could not be loaded',
+  tooLargeLabel: (size) => `This file is too large to preview (${size})`,
+  unsupportedLabel: 'Preview is not available for this file type',
+  notSupportedYetLabel: (type) => `Preview for ${type} files is not available yet`,
 };

@@ -82,56 +82,56 @@ function EditorActions(props: EditorBarProps) {
   return (
     <Group gap={6} wrap="wrap">
       <EditorButton
-        label={labels.moveEarlier}
+        label={labels.moveEarlierLabel}
         icon={rtl ? <ArrowRightIcon /> : <ArrowLeftIcon />}
         variant="default"
         onClick={() => props.onMove(-1)}
       />
       <EditorButton
-        label={labels.moveLater}
+        label={labels.moveLaterLabel}
         icon={rtl ? <ArrowLeftIcon /> : <ArrowRightIcon />}
         variant="default"
         onClick={() => props.onMove(1)}
       />
       <EditorButton
-        label={labels.deletePages}
+        label={labels.deletePagesLabel}
         icon={<TrashIcon />}
         variant="default"
         {...softDisabled(props.order.length <= 1, props.onRemove)}
       />
       <EditorButton
-        label={labels.rotatePages}
+        label={labels.rotatePagesLabel}
         icon={<RotateIcon />}
         variant="default"
         onClick={props.onRotate}
       />
       <EditorButton
-        label={labels.extractPages}
+        label={labels.extractPagesLabel}
         icon={<ExtractIcon />}
         variant="default"
         {...softDisabled(props.selection.length === 0 || props.busy, props.onExtract)}
       />
       <EditorButton
-        label={labels.resetPages}
+        label={labels.resetPagesLabel}
         icon={<UndoIcon />}
         variant="subtle"
         {...softDisabled(!props.edited, props.onReset)}
       />
       <EditorButton
-        label={labels.cancel}
+        label={labels.cancelLabel}
         icon={<CloseIcon />}
         variant="subtle"
         onClick={props.onCancel}
       />
       <EditorButton
-        label={labels.done}
+        label={labels.doneLabel}
         icon={<CheckIcon />}
         variant="default"
         loading={props.busy}
         onClick={props.onDone}
       />
       <EditorButton
-        label={labels.savePages}
+        label={labels.savePagesLabel}
         icon={<DownloadIcon />}
         loading={props.busy}
         onClick={props.onSave}
@@ -148,10 +148,10 @@ export function EditorBar(props: EditorBarProps) {
     <Group {...getStyles('editorBar')} gap="xs" justify="space-between" wrap="wrap">
       <Group gap="xs" wrap="wrap">
         <Text size="sm" {...getStyles('editorTitle')}>
-          {labels.editPages}
+          {labels.editPagesLabel}
         </Text>
         <Text size="sm" aria-live="polite" {...getStyles('editorCount')}>
-          {labels.selectedCount(props.selectedCount)}
+          {labels.selectedCountLabel(props.selectedCount)}
         </Text>
       </Group>
       <EditorActions {...props} />

@@ -51,7 +51,7 @@ export function ImageView() {
   const markZoom = useZoomAnnouncement(scale, announce);
   const rotate = () => setRotation(nextImageRotation);
   const handleKeyDown = useImageKeys({ scale, zoomTo, rotate });
-  const imageAlt = alt ?? fileName ?? labels.image;
+  const imageAlt = alt ?? fileName ?? labels.imageLabel;
   const print = () => printImage(src, imageAlt, fileName);
   useImageController({ ready, scale, zoomTo, rotate, print });
 

@@ -38,10 +38,10 @@ export function PdfBars({ ready, controls, onPrint, markup, onSaveMarkup, search
       <DocViewerToolbar onPrint={onPrint}>
         {controls}
         {markupProps.withMarkup && show('markup') && (
-          <DocViewerTooltip label={labels.markup}>
+          <DocViewerTooltip label={labels.markupLabel}>
             <ActionIcon
               {...controlProps(markupBar)}
-              aria-label={labels.markup}
+              aria-label={labels.markupLabel}
               aria-pressed={markupBar}
               onClick={() => {
                 setMarkupOpened(!markupBar);

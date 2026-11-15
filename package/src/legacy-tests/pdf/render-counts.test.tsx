@@ -12,7 +12,7 @@ import type { DocViewerMark } from '../../utils/markup';
  */
 const thumbnailRenders = jest.fn((page: number) => `Thumbnail ${page}`);
 const tileRenders = jest.fn((page: number, position: number) => `Page ${page} at ${position}`);
-const countingLabels = { thumbnail: thumbnailRenders, editorPage: tileRenders };
+const countingLabels = { thumbnailLabel: thumbnailRenders, editorPageLabel: tileRenders };
 
 /**
  * renderPageOverlay is called once each time a PdfPage renders, so it counts page renders.
@@ -78,7 +78,7 @@ describe('page renders', () => {
             defaultZoom={1}
             renderPageOverlay={renderPageOverlay}
             // Written inline, so a new object on every render of the app
-            labels={{ search: 'Find' }}
+            labels={{ searchLabel: 'Find' }}
             pdfOptions={undefined}
           />
         </>
@@ -140,7 +140,7 @@ describe('page renders', () => {
             src="/files/report.pdf"
             pdfWorkerSrc="/worker.mjs"
             defaultZoom={1}
-            labels={{ linkToPage: (page) => `${word} ${page}` }}
+            labels={{ linkToPageLabel: (page) => `${word} ${page}` }}
           />
         </>
       );

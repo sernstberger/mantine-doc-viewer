@@ -24,15 +24,15 @@ export function ImageControls({ scale, zoom, zoomTo, rotate }: ImageControlsProp
         <ZoomControls
           scale={scale}
           fitted={zoom === 'fit'}
-          fitLabel={labels.fitToView}
+          fitLabel={labels.fitToViewLabel}
           fitIcon={<FitScreenIcon />}
           onZoom={zoomTo}
           onFit={() => zoomTo('fit')}
         />
       )}
       {show('rotate') && (
-        <DocViewerTooltip label={labels.rotate}>
-          <ActionIcon {...controlProps()} aria-label={labels.rotate} onClick={rotate}>
+        <DocViewerTooltip label={labels.rotateLabel}>
+          <ActionIcon {...controlProps()} aria-label={labels.rotateLabel} onClick={rotate}>
             <RotateIcon />
           </ActionIcon>
         </DocViewerTooltip>

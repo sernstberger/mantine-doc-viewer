@@ -86,7 +86,7 @@ function PdfThumbnailView({
       {...(reorder.enabled ? getReorderItemProps(dragState) : undefined)}
       role="option"
       aria-selected={active}
-      aria-label={labels.thumbnail(pageNumber)}
+      aria-label={labels.thumbnailLabel(pageNumber)}
       // One tab stop for the whole list: the current page. Arrow keys move from there
       tabIndex={active ? 0 : -1}
       data-page-number={pageNumber}
@@ -177,7 +177,7 @@ export function PdfThumbnails({
       ref={setScrollRoot}
       {...getStyles('thumbnails')}
       role="listbox"
-      aria-label={labels.pages}
+      aria-label={labels.pagesLabel}
       aria-orientation={horizontal ? 'horizontal' : 'vertical'}
       aria-keyshortcuts={deletePage ? 'Delete Backspace' : undefined}
       data-orientation={orientation}

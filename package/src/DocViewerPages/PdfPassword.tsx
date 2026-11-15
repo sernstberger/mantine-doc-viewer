@@ -23,10 +23,10 @@ export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
     >
       <LockIcon width={28} height={28} aria-hidden />
       <Text size="sm" ta="center">
-        {labels.passwordRequired}
+        {labels.passwordRequiredLabel}
       </Text>
       <PasswordInput
-        label={labels.password}
+        label={labels.passwordLabel}
         autoComplete="off"
         data-autofocus
         autoFocus
@@ -34,7 +34,7 @@ export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
         size={size.input}
         value={password}
         onChange={(event) => setPassword(event.currentTarget.value)}
-        error={incorrect ? labels.passwordIncorrect : undefined}
+        error={incorrect ? labels.passwordIncorrectLabel : undefined}
         {...getStyles('passwordInput')}
       />
       <Button
@@ -44,7 +44,7 @@ export function PdfPassword({ incorrect, onSubmit }: PdfPasswordProps) {
         fullWidth
         {...getStyles('passwordSubmit')}
       >
-        {labels.unlock}
+        {labels.unlockLabel}
       </Button>
     </form>
   );

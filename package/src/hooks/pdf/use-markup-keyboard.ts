@@ -102,22 +102,22 @@ function getKeyActions({
   return {
     move: (action) => {
       const moved = action as MoveAction;
-      !draft && moved.draft && announce(labels.markStarted(toolName));
+      !draft && moved.draft && announce(labels.markStartedLabel(toolName));
       setCaret(moved.caret);
       setDraft(moved.draft);
     },
     start: () => {
       setDraft([caret]);
-      announce(labels.markStarted(toolName));
+      announce(labels.markStartedLabel(toolName));
     },
     finish: () => {
       const added = commit(draft!);
       setDraft(null);
-      announce(added ? labels.markAdded(toolName) : labels.markCancelled);
+      announce(added ? labels.markAddedLabel(toolName) : labels.markCancelledLabel);
     },
     cancel: () => {
       setDraft(null);
-      announce(labels.markCancelled);
+      announce(labels.markCancelledLabel);
     },
     // An open text box was written when focus left it for the page
     text: () => {
@@ -157,7 +157,7 @@ export function useMarkupKeyboard({
   if (!tool) {
     return { layerRef, caret: null, keyboardProps: {} };
   }
-  const toolName = labels.markupTools[tool];
+  const toolName = labels.markupToolLabels[tool];
 
   const actions = getKeyActions({
     toolName,
@@ -202,8 +202,8 @@ export function useMarkupKeyboard({
     keyboardProps: {
       tabIndex: tabStop ? 0 : -1,
       role: 'application',
-      'aria-label': labels.markupLayer(toolName, pageNumber),
-      'aria-description': labels.markupKeys,
+      'aria-label': labels.markupLayerLabel(toolName, pageNumber),
+      'aria-description': labels.markupKeysLabel,
       'aria-keyshortcuts': `${MARKUP_KEY_SHORTCUTS} PageUp PageDown`,
       onKeyDown,
     },

@@ -46,7 +46,7 @@ describe('DocViewer toolbar', () => {
   });
 
   it('labels the toolbar with the viewer labels', () => {
-    render(<DocViewer src="/files/photo.png" labels={{ toolbar: 'Barre' }} />);
+    render(<DocViewer src="/files/photo.png" labels={{ toolbarLabel: 'Barre' }} />);
     expect(screen.getByRole('toolbar', { name: 'Barre' })).toBeInTheDocument();
   });
 

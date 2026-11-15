@@ -27,7 +27,7 @@ export function DocViewerMessage({ children, withDownload, error }: DocViewerMes
             rel="noopener noreferrer"
             size="sm"
           >
-            {labels.downloadFile}
+            {labels.downloadFileLabel}
           </Anchor>
         </EmptyState.Actions>
       )}
@@ -42,7 +42,7 @@ export function DocViewerLoading() {
   return (
     <DocViewerMessage>
       <Loader size="sm" />
-      <VisuallyHidden>{labels.loading}</VisuallyHidden>
+      <VisuallyHidden>{labels.loadingLabel}</VisuallyHidden>
     </DocViewerMessage>
   );
 }
