@@ -17,6 +17,7 @@ import {
   TrashIcon,
   UndoIcon,
 } from '../icons';
+import { EditorKeyAction, getEditorKeyAction } from './editor-keys';
 import { useAnnouncement } from './use-announcement';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
@@ -259,32 +260,22 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const page = order[focusedIndex];
-    const step = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
-    const isArrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key);
+  const keyActions: Record<EditorKeyAction, (step: -1 | 1) => void> = {
+    move: (step) => move(step),
+    focus: (step) => focusIndex(focusedIndex + step),
+    focusFirst: () => focusIndex(0),
+    focusLast: () => focusIndex(order.length - 1),
+    toggle: () => toggle(order[focusedIndex]),
+    remove: () => remove(),
+    rotate: () => rotate(),
+    selectAll: () => setSelected(new Set(order)),
+  };
 
-    if (isArrow && event.altKey) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const key = getEditorKeyAction(event);
+    if (key) {
       event.preventDefault();
-      move(step);
-    } else if (isArrow) {
-      event.preventDefault();
-      focusIndex(focusedIndex + step);
-    } else if (event.key === 'Home' || event.key === 'End') {
-      event.preventDefault();
-      focusIndex(event.key === 'Home' ? 0 : order.length - 1);
-    } else if (event.key === ' ') {
-      event.preventDefault();
-      toggle(page);
-    } else if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault();
-      remove();
-    } else if (event.key.toLowerCase() === 'r' && !event.metaKey && !event.ctrlKey) {
-      event.preventDefault();
-      rotate();
-    } else if (event.key.toLowerCase() === 'a' && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      setSelected(new Set(order));
+      keyActions[key.action](key.step);
     }
   };
 
