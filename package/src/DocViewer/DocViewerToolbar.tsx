@@ -4,6 +4,18 @@ import { DocViewerTooltip, useControlProps } from './controls';
 import { useDocumentTitle, useDocViewerContext, useShowControl } from './DocViewer.context';
 import { DownloadIcon, FullscreenExitIcon, FullscreenIcon, PrintIcon } from './icons';
 
+/** What `renderToolbarTitle` gets */
+export interface DocViewerToolbarTitleInfo {
+  /** The text the toolbar shows by default: the file name, or the `document` label without one */
+  title: string;
+
+  /** Name of the file, `undefined` for blob and data urls without a `fileName` */
+  fileName: string | undefined;
+}
+
+/** Renders the toolbar title in place of the file name, for example the current sheet of a set */
+export type DocViewerRenderToolbarTitle = (info: DocViewerToolbarTitleInfo) => React.ReactNode;
+
 export interface DocViewerToolbarProps {
   /** Controls specific to the document type, for example, PDF paging and zoom */
   children?: React.ReactNode;
@@ -25,6 +37,9 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
     fileName,
     src,
     toolbarSection,
+    toolbarStartSection,
+    toolbarSubtitle,
+    renderToolbarTitle,
     withToolbar,
     withPrint,
     withDownload,
@@ -58,11 +73,17 @@ export function DocViewerToolbar({ children, onPrint }: DocViewerToolbarProps) {
 
   return (
     <div {...getStyles('toolbar')}>
-      {show('title') ? (
-        <span {...getStyles('title')}>{title}</span>
-      ) : (
-        <span {...getStyles('title')} />
-      )}
+      {toolbarStartSection && <div {...getStyles('toolbarStart')}>{toolbarStartSection}</div>}
+      <div {...getStyles('heading')}>
+        {show('title') && (
+          <>
+            <span {...getStyles('title')}>
+              {renderToolbarTitle ? renderToolbarTitle({ title, fileName }) : title}
+            </span>
+            {toolbarSubtitle && <span {...getStyles('subtitle')}>{toolbarSubtitle}</span>}
+          </>
+        )}
+      </div>
       {/* Mantine's Toolbar gives the buttons arrow key navigation; the viewer styles it itself */}
       <Toolbar unstyled withBorder={false} aria-label={labels.toolbar} {...getStyles('controls')}>
         {children}

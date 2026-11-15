@@ -66,6 +66,7 @@ export function PlanRoom() {
     currentRow.current?.scrollIntoView({ block: 'nearest' });
   }, [page]);
 
+  const currentSheet = SHEETS.find((sheet) => sheet.page === page);
   const needle = query.trim().toLowerCase();
   const visible = SHEETS.filter(
     (sheet) =>
@@ -187,6 +188,7 @@ export function PlanRoom() {
             root: classes.root,
             toolbar: classes.toolbar,
             title: classes.title,
+            subtitle: classes.subtitle,
             control: classes.control,
             pageIndicator: classes.pageIndicator,
             zoomLevel: classes.zoomLevel,
@@ -196,7 +198,11 @@ export function PlanRoom() {
             body: classes.body,
             page: classes.sheetPage,
           }}
-          // MISSING: a toolbar slot or a title render prop, so the title can be the current sheet ("S-201 Level 2 framing") instead of the file name.
+          // The title is the sheet in view, not the file name
+          renderToolbarTitle={() =>
+            currentSheet ? `${currentSheet.number} ${currentSheet.title}` : 'Plan set'
+          }
+          toolbarSubtitle="Plan set, rev C"
           // MISSING: markup layer (cloud a revision, pin an RFI on the sheet) and saving it back to the set.
           // MISSING: a measure tool that uses the sheet's scale, and a way to calibrate it.
           // MISSING: overlaying two revisions of a sheet to see what changed.

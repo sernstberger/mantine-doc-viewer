@@ -518,6 +518,21 @@
   font-weight: 600;
 }
 
+.draftMark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--dr-violet-tint);
+  color: var(--dr-violet);
+}
+
+.subtitle {
+  color: var(--dr-muted);
+  font-size: 11px;
+}
+
 .control {
   border: 0;
   border-radius: 6px;

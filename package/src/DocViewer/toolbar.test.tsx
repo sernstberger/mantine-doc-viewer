@@ -28,4 +28,38 @@ describe('DocViewer toolbar', () => {
     render(<DocViewer src="/files/photo.png" labels={{ toolbar: 'Barre' }} />);
     expect(screen.getByRole('toolbar', { name: 'Barre' })).toBeInTheDocument();
   });
+
+  it('shows a subtitle under the title and a slot before it', () => {
+    render(
+      <DocViewer
+        src="/files/photo.png"
+        toolbarSubtitle="Draft 4"
+        toolbarStartSection={<button type="button">Menu</button>}
+      />
+    );
+
+    expect(screen.getByText('photo.png')).toBeInTheDocument();
+    expect(screen.getByText('Draft 4')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
+  });
+
+  it('renders the title with renderToolbarTitle and hides it with the title control', () => {
+    const renderToolbarTitle = jest.fn(({ title }) => <em>Sheet: {title}</em>);
+    const { rerender } = render(
+      <DocViewer src="/files/photo.png" renderToolbarTitle={renderToolbarTitle} />
+    );
+    expect(screen.getByText('Sheet: photo.png')).toBeInTheDocument();
+    expect(renderToolbarTitle).toHaveBeenCalledWith({ title: 'photo.png', fileName: 'photo.png' });
+
+    rerender(
+      <DocViewer
+        src="/files/photo.png"
+        renderToolbarTitle={renderToolbarTitle}
+        toolbarSubtitle="Edited"
+        toolbarControls={{ title: false }}
+      />
+    );
+    expect(screen.queryByText('Sheet: photo.png')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edited')).not.toBeInTheDocument();
+  });
 });

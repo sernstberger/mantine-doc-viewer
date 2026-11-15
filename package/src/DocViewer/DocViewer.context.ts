@@ -15,6 +15,7 @@ import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from '.
 import type { DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
+import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import type { DocViewerSizeConfig } from './sizes';
 
 export interface DocViewerContextValue {
@@ -26,6 +27,9 @@ export interface DocViewerContextValue {
   withToolbar: boolean | undefined;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
+  toolbarStartSection: React.ReactNode;
+  toolbarSubtitle: React.ReactNode;
+  renderToolbarTitle: DocViewerRenderToolbarTitle | undefined;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
   pdfWorkerSrc: string | undefined;
   pdfOptions: PdfLoadOptions | undefined;

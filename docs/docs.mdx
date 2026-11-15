@@ -415,6 +415,22 @@ controls' keyboard shortcuts still work, and `controllerRef` still has their act
 />
 ```
 
+### Toolbar slots
+
+`toolbarStartSection` puts content before the title, `toolbarSubtitle` adds a small line under it,
+and `renderToolbarTitle` replaces the file name, for example with the sheet that is open. They have
+the Styles API names `toolbarStart`, `subtitle` and `title`.
+
+```tsx
+<DocViewer
+  src="/plans.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  toolbarStartSection={<MenuButton />}
+  toolbarSubtitle="Draft 4"
+  renderToolbarTitle={({ title }) => `Sheet ${sheet.number}, ${title}`}
+/>
+```
+
 ### Embedding and dark mode
 
 `variant="plain"` removes the border, rounded corners, backgrounds and page shadows, for a

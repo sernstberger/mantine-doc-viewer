@@ -33,6 +33,7 @@ import {
 import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
+import type { DocViewerRenderToolbarTitle } from './DocViewerToolbar';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
 import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
@@ -50,7 +51,10 @@ import { UnsupportedView } from './views/UnsupportedView';
 export type DocViewerStylesNames =
   | 'root'
   | 'toolbar'
+  | 'toolbarStart'
+  | 'heading'
   | 'title'
+  | 'subtitle'
   | 'controls'
   | 'control'
   | 'body'
@@ -263,6 +267,15 @@ export interface DocViewerProps
   /** Content displayed in the toolbar before the download button */
   toolbarSection?: React.ReactNode;
 
+  /** Content displayed at the start of the toolbar, before the title, for example a menu button. Styles API name: `toolbarStart` */
+  toolbarStartSection?: React.ReactNode;
+
+  /** Small text under the title, for example "Draft 4" or "Edited". Styles API name: `subtitle` */
+  toolbarSubtitle?: React.ReactNode;
+
+  /** Renders the title in place of the file name, for example the sheet that is open. Called with the file name and the default title */
+  renderToolbarTitle?: DocViewerRenderToolbarTitle;
+
   /**
    * Content laid over each PDF page, such as comment pins, review marks or proof boxes. It gets
    * the page number, the page size at 100% and the current `scale`: place content at
@@ -417,6 +430,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     tooltipProps,
     codeHighlightProps,
     toolbarSection,
+    toolbarStartSection,
+    toolbarSubtitle,
+    renderToolbarTitle,
     renderPageOverlay,
     withToolbar,
     toolbarControls,
@@ -511,6 +527,9 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withToolbar,
         toolbarControls,
         toolbarSection,
+        toolbarStartSection,
+        toolbarSubtitle,
+        renderToolbarTitle,
         renderPageOverlay,
         pdfWorkerSrc,
         pdfOptions,

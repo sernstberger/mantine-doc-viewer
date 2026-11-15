@@ -164,24 +164,6 @@ export function Stand() {
       </aside>
 
       <main ref={readerRef} className={classes.reader}>
-        <ActionIcon
-          className={classes.drawerToggle}
-          variant="transparent"
-          size="lg"
-          aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
-          aria-expanded={drawerOpened}
-          onClick={() => setDrawer(!drawerOpened)}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-            <path
-              d="M4 5.5h12M4 10h12M4 14.5h7"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        </ActionIcon>
-
         <DocViewer
           src="/stories/nocturne.pdf"
           fileName="Lantern Hour"
@@ -224,7 +206,26 @@ export function Stand() {
             pages: classes.pages,
             page: classes.page,
           }}
-          // MISSING: a slot in the toolbar for the app's own buttons (the setlist toggle floats over it instead).
+          // The setlist toggle sits at the start of the toolbar
+          toolbarStartSection={
+            <ActionIcon
+              className={classes.drawerToggle}
+              variant="transparent"
+              size="lg"
+              aria-label={drawerOpened ? 'Hide setlist' : 'Show setlist'}
+              aria-expanded={drawerOpened}
+              onClick={() => setDrawer(!drawerOpened)}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path
+                  d="M4 5.5h12M4 10h12M4 14.5h7"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </ActionIcon>
+          }
           // MISSING: built-in page turning for spreads (tap zones, swipe, pedal keys); the zones below are app code
           // MISSING: a zoom that fits the view height ('fit' only fits the width), so the story computes the scale itself.
           // MISSING: a scroll snap or goToSpread: the viewer scrolls by page and does not know about spreads.

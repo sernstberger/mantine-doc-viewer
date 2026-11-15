@@ -95,6 +95,11 @@
   font-weight: 600;
 }
 
+.subtitle {
+  color: var(--folio-secondary);
+  font-size: 11px;
+}
+
 .control {
   border: 0;
   border-radius: 6px;

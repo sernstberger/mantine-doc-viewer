@@ -24,14 +24,36 @@
   background-color: var(--mantine-color-default);
 }
 
-.title {
+.toolbarStart {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.heading {
+  display: flex;
   flex: 1 1 8rem;
+  flex-direction: column;
+  justify-content: center;
   min-width: 0;
+}
+
+.title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--_font-size);
   font-weight: 500;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--_font-size) * 0.85);
+  line-height: 1.2;
 }
 
 .body {

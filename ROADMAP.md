@@ -20,8 +20,9 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 ## 2. Layout props
 
-- [ ] **Toolbar slots**: a subtitle under the title ("Edited", "Draft 4"), a left slot, and a title
-      render prop so the title can be the current sheet (Folio, Dealroom, Plan room, Stand)
+- [x] **Toolbar slots** (`toolbarSubtitle`, `toolbarStartSection`, `renderToolbarTitle`): a subtitle under the
+      title ("Edited", "Draft 4"), a left slot, and a title render prop so the title can be the current
+      sheet (Folio, Dealroom, Plan room, Stand)
 - [ ] **Auto height** (`height="auto"`): the viewer grows to its pages and the page scrolls
       (Field Report)
 - [ ] **Fit the whole page or spread** (width and height), besides fit to width (Atrium, Stand)

@@ -571,9 +571,7 @@ export function Dealroom() {
             pageColorScheme="auto"
             defaultZoom="fit"
             withFullscreen={false}
-            // The file name is the breadcrumb in the header, so the toolbar does not repeat it
             toolbarControls={{
-              title: false,
               rotate: false,
               layout: false,
               presentation: false,
@@ -584,6 +582,7 @@ export function Dealroom() {
               root: classes.root,
               toolbar: classes.toolbar,
               title: classes.title,
+              subtitle: classes.subtitle,
               control: classes.control,
               pageIndicator: classes.pageIndicator,
               zoomLevel: classes.zoomLevel,
@@ -592,7 +591,22 @@ export function Dealroom() {
               body: classes.body,
               page: classes.page,
             }}
-            // The status badge goes before the download button, so it cannot sit next to the title
+            // The file name is the breadcrumb in the header, so the toolbar names the draft instead
+            renderToolbarTitle={() => 'Draft 4'}
+            toolbarSubtitle={approved ? 'Redline accepted' : 'Redline in review'}
+            toolbarStartSection={
+              <span className={classes.draftMark} aria-hidden>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M4 1.75h5l3 3v9.5H4zM9 1.75v3h3M6 8.25h4M6 10.75h4"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            }
             toolbarSection={
               <span className={classes.status} data-status={status}>
                 {STATUS_LABEL[status]}
@@ -623,7 +637,6 @@ export function Dealroom() {
                 ))
             }
             // MISSING: highlighting a clause from outside; "Show in agreement" can only search for it.
-            // MISSING: a subtitle slot under the title ("Draft 4, redline accepted") and a left slot for the toolbar.
           />
         </main>
 
