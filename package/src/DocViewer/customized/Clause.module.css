@@ -29,6 +29,11 @@
   color-scheme: light;
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   font-size: 14px;
+
+  @mixin smaller-than 48em {
+    height: 100dvh;
+    min-height: 0;
+  }
 }
 
 /* --------------------------------- header --------------------------------- */
@@ -42,6 +47,16 @@
   padding-inline: 20px;
   border-bottom: 1px solid var(--clause-line);
   background: var(--clause-panel);
+
+  /* On a phone: brand, matter and button on one row, the progress under them */
+  @mixin smaller-than 48em {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'brand matter approve' 'progress progress progress';
+    gap: 8px 12px;
+    height: auto;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+  }
 }
 
 .brand {
@@ -53,6 +68,12 @@
   font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;
+
+  @mixin smaller-than 48em {
+    grid-area: brand;
+    padding-right: 12px;
+    font-size: 15px;
+  }
 }
 
 .matter {
@@ -60,6 +81,10 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
+
+  @mixin smaller-than 48em {
+    grid-area: matter;
+  }
 }
 
 .matterName {
@@ -71,8 +96,15 @@
 }
 
 .version {
+  overflow: hidden;
   color: var(--clause-muted);
   font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @mixin smaller-than 48em {
+    font-size: 11.5px;
+  }
 }
 
 .progress {
@@ -80,6 +112,13 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
+
+  @mixin smaller-than 48em {
+    flex-direction: row;
+    grid-area: progress;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .progressText {
@@ -120,6 +159,13 @@
 .approve {
   min-width: 164px;
   border-radius: 6px;
+
+  @mixin smaller-than 48em {
+    grid-area: approve;
+    min-width: 0;
+    padding-inline: 12px;
+  }
+
   background: var(--clause-ink);
   color: #fff;
   font-weight: 600;
@@ -151,6 +197,24 @@
   flex: 1;
   grid-template-columns: 290px minmax(0, 1fr) 380px;
   min-height: 0;
+
+  /* On a phone: the three panes share one cell and the tab bar picks which one shows */
+  @mixin smaller-than 48em {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+
+    & > * {
+      grid-area: 1 / 1;
+      min-height: 0;
+      visibility: hidden;
+    }
+
+    &[data-pane='clauses'] > .clauses,
+    &[data-pane='document'] > .viewer,
+    &[data-pane='clause'] > .thread {
+      visibility: visible;
+    }
+  }
 }
 
 .paneTitle {
@@ -579,6 +643,13 @@
   right: 24px;
   bottom: 24px;
   padding: 11px 16px;
+
+  @mixin smaller-than 48em {
+    right: 14px;
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    left: 14px;
+  }
+
   border-radius: 6px;
   background: var(--clause-ink);
   color: #fff;
@@ -676,5 +747,34 @@
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+  }
+}
+
+/* ------------------------ tab bar (phone only) ---------------------------- */
+
+.tabs {
+  display: none;
+
+  @mixin smaller-than 48em {
+    display: flex;
+    flex-shrink: 0;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--clause-line);
+    background: var(--clause-panel);
+  }
+}
+
+.tabIndicator {
+  border-radius: 6px;
+  background: var(--clause-ink);
+}
+
+.tabLabel {
+  color: var(--clause-muted);
+  font-weight: 600;
+  white-space: nowrap;
+
+  &[data-active] {
+    color: #fff;
   }
 }
