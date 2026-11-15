@@ -53,13 +53,12 @@ function useMissingPdfAdapterWarning(missing: boolean) {
       warnedMissingPdfAdapter = true;
       // eslint-disable-next-line no-console
       console.warn(
-        "[mantine-doc-viewer] PDF files need DocViewerAdapterProvider with createPdfJsAdapter: <DocViewerAdapterProvider pdf={createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc })}>"
+        '[mantine-doc-viewer] PDF files need DocViewerAdapterProvider with createPdfJsAdapter: <DocViewerAdapterProvider pdf={createPdfJsAdapter(loadPdfJs, { workerSrc })}>, where loadPdfJs is a function that imports pdfjs-dist'
       );
     }
   }, [missing]);
 }
 
-/** Labels the extensions bring, from the `labels` option each of them takes */
 /** CSS variables of the parts, from the part props `DocViewer` passes through */
 function usePartVars(layout: DocViewerLayoutConfig) {
   const theme = useMantineTheme();
