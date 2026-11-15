@@ -3,3 +3,5 @@ docs/out
 package/dist
 coverage
 .claude
+storybook-static
+playwright-report
