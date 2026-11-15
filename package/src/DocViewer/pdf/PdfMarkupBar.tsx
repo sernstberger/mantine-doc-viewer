@@ -1,4 +1,4 @@
-import { ActionIcon, Button, CloseButton, Divider } from '@mantine/core';
+import { ActionIcon, Button, CloseButton, Divider, Toolbar } from '@mantine/core';
 import React from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
@@ -39,7 +39,8 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
   const empty = markup.marks.length === 0;
 
   return (
-    <div {...getStyles('markupBar')} role="toolbar" aria-label={labels.markup}>
+    // Mantine's Toolbar: one tab stop, the arrow keys move between the tools
+    <Toolbar unstyled withBorder={false} aria-label={labels.markup} {...getStyles('markupBar')}>
       {markup.tools.map((tool) => {
         const ToolIcon = TOOL_ICONS[tool];
         const active = markup.tool === tool;
@@ -72,6 +73,7 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
         variant="default"
         loading={markup.saving}
         ml="auto"
+        data-toolbar-toggle
         {...softDisabled(empty, onSave)}
       >
         {labels.saveMarkup}
@@ -80,8 +82,9 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
         {...getStyles('control')}
         size={size.control}
         aria-label={labels.closeMarkup}
+        data-toolbar-toggle
         onClick={onClose}
       />
-    </div>
+    </Toolbar>
   );
 }

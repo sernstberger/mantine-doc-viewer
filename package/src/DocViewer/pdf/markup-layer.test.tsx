@@ -36,6 +36,23 @@ async function pickTool(name: string) {
 describe('markup', () => {
   beforeEach(() => getDocument.mockReset());
 
+  it('moves between the markup tools with the arrow keys, from one tab stop', async () => {
+    mockPdf();
+    renderViewer({ withMarkup: true, markupTools: ['pen', 'text'] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Markup' }));
+    const bar = screen.getByRole('toolbar', { name: 'Markup' });
+    const stops = () =>
+      Array.from(bar.querySelectorAll<HTMLElement>('button')).filter((b) => b.tabIndex === 0);
+
+    // Undo is disabled with no marks yet, and is not a tab stop of its own
+    await waitFor(() => expect(stops()).toEqual([screen.getByRole('button', { name: 'Pen' })]));
+    act(() => screen.getByRole('button', { name: 'Pen' }).focus());
+    await userEvent.keyboard('{ArrowRight}');
+    expect(screen.getByRole('button', { name: 'Text box' })).toHaveFocus();
+    await userEvent.keyboard('{End}');
+    expect(screen.getByRole('button', { name: 'Close markup' })).toHaveFocus();
+  });
+
   it('opens the markup bar from the toolbar and draws with the pen', async () => {
     mockPdf();
     const onMarkupChange = jest.fn();
@@ -344,13 +361,13 @@ describe('markup', () => {
     // The toolbar button closes the bar and puts the tool down
     await userEvent.click(screen.getByRole('button', { name: 'Markup' }));
     expect(onMarkupToolChange).toHaveBeenLastCalledWith(null);
-    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+    expect(screen.queryByRole('toolbar', { name: 'Markup' })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Markup' }));
     await pickTool('Text box');
     await userEvent.click(screen.getByRole('button', { name: 'Close markup' }));
     expect(onMarkupToolChange).toHaveBeenLastCalledWith(null);
-    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+    expect(screen.queryByRole('toolbar', { name: 'Markup' })).not.toBeInTheDocument();
   });
 
   it('adds no layer to pages without marks while no tool is picked', async () => {
