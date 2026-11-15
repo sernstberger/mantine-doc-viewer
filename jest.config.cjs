@@ -30,7 +30,7 @@ module.exports = {
     '!package/src/DocViewer/pdf/import-pdf-lib.ts',
     '!package/src/DocViewer/import-views.ts',
   ],
-  setupFilesAfterEnv: ['./jsdom.mocks.cjs'],
+  setupFilesAfterEnv: ['./jsdom.mocks.cjs', './jest-console.cjs'],
   moduleNameMapper: {
     '/import-markdown$': '<rootDir>/test-utils/import-markdown.mock.tsx',
     '/import-pdfjs$': '<rootDir>/test-utils/import-pdfjs.mock.ts',
