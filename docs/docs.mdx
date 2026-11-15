@@ -23,6 +23,26 @@ PDF, image, plain text, code and markdown files are supported.
 Give `DocViewer` a height with the `h` prop or from its parent: documents are scrolled and fitted
 inside the viewer, they do not make it grow.
 
+## Switching documents
+
+`keepView` keeps the zoom, rotation, page layout and scroll position when `src` changes to another
+document of the same type, for example with a next button. Search, page edits and the loaded
+document itself still reset. Without it, a new `src` starts the viewer afresh.
+
+```tsx
+<DocViewer src={files[index]} pdfWorkerSrc={pdfWorkerSrc} keepView />
+```
+
+## Numbers and dates
+
+`locale` is a BCP 47 language tag, such as `'de-DE'`, for the numbers and dates the viewer shows:
+zoom, page counts, file sizes and document properties. It is the browser's language by default.
+The words come from `labels`, see Translating labels below.
+
+```tsx
+<DocViewer src="/report.pdf" pdfWorkerSrc={pdfWorkerSrc} locale="de-DE" />
+```
+
 ## Images
 
 Images open fitted to the viewer, never enlarged past their natural size. Zoom with the toolbar,
@@ -366,6 +386,20 @@ To change the colors, style the highlights in your global styles:
 }
 ```
 
+### Reacting to a selection
+
+`onTextSelect` is called when the reader has selected text in a PDF, with the text, the page it
+starts on (counted from 1) and its boxes on that page, in the coordinates of `renderPageOverlay`.
+It is not called when the selection is cleared. Use it for a "copy with quote" or "comment" button:
+
+```tsx
+<DocViewer
+  src="/report.pdf"
+  pdfWorkerSrc={pdfWorkerSrc}
+  onTextSelect={(text, page, rects) => setQuote({ text, page, rects })}
+/>
+```
+
 ## pdf.js worker
 
 pdf.js parses documents in a web worker. Set `pdfWorkerSrc` to the url of the worker file from the
@@ -420,6 +454,7 @@ be styled with the Styles API (`classNames`, `styles`, `vars` and `unstyled`).
   that shows code and markdown source.
 - `--doc-viewer-page-background` sets the background of PDF pages, for example a dimmer white in
   dark mode.
+- `attributes` adds attributes to a part, like Mantine's Styles API: `attributes={{ control: { 'data-testid': 'viewer-button' } }}`.
 - Every toolbar button has the `control` selector, with `data-pressed` and `data-disabled`.
 
 ```tsx
