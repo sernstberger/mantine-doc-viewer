@@ -467,6 +467,13 @@
     outline: 2px solid var(--locker-blue);
     outline-offset: 1px;
   }
+
+  &:disabled,
+  &[data-disabled] {
+    background: transparent;
+    color: var(--locker-muted);
+    opacity: 0.4;
+  }
 }
 
 .viewerWrap {

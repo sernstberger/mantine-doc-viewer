@@ -87,6 +87,7 @@ export function ImageView() {
     zoomOut: () => zoomTo(zoomOut(scale)),
     rotate,
     print,
+    isPrintable: () => ready,
   });
   const frameSize = naturalSize ? getRotatedSize(naturalSize, rotation) : null;
 

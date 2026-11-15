@@ -171,6 +171,7 @@ export function PdfView() {
       ready && presentation.toggle();
     },
     print,
+    isPrintable: () => !!ready,
   });
 
   // The page a presentation ended on is restored below, after this has run

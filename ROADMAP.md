@@ -40,7 +40,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 ## 3. App hooks and controller
 
 - [x] **`onDocumentLoadStart`** (Locker)
-- [ ] **`controller.canPrint` and `controller.type`** so apps can disable their own buttons (Locker)
+- [x] **`controller.canPrint` and `controller.type`** so apps can disable their own buttons (Locker)
 - [ ] **Richer `onDocumentLoad`**: byte size, MIME type, PDF title (Locker)
 - [ ] **`onLoad` and `onError` helpers for custom renderers** instead of reaching into `events`
       (Locker)

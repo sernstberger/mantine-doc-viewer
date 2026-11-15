@@ -18,7 +18,7 @@ export function useTextView(type: DocType, state: TextDocumentState, print: () =
     }
   }, [state, type, events]);
 
-  useRegisterController(controller, { print });
+  useRegisterController(controller, { print, isPrintable: () => state.status === 'ready' });
 
   return state.status === 'ready' ? print : undefined;
 }

@@ -557,6 +557,8 @@ export function Locker() {
               <ActionIcon
                 className={classes.action}
                 aria-label="Print"
+                // Spreadsheets and other files the viewer cannot print leave the button off
+                disabled={!controller.current?.canPrint}
                 onClick={() => {
                   void controller.current?.print();
                 }}
@@ -564,7 +566,6 @@ export function Locker() {
                 {ICONS.print}
               </ActionIcon>
             </Tooltip>
-            {/* MISSING: `controller.canPrint` / `controller.type`: print does nothing for some types, the app cannot know to disable the button */}
             <Tooltip label="Full screen" {...TOOLTIP_PROPS}>
               <ActionIcon
                 className={classes.action}

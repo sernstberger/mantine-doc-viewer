@@ -487,6 +487,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       link.click();
     },
     toggleFullscreen: () => fullscreen.toggle(),
+    getType: () => resolvedType,
   });
 
   // Stable, so views can call them from effects without re-running them

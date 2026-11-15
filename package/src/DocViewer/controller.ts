@@ -46,6 +46,12 @@ export interface DocViewerController {
 
   /** Shows the viewer full screen, or leaves full screen */
   toggleFullscreen: () => Promise<void>;
+
+  /** Whether `print` does something now: true once a PDF, image or text file has loaded. Read it when your app renders, for example after `onDocumentLoad` */
+  readonly canPrint: boolean;
+
+  /** Type of the document that is shown, `'unknown'` for files the viewer cannot show itself */
+  readonly type: DocType;
 }
 
 export interface DocViewerOutlineItem {
@@ -88,14 +94,20 @@ export interface DocViewerEvents {
   onLinkClick?: (url: string, event: MouseEvent) => void;
 }
 
-export type ControllerImplementation = Partial<DocViewerController>;
+/** What views put into the registry: the actions, and functions that answer for `canPrint` and `type` */
+export type ControllerImplementation = Partial<
+  Omit<DocViewerController, 'canPrint' | 'type'> & {
+    isPrintable: () => boolean;
+    getType: () => DocType;
+  }
+>;
 
 /** Registry that views put their actions into, and that `controllerRef` reads from */
 export function useControllerRegistry(controllerRef: React.Ref<DocViewerController> | undefined) {
   const implementation = useRef<ControllerImplementation>({});
 
   const call =
-    <K extends keyof DocViewerController>(name: K) =>
+    <K extends Exclude<keyof DocViewerController, 'canPrint' | 'type'>>(name: K) =>
     (...args: Parameters<DocViewerController[K]>) =>
       (implementation.current[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args);
 
@@ -121,6 +133,12 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       toggleFullscreen: async () => {
         await implementation.current.toggleFullscreen?.();
       },
+      get canPrint() {
+        return implementation.current.isPrintable?.() ?? false;
+      },
+      get type() {
+        return implementation.current.getType?.() ?? 'unknown';
+      },
     }),
     []
   );
@@ -137,7 +155,7 @@ export function useRegisterController(
   latest.current = actions;
 
   useEffect(() => {
-    const names = Object.keys(latest.current) as (keyof DocViewerController)[];
+    const names = Object.keys(latest.current) as (keyof ControllerImplementation)[];
     const current = registry.current;
     names.forEach((name) => {
       (current as Record<string, unknown>)[name] = (...args: unknown[]) =>
