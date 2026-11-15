@@ -44,8 +44,7 @@ import type { DocViewerFile, DocViewerRenderer } from './renderers';
 import type { DocViewerResponsive } from './responsive';
 import { DOC_VIEWER_SIZES } from './sizes';
 import { PdfView } from './pdf/PdfView';
-import { CodeView } from './text/CodeView';
-import { MarkdownView } from './text/MarkdownView';
+import { CodeView, LazyView, MarkdownView } from './lazy-views';
 import { TextView } from './text/TextView';
 import { ImageView } from './views/ImageView';
 import { UnsupportedView } from './views/UnsupportedView';
@@ -496,9 +495,17 @@ function renderView(file: DocViewerFile, renderers: DocViewerRenderer[] | undefi
     case 'text':
       return <TextView />;
     case 'code':
-      return <CodeView />;
+      return (
+        <LazyView>
+          <CodeView />
+        </LazyView>
+      );
     case 'markdown':
-      return <MarkdownView />;
+      return (
+        <LazyView>
+          <MarkdownView />
+        </LazyView>
+      );
     default:
       return <UnsupportedView type={type} />;
   }
