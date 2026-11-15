@@ -7,6 +7,7 @@ import type { PdfLayersState } from './use-pdf-layers';
 import type { PdfJsModule } from './load-pdfjs';
 import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import { getPageTextContent } from './text-content';
+import { getOverlayStyle } from './page-overlay';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 import type { PdfPageSize } from './use-pdf-document';
@@ -108,12 +109,14 @@ export function PdfPage({
   linkService,
   onTextLayer,
 }: PdfPageProps) {
-  const { getStyles, labels, maxCanvasPixels } = useDocViewerContext();
+  const { getStyles, labels, maxCanvasPixels, renderPageOverlay } = useDocViewerContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
   const linkLayerRef = useRef<HTMLDivElement>(null);
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   const [size, setSize] = useState<PdfPageSize | null>(null);
+  // Size before the viewer's rotation, for the overlay
+  const [baseSize, setBaseSize] = useState<PdfPageSize | null>(null);
   const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
@@ -138,6 +141,8 @@ export function PdfPage({
 
       const { width, height } = getPageViewport(page, 1, rotation);
       setSize({ width, height });
+      const base = getPageViewport(page, 1);
+      setBaseSize({ width: base.width, height: base.height });
       renderTask = renderPageToCanvas(
         page,
         canvas,
@@ -264,6 +269,14 @@ export function PdfPage({
   useReleasePage(document, pageNumber, near);
 
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
+  const overlaySize = baseSize ?? placeholderSize;
+  const overlay = renderPageOverlay?.({
+    pageNumber,
+    width: overlaySize.width,
+    height: overlaySize.height,
+    scale,
+    rotation,
+  });
 
   return (
     <div
@@ -284,6 +297,15 @@ export function PdfPage({
       {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
+      {overlay != null && overlay !== false && (
+        <div
+          {...getStyles('pageOverlay', {
+            style: getOverlayStyle(overlaySize.width * scale, overlaySize.height * scale, rotation),
+          })}
+        >
+          {overlay}
+        </div>
+      )}
     </div>
   );
 }

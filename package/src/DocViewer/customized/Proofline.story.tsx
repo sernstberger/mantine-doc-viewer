@@ -1,4 +1,4 @@
-import { Button, Checkbox, Textarea } from '@mantine/core';
+import { Button, Checkbox, Switch, Textarea } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -42,6 +42,91 @@ const COLOUR_BAR = [
   ['CM', '#2e3192'],
 ] as const;
 
+/** Proof geometry in PDF points, as scripts/story-pdfs/menu-proof.ts lays the menu out */
+const MM = 72 / 25.4;
+const BLEED = 3 * MM;
+const SAFE = 5 * MM;
+const PAGE_W = 148 * MM + 2 * BLEED;
+const PAGE_H = 210 * MM + 2 * BLEED;
+/** Crop marks: their gap from the bleed edge and their length */
+const CROP_GAP = 4;
+const CROP_LENGTH = 12;
+
+const SLUGS = ['Front, page 1 of 2', 'Back, page 2 of 2'];
+
+/** Text the printer flagged: the web address on the back, 1.8 mm from the trim */
+const FLAG = { page: 2, x: 26, y: PAGE_H - BLEED - 15, width: 196, height: 13 };
+
+/** Crop marks outside the bleed, in line with the trim on every edge */
+function cropMarks() {
+  const lines: string[] = [];
+  const out = -CROP_GAP;
+  const far = -CROP_GAP - CROP_LENGTH;
+  [BLEED, PAGE_W - BLEED].forEach((x) => {
+    lines.push(`M${x} ${out}V${far}`, `M${x} ${PAGE_H - out}V${PAGE_H - far}`);
+  });
+  [BLEED, PAGE_H - BLEED].forEach((y) => {
+    lines.push(`M${out} ${y}H${far}`, `M${PAGE_W - out} ${y}H${PAGE_W - far}`);
+  });
+  return lines.join('');
+}
+
+function ProofMarks({ pageNumber, scale }: { pageNumber: number; scale: number }) {
+  const trim = { x: BLEED, y: BLEED, w: PAGE_W - 2 * BLEED, h: PAGE_H - 2 * BLEED };
+  return (
+    <>
+      <svg
+        className={classes.marks}
+        viewBox={`0 0 ${PAGE_W} ${PAGE_H}`}
+        width={PAGE_W * scale}
+        height={PAGE_H * scale}
+        aria-hidden
+      >
+        <defs>
+          <pattern
+            id={`pl-hatch-${pageNumber}`}
+            width="4"
+            height="4"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <line x1="0" y1="0" x2="0" y2="4" className={classes.hatchLine} />
+          </pattern>
+        </defs>
+        <path
+          className={classes.bleed}
+          fill={`url(#pl-hatch-${pageNumber})`}
+          fillRule="evenodd"
+          d={`M0 0H${PAGE_W}V${PAGE_H}H0Z M${trim.x} ${trim.y}v${trim.h}h${trim.w}v${-trim.h}Z`}
+        />
+        <rect className={classes.trim} x={trim.x} y={trim.y} width={trim.w} height={trim.h} />
+        <rect
+          className={classes.safe}
+          x={trim.x + SAFE}
+          y={trim.y + SAFE}
+          width={trim.w - 2 * SAFE}
+          height={trim.h - 2 * SAFE}
+        />
+        <path className={classes.crop} d={cropMarks()} />
+      </svg>
+      {FLAG.page === pageNumber && (
+        <div
+          className={classes.flag}
+          role="note"
+          style={{
+            left: FLAG.x * scale,
+            top: FLAG.y * scale,
+            width: FLAG.width * scale,
+            height: FLAG.height * scale,
+          }}
+        >
+          <span className={classes.flagLabel}>1.8 mm from the trim</span>
+        </div>
+      )}
+    </>
+  );
+}
+
 type Outcome = { kind: 'approved' | 'changes'; at: string; note: string } | null;
 
 function formatNow() {
@@ -66,6 +151,7 @@ export function Proofline() {
   const [note, setNote] = useState('');
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [showMarks, setShowMarks] = useState(true);
 
   useEffect(() => {
     if (!toast) {
@@ -146,28 +232,49 @@ export function Proofline() {
               pages: classes.pages,
               page: classes.page,
             }}
-            // MISSING: a layer above each page for proof overlays (bleed, trim and safe boxes read from the PDF) that scales with the page.
-            // MISSING: a slot beside or below a page for slug text such as "Front, page 1 of 2" without CSS pseudo-elements on the page part.
+            // Proof marks and the slug line: drawn over each page, outside the PDF, so they can be hidden
+            renderPageOverlay={({ pageNumber, scale, height }) => (
+              <>
+                {showMarks && <ProofMarks pageNumber={pageNumber} scale={scale} />}
+                <span className={classes.slug} style={{ top: height * scale + 22 }}>
+                  {SLUGS[pageNumber - 1]}
+                </span>
+              </>
+            )}
             // MISSING: padding for the pages part that fit-to-width zoom knows about, so marks outside the page never cause a horizontal scrollbar.
           />
-          <ul className={classes.legend} aria-label="Proof marks">
-            <li>
-              <span className={classes.swatchBleed} aria-hidden />
-              Bleed, 3 mm
-            </li>
-            <li>
-              <span className={classes.swatchTrim} aria-hidden />
-              Trim line
-            </li>
-            <li>
-              <span className={classes.swatchSafe} aria-hidden />
-              Safe area, 5 mm inside the trim
-            </li>
-            <li>
-              <span className={classes.swatchCrop} aria-hidden />
-              Crop marks
-            </li>
-          </ul>
+          <div className={classes.legendBar}>
+            <Switch
+              className={classes.marksSwitch}
+              size="xs"
+              color="pink"
+              label="Proof marks"
+              checked={showMarks}
+              onChange={(event) => setShowMarks(event.currentTarget.checked)}
+            />
+            <ul
+              className={classes.legend}
+              aria-label="Key to the proof marks"
+              data-hidden={!showMarks || undefined}
+            >
+              <li>
+                <span className={classes.swatchBleed} aria-hidden />
+                Bleed, 3 mm
+              </li>
+              <li>
+                <span className={classes.swatchTrim} aria-hidden />
+                Trim line
+              </li>
+              <li>
+                <span className={classes.swatchSafe} aria-hidden />
+                Safe area, 5 mm inside the trim
+              </li>
+              <li>
+                <span className={classes.swatchCrop} aria-hidden />
+                Crop marks
+              </li>
+            </ul>
+          </div>
         </div>
 
         <aside className={classes.ticket} aria-label="Job ticket">

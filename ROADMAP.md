@@ -6,7 +6,7 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 
 ## 1. Annotations and page overlays
 
-- [ ] **Overlay slot per page** that scales and rotates with the page, for app content pinned to a
+- [x] **Overlay slot per page** (`renderPageOverlay`) that scales and rotates with the page, for app content pinned to a
       position: resolved redlines (Clause), comment and risk pins (Dealroom), teacher's margin notes
       (Markbook), proof boxes for bleed, trim and safe area (Proofline)
 - [ ] **Markup tools** saved into the PDF: highlight, text box, shapes, signature (Folio), clouds
@@ -15,7 +15,8 @@ When an item lands, remove or rewrite those notes and use the new API in the sto
 - [ ] **`onTextSelect(text, page, rects)`** so apps can comment on selected text (Dealroom)
 - [ ] **Highlight a passage from outside** the viewer, not only by searching for it (Dealroom)
 - [ ] **Scroll to a point in a page** (`goToPage(page, { top })`), not only its top (Clause)
-- [ ] **Slot beside or below a page** for slug text like "Front, page 1 of 2" (Proofline)
+- [x] **Slot beside or below a page** for slug text like "Front, page 1 of 2" (Proofline): overlay
+      content can sit outside the page box
 
 ## 2. Layout props
 

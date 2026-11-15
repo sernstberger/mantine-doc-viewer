@@ -1,7 +1,7 @@
 /*
  * Proofline: a print shop's proof approval page. The story owns its colours (a green cutting mat
  * and a white job ticket) and looks the same in light and dark. The bold thing is the mat: pages
- * lie on a ruled grid with crop marks drawn around each one by CSS on the `page` part.
+ * lie on a ruled grid, with proof marks drawn over each one by the page overlay.
  */
 
 .mat {
@@ -185,84 +185,121 @@
   padding-block: 40px 56px;
 }
 
-/*
- * The page is the PDF with its 3 mm bleed, so the crop marks sit just outside it and line up with
- * the trim at 3 mm / 154 mm = 1.95% across and 3 mm / 216 mm = 1.39% down. Twelve 1px gradients
- * draw them: for every edge a mark at each trim line and one at the centre. The calc() offsets
- * correct for percentage positions being measured against the box minus the image.
- */
 .page {
-  --mark: #fff;
-  --m: linear-gradient(var(--mark), var(--mark));
-
-  /* Mark thickness and length */
-  --t: 1.5px;
-  --l: 12px;
-
-  /* Where the trim lines are, as shares of the page */
-  --tx: 1.9466%;
-  --tx-end: 98.0534%;
-  --ty: 1.3889%;
-  --ty-end: 98.6111%;
-
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.35),
     0 14px 30px -10px rgb(0 0 0 / 0.5);
+}
 
-  /* Crop marks, drawn in a box 15px larger than the page on every side */
-  /* Vertical marks above and below, horizontal marks left and right, at both trim lines and the centre */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -15px;
-    pointer-events: none;
-    background:
-      var(--m) calc(var(--tx) + 13.9px) 0 / var(--t) var(--l) no-repeat,
-      var(--m) calc(var(--tx-end) - 13.9px) 0 / var(--t) var(--l) no-repeat,
-      var(--m) 50% 0 / var(--t) var(--l) no-repeat,
-      var(--m) calc(var(--tx) + 13.9px) 100% / var(--t) var(--l) no-repeat,
-      var(--m) calc(var(--tx-end) - 13.9px) 100% / var(--t) var(--l) no-repeat,
-      var(--m) 50% 100% / var(--t) var(--l) no-repeat,
-      var(--m) 0 calc(var(--ty) + 14.1px) / var(--l) var(--t) no-repeat,
-      var(--m) 0 calc(var(--ty-end) - 14.1px) / var(--l) var(--t) no-repeat,
-      var(--m) 0 50% / var(--l) var(--t) no-repeat,
-      var(--m) 100% calc(var(--ty) + 14.1px) / var(--l) var(--t) no-repeat,
-      var(--m) 100% calc(var(--ty-end) - 14.1px) / var(--l) var(--t) no-repeat,
-      var(--m) 100% 50% / var(--l) var(--t) no-repeat;
-  }
+/* Proof marks over the page, in PDF points: lines stay hairline at any zoom */
+.marks {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
 
-  /* Slug line under the page */
-  &::after {
-    position: absolute;
-    top: calc(100% + 22px);
-    left: 0;
-    color: #cfe0d6;
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  &[data-page-number='1']::after {
-    content: 'Front, page 1 of 2';
-  }
-
-  &[data-page-number='2']::after {
-    content: 'Back, page 2 of 2';
+  & * {
+    vector-effect: non-scaling-stroke;
   }
 }
 
-/* The legend of the proof marks, on the mat below the pages */
+.hatchLine {
+  stroke: var(--pl-trim);
+  stroke-width: 0.6px;
+  opacity: 0.55;
+}
+
+.bleed {
+  stroke: none;
+}
+
+.trim {
+  fill: none;
+  stroke: var(--pl-trim);
+  stroke-width: 1px;
+}
+
+.safe {
+  fill: none;
+  stroke: var(--pl-safe);
+  stroke-width: 1px;
+  stroke-dasharray: 5 4;
+}
+
+.crop {
+  fill: none;
+  stroke: var(--pl-chalk);
+  stroke-width: 1.25px;
+}
+
+/* The printer's flag on text inside the safe area */
+.flag {
+  position: absolute;
+  outline: 1.5px solid var(--pl-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+  background: rgb(255 225 0 / 0.18);
+  pointer-events: none;
+}
+
+.flagLabel {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 8px);
+  translate: 0 -50%;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--pl-focus);
+  color: var(--pl-ink);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Slug line under the page, on the mat */
+.slug {
+  position: absolute;
+  left: 0;
+  color: #cfe0d6;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The proof marks switch and legend, on the mat below the pages */
+.legendBar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 22px;
+  padding: 10px 20px;
+  background: rgb(20 52 40 / 0.78);
+}
+
+.marksSwitch {
+  flex-shrink: 0;
+
+  & label {
+    color: var(--pl-chalk);
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
 .legend {
   display: flex;
   flex-wrap: wrap;
   flex-shrink: 0;
   gap: 6px 22px;
   margin: 0;
-  padding: 10px 20px;
-  background: rgb(20 52 40 / 0.78);
+  padding: 0;
   list-style: none;
   color: #d7e4dc;
   font-size: 12px;
+
+  &[data-hidden] {
+    opacity: 0.45;
+  }
 
   & li {
     display: flex;

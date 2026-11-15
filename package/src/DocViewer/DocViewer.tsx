@@ -34,6 +34,7 @@ import { detectDocType, DocType } from './detect-doc-type';
 import { DocViewerProvider } from './DocViewer.context';
 import classes from './DocViewer.module.css';
 import { DEFAULT_LABELS, DocViewerLabels } from './labels';
+import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import { MAX_CANVAS_PIXELS } from './pdf/render-page';
 import type { DocViewerFile, DocViewerRenderer } from './renderers';
@@ -66,6 +67,7 @@ export type DocViewerStylesNames =
   | 'canvas'
   | 'textLayer'
   | 'linkLayer'
+  | 'pageOverlay'
   | 'search'
   | 'searchInput'
   | 'searchCount'
@@ -261,6 +263,14 @@ export interface DocViewerProps
   /** Content displayed in the toolbar before the download button */
   toolbarSection?: React.ReactNode;
 
+  /**
+   * Content laid over each PDF page, such as comment pins, review marks or proof boxes. It gets
+   * the page number, the page size at 100% and the current `scale`: place content at
+   * `left: x * scale, top: y * scale` from the page's top-left. The overlay turns with the page
+   * when the reader rotates it. It lets clicks through to the page's text; its children take them
+   */
+  renderPageOverlay?: DocViewerRenderPageOverlay;
+
   /** Toolbar controls to hide, for example `{ rotate: false, layout: false }`. All are shown by default */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
@@ -407,6 +417,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     tooltipProps,
     codeHighlightProps,
     toolbarSection,
+    renderPageOverlay,
     withToolbar,
     toolbarControls,
     pageBackground,
@@ -500,6 +511,7 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
         withToolbar,
         toolbarControls,
         toolbarSection,
+        renderPageOverlay,
         pdfWorkerSrc,
         pdfOptions,
         maxCanvasPixels: maxCanvasPixels!,

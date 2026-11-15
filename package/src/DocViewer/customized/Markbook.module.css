@@ -294,6 +294,54 @@
     0 4px 14px rgb(31 42 68 / 0.12);
 }
 
+/* The red pen on the essay: a note in the left margin, bracketing its paragraph. Sizes are in
+   PDF points times the page scale, so the ink stays the same size on the paper at any zoom */
+.penMark {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.penNote {
+  flex: 1;
+  margin: 0 calc(1px * var(--mb-scale)) 0 calc(4px * var(--mb-scale));
+  color: var(--mb-pen);
+  font-family: Kalam, cursive;
+  font-size: calc(10.5px * var(--mb-scale));
+  line-height: 1.05;
+  text-align: right;
+  text-wrap: balance;
+  rotate: -3deg;
+  animation: write-on 450ms steps(14, end) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.penBracket {
+  flex: none;
+  width: calc(8px * var(--mb-scale));
+  height: 100%;
+  overflow: visible;
+
+  & path {
+    fill: none;
+    stroke: var(--mb-pen);
+    stroke-width: 1.6px;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    animation: draw 380ms ease-out both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
 /* --------------------------------- rubric --------------------------------- */
 
 .rubric {
@@ -408,26 +456,6 @@
   margin: 6px 0 0;
   color: var(--mb-muted);
   font-size: 13px;
-}
-
-/* The red pen: short margin notes, written on from left to right */
-.margin {
-  position: absolute;
-  top: 6px;
-  right: 0;
-  white-space: nowrap;
-  min-height: 1.2em;
-  margin: 0;
-  color: var(--mb-pen);
-  font-family: Kalam, cursive;
-  font-size: 17px;
-  line-height: 1.2;
-  rotate: -1.5deg;
-  animation: write-on 450ms steps(14, end) both;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 }
 
 .totalBlock {

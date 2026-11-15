@@ -523,6 +523,21 @@
 }
 
 /* Links in PDF pages: pdf.js's annotation layer with only link annotations, adapted from pdf_viewer.css (Apache-2.0) */
+/* App content over a page: lets clicks through to the text, except on its own children */
+.pageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+/* No specificity, so an app's own class can set pointer-events: none on a child */
+:where(.pageOverlay) > :where(*) {
+  pointer-events: auto;
+}
+
 .linkLayer {
   position: absolute;
   inset: 0;

@@ -30,6 +30,8 @@ interface Thread {
   /** Title of the PDF outline entry the comment belongs to */
   section: string;
   page: number;
+  /** Where the comment is pinned on its page, in PDF points from the top; new comments have no pin */
+  top?: number;
   author: Person;
   time: string;
   text: string;
@@ -61,6 +63,7 @@ const INITIAL_THREADS: Thread[] = [
     id: 'discount',
     section: 'Fees and payment',
     page: 5,
+    top: 234,
     author: DANIEL,
     time: 'Yesterday, 4:12 pm',
     text: 'At 22% this is over the 20% rep limit, so it needs deal desk approval. The clawback in 3.2 covers an early exit, which was the protection I wanted.',
@@ -79,6 +82,7 @@ const INITIAL_THREADS: Thread[] = [
     id: 'terms',
     section: 'Fees and payment',
     page: 5,
+    top: 406,
     author: PRIYA,
     time: 'Yesterday, 2:05 pm',
     text: "Brightline's redline moved 3.3 from net 30 to net 60. Policy is net 30, or net 45 with VP Finance sign-off, so this is an exception.",
@@ -97,6 +101,7 @@ const INITIAL_THREADS: Thread[] = [
     id: 'sla',
     section: 'Services',
     page: 3,
+    top: 277,
     author: TOMAS,
     time: 'Tue, 11:30 am',
     text: '99.9% uptime and the 5, 10 and 25% credit ladder match our standard SLA. Nothing changed from the template.',
@@ -106,7 +111,8 @@ const INITIAL_THREADS: Thread[] = [
   {
     id: 'renewal',
     section: 'Fees and payment',
-    page: 5,
+    page: 6,
+    top: 151,
     author: TOMAS,
     time: 'Wed, 9:15 am',
     text: 'The renewal uplift is capped at 5% in 3.7. Brightline asked for 3%, but I would hold at 5%.',
@@ -117,6 +123,7 @@ const INITIAL_THREADS: Thread[] = [
     id: 'liability',
     section: 'Liability',
     page: 8,
+    top: 216,
     author: PRIYA,
     time: 'Wed, 3:48 pm',
     text: 'Both caps are mutual at 12 months of fees, with a 2x cap for data incidents. That is inside the playbook, so I am happy to accept it.',
@@ -127,6 +134,7 @@ const INITIAL_THREADS: Thread[] = [
     id: 'dpa',
     section: 'Data protection',
     page: 9,
+    top: 250,
     author: PRIYA,
     time: 'Thu, 10:02 am',
     text: "The SCCs and the data protection addendum are attached as Schedule 2, which covers Brightline's depots in Rotterdam and Dublin.",
@@ -219,6 +227,16 @@ export function Dealroom() {
     [threads, tab]
   );
   const approved = status === 'approved';
+
+  // A pin on the page opens its comment in the thread rail
+  const openThread = (thread: Thread) => {
+    setTab('open');
+    window.requestAnimationFrame(() => {
+      const card = document.getElementById(`dealroom-thread-${thread.id}`);
+      card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      card?.focus({ preventScroll: true });
+    });
+  };
 
   const showClause = (thread: Thread) => {
     controller.current?.goToPage(thread.page);
@@ -581,7 +599,29 @@ export function Dealroom() {
               </span>
             }
             // MISSING: onTextSelect(text, page, rects) so legal can select a clause and comment on that text.
-            // MISSING: an overlay slot per page to pin a comment or the risk flag to its position on the page.
+            // Open comments are pinned in the right margin beside their clause; risks in orange
+            renderPageOverlay={({ pageNumber, scale }) =>
+              openThreads
+                .filter((thread) => thread.page === pageNumber && thread.top !== undefined)
+                .map((thread) => (
+                  <button
+                    key={thread.id}
+                    type="button"
+                    className={classes.pin}
+                    data-risk={!!thread.risk || undefined}
+                    style={{ top: (thread.top! - 15) * scale, left: 552 * scale }}
+                    aria-label={`${thread.risk ? `Risk: ${thread.risk.label}` : 'Comment'} from ${thread.author.name}`}
+                    onClick={() => openThread(thread)}
+                  >
+                    {thread.risk ? <Icon name="flag" /> : thread.author.initials}
+                    {thread.replies.length > 0 && (
+                      <span className={classes.pinCount} aria-hidden>
+                        {thread.replies.length + 1}
+                      </span>
+                    )}
+                  </button>
+                ))
+            }
             // MISSING: highlighting a clause from outside; "Show in agreement" can only search for it.
             // MISSING: a subtitle slot under the title ("Draft 4, redline accepted") and a left slot for the toolbar.
           />
@@ -613,6 +653,8 @@ export function Dealroom() {
             {visible.map((thread) => (
               <article
                 key={thread.id}
+                id={`dealroom-thread-${thread.id}`}
+                tabIndex={-1}
                 className={classes.thread}
                 data-current={current?.title === thread.section || undefined}
                 data-resolved={thread.resolved || undefined}

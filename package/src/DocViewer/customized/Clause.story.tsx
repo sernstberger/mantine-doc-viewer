@@ -15,6 +15,8 @@ interface ClauseInfo {
   number: number;
   title: string;
   page: number;
+  /** Top and bottom of the clause on its page, in PDF points from the top */
+  span: [number, number];
   /** The change as Northwind marked it, null when the clause is untouched */
   change: null | {
     segs: Seg[];
@@ -30,6 +32,7 @@ const CLAUSES: ClauseInfo[] = [
     number: 1,
     title: 'Confidential Information',
     page: 1,
+    span: [312, 452],
     change: {
       segs: [
         ['plain', '...in connection with the Purpose, '],
@@ -51,12 +54,19 @@ const CLAUSES: ClauseInfo[] = [
       counter: '',
     },
   },
-  { number: 2, title: 'Purpose', page: 1, change: null },
-  { number: 3, title: 'Obligations of the Receiving Party', page: 2, change: null },
+  { number: 2, title: 'Purpose', page: 1, span: [480, 568], change: null },
+  {
+    number: 3,
+    title: 'Obligations of the Receiving Party',
+    page: 2,
+    span: [84, 189],
+    change: null,
+  },
   {
     number: 4,
     title: 'Permitted recipients',
     page: 2,
+    span: [217, 340],
     change: {
       segs: [
         ['plain', '...professional advisers '],
@@ -81,6 +91,7 @@ const CLAUSES: ClauseInfo[] = [
     number: 5,
     title: 'Exclusions',
     page: 2,
+    span: [368, 473],
     change: {
       segs: [
         ['plain', '...(b) was lawfully known to it before disclosure'],
@@ -92,11 +103,12 @@ const CLAUSES: ClauseInfo[] = [
         'The party claiming an exclusion has to be able to show it. We can accept dated records or the testimony of the employee concerned.',
     },
   },
-  { number: 6, title: 'Compelled disclosure', page: 3, change: null },
+  { number: 6, title: 'Compelled disclosure', page: 3, span: [84, 172], change: null },
   {
     number: 7,
     title: 'Term and survival',
     page: 3,
+    span: [200, 305],
     change: {
       segs: [
         ['plain', '...during the period of '],
@@ -117,6 +129,7 @@ const CLAUSES: ClauseInfo[] = [
     number: 8,
     title: 'Return or destruction',
     page: 3,
+    span: [333, 421],
     change: {
       segs: [
         ['plain', '...shall '],
@@ -132,11 +145,12 @@ const CLAUSES: ClauseInfo[] = [
       counter: '',
     },
   },
-  { number: 9, title: 'No licence', page: 4, change: null },
+  { number: 9, title: 'No licence', page: 4, span: [84, 172], change: null },
   {
     number: 10,
     title: 'Remedies',
     page: 4,
+    span: [200, 288],
     change: {
       segs: [
         ['plain', '...entitled to seek injunctive relief '],
@@ -157,6 +171,7 @@ const CLAUSES: ClauseInfo[] = [
     number: 11,
     title: 'Governing law and courts',
     page: 4,
+    span: [316, 404],
     change: {
       segs: [
         ['plain', '...governed by the laws of '],
@@ -175,6 +190,7 @@ const CLAUSES: ClauseInfo[] = [
     number: 12,
     title: 'General',
     page: 5,
+    span: [84, 189],
     change: {
       segs: [
         ['plain', "...without the other's written consent"],
@@ -448,7 +464,37 @@ export function Clause() {
             toolbarControls={TOOLBAR_CONTROLS}
             tooltipProps={TOOLTIP_PROPS}
             classNames={VIEWER_CLASSES}
-            // MISSING: a layer over a page to mark resolved redlines (dim or tick the accepted insertion) without editing the PDF: an annotations/overlay slot per page.
+            // A rail beside each changed clause, in the colour of its answer: select it from the page
+            renderPageOverlay={({ pageNumber, scale }) =>
+              CHANGED.filter((item) => item.page === pageNumber).map((item) => {
+                const itemStatus = statuses[item.number];
+                const [top, bottom] = item.span;
+                const active = item.number === selected || undefined;
+                const box = { top: top * scale, height: (bottom - top) * scale };
+                return (
+                  <React.Fragment key={item.number}>
+                    <div
+                      className={classes.wash}
+                      data-status={itemStatus}
+                      data-active={active}
+                      style={{ ...box, left: 70 * scale, width: (612 - 140) * scale }}
+                    />
+                    <button
+                      type="button"
+                      className={classes.rail}
+                      data-status={itemStatus}
+                      data-active={active}
+                      aria-label={`Clause ${item.number}, ${STATUS_LABEL[itemStatus]}`}
+                      aria-pressed={item.number === selected}
+                      onClick={() => setSelected(item.number)}
+                      style={{ ...box, left: 44 * scale, width: 22 * scale }}
+                    >
+                      <StatusDot status={itemStatus} />
+                    </button>
+                  </React.Fragment>
+                );
+              })
+            }
             // MISSING: reading the PDF's tracked changes as data (author, range, text) so the clause list would not need to repeat them.
             // MISSING: scrolling to a point in a page (a clause's own y offset); goToPage only reaches the top of the page.
           />

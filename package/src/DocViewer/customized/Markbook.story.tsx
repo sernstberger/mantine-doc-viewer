@@ -1,6 +1,6 @@
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useMemo, useState } from 'react';
-import { ActionIcon, Button, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
 import { DocViewer } from '../DocViewer';
 import classes from './Markbook.module.css';
 
@@ -77,6 +77,21 @@ const CRITERIA: Criterion[] = [
 ];
 
 const MAX_TOTAL = CRITERIA.length * 4;
+
+/**
+ * Where each criterion's note goes on the essay: the paragraph it is about, from the top of the
+ * page in PDF points (from scripts/story-pdfs/essay.ts). The note sits in the left margin
+ */
+const NOTE_ANCHORS: { page: number; top: number; bottom: number }[] = [
+  // Argument: the thesis, the end of the first paragraph
+  { page: 1, top: 252, bottom: 292 },
+  // Evidence: the London School of Economics study
+  { page: 1, top: 302, bottom: 412 },
+  // Structure: the first counter-argument
+  { page: 1, top: 422, bottom: 532 },
+  // Language: the paragraph on how students treat each other
+  { page: 1, top: 542, bottom: 676 },
+];
 
 const STUDENTS: Student[] = [
   {
@@ -368,7 +383,47 @@ export function Markbook() {
             body: classes.body,
             page: classes.page,
           }}
-          // MISSING: a layer on each page for the teacher's own marks (a red pen note pinned to a line of the essay); the margin notes live in the rubric because the viewer cannot host overlays on a page.
+          // The red pen: each scored criterion's note is written in the margin beside its paragraph
+          renderPageOverlay={({ pageNumber, scale }) =>
+            CRITERIA.map((criterion, criterionIndex) => {
+              const anchor = NOTE_ANCHORS[criterionIndex];
+              const note = scoredNotes[criterionIndex];
+              if (anchor.page !== pageNumber || !note) {
+                return null;
+              }
+              return (
+                <div
+                  key={`${student.id}-${criterion.name}-${note}`}
+                  className={classes.penMark}
+                  style={
+                    {
+                      top: anchor.top * scale,
+                      height: (anchor.bottom - anchor.top) * scale,
+                      width: 66 * scale,
+                      '--mb-scale': scale,
+                    } as React.CSSProperties
+                  }
+                >
+                  <p className={classes.penNote}>
+                    <VisuallyHidden>{criterion.name}: </VisuallyHidden>
+                    {note}
+                  </p>
+                  <svg
+                    className={classes.penBracket}
+                    viewBox="0 0 10 100"
+                    preserveAspectRatio="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M2 1 C7 2 6 6 6 12 L6.6 44 C6.8 48 8 50 9.5 50 C8 50 6.8 52 6.6 56 L6 88 C6 94 7 98 2 99"
+                      pathLength={1}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
+                </div>
+              );
+            })
+          }
           // MISSING: a way to swap the document without remounting, so next student keeps zoom and scroll.
         />
       </main>
@@ -403,9 +458,6 @@ export function Markbook() {
                 </div>
                 <p className={classes.descriptor}>
                   {score ? criterion.descriptors[score - 1] : 'Choose a score from 1 to 4.'}
-                </p>
-                <p className={classes.margin} key={`${student.id}-${score}`}>
-                  {scoredNotes[criterionIndex]}
                 </p>
               </fieldset>
             );

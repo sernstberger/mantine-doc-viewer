@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import type { ControllerImplementation, DocViewerEvents, DocViewerZoom } from './controller';
 import type { DocViewerLabels } from './labels';
+import type { DocViewerRenderPageOverlay } from './pdf/page-overlay';
 import type { PdfLoadOptions } from './pdf/use-pdf-document';
 import type { DocViewerSizeConfig } from './sizes';
 
@@ -25,6 +26,7 @@ export interface DocViewerContextValue {
   withToolbar: boolean | undefined;
   toolbarControls: Partial<Record<DocViewerControl, boolean>> | undefined;
   toolbarSection: React.ReactNode;
+  renderPageOverlay: DocViewerRenderPageOverlay | undefined;
   pdfWorkerSrc: string | undefined;
   pdfOptions: PdfLoadOptions | undefined;
   maxCanvasPixels: number;

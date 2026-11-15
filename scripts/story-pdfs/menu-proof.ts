@@ -1,9 +1,9 @@
 /**
  * Menu proof for the Proofline (print proof approval) story: front and back of an A5 café menu
- * with 3 mm bleed (148 x 210 mm trim, 154 x 216 mm with bleed). The artwork runs into the bleed,
- * and the proof marks are drawn on top: hatching in the bleed area, a trim line and a dashed
- * safe-area line 5 mm inside the trim. The opening hours on the back sit too close to the trim on
- * purpose, so there is something for the customer to catch.
+ * with 3 mm bleed (148 x 210 mm trim, 154 x 216 mm with bleed). The artwork runs into the bleed.
+ * The proof marks (bleed hatching, trim line, safe area) are not in the PDF: the story draws them
+ * over each page with `renderPageOverlay`. The web address on the back sits too close to the trim
+ * on purpose, so there is something for the customer to catch.
  */
 import {
   ellipse,
@@ -26,9 +26,6 @@ const BLUE = '#233a9c';
 const BUTTER = '#f6e6a6';
 const PAPER = '#fbf4d6';
 const SOFT = '#4a5aa8';
-
-const TRIM_LINE = '#e5007d';
-const SAFE_LINE = '#00a878';
 
 const f = (value: number) => value.toFixed(2);
 
@@ -117,30 +114,6 @@ function wren(cx: number, cy: number, color: string, eye: string) {
   ].join('\n');
 }
 
-/** The proof marks: bleed hatching, trim line and the safe-area line */
-function guides() {
-  const hatch: string[] = [];
-  for (let d = -H; d < W + H; d += 6) {
-    hatch.push(`${f(d)} 0 m ${f(d + H)} ${f(H)} l`);
-  }
-  return [
-    'q',
-    // Clip to the bleed strip: the page minus the trim box
-    `0 0 ${f(W)} ${f(H)} re ${f(BLEED)} ${f(BLEED)} ${f(W - 2 * BLEED)} ${f(H - 2 * BLEED)} re W* n`,
-    '0.898 0 0.490 RG 0.3 w',
-    hatch.join(' '),
-    'S',
-    'Q',
-    rect(BLEED, BLEED, W - 2 * BLEED, H - 2 * BLEED, { stroke: TRIM_LINE, lineWidth: 0.6 }),
-    'q [3 2.5] 0 d',
-    rect(BLEED + SAFE, BLEED + SAFE, W - 2 * (BLEED + SAFE), H - 2 * (BLEED + SAFE), {
-      stroke: SAFE_LINE,
-      lineWidth: 0.6,
-    }),
-    'Q',
-  ].join('\n');
-}
-
 function front(): StoryPage {
   const hot = list(
     H - 262,
@@ -172,7 +145,6 @@ function front(): StoryPage {
         font: 'sansOblique',
         color: BUTTER,
       }),
-      guides(),
     ].join('\n'),
   };
 }
@@ -237,7 +209,6 @@ function back(): StoryPage {
         font: 'sansBold',
         color: BUTTER,
       }),
-      guides(),
     ].join('\n'),
   };
 }

@@ -25,6 +25,10 @@ export { useTextDocument } from './DocViewer/text/use-text-document';
 export type { TextDocumentState } from './DocViewer/text/use-text-document';
 export type { PdfLoadOptions } from './DocViewer/pdf/use-pdf-document';
 export type {
+  DocViewerPageOverlayInfo,
+  DocViewerRenderPageOverlay,
+} from './DocViewer/pdf/page-overlay';
+export type {
   DocViewerController,
   DocViewerEvents,
   DocViewerLoadInfo,
