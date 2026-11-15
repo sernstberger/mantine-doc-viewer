@@ -3108,12 +3108,12 @@ __metadata:
   linkType: hard
 
 "@storybook/icons@npm:^1.2.12, @storybook/icons@npm:^1.2.5":
-  version: 1.2.12
-  resolution: "@storybook/icons@npm:1.2.12"
+  version: 1.6.0
+  resolution: "@storybook/icons@npm:1.6.0"
   peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/97f6a7b7841fb5a0d1c8a30c36173469e7b0814a674c8103c7c0fd8803f0f7c2a778545af864012d40883195a533534dbc98541deac2bafe31e6a3fe37fdfc66
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+  checksum: 10c0/bbec9201a78a730195f9cf377b15856dc414a54d04e30d16c379d062425cc617bfd0d6586ba1716012cfbdab461f0c9693a6a52920f9bd09c7b4291fb116f59c
   languageName: node
   linkType: hard
 
@@ -7123,7 +7123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"html-entities@npm:^2.3.2":
+"html-entities@npm:^2.3.2, html-entities@npm:^2.6.0":
   version: 2.6.0
   resolution: "html-entities@npm:2.6.0"
   checksum: 10c0/7c8b15d9ea0cd00dc9279f61bab002ba6ca8a7a0f3c36ed2db3530a67a9621c017830d1d2c1c65beb9b8e3436ea663e9cf8b230472e0e413359399413b27c8b7
@@ -9043,6 +9043,7 @@ __metadata:
     fs-extra: "npm:^11.3.0"
     gh-pages: "npm:^6.3.0"
     hash-css-selector: "npm:^1.1.0"
+    html-entities: "npm:^2.6.0"
     identity-obj-proxy: "npm:^3.0.0"
     jest: "npm:^29.7.0"
     jest-axe: "npm:^10.0.0"
@@ -9086,6 +9087,9 @@ __metadata:
   resolution: "mantine-doc-viewer@workspace:package"
   dependencies:
     "@cantoo/pdf-lib": "npm:^2.11.1"
+    "@types/react": "npm:^19"
+    html-entities: "npm:^2.6.0"
+    react: "npm:19.2.4"
     react-markdown: "npm:^10.1.0"
     remark-gfm: "npm:^4.0.1"
   peerDependencies:
