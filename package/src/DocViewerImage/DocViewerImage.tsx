@@ -8,10 +8,11 @@ import {
   useProps,
 } from '@mantine/core';
 import { useDocViewerContext } from '../doc-viewer.context';
-import { ImageView } from './ImageView';
 import classes from '../DocViewer.module.css';
+import { ImageView } from './ImageView';
 
 export type DocViewerImageStylesNames =
+  | 'body'
   | 'image'
   | 'imageStage'
   | 'imageCanvas'
@@ -31,11 +32,11 @@ export type DocViewerImageFactory = Factory<{
   compound: true;
 }>;
 
-/** Image view with its toolbar */
+/** Image view with its toolbar: zoom, pan, rotate and print */
 export const DocViewerImage = factory<DocViewerImageFactory>((_props) => {
-  useProps('DocViewerImage', null, _props);
+  const props = useProps('DocViewerImage', null, _props);
   useDocViewerContext();
-  return <ImageView />;
+  return <ImageView {...props} />;
 });
 
 DocViewerImage.classes = classes;

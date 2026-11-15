@@ -37,7 +37,6 @@ interface ImageZoomInput {
  */
 export function useImageZoom(input: ImageZoomInput) {
   const { stage, fitScale, layoutKey, onZoom } = input;
-  // An image is one page: fitting the page is fitting the view
   const setting = useZoomSetting({
     value: input.zoom,
     defaultValue: input.defaultZoom,
@@ -64,7 +63,6 @@ export function useImageZoom(input: ImageZoomInput) {
     [stage, handleZoom, setZoom]
   );
 
-  // Put the anchor point back once the new size has been laid out
   useIsomorphicEffect(() => {
     if (!stage) {
       return;
