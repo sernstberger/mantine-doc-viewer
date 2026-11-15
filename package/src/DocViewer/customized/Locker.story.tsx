@@ -57,7 +57,7 @@ const FILES: DriveFile[] = [
     owner: 'Marcus Webb',
     modified: 'Today, 9:41',
     modifiedLong: 'today at 9:41',
-    size: '1.8 MB',
+    size: '17 KB',
   },
   {
     id: 'press-kit',
@@ -67,7 +67,7 @@ const FILES: DriveFile[] = [
     owner: 'Priya Raman',
     modified: 'Yesterday',
     modifiedLong: 'yesterday at 4:12 PM',
-    size: '4.2 MB',
+    size: '5 KB',
   },
   {
     id: 'hero',
@@ -77,7 +77,7 @@ const FILES: DriveFile[] = [
     owner: 'Dana Okafor',
     modified: 'Nov 11',
     modifiedLong: 'Nov 11 at 2:30 PM',
-    size: '612 KB',
+    size: '1 KB',
   },
   {
     id: 'notes',
@@ -87,7 +87,7 @@ const FILES: DriveFile[] = [
     owner: 'Priya Raman',
     modified: 'Nov 10',
     modifiedLong: 'Nov 10 at 11:05 AM',
-    size: '3 KB',
+    size: '1 KB',
   },
   {
     id: 'revenue',
@@ -97,7 +97,7 @@ const FILES: DriveFile[] = [
     owner: 'Marcus Webb',
     modified: 'Nov 7',
     modifiedLong: 'Nov 7 at 5:48 PM',
-    size: '12 KB',
+    size: '1 KB',
   },
   {
     id: 'manifest',
@@ -107,7 +107,7 @@ const FILES: DriveFile[] = [
     owner: 'Leo Brandt',
     modified: 'Nov 5',
     modifiedLong: 'Nov 5 at 10:20 AM',
-    size: '2 KB',
+    size: '1 KB',
   },
   {
     id: 'attachments',

@@ -305,9 +305,24 @@
   flex-wrap: wrap;
   gap: 8px 16px;
   min-height: 44px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--fr-rule);
+  padding: 6px 12px;
+  border: 1px solid var(--fr-rule);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--fr-paper);
   font-size: 14px;
+
+  /* Stays at the top of the window while any part of the report is on screen */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: calc(6px + env(safe-area-inset-top));
+
+  /* On a phone the bar stays to two short rows: status, then the jumps in one scrolling line */
+  @mixin smaller-than 48em {
+    gap: 4px 12px;
+    padding-inline: 8px;
+  }
 }
 
 .captionRule {
@@ -336,9 +351,19 @@
   flex-wrap: wrap;
   gap: 2px;
   margin-right: auto;
+
+  @mixin smaller-than 48em {
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    order: 3;
+    margin-right: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
 }
 
 .jump {
+  flex: none;
   padding: 4px 10px;
   border: 0;
   border-radius: 4px;
@@ -364,6 +389,11 @@
 }
 
 .openLink {
+  /* The caption below already links to the PDF; the sticky bar has no room for it on a phone */
+  @mixin smaller-than 48em {
+    display: none;
+  }
+
   color: var(--fr-teal);
   font-family: inherit;
   font-weight: 600;
