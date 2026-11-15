@@ -117,6 +117,8 @@ export interface DocViewerLabels {
   closeMarkup: string;
   /** Screen reader name of the box a text mark is typed into */
   markupText: string;
+  /** How to add or cancel the text being typed, read after the text box's name */
+  markupTextKeys: string;
   markupSaved: string;
   /** Screen reader name of a page while a markup tool is picked, where keys place marks */
   markupLayer: (tool: string, page: number) => string;
@@ -258,6 +260,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   saveMarkup: 'Save',
   closeMarkup: 'Close markup',
   markupText: 'Text box text',
+  markupTextKeys: 'Control or Command with Enter adds the text, Escape cancels.',
   markupSaved: 'Markup saved',
   markupLayer: (tool, page) => `${tool} on page ${page}`,
   markupKeys:

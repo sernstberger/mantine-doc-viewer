@@ -37,6 +37,7 @@ interface PdfMarkupTextInputProps {
   textDraft: TextDraft;
   setTextDraft: (draft: TextDraft | null) => void;
   commitText: () => void;
+  cancelText: () => void;
   scale: number;
   fontSize: number;
   color: string;
@@ -47,6 +48,7 @@ export function PdfMarkupTextInput({
   textDraft,
   setTextDraft,
   commitText,
+  cancelText,
   scale,
   fontSize,
   color,
@@ -61,13 +63,15 @@ export function PdfMarkupTextInput({
       minRows={1}
       autoFocus
       aria-label={labels.markupText}
+      aria-description={labels.markupTextKeys}
+      aria-keyshortcuts="Control+Enter Meta+Enter Escape"
       value={textDraft.text}
       onChange={(event) => setTextDraft({ ...textDraft, text: event.currentTarget.value })}
       onBlur={commitText}
       onPointerDown={(event) => event.stopPropagation()}
       onKeyDown={getHotkeyHandler([
         ['mod+Enter', commitText],
-        ['Escape', () => setTextDraft(null)],
+        ['Escape', cancelText],
       ])}
       {...getStyles('markupText', {
         style: { left: textDraft.x * scale, top: textDraft.y * scale },

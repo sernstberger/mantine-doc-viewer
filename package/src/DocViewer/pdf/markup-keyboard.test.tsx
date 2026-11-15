@@ -185,6 +185,30 @@ describe('markup from the keyboard', () => {
     expect(screen.getByRole('button', { name: 'After the viewer' })).toHaveFocus();
   });
 
+  it('reads out a text mark as it is added or cancelled, and says which keys do that', async () => {
+    mockPdf();
+    const { onMarkupChange } = renderViewer('text');
+    await focusLayer('Text box on page 1');
+
+    await userEvent.keyboard('{Enter}');
+    const box = screen.getByRole('textbox', { name: 'Text box text' });
+    expect(box).toHaveAttribute('aria-keyshortcuts', 'Control+Enter Meta+Enter Escape');
+    expect(box).toHaveAttribute('aria-description', expect.stringContaining('Escape cancels'));
+    await waitFor(() => expect(box).toHaveFocus());
+    await userEvent.keyboard('Note{Control>}{Enter}{/Control}');
+    await status('Text box added');
+    expect(onMarkupChange).toHaveBeenCalledTimes(1);
+
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Text box text' })).toHaveFocus()
+    );
+    await userEvent.keyboard('Draft{Escape}');
+    await status('Mark cancelled');
+    expect(screen.queryByRole('textbox', { name: 'Text box text' })).not.toBeInTheDocument();
+    expect(onMarkupChange).toHaveBeenCalledTimes(1);
+  });
+
   it('is no tab stop without a tool', async () => {
     mockPdf();
     renderViewer('pen', { markupTool: null, defaultMarkup: [] });
