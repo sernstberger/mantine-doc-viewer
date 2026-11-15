@@ -1,4 +1,5 @@
 import { ActionIcon } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
 import { DocViewer } from '../DocViewer';
@@ -59,6 +60,9 @@ const SETLIST: Piece[] = [
  * toolbar is a thin strip, and pages turn from the screen edges or the arrow keys.
  */
 export function Stand() {
+  // Mantine sm (48em) and below is a phone: one page at a time, fitted to the screen. The layout
+  // props are defaults, so the viewer is keyed on it to start over when the screen class changes.
+  const phone = useMediaQuery('(max-width: 47.99375em)', false, { getInitialValueInEffect: false });
   const [drawer, setDrawer] = useState<boolean | null>(null);
   // Closed on arrival: the score takes the whole screen until the setlist is asked for
   const drawerOpened = drawer ?? false;
@@ -138,8 +142,18 @@ export function Stand() {
         <div className={classes.hint}>Tap the page edges, swipe, or press the pedal to turn.</div>
       </aside>
 
+      {/* On a phone the setlist covers the score; tapping the dimmed score puts it away */}
+      <button
+        type="button"
+        className={classes.scrim}
+        aria-label="Hide setlist"
+        tabIndex={-1}
+        onClick={() => setDrawer(false)}
+      />
+
       <main className={classes.reader}>
         <DocViewer
+          key={phone ? 'phone' : 'tablet'}
           src="/stories/nocturne.pdf"
           fileName="Lantern Hour"
           pdfWorkerSrc={pdfWorkerSrc}
@@ -150,8 +164,8 @@ export function Stand() {
           // Ivory paper, so the score glows against the aubergine stage
           pageBackground="#FBF8F1"
           pageGap="xl"
-          defaultPageLayout="two-page"
-          // A whole spread fills the screen, however the tablet is held
+          defaultPageLayout={phone ? 'horizontal' : 'two-page'}
+          // A whole page (a phone) or spread (a tablet) fills the screen, however it is held
           defaultZoom="fit-page"
           // A thin strip: the title, the page and full screen, nothing else on stage
           toolbarControls={{
