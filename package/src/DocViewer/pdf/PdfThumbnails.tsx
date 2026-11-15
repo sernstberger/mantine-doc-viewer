@@ -1,43 +1,22 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { ActionIcon } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
-import { DragHandleIcon, TrashIcon } from '../icons';
+import { DragHandleIcon } from '../icons';
 import { initialOrder } from './page-edits';
+import { PdfThumbnailDelete } from './PdfThumbnailDelete';
 import { PdfRotation, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
 import type { PdfLayersState } from './use-pdf-layers';
 import { useNearViewport } from './use-near-viewport';
 import { usePagePreview } from './use-page-preview';
+import { useThumbnailKeys } from './use-thumbnail-keys';
+import { useThumbnailScroll } from './use-thumbnail-scroll';
 import { ReorderList, useReorderItem, useReorderList } from './use-reorder-drag';
 
 export type ThumbnailsOrientation = 'vertical' | 'horizontal';
 
-/** How many thumbnails fit in the rail, at least one */
-export function getThumbnailsPerView(railSize: number, thumbnailSize: number) {
-  return Math.max(1, Math.floor(railSize / (thumbnailSize || 1)));
-}
-
-/** Page a listbox key moves to from `page`, kept within the document, or null for other keys */
-export function getNextThumbnailPage(
-  key: string,
-  page: number,
-  numPages: number,
-  perView: number
-): number | null {
-  const moves: Record<string, number> = {
-    ArrowDown: page + 1,
-    ArrowRight: page + 1,
-    ArrowUp: page - 1,
-    ArrowLeft: page - 1,
-    PageDown: page + perView,
-    PageUp: page - perView,
-    Home: 1,
-    End: numPages,
-  };
-  return key in moves ? Math.min(Math.max(moves[key], 1), numPages) : null;
-}
+export { getNextThumbnailPage, getThumbnailsPerView } from './thumbnail-keys';
 
 interface PdfThumbnailProps {
   document: PDFDocumentProxy;
@@ -85,28 +64,7 @@ function PdfThumbnail({
     layers,
   });
 
-  // Keep the active thumbnail visible, scrolling only the sidebar
-  useEffect(() => {
-    const node = ref.current;
-    if (!active || !node || !scrollRoot) {
-      return;
-    }
-
-    if (horizontal) {
-      const left = node.offsetLeft;
-      const right = left + node.offsetWidth;
-      if (left < scrollRoot.scrollLeft || right > scrollRoot.scrollLeft + scrollRoot.clientWidth) {
-        scrollRoot.scrollTo({ left: left - scrollRoot.clientWidth / 2 + node.offsetWidth / 2 });
-      }
-      return;
-    }
-
-    const top = node.offsetTop;
-    const bottom = top + node.offsetHeight;
-    if (top < scrollRoot.scrollTop || bottom > scrollRoot.scrollTop + scrollRoot.clientHeight) {
-      scrollRoot.scrollTo({ top: top - scrollRoot.clientHeight / 2 + node.offsetHeight / 2 });
-    }
-  }, [active, scrollRoot, ref, horizontal]);
+  useThumbnailScroll(ref, scrollRoot, active, horizontal);
 
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
 
@@ -129,22 +87,7 @@ function PdfThumbnail({
           <DragHandleIcon />
         </span>
       )}
-      {onDelete && (
-        // Not a tab stop: keyboard users press Delete on the thumbnail instead
-        <ActionIcon
-          {...getStyles('thumbnailDelete')}
-          size="sm"
-          variant="default"
-          tabIndex={-1}
-          aria-label={labels.deletePage(pageNumber)}
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete(pageNumber);
-          }}
-        >
-          <TrashIcon />
-        </ActionIcon>
-      )}
+      {onDelete && <PdfThumbnailDelete pageNumber={pageNumber} onDelete={onDelete} />}
       <span
         {...getStyles('thumbnailImage', {
           style: { width, height: (pageSize.height / pageSize.width) * width },
@@ -199,37 +142,7 @@ export function PdfThumbnails({
     enabled: !!onReorder,
   });
 
-  // Listbox keys, with selection following focus: moving to a thumbnail shows its page
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    const root = event.currentTarget;
-    const option = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
-    const page = Number(option?.dataset.pageNumber);
-    if (!page) {
-      return;
-    }
-
-    // Page Up and Page Down move by the number of thumbnails that fit in the rail
-    const perView = getThumbnailsPerView(
-      horizontal ? root.clientWidth : root.clientHeight,
-      horizontal ? option!.offsetWidth : option!.offsetHeight
-    );
-    const next = getNextThumbnailPage(event.key, page, numPages, perView);
-
-    if (next === null) {
-      if (onDelete && (event.key === 'Delete' || event.key === 'Backspace')) {
-        event.preventDefault();
-        onDelete(page);
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        onSelect(page);
-      }
-      return;
-    }
-
-    event.preventDefault();
-    onSelect(next);
-    root.querySelector<HTMLElement>(`[data-page-number="${next}"]`)?.focus();
-  };
+  const handleKeyDown = useThumbnailKeys({ numPages, horizontal, onSelect, onDelete });
 
   return (
     <div
