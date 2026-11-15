@@ -80,9 +80,17 @@ export type DocViewerStylesNames =
   | 'outline'
   | 'outlineList'
   | 'outlineItem'
-  | 'password';
+  | 'password'
+  | 'documentInfo'
+  | 'properties'
+  | 'presentationControls';
 
-export type DocViewerPageLayout = 'single' | 'two-page' | 'two-page-cover';
+export type DocViewerPageLayout =
+  | 'single'
+  | 'two-page'
+  | 'two-page-cover'
+  | 'horizontal'
+  | 'wrapped';
 
 export type DocViewerThumbnailsPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -133,7 +141,11 @@ export interface DocViewerProps
   /** Largest canvas drawn for a PDF page, in pixels. Pages are drawn at a lower resolution beyond it, `16_777_216` by default (the Safari limit) */
   maxCanvasPixels?: number;
 
-  /** How PDF pages are laid out when a PDF opens: one per row, two per row, or two per row with the first page on its own as a cover, `'single'` by default */
+  /**
+   * How PDF pages are laid out when a PDF opens, `'single'` by default: one per row, two per row,
+   * two per row with the first page on its own as a cover, one row scrolled sideways, or rows that
+   * wrap. Readers can change it from the toolbar
+   */
   defaultPageLayout?: DocViewerPageLayout;
 
   /** Determines whether PDF page thumbnails are shown when a PDF opens, `false` by default */

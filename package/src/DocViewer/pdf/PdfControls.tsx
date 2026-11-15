@@ -1,15 +1,17 @@
-import { ActionIcon, Group, Popover, SegmentedControl, Text } from '@mantine/core';
+import { ActionIcon, Group, Popover, Radio, SegmentedControl, Stack, Text } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React, { useState } from 'react';
 import { softDisabled } from '../a11y';
 import { DocViewerTooltip, useControlProps } from '../controls';
-import type { DocViewerThumbnailsPosition } from '../DocViewer';
+import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocViewerContext } from '../DocViewer.context';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
   FitWidthIcon,
+  InfoIcon,
   OutlineIcon,
+  PresentationIcon,
   PanelPositionIcon,
   RotateIcon,
   SearchIcon,
@@ -17,10 +19,22 @@ import {
   TwoPagesIcon,
 } from '../icons';
 import { ZoomControls } from '../ZoomControls';
+import { usePdfAttachments, usePdfProperties } from './document-info';
+import { fitsToHeight } from './geometry';
+import { PdfDocumentInfo } from './PdfDocumentInfo';
+import type { PdfLayer } from './use-pdf-layers';
 import { PdfOutline, usePdfOutline } from './PdfOutline';
 import type { PdfZoom } from './zoom';
 
 const POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
+
+const LAYOUTS = [
+  ['single', 'layoutSingle'],
+  ['two-page', 'layoutTwoPage'],
+  ['two-page-cover', 'layoutTwoPageCover'],
+  ['horizontal', 'layoutHorizontal'],
+  ['wrapped', 'layoutWrapped'],
+] as const;
 
 export interface PdfControlsProps {
   document: PDFDocumentProxy;
@@ -32,13 +46,18 @@ export interface PdfControlsProps {
   onZoom: (zoom: PdfZoom) => void;
   onRotate: () => void;
 
-  twoPages: boolean;
-  onToggleTwoPages: () => void;
+  layout: DocViewerPageLayout;
+  onLayoutChange: (layout: DocViewerPageLayout) => void;
 
   thumbnailsOpened: boolean;
   onToggleThumbnails: () => void;
   position: DocViewerThumbnailsPosition;
   onPositionChange: (position: DocViewerThumbnailsPosition) => void;
+
+  layers: PdfLayer[];
+  onLayerChange: (id: string, visible: boolean) => void;
+
+  onPresent: () => void;
 
   searchOpened: boolean;
   searchToggleRef: React.Ref<HTMLButtonElement>;
@@ -51,7 +70,10 @@ export function PdfControls(props: PdfControlsProps) {
   const controlProps = useControlProps();
   const outline = usePdfOutline(props.document);
   const [outlineOpened, setOutlineOpened] = useState(false);
-  const { currentPage, onPage, thumbnailsOpened, twoPages, searchOpened } = props;
+  const [infoOpened, setInfoOpened] = useState(false);
+  const properties = usePdfProperties(props.document, infoOpened);
+  const attachments = usePdfAttachments(props.document);
+  const { currentPage, onPage, thumbnailsOpened, layout, searchOpened } = props;
   const numPages = props.document.numPages;
 
   return (
@@ -115,7 +137,7 @@ export function PdfControls(props: PdfControlsProps) {
       <ZoomControls
         scale={props.scale}
         fitted={props.zoom === 'fit-width'}
-        fitLabel={labels.fitToWidth}
+        fitLabel={fitsToHeight(layout) ? labels.fitToView : labels.fitToWidth}
         fitIcon={<FitWidthIcon />}
         onZoom={props.onZoom}
         onFit={() => props.onZoom('fit-width')}
@@ -127,16 +149,29 @@ export function PdfControls(props: PdfControlsProps) {
         </ActionIcon>
       </DocViewerTooltip>
 
-      <DocViewerTooltip label={labels.twoPages}>
-        <ActionIcon
-          {...controlProps(twoPages)}
-          aria-label={labels.twoPages}
-          aria-pressed={twoPages}
-          onClick={props.onToggleTwoPages}
-        >
-          <TwoPagesIcon />
-        </ActionIcon>
-      </DocViewerTooltip>
+      <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+        <Popover.Target>
+          <DocViewerTooltip label={labels.pageLayout}>
+            <ActionIcon {...controlProps(layout !== 'single')} aria-label={labels.pageLayout}>
+              <TwoPagesIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        </Popover.Target>
+        <Popover.Dropdown>
+          <Radio.Group
+            value={layout}
+            onChange={(value) => props.onLayoutChange(value as DocViewerPageLayout)}
+            label={labels.pageLayout}
+            size={size.input}
+          >
+            <Stack gap={6} mt={6}>
+              {LAYOUTS.map(([value, label]) => (
+                <Radio key={value} value={value} label={labels[label]} size={size.input} />
+              ))}
+            </Stack>
+          </Radio.Group>
+        </Popover.Dropdown>
+      </Popover>
 
       {outline && outline.length > 0 && (
         <Popover
@@ -172,6 +207,44 @@ export function PdfControls(props: PdfControlsProps) {
           </Popover.Dropdown>
         </Popover>
       )}
+
+      <Popover
+        opened={infoOpened}
+        onChange={setInfoOpened}
+        position="bottom-end"
+        shadow="md"
+        withinPortal={false}
+        trapFocus
+        returnFocus
+      >
+        <Popover.Target>
+          <DocViewerTooltip label={labels.documentInfo}>
+            <ActionIcon
+              {...controlProps(infoOpened)}
+              aria-label={labels.documentInfo}
+              aria-expanded={infoOpened}
+              onClick={() => setInfoOpened((opened) => !opened)}
+            >
+              <InfoIcon />
+            </ActionIcon>
+          </DocViewerTooltip>
+        </Popover.Target>
+        <Popover.Dropdown>
+          <PdfDocumentInfo
+            document={props.document}
+            properties={properties}
+            attachments={attachments}
+            layers={props.layers}
+            onLayerChange={props.onLayerChange}
+          />
+        </Popover.Dropdown>
+      </Popover>
+
+      <DocViewerTooltip label={labels.presentation}>
+        <ActionIcon {...controlProps()} aria-label={labels.presentation} onClick={props.onPresent}>
+          <PresentationIcon />
+        </ActionIcon>
+      </DocViewerTooltip>
 
       <DocViewerTooltip label={labels.search}>
         <ActionIcon

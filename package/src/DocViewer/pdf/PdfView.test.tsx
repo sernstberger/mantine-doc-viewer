@@ -26,6 +26,8 @@ function mockPdf({
   outline = null as unknown[] | null,
   password = '',
   links = [] as unknown[],
+  layers = [] as { id: string; name: string; visible: boolean }[],
+  attachments = null as Map<string, { filename: string; description: string }> | null,
 } = {}) {
   // One render mock shared by all pages, so tests can count renders across the document
   const page = {
@@ -61,6 +63,28 @@ function mockPdf({
     ),
     getPageIndex: jest.fn(() => Promise.resolve(1)),
     getData: jest.fn(() => Promise.resolve(new Uint8Array([37, 80, 68, 70]))),
+    getMetadata: jest.fn(() =>
+      Promise.resolve({
+        info: {
+          Title: 'Quarterly report',
+          Author: 'Finance',
+          CreationDate: 'D:20240131120000Z',
+          PDFFormatVersion: '1.7',
+        },
+      })
+    ),
+    getDownloadInfo: jest.fn(() => Promise.resolve({ length: 2048 })),
+    getAttachments: jest.fn(() => Promise.resolve(attachments)),
+    getAttachmentContent: jest.fn(() => Promise.resolve(new Uint8Array([1, 2, 3]))),
+    getOptionalContentConfig: jest.fn(() => {
+      const groups = new Map(layers.map((layer) => [layer.id, { ...layer }]));
+      return Promise.resolve({
+        [Symbol.iterator]: () => groups[Symbol.iterator](),
+        setVisibility: (id: string, visible: boolean) => {
+          groups.get(id)!.visible = visible;
+        },
+      });
+    }),
   };
   getDocument.mockImplementation(() => {
     const task: {
@@ -616,21 +640,29 @@ describe('DocViewer PDF', () => {
       expect(await screen.findAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
     });
 
-    it('shows two pages side by side', async () => {
+    it('lays pages out from the page layout menu', async () => {
       mockPdf();
+      const controller = createRef<DocViewerController>();
       const { container } = render(
         <DocViewer
           src="/files/report.pdf"
           pdfWorkerSrc="/worker.mjs"
           defaultPageLayout="two-page-cover"
+          controllerRef={controller}
         />
       );
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       const pages = container.querySelector('.mantine-DocViewer-pages')!;
       expect(pages).toHaveAttribute('data-layout', 'two-page-cover');
 
-      await userEvent.click(screen.getByRole('button', { name: 'Two pages' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Page layout' }));
+      await userEvent.click(await screen.findByRole('radio', { name: 'Horizontal scrolling' }));
+      expect(pages).toHaveAttribute('data-layout', 'horizontal');
+      expect(screen.getByRole('button', { name: 'Fit to view' })).toBeInTheDocument();
+
+      act(() => controller.current!.setPageLayout('single'));
       expect(pages).toHaveAttribute('data-layout', 'single');
+      expect(screen.getByRole('button', { name: 'Fit to width' })).toBeInTheDocument();
     });
 
     it('prints the PDF bytes from a hidden frame', async () => {
@@ -772,5 +804,64 @@ describe('DocViewer PDF', () => {
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Show page 3' }));
     expect(screen.getByText('3 / 3')).toBeInTheDocument();
+  });
+
+  it('shows properties, attachments and layers in document info', async () => {
+    URL.createObjectURL = jest.fn(() => 'blob:attachment');
+    URL.revokeObjectURL = jest.fn();
+    mockPdf({
+      layers: [{ id: '5R', name: 'Annotations', visible: true }],
+      attachments: new Map([['notes.txt', { filename: 'notes.txt', description: 'Notes' }]]),
+    });
+    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Document info' }));
+    // The page text also says "Quarterly report", so look for it as a property value
+    expect(await screen.findByText('Finance')).toBeInTheDocument();
+    expect(screen.getByText('Title').nextElementSibling).toHaveTextContent('Quarterly report');
+    expect(screen.getByText('2.0 KB')).toBeInTheDocument();
+    expect(screen.getByText('8.5 × 11 in (216 × 279 mm)')).toBeInTheDocument();
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Download attachment notes.txt' })
+    );
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+
+    const layer = screen.getByRole('checkbox', { name: 'Annotations' });
+    expect(layer).toBeChecked();
+    await userEvent.click(layer);
+    expect(layer).not.toBeChecked();
+  });
+
+  it('presents one page at a time, moving with keys and ending with Escape', async () => {
+    mockPdf();
+    const controller = createRef<DocViewerController>();
+    render(
+      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
+    );
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Presentation' }));
+    expect(screen.getAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument();
+    const region = screen.getByRole('region', { name: 'report.pdf' });
+    expect(region).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowRight}');
+    expect(screen.getByRole('group', { name: 'Page 2 of 3' })).toBeInTheDocument();
+    await userEvent.click(region);
+    expect(screen.getByRole('group', { name: 'Page 3 of 3' })).toBeInTheDocument();
+    await userEvent.keyboard('{Home}');
+    expect(screen.getByRole('group', { name: 'Page 1 of 3' })).toBeInTheDocument();
+
+    await userEvent.keyboard('{End}');
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
+    // Stays on the page the presentation ended on
+    await waitFor(() => expect(screen.getByText('3 / 3')).toBeInTheDocument());
+
+    act(() => controller.current!.togglePresentation());
+    await userEvent.click(screen.getByRole('button', { name: 'Exit presentation' }));
+    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
   });
 });

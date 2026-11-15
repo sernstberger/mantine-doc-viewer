@@ -9,6 +9,8 @@ export interface DocViewerLabels {
   download: string;
   downloadFile: string;
   print: string;
+  presentation: string;
+  exitPresentation: string;
   fullscreen: string;
   exitFullscreen: string;
   loading: string;
@@ -25,8 +27,33 @@ export interface DocViewerLabels {
   hidePages: string;
   pages: string;
   outline: string;
+  documentInfo: string;
+  properties: string;
+  propertyNames: Record<
+    | 'title'
+    | 'author'
+    | 'subject'
+    | 'keywords'
+    | 'creator'
+    | 'producer'
+    | 'created'
+    | 'modified'
+    | 'pdfVersion'
+    | 'fileSize'
+    | 'pageCount'
+    | 'pageSize',
+    string
+  >;
+  attachments: string;
+  downloadAttachment: (fileName: string) => string;
+  layers: string;
   noOutline: string;
-  twoPages: string;
+  pageLayout: string;
+  layoutSingle: string;
+  layoutTwoPage: string;
+  layoutTwoPageCover: string;
+  layoutHorizontal: string;
+  layoutWrapped: string;
   passwordRequired: string;
   passwordIncorrect: string;
   password: string;
@@ -84,6 +111,8 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   download: 'Download',
   downloadFile: 'Download file',
   print: 'Print',
+  presentation: 'Presentation',
+  exitPresentation: 'Exit presentation',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
   loading: 'Loading document',
@@ -100,8 +129,32 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   hidePages: 'Hide pages',
   pages: 'Pages',
   outline: 'Outline',
+  documentInfo: 'Document info',
+  properties: 'Properties',
+  propertyNames: {
+    title: 'Title',
+    author: 'Author',
+    subject: 'Subject',
+    keywords: 'Keywords',
+    creator: 'Created with',
+    producer: 'PDF producer',
+    created: 'Created',
+    modified: 'Modified',
+    pdfVersion: 'PDF version',
+    fileSize: 'File size',
+    pageCount: 'Pages',
+    pageSize: 'Page size',
+  },
+  attachments: 'Attachments',
+  downloadAttachment: (fileName) => `Download attachment ${fileName}`,
+  layers: 'Layers',
   noOutline: 'This document has no outline',
-  twoPages: 'Two pages',
+  pageLayout: 'Page layout',
+  layoutSingle: 'Single pages',
+  layoutTwoPage: 'Two pages',
+  layoutTwoPageCover: 'Two pages, cover on its own',
+  layoutHorizontal: 'Horizontal scrolling',
+  layoutWrapped: 'Wrapped',
   passwordRequired: 'This PDF is protected with a password',
   passwordIncorrect: 'The password is incorrect',
   password: 'Password',

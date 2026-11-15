@@ -1,6 +1,7 @@
 import { useCallbackRef } from '@mantine/hooks';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import type { DocType } from './detect-doc-type';
+import type { DocViewerPageLayout } from './DocViewer';
 
 /** A scale where 1 is 100%, or `'fit'`: fit to width for PDFs, fit to the view for images */
 export type DocViewerZoom = number | 'fit';
@@ -15,7 +16,10 @@ export interface DocViewerController {
   zoomIn: () => void;
   zoomOut: () => void;
 
-  /** Turns an image 90° clockwise */
+  /** Lays PDF pages out: single, two-page, two-page-cover, horizontal or wrapped */
+  setPageLayout: (layout: DocViewerPageLayout) => void;
+
+  /** Turns an image or PDF pages 90° clockwise */
   rotate: () => void;
 
   /** Opens PDF search, with `query` typed in when it is set */
@@ -24,6 +28,9 @@ export interface DocViewerController {
 
   /** Shows or hides PDF page thumbnails, toggles them when `opened` is not set */
   toggleThumbnails: (opened?: boolean) => void;
+
+  /** Starts a PDF presentation (full screen, one page at a time), or ends it */
+  togglePresentation: () => void;
 
   /** Opens the browser print dialog for the document */
   print: () => Promise<void>;
@@ -74,10 +81,12 @@ export function useControllerRegistry(controllerRef: React.Ref<DocViewerControll
       setZoom: call('setZoom'),
       zoomIn: call('zoomIn'),
       zoomOut: call('zoomOut'),
+      setPageLayout: call('setPageLayout'),
       rotate: call('rotate'),
       openSearch: call('openSearch'),
       closeSearch: call('closeSearch'),
       toggleThumbnails: call('toggleThumbnails'),
+      togglePresentation: call('togglePresentation'),
       print: async () => {
         await implementation.current.print?.();
       },

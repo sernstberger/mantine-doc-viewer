@@ -3,6 +3,7 @@ import type { DocViewerLabels } from '../labels';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import { type PdfLinkService, resolveDestination } from './link-service';
+import type { PdfLayersState } from './use-pdf-layers';
 import type { PdfJsModule } from './load-pdfjs';
 import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import { getPageTextContent } from './text-content';
@@ -19,6 +20,9 @@ interface PdfPageProps {
 
   /** Rotation added to the page's own, in quarter turns */
   rotation?: PdfRotation;
+
+  /** Layer visibility; pages draw again when `version` changes */
+  layers?: PdfLayersState;
 
   /** Size at scale 1 used until the page itself has loaded */
   placeholderSize: PdfPageSize;
@@ -99,6 +103,7 @@ export function PdfPage({
   numPages,
   scale,
   rotation = 0,
+  layers,
   placeholderSize,
   scrollRoot,
   registerPage,
@@ -135,7 +140,14 @@ export function PdfPage({
 
       const { width, height } = getPageViewport(page, 1, rotation);
       setSize({ width, height });
-      renderTask = renderPageToCanvas(page, canvas, scale, maxCanvasPixels, rotation);
+      renderTask = renderPageToCanvas(
+        page,
+        canvas,
+        scale,
+        maxCanvasPixels,
+        rotation,
+        layers?.config ?? undefined
+      );
 
       renderTask.promise.then(
         () => !cancelled && setRendered(true),
@@ -147,7 +159,9 @@ export function PdfPage({
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [document, pageNumber, scale, near, maxCanvasPixels, rotation]);
+    // Pages draw with the document's own layer visibility until a layer is toggled (version)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document, pageNumber, scale, near, maxCanvasPixels, rotation, layers?.version]);
 
   useEffect(() => {
     const container = textLayerRef.current;

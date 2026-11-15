@@ -7,41 +7,82 @@ export function clampPage(page: number, numPages: number) {
   return Math.min(Math.max(Math.round(page), 1), Math.max(numPages, 1));
 }
 
-export interface ScaleInput {
-  zoom: PdfZoom;
-  twoPages: boolean;
-  bodyWidth: number;
-  columnGap: number;
-
-  /** Width of a page at scale 1, after rotation */
-  pageWidth: number;
+export function isTwoPages(layout: DocViewerPageLayout) {
+  return layout === 'two-page' || layout === 'two-page-cover';
 }
 
-/** Scale of the pages: the zoom, or the scale that fits one page (or two side by side) to the width */
-export function computeScale({ zoom, twoPages, bodyWidth, columnGap, pageWidth }: ScaleInput) {
+/** Horizontal and wrapped layouts fit pages to the height of the view, so several show at once */
+export function fitsToHeight(layout: DocViewerPageLayout) {
+  return layout === 'horizontal' || layout === 'wrapped';
+}
+
+export interface ScaleInput {
+  zoom: PdfZoom;
+  layout: DocViewerPageLayout;
+  bodyWidth: number;
+  bodyHeight: number;
+  columnGap: number;
+
+  /** Size of a page at scale 1, after rotation */
+  pageWidth: number;
+  pageHeight: number;
+}
+
+/** Scale of the pages: the zoom, or the scale that fits the layout to the view */
+export function computeScale(input: ScaleInput) {
+  const { zoom, layout, bodyWidth, bodyHeight, columnGap, pageWidth, pageHeight } = input;
   if (zoom !== 'fit-width') {
     return zoom;
   }
-
-  return twoPages
+  if (fitsToHeight(layout)) {
+    return getFitWidthScale(bodyHeight, pageHeight);
+  }
+  return isTwoPages(layout)
     ? getFitWidthScale(bodyWidth - columnGap, pageWidth * 2)
     : getFitWidthScale(bodyWidth, pageWidth);
 }
 
-export function nextRotation(rotation: PdfRotation): PdfRotation {
-  return ((rotation + 90) % 360) as PdfRotation;
+/** Scale that fits a whole page in the view, for presentations */
+export function computeFitPageScale(
+  bodyWidth: number,
+  bodyHeight: number,
+  pageWidth: number,
+  pageHeight: number
+) {
+  return Math.min(getFitWidthScale(bodyWidth, pageWidth), getFitWidthScale(bodyHeight, pageHeight));
 }
 
-/** Layout after the two pages button: single, or two pages in the flavour the viewer opened with */
-export function toggleTwoPages(
-  layout: DocViewerPageLayout,
-  defaultLayout: DocViewerPageLayout | undefined
-): DocViewerPageLayout {
-  if (layout !== 'single') {
-    return 'single';
-  }
+const PRESENTATION_KEYS: Record<string, 'next' | 'previous' | 'first' | 'last' | 'exit'> = {
+  ArrowRight: 'next',
+  ArrowDown: 'next',
+  PageDown: 'next',
+  ' ': 'next',
+  Enter: 'next',
+  ArrowLeft: 'previous',
+  ArrowUp: 'previous',
+  PageUp: 'previous',
+  Backspace: 'previous',
+  Home: 'first',
+  End: 'last',
+  Escape: 'exit',
+};
 
-  return defaultLayout === 'two-page-cover' ? 'two-page-cover' : 'two-page';
+/** Page a key moves to in a presentation, 'exit' for Escape, or null for other keys */
+export function getPresentationTarget(
+  key: string,
+  page: number,
+  numPages: number
+): number | 'exit' | null {
+  const action = PRESENTATION_KEYS[key];
+  const pages = { next: page + 1, previous: page - 1, first: 1, last: numPages };
+  if (!action) {
+    return null;
+  }
+  return action === 'exit' ? 'exit' : clampPage(pages[action], numPages);
+}
+
+export function nextRotation(rotation: PdfRotation): PdfRotation {
+  return ((rotation + 90) % 360) as PdfRotation;
 }
 
 /** Thumbnails strip direction, and whether they come before the pages in the DOM so focus order follows the layout */
@@ -53,21 +94,28 @@ export function getThumbnailsLayout(position: 'left' | 'right' | 'top' | 'bottom
   };
 }
 
-export interface VisibleBox {
-  page: number;
+export interface Box {
   top: number;
   bottom: number;
+  left: number;
+  right: number;
 }
 
-/** Page with the most visible height inside the view, 0 when none is visible */
-export function getMostVisiblePage(boxes: VisibleBox[], viewTop: number, viewBottom: number) {
+export interface VisibleBox extends Box {
+  page: number;
+}
+
+/** Page with the most visible area inside the view, 0 when none is visible */
+export function getMostVisiblePage(boxes: VisibleBox[], view: Box) {
   let best = 0;
-  let bestHeight = 0;
-  boxes.forEach(({ page, top, bottom }) => {
-    const height = Math.min(bottom, viewBottom) - Math.max(top, viewTop);
-    if (height > bestHeight) {
-      best = page;
-      bestHeight = height;
+  let bestArea = 0;
+  boxes.forEach((box) => {
+    const height = Math.min(box.bottom, view.bottom) - Math.max(box.top, view.top);
+    const width = Math.min(box.right, view.right) - Math.max(box.left, view.left);
+    const area = Math.max(0, height) * Math.max(0, width);
+    if (area > bestArea) {
+      best = box.page;
+      bestArea = area;
     }
   });
   return best;

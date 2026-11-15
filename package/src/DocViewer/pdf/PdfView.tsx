@@ -1,6 +1,6 @@
-import { VisuallyHidden } from '@mantine/core';
+import { CloseButton, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef, useUncontrolled } from '@mantine/hooks';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRegisterController } from '../controller';
 import type { DocViewerPageLayout, DocViewerThumbnailsPosition } from '../DocViewer';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
@@ -9,10 +9,12 @@ import { printPdfBytes } from '../print';
 import { clampZoom, zoomIn, zoomOut } from '../zoom';
 import {
   clampPage,
+  computeFitPageScale,
   computeScale,
+  getPresentationTarget,
   getThumbnailsLayout,
+  isTwoPages,
   nextRotation,
-  toggleTwoPages,
 } from './geometry';
 import { getRegionProps } from '../a11y';
 import { PdfControls } from './PdfControls';
@@ -24,6 +26,9 @@ import { PdfRotation, rotateSize } from './render-page';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
 import { useLinkService } from './use-link-service';
+import { usePdfLayers } from './use-pdf-layers';
+import { usePresentation } from './use-presentation';
+import { useZoomAnchor } from './use-zoom-anchor';
 import { usePageSync, usePdfEvents } from './use-pdf-events';
 import { usePdfDocument } from './use-pdf-document';
 import { usePdfSearchBar } from './use-pdf-search-bar';
@@ -42,6 +47,9 @@ function useColumnGap(pages: HTMLElement | null, twoPages: boolean) {
 
   return columnGap;
 }
+
+/** How long after a presentation the page it ended on is kept in view while the layout settles, in ms */
+const RESTORE_SETTLE_TIME = 600;
 
 export function PdfView() {
   const context = useDocViewerContext();
@@ -69,15 +77,35 @@ export function PdfView() {
 
   const [pagesNode, setPagesNode] = useState<HTMLDivElement | null>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
-  const { ref: bodyRef, width: bodyWidth } = useElementSize<HTMLDivElement>();
+  const { ref: bodyRef, width: bodyWidth, height: bodyHeight } = useElementSize<HTMLDivElement>();
   const setBodyRef = useMergedRef(bodyRef, setScrollRoot);
 
-  const twoPages = layout !== 'single';
-  const columnGap = useColumnGap(pagesNode, twoPages);
-  const pageWidth = ready ? rotateSize(ready.firstPageSize, rotation).width : 0;
-  const scale = ready ? computeScale({ zoom, twoPages, bodyWidth, columnGap, pageWidth }) : 1;
+  const columnGap = useColumnGap(pagesNode, isTwoPages(layout));
+  const pageSize = ready ? rotateSize(ready.firstPageSize, rotation) : { width: 0, height: 0 };
+  const presentation = usePresentation({
+    fullscreen: context.fullscreen,
+    toggleFullscreen: context.toggleFullscreen,
+    body: scrollRoot,
+  });
+  const { presenting } = presentation;
+  const scale = !ready
+    ? 1
+    : presenting
+      ? computeFitPageScale(bodyWidth, bodyHeight, pageSize.width, pageSize.height)
+      : computeScale({
+          zoom,
+          layout,
+          bodyWidth,
+          bodyHeight,
+          columnGap,
+          pageWidth: pageSize.width,
+          pageHeight: pageSize.height,
+        });
 
-  const { currentPage, registerPage, scrollToPage } = useCurrentPage(scrollRoot);
+  const { currentPage, registerPage, scrollToPage } = useCurrentPage(
+    scrollRoot,
+    layout === 'horizontal'
+  );
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document);
   const onTextLayer = useSearchHighlights({
@@ -87,6 +115,8 @@ export function PdfView() {
     scrollRoot,
     scrollToPage,
   });
+  const pdfLayers = usePdfLayers(document);
+  const layers = { config: pdfLayers.config, version: pdfLayers.version };
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });
   const pageReported = usePdfEvents({
     state,
@@ -119,14 +149,58 @@ export function PdfView() {
     setZoom: (next) => setZoom(next === 'fit' ? 'fit-width' : clampZoom(next)),
     zoomIn: () => setZoom(zoomIn(scale)),
     zoomOut: () => setZoom(zoomOut(scale)),
+    setPageLayout: setLayout,
     rotate,
     openSearch: (query) => ready && search.open(query),
     closeSearch: () => search.opened && search.close(),
     toggleThumbnails: (opened) => setThumbnailsOpened((current) => opened ?? !current),
+    togglePresentation: () => {
+      ready && presentation.toggle();
+    },
     print,
   });
 
+  // The page a presentation ended on is restored below, after this has run
+  useZoomAnchor(scrollRoot, scale, !presenting);
+
+  // After a presentation, stay on the page it ended on instead of the top of the document.
+  // The toolbar and thumbnails come back and the fitted scale changes a moment later, so the
+  // page is scrolled to again whenever the scale changes until things settle
+  const presentedPage = useRef(0);
+  const restorePage = useRef(0);
+  if (presenting) {
+    presentedPage.current = currentPage;
+  }
+  useEffect(() => {
+    if (presenting || !presentedPage.current) {
+      return undefined;
+    }
+
+    restorePage.current = presentedPage.current;
+    presentedPage.current = 0;
+    const timeout = window.setTimeout(() => {
+      restorePage.current = 0;
+    }, RESTORE_SETTLE_TIME);
+    return () => window.clearTimeout(timeout);
+  }, [presenting]);
+
+  useEffect(() => {
+    const page = restorePage.current;
+    if (page && !presenting) {
+      const frame = requestAnimationFrame(() => scrollToPage(page));
+      return () => cancelAnimationFrame(frame);
+    }
+    return undefined;
+  }, [presenting, scale, scrollToPage]);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = presenting ? getPresentationTarget(event.key, currentPage, numPages) : null;
+    if (target !== null) {
+      event.preventDefault();
+      target === 'exit' ? presentation.stop() : goToPage(target);
+      return;
+    }
+
     if (ready && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       search.open();
@@ -141,12 +215,13 @@ export function PdfView() {
   }, [state]);
 
   const thumbnailsLayout = getThumbnailsLayout(position);
-  const thumbnails = ready && thumbnailsOpened && (
+  const thumbnails = ready && thumbnailsOpened && !presenting && (
     <PdfThumbnails
       document={ready.document}
       placeholderSize={ready.firstPageSize}
       currentPage={currentPage}
       rotation={rotation}
+      layers={layers}
       orientation={thumbnailsLayout.orientation}
       // Screen readers already read the selected thumbnail, so no page announcement as well
       onSelect={(page) => goToPage(page, false)}
@@ -155,32 +230,35 @@ export function PdfView() {
 
   return (
     <>
-      <DocViewerToolbar onPrint={ready ? print : undefined}>
-        {ready && (
-          <PdfControls
-            document={ready.document}
-            currentPage={currentPage}
-            onPage={goToPage}
-            scale={scale}
-            zoom={zoom}
-            onZoom={setZoom}
-            onRotate={rotate}
-            twoPages={twoPages}
-            onToggleTwoPages={() =>
-              setLayout((current) => toggleTwoPages(current, defaultPageLayout))
-            }
-            thumbnailsOpened={thumbnailsOpened}
-            onToggleThumbnails={() => setThumbnailsOpened((opened) => !opened)}
-            position={position}
-            onPositionChange={setPosition}
-            searchOpened={search.opened}
-            searchToggleRef={search.toggleRef}
-            onToggleSearch={() => (search.opened ? search.close() : search.open())}
-          />
-        )}
-      </DocViewerToolbar>
+      {!presenting && (
+        <DocViewerToolbar onPrint={ready ? print : undefined}>
+          {ready && (
+            <PdfControls
+              document={ready.document}
+              currentPage={currentPage}
+              onPage={goToPage}
+              scale={scale}
+              zoom={zoom}
+              onZoom={setZoom}
+              onRotate={rotate}
+              layout={layout}
+              layers={pdfLayers.layers}
+              onLayerChange={pdfLayers.setVisible}
+              onLayoutChange={setLayout}
+              thumbnailsOpened={thumbnailsOpened}
+              onToggleThumbnails={() => setThumbnailsOpened((opened) => !opened)}
+              position={position}
+              onPositionChange={setPosition}
+              searchOpened={search.opened}
+              searchToggleRef={search.toggleRef}
+              onToggleSearch={() => (search.opened ? search.close() : search.open())}
+              onPresent={presentation.start}
+            />
+          )}
+        </DocViewerToolbar>
+      )}
 
-      {ready && search.opened && (
+      {ready && search.opened && !presenting && (
         <PdfSearchBar
           inputRef={search.inputRef}
           query={search.query}
@@ -197,27 +275,41 @@ export function PdfView() {
         />
       )}
 
-      <div {...getStyles('main')} data-thumbnails-position={position}>
+      <div
+        {...getStyles('main')}
+        data-thumbnails-position={position}
+        data-presenting={presenting || undefined}
+      >
         {thumbnailsLayout.first && thumbnails}
         <div
           ref={setBodyRef}
           {...getStyles('body')}
           {...getRegionProps(!!ready, title, 'Control+F Meta+F')}
           onKeyDown={handleKeyDown}
+          // In a presentation a click shows the next page
+          onClick={presenting ? () => goToPage(Math.min(currentPage + 1, numPages)) : undefined}
         >
           <PdfStatus state={state} />
 
           {ready && (
-            <div ref={setPagesNode} {...getStyles('pages')} data-layout={layout}>
-              {Array.from({ length: numPages }, (_, index) => (
+            <div
+              ref={setPagesNode}
+              {...getStyles('pages')}
+              data-layout={presenting ? 'presentation' : layout}
+            >
+              {(presenting
+                ? [currentPage]
+                : Array.from({ length: numPages }, (_, index) => index + 1)
+              ).map((pageNumber) => (
                 <PdfPage
-                  key={index + 1}
+                  key={pageNumber}
                   pdfjs={ready.pdfjs}
                   document={ready.document}
-                  pageNumber={index + 1}
+                  pageNumber={pageNumber}
                   numPages={numPages}
                   scale={scale}
                   rotation={rotation}
+                  layers={layers}
                   placeholderSize={ready.firstPageSize}
                   scrollRoot={scrollRoot}
                   registerPage={registerPage}
@@ -229,6 +321,20 @@ export function PdfView() {
           )}
         </div>
         {!thumbnailsLayout.first && thumbnails}
+        {presenting && (
+          <div {...getStyles('presentationControls')}>
+            <span>
+              {currentPage} / {numPages}
+            </span>
+            <CloseButton
+              size="sm"
+              variant="transparent"
+              c="white"
+              aria-label={labels.exitPresentation}
+              onClick={presentation.stop}
+            />
+          </div>
+        )}
       </div>
 
       {ready && <VisuallyHidden role="status">{pageAnnouncement}</VisuallyHidden>}

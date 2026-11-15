@@ -110,10 +110,28 @@ The rotate button turns all PDF pages a quarter turn, for scanned documents that
 It only changes the view; the file is not changed. The search bar has match case, whole words and
 match accents buttons. Accents are ignored by default, so "cafe" also finds "café".
 
-## Two pages and outline
+## Page layouts
 
-The two pages button shows pages side by side. Set `defaultPageLayout` to open that way, with
-`'two-page-cover'` for books and magazines, where the first page is on its own like a cover.
+The page layout button offers single pages (the default), two pages side by side, two pages with
+the first page on its own as a cover, one row scrolled sideways, and rows that wrap. Horizontal
+and wrapped layouts fit pages to the height of the view. Set the starting layout with
+`defaultPageLayout`, or change it with `controllerRef.current.setPageLayout()`. Zooming keeps the
+middle of the view on the same part of the document.
+
+## Document info, attachments and layers
+
+The document info button lists the PDF's properties (title, author, dates, PDF version, file size,
+page count and size). PDFs with attached files list them there to download, and PDFs with layers
+(optional content) get a checkbox to show or hide each one.
+
+## Presentation
+
+The presentation button shows one page at a time, fitted to the screen on a dark background, full
+screen where the browser allows it. Arrow keys, Space, Page Up and Page Down, Home and End move
+between pages, a click shows the next page, and Escape ends the presentation on the page it was on.
+Start or end it with `controllerRef.current.togglePresentation()`.
+
+## Outline
 
 PDFs with bookmarks get an outline button that lists them; choosing one scrolls to its page.
 

@@ -42,6 +42,9 @@ function pageContent(pageNumber: number, total: number, toc: TocEntry[] = []) {
       `BT /F1 16 Tf 72 ${PAGE_HEIGHT - 132} Td (Sample document, page 1 of ${total}) Tj ET`,
       tocContent(toc),
       `0.6 0.6 0.6 rg BT /F1 10 Tf ${PAGE_WIDTH / 2 - 20} 40 Td (Page 1) Tj ET`,
+      // Two layers (optional content): a watermark that is shown and reviewer notes that are hidden
+      '/OC /L1 BDC 0.9 0.3 0.3 rg BT /F2 72 Tf 150 220 Td (DRAFT) Tj ET EMC',
+      '/OC /L2 BDC 0.85 0.45 0.05 rg BT /F1 12 Tf 72 150 Td (Reviewer note: check the figures in chapter 3.) Tj ET EMC',
     ].join('\n');
   }
 
@@ -74,6 +77,11 @@ function buildPdf(totalPages: number, chapterLength = 0) {
   const bold = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
   const pageIds: number[] = [];
 
+  // The feature sample (with chapters) also has layers, an attachment and document properties
+  const extras = chapterLength > 0;
+  const draftLayer = extras ? add('<< /Type /OCG /Name (Draft watermark) >>') : 0;
+  const notesLayer = extras ? add('<< /Type /OCG /Name (Reviewer notes) >>') : 0;
+
   // Page dictionaries first and content streams after them, as many PDF writers do. pdf.js reads
   // every page dictionary when a document opens, so grouping them keeps that to the start of the
   // file and lets range requests skip the content of pages that are not shown
@@ -96,9 +104,13 @@ function buildPdf(totalPages: number, chapterLength = 0) {
       pageNumber === 1 && linkIds.length > 0
         ? ` /Annots [${linkIds.map((id) => `${id} 0 R`).join(' ')}]`
         : '';
+    const properties =
+      pageNumber === 1 && extras
+        ? ` /Properties << /L1 ${draftLayer} 0 R /L2 ${notesLayer} 0 R >>`
+        : '';
     pageIds.push(
       add(
-        `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Contents ${content} 0 R /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> >>${annots} >>`
+        `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Contents ${content} 0 R /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >>${properties} >>${annots} >>`
       )
     );
   }
@@ -145,7 +157,25 @@ function buildPdf(totalPages: number, chapterLength = 0) {
     outlines = ` /Outlines ${root} 0 R`;
   }
 
-  objects[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R${outlines} >>`;
+  let catalogExtras = '';
+  let info = 0;
+  if (extras) {
+    const note = 'Notes attached to the sample document.\n';
+    const file = add(
+      `<< /Type /EmbeddedFile /Subtype /text#2Fplain /Length ${Buffer.byteLength(note)} >>\nstream\n${note}\nendstream`
+    );
+    const fileSpec = add(
+      `<< /Type /Filespec /F (notes.txt) /UF (notes.txt) /Desc (Reviewer notes) /EF << /F ${file} 0 R >> >>`
+    );
+    info = add(
+      '<< /Title (mantine-doc-viewer sample) /Author (Mantine Doc Viewer) /Subject (Sample document with outline, links, layers and an attachment) /Keywords (sample, pdf) /Creator (generate-sample-pdf.ts) /Producer (mantine-doc-viewer) /CreationDate (D:20260101120000Z) /ModDate (D:20260102093000Z) >>'
+    );
+    catalogExtras =
+      ` /OCProperties << /OCGs [${draftLayer} 0 R ${notesLayer} 0 R] /D << /Order [${draftLayer} 0 R ${notesLayer} 0 R] /OFF [${notesLayer} 0 R] >> >>` +
+      ` /Names << /EmbeddedFiles << /Names [(notes.txt) ${fileSpec} 0 R] >> >>`;
+  }
+
+  objects[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R${outlines}${catalogExtras} >>`;
   objects[pages - 1] =
     `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${totalPages} >>`;
 
@@ -159,7 +189,8 @@ function buildPdf(totalPages: number, chapterLength = 0) {
   const xrefOffset = Buffer.byteLength(output);
   output += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
   output += offsets.map((offset) => `${String(offset).padStart(10, '0')} 00000 n \n`).join('');
-  output += `trailer\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  const infoEntry = info ? ` /Info ${info} 0 R` : '';
+  output += `trailer\n<< /Size ${objects.length + 1} /Root ${catalog} 0 R${infoEntry} >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
   return output;
 }
 

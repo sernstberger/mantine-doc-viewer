@@ -1,10 +1,13 @@
 import {
   clampPage,
+  computeFitPageScale,
   computeScale,
+  getPresentationTarget,
   getMostVisiblePage,
   getThumbnailsLayout,
   nextRotation,
-  toggleTwoPages,
+  fitsToHeight,
+  isTwoPages,
 } from './geometry';
 
 describe('pdf geometry', () => {
@@ -15,11 +18,26 @@ describe('pdf geometry', () => {
     expect(clampPage(5, 0)).toBe(1);
   });
 
-  it('uses the zoom, or fits one or two pages to the width', () => {
-    const base = { bodyWidth: 832, columnGap: 16, pageWidth: 400 };
-    expect(computeScale({ ...base, zoom: 1.5, twoPages: false })).toBe(1.5);
-    expect(computeScale({ ...base, zoom: 'fit-width', twoPages: false })).toBe(2);
-    expect(computeScale({ ...base, zoom: 'fit-width', twoPages: true })).toBeCloseTo(0.98);
+  it('uses the zoom, or fits the layout to the view', () => {
+    const base = {
+      bodyWidth: 832,
+      bodyHeight: 632,
+      columnGap: 16,
+      pageWidth: 400,
+      pageHeight: 300,
+    };
+    expect(computeScale({ ...base, zoom: 1.5, layout: 'single' })).toBe(1.5);
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'single' })).toBe(2);
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'two-page' })).toBeCloseTo(0.98);
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'horizontal' })).toBe(2);
+    expect(computeScale({ ...base, zoom: 'fit-width', layout: 'wrapped' })).toBe(2);
+  });
+
+  it('knows which layouts show two pages and which fit to height', () => {
+    expect(isTwoPages('two-page-cover')).toBe(true);
+    expect(isTwoPages('wrapped')).toBe(false);
+    expect(fitsToHeight('horizontal')).toBe(true);
+    expect(fitsToHeight('single')).toBe(false);
   });
 
   it('turns a quarter at a time', () => {
@@ -27,19 +45,20 @@ describe('pdf geometry', () => {
     expect(nextRotation(270)).toBe(0);
   });
 
-  it('toggles two pages in the flavour the viewer opened with', () => {
-    expect(toggleTwoPages('single', undefined)).toBe('two-page');
-    expect(toggleTwoPages('single', 'two-page-cover')).toBe('two-page-cover');
-    expect(toggleTwoPages('two-page', 'two-page')).toBe('single');
-  });
-
-  it('finds the page with the most visible height', () => {
-    const boxes = [
-      { page: 1, top: -500, bottom: 100 },
-      { page: 2, top: 120, bottom: 900 },
+  it('finds the page with the most visible area, down or sideways', () => {
+    const view = { top: 0, bottom: 600, left: 0, right: 800 };
+    const column = [
+      { page: 1, top: -500, bottom: 100, left: 0, right: 800 },
+      { page: 2, top: 120, bottom: 900, left: 0, right: 800 },
     ];
-    expect(getMostVisiblePage(boxes, 0, 600)).toBe(2);
-    expect(getMostVisiblePage([], 0, 600)).toBe(0);
+    expect(getMostVisiblePage(column, view)).toBe(2);
+
+    const row = [
+      { page: 3, top: 0, bottom: 600, left: -700, right: 100 },
+      { page: 4, top: 0, bottom: 600, left: 120, right: 920 },
+    ];
+    expect(getMostVisiblePage(row, view)).toBe(4);
+    expect(getMostVisiblePage([], view)).toBe(0);
   });
 
   it('lays thumbnails out by position, before the pages for left and top', () => {
@@ -47,5 +66,20 @@ describe('pdf geometry', () => {
     expect(getThumbnailsLayout('right')).toEqual({ orientation: 'vertical', first: false });
     expect(getThumbnailsLayout('top')).toEqual({ orientation: 'horizontal', first: true });
     expect(getThumbnailsLayout('bottom')).toEqual({ orientation: 'horizontal', first: false });
+  });
+
+  it('fits a whole page for presentations', () => {
+    expect(computeFitPageScale(832, 432, 400, 300)).toBeCloseTo(1.333);
+    expect(computeFitPageScale(432, 832, 400, 300)).toBe(1);
+  });
+
+  it('maps presentation keys to pages', () => {
+    expect(getPresentationTarget('ArrowRight', 2, 5)).toBe(3);
+    expect(getPresentationTarget(' ', 5, 5)).toBe(5);
+    expect(getPresentationTarget('PageUp', 1, 5)).toBe(1);
+    expect(getPresentationTarget('Home', 4, 5)).toBe(1);
+    expect(getPresentationTarget('End', 2, 5)).toBe(5);
+    expect(getPresentationTarget('Escape', 2, 5)).toBe('exit');
+    expect(getPresentationTarget('a', 2, 5)).toBeNull();
   });
 });

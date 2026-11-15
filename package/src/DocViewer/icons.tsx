@@ -141,3 +141,17 @@ export const LockIcon = (props: IconProps) => (
     <path d="M8 11V7a4 4 0 0 1 8 0v4" />
   </Icon>
 );
+
+export const InfoIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8h.01" />
+  </Icon>
+);
+
+export const PresentationIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3" y="4" width="18" height="12" rx="1" />
+    <path d="M12 16v4M8 20h8M10 8l4 2-4 2z" />
+  </Icon>
+);

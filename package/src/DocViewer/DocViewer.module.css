@@ -177,6 +177,31 @@
     grid-column: 2;
   }
 
+  /* One row, scrolled sideways */
+  &[data-layout='horizontal'] {
+    flex-direction: row;
+    align-items: flex-start;
+    column-gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
+  }
+
+  /* One page at a time, centred on a dark background */
+  &[data-layout='presentation'] {
+    justify-content: center;
+    min-height: 100%;
+
+    & > * {
+      box-shadow: none;
+    }
+  }
+
+  /* Rows that wrap to the width of the view */
+  &[data-layout='wrapped'] {
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: flex-start;
+    width: auto;
+  }
+
   gap: var(--doc-viewer-page-gap, var(--mantine-spacing-md));
   width: max-content;
   min-width: 100%;
@@ -338,6 +363,7 @@
 }
 
 .main {
+  position: relative;
   display: flex;
   flex: 1;
   min-height: 0;
@@ -571,4 +597,50 @@
     text-decoration: underline;
     text-underline-offset: 2px;
   }
+}
+
+.documentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  width: min(360px, 80vw);
+  max-height: min(60vh, 480px);
+  overflow: auto;
+  font-size: var(--_font-size);
+}
+
+.properties {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px var(--mantine-spacing-sm);
+  margin: 0;
+
+  & dt {
+    color: var(--mantine-color-dimmed);
+  }
+
+  & dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.main[data-presenting] > .body {
+  background-color: #111;
+  cursor: pointer;
+}
+
+.presentationControls {
+  position: absolute;
+  inset: auto var(--mantine-spacing-md) var(--mantine-spacing-md) auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px 4px 4px var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-xl);
+  background-color: rgb(0 0 0 / 60%);
+  color: white;
+  font-size: var(--mantine-font-size-sm);
+  font-variant-numeric: tabular-nums;
 }

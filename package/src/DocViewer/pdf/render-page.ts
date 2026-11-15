@@ -1,4 +1,5 @@
 import type { PDFPageProxy, RenderTask } from 'pdfjs-dist';
+import type { OptionalContentConfig } from 'pdfjs-dist/types/src/display/optional_content_config';
 
 export type PdfRotation = 0 | 90 | 180 | 270;
 
@@ -42,7 +43,9 @@ export function renderPageToCanvas(
   canvas: HTMLCanvasElement,
   scale: number,
   maxPixels = MAX_CANVAS_PIXELS,
-  rotation: PdfRotation = 0
+  rotation: PdfRotation = 0,
+  /** Layer visibility, when the document has layers */
+  optionalContentConfig?: OptionalContentConfig
 ): RenderTask {
   const viewport = getPageViewport(page, scale, rotation);
   const pixelRatio = getCanvasPixelRatio(
@@ -58,5 +61,8 @@ export function renderPageToCanvas(
     canvas,
     viewport,
     transform: pixelRatio === 1 ? undefined : [pixelRatio, 0, 0, pixelRatio, 0, 0],
+    ...(optionalContentConfig !== undefined && {
+      optionalContentConfigPromise: Promise.resolve(optionalContentConfig),
+    }),
   });
 }

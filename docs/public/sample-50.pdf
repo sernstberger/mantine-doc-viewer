@@ -1,9 +1,9 @@
 %PDF-1.4
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R /Outlines 111 0 R >>
+<< /Type /Catalog /Pages 2 0 R /Outlines 113 0 R /OCProperties << /OCGs [5 0 R 6 0 R] /D << /Order [5 0 R 6 0 R] /OFF [6 0 R] >> >> /Names << /EmbeddedFiles << /Names [(notes.txt) 120 0 R] >> >> >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [5 0 R 6 0 R 7 0 R 8 0 R 9 0 R 10 0 R 11 0 R 12 0 R 13 0 R 14 0 R 15 0 R 16 0 R 17 0 R 18 0 R 19 0 R 20 0 R 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 26 0 R 27 0 R 28 0 R 29 0 R 30 0 R 31 0 R 32 0 R 33 0 R 34 0 R 35 0 R 36 0 R 37 0 R 38 0 R 39 0 R 40 0 R 41 0 R 42 0 R 43 0 R 44 0 R 45 0 R 46 0 R 47 0 R 48 0 R 49 0 R 50 0 R 51 0 R 52 0 R 53 0 R 54 0 R] /Count 50 >>
+<< /Type /Pages /Kids [7 0 R 8 0 R 9 0 R 10 0 R 11 0 R 12 0 R 13 0 R 14 0 R 15 0 R 16 0 R 17 0 R 18 0 R 19 0 R 20 0 R 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 26 0 R 27 0 R 28 0 R 29 0 R 30 0 R 31 0 R 32 0 R 33 0 R 34 0 R 35 0 R 36 0 R 37 0 R 38 0 R 39 0 R 40 0 R 41 0 R 42 0 R 43 0 R 44 0 R 45 0 R 46 0 R 47 0 R 48 0 R 49 0 R 50 0 R 51 0 R 52 0 R 53 0 R 54 0 R 55 0 R 56 0 R] /Count 50 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
@@ -12,13 +12,13 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
 endobj
 5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 55 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Annots [105 0 R 106 0 R 107 0 R 108 0 R 109 0 R 110 0 R] >>
+<< /Type /OCG /Name (Draft watermark) >>
 endobj
 6 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 56 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+<< /Type /OCG /Name (Reviewer notes) >>
 endobj
 7 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 57 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 57 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /Properties << /L1 5 0 R /L2 6 0 R >> >> /Annots [107 0 R 108 0 R 109 0 R 110 0 R 111 0 R 112 0 R] >>
 endobj
 8 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 58 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
@@ -162,7 +162,13 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 104 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
 endobj
 55 0 obj
-<< /Length 681 >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 105 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+56 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 106 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+57 0 obj
+<< /Length 862 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
 1 1 1 rg
@@ -177,9 +183,11 @@ BT /F2 14 Tf 72 528 Td (Contents) Tj ET
 0.1 0.35 0.8 rg BT /F1 12 Tf 72 412 Td (Chapter 5 ...... page 41) Tj ET
 0.1 0.35 0.8 rg BT /F1 12 Tf 72 380 Td (mantine.dev) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 1) Tj ET
+/OC /L1 BDC 0.9 0.3 0.3 rg BT /F2 72 Tf 150 220 Td (DRAFT) Tj ET EMC
+/OC /L2 BDC 0.85 0.45 0.05 rg BT /F1 12 Tf 72 150 Td (Reviewer note: check the figures in chapter 3.) Tj ET EMC
 endstream
 endobj
-56 0 obj
+58 0 obj
 << /Length 1385 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -208,7 +216,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 2.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 2) Tj ET
 endstream
 endobj
-57 0 obj
+59 0 obj
 << /Length 1385 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -237,7 +245,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 3.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 3) Tj ET
 endstream
 endobj
-58 0 obj
+60 0 obj
 << /Length 1384 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -266,7 +274,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 4.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 4) Tj ET
 endstream
 endobj
-59 0 obj
+61 0 obj
 << /Length 1385 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -295,7 +303,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 5.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 5) Tj ET
 endstream
 endobj
-60 0 obj
+62 0 obj
 << /Length 1385 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -324,7 +332,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 6.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 6) Tj ET
 endstream
 endobj
-61 0 obj
+63 0 obj
 << /Length 1384 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -353,7 +361,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 7.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 7) Tj ET
 endstream
 endobj
-62 0 obj
+64 0 obj
 << /Length 1385 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -382,7 +390,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 8.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 8) Tj ET
 endstream
 endobj
-63 0 obj
+65 0 obj
 << /Length 1385 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -411,7 +419,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 9.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 9) Tj ET
 endstream
 endobj
-64 0 obj
+66 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -440,7 +448,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 10.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 10) Tj ET
 endstream
 endobj
-65 0 obj
+67 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -469,7 +477,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 11.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 11) Tj ET
 endstream
 endobj
-66 0 obj
+68 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -498,7 +506,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 12.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 12) Tj ET
 endstream
 endobj
-67 0 obj
+69 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -527,7 +535,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 13.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 13) Tj ET
 endstream
 endobj
-68 0 obj
+70 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -556,7 +564,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 14.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 14) Tj ET
 endstream
 endobj
-69 0 obj
+71 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -585,7 +593,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 15.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 15) Tj ET
 endstream
 endobj
-70 0 obj
+72 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -614,7 +622,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 16.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 16) Tj ET
 endstream
 endobj
-71 0 obj
+73 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -643,7 +651,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 17.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 17) Tj ET
 endstream
 endobj
-72 0 obj
+74 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -672,7 +680,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 18.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 18) Tj ET
 endstream
 endobj
-73 0 obj
+75 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -701,7 +709,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 19.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 19) Tj ET
 endstream
 endobj
-74 0 obj
+76 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -730,7 +738,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 20.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 20) Tj ET
 endstream
 endobj
-75 0 obj
+77 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -759,7 +767,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 21.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 21) Tj ET
 endstream
 endobj
-76 0 obj
+78 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -788,7 +796,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 22.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 22) Tj ET
 endstream
 endobj
-77 0 obj
+79 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -817,7 +825,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 23.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 23) Tj ET
 endstream
 endobj
-78 0 obj
+80 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -846,7 +854,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 24.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 24) Tj ET
 endstream
 endobj
-79 0 obj
+81 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -875,7 +883,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 25.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 25) Tj ET
 endstream
 endobj
-80 0 obj
+82 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -904,7 +912,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 26.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 26) Tj ET
 endstream
 endobj
-81 0 obj
+83 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -933,7 +941,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 27.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 27) Tj ET
 endstream
 endobj
-82 0 obj
+84 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -962,7 +970,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 28.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 28) Tj ET
 endstream
 endobj
-83 0 obj
+85 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -991,7 +999,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 29.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 29) Tj ET
 endstream
 endobj
-84 0 obj
+86 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1020,7 +1028,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 30.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 30) Tj ET
 endstream
 endobj
-85 0 obj
+87 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1049,7 +1057,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 31.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 31) Tj ET
 endstream
 endobj
-86 0 obj
+88 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1078,7 +1086,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 32.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 32) Tj ET
 endstream
 endobj
-87 0 obj
+89 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1107,7 +1115,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 33.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 33) Tj ET
 endstream
 endobj
-88 0 obj
+90 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1136,7 +1144,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 34.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 34) Tj ET
 endstream
 endobj
-89 0 obj
+91 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1165,7 +1173,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 35.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 35) Tj ET
 endstream
 endobj
-90 0 obj
+92 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1194,7 +1202,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 36.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 36) Tj ET
 endstream
 endobj
-91 0 obj
+93 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1223,7 +1231,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 37.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 37) Tj ET
 endstream
 endobj
-92 0 obj
+94 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1252,7 +1260,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 38.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 38) Tj ET
 endstream
 endobj
-93 0 obj
+95 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1281,7 +1289,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 39.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 39) Tj ET
 endstream
 endobj
-94 0 obj
+96 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1310,7 +1318,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 40.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 40) Tj ET
 endstream
 endobj
-95 0 obj
+97 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1339,7 +1347,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 41.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 41) Tj ET
 endstream
 endobj
-96 0 obj
+98 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1368,7 +1376,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 42.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 42) Tj ET
 endstream
 endobj
-97 0 obj
+99 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1397,7 +1405,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 43.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 43) Tj ET
 endstream
 endobj
-98 0 obj
+100 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1426,7 +1434,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 44.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 44) Tj ET
 endstream
 endobj
-99 0 obj
+101 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1455,7 +1463,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 45.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 45) Tj ET
 endstream
 endobj
-100 0 obj
+102 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1484,7 +1492,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 46.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 46) Tj ET
 endstream
 endobj
-101 0 obj
+103 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1513,7 +1521,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 47.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 47) Tj ET
 endstream
 endobj
-102 0 obj
+104 0 obj
 << /Length 1405 >>
 stream
 0.07 0.72 0.53 rg 0 632 612 160 re f
@@ -1542,7 +1550,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 48.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 48) Tj ET
 endstream
 endobj
-103 0 obj
+105 0 obj
 << /Length 1404 >>
 stream
 0.13 0.55 0.9 rg 0 632 612 160 re f
@@ -1571,7 +1579,7 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 49.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 49) Tj ET
 endstream
 endobj
-104 0 obj
+106 0 obj
 << /Length 1405 >>
 stream
 0.75 0.29 0.86 rg 0 632 612 160 re f
@@ -1600,163 +1608,181 @@ BT /F1 11 Tf 72 186 Td (Line 18 of sample text on page 50.) Tj ET
 0.6 0.6 0.6 rg BT /F1 10 Tf 286 40 Td (Page 50) Tj ET
 endstream
 endobj
-105 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 495 300 514] /Border [0 0 0] /Dest [5 0 R /XYZ 0 792 null] >>
-endobj
-106 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 473 300 492] /Border [0 0 0] /Dest [15 0 R /XYZ 0 792 null] >>
-endobj
 107 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 451 300 470] /Border [0 0 0] /Dest [25 0 R /XYZ 0 792 null] >>
+<< /Type /Annot /Subtype /Link /Rect [68 495 300 514] /Border [0 0 0] /Dest [7 0 R /XYZ 0 792 null] >>
 endobj
 108 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 429 300 448] /Border [0 0 0] /Dest [35 0 R /XYZ 0 792 null] >>
+<< /Type /Annot /Subtype /Link /Rect [68 473 300 492] /Border [0 0 0] /Dest [17 0 R /XYZ 0 792 null] >>
 endobj
 109 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 407 300 426] /Border [0 0 0] /Dest [45 0 R /XYZ 0 792 null] >>
+<< /Type /Annot /Subtype /Link /Rect [68 451 300 470] /Border [0 0 0] /Dest [27 0 R /XYZ 0 792 null] >>
 endobj
 110 0 obj
-<< /Type /Annot /Subtype /Link /Rect [68 375 160 394] /Border [0 0 0] /A << /S /URI /URI (https://mantine.dev) >> >>
+<< /Type /Annot /Subtype /Link /Rect [68 429 300 448] /Border [0 0 0] /Dest [37 0 R /XYZ 0 792 null] >>
 endobj
 111 0 obj
-<< /Type /Outlines /First 112 0 R /Last 116 0 R /Count 5 >>
+<< /Type /Annot /Subtype /Link /Rect [68 407 300 426] /Border [0 0 0] /Dest [47 0 R /XYZ 0 792 null] >>
 endobj
 112 0 obj
-<< /Title (Chapter 1: pages 1-10) /Parent 111 0 R  /Next 113 0 R /Dest [5 0 R /Fit] >>
+<< /Type /Annot /Subtype /Link /Rect [68 375 160 394] /Border [0 0 0] /A << /S /URI /URI (https://mantine.dev) >> >>
 endobj
 113 0 obj
-<< /Title (Chapter 2: pages 11-20) /Parent 111 0 R /Prev 112 0 R /Next 114 0 R /Dest [15 0 R /Fit] >>
+<< /Type /Outlines /First 114 0 R /Last 118 0 R /Count 5 >>
 endobj
 114 0 obj
-<< /Title (Chapter 3: pages 21-30) /Parent 111 0 R /Prev 113 0 R /Next 115 0 R /Dest [25 0 R /Fit] >>
+<< /Title (Chapter 1: pages 1-10) /Parent 113 0 R  /Next 115 0 R /Dest [7 0 R /Fit] >>
 endobj
 115 0 obj
-<< /Title (Chapter 4: pages 31-40) /Parent 111 0 R /Prev 114 0 R /Next 116 0 R /Dest [35 0 R /Fit] >>
+<< /Title (Chapter 2: pages 11-20) /Parent 113 0 R /Prev 114 0 R /Next 116 0 R /Dest [17 0 R /Fit] >>
 endobj
 116 0 obj
-<< /Title (Chapter 5: pages 41-50) /Parent 111 0 R /Prev 115 0 R  /Dest [45 0 R /Fit] >>
+<< /Title (Chapter 3: pages 21-30) /Parent 113 0 R /Prev 115 0 R /Next 117 0 R /Dest [27 0 R /Fit] >>
+endobj
+117 0 obj
+<< /Title (Chapter 4: pages 31-40) /Parent 113 0 R /Prev 116 0 R /Next 118 0 R /Dest [37 0 R /Fit] >>
+endobj
+118 0 obj
+<< /Title (Chapter 5: pages 41-50) /Parent 113 0 R /Prev 117 0 R  /Dest [47 0 R /Fit] >>
+endobj
+119 0 obj
+<< /Type /EmbeddedFile /Subtype /text#2Fplain /Length 39 >>
+stream
+Notes attached to the sample document.
+
+endstream
+endobj
+120 0 obj
+<< /Type /Filespec /F (notes.txt) /UF (notes.txt) /Desc (Reviewer notes) /EF << /F 119 0 R >> >>
+endobj
+121 0 obj
+<< /Title (mantine-doc-viewer sample) /Author (Mantine Doc Viewer) /Subject (Sample document with outline, links, layers and an attachment) /Keywords (sample, pdf) /Creator (generate-sample-pdf.ts) /Producer (mantine-doc-viewer) /CreationDate (D:20260101120000Z) /ModDate (D:20260102093000Z) >>
 endobj
 xref
-0 117
+0 122
 0000000000 65535 f 
 0000000009 00000 n 
-0000000076 00000 n 
-0000000473 00000 n 
-0000000543 00000 n 
-0000000618 00000 n 
-0000000813 00000 n 
-0000000950 00000 n 
-0000001087 00000 n 
-0000001224 00000 n 
-0000001361 00000 n 
-0000001499 00000 n 
-0000001637 00000 n 
-0000001775 00000 n 
-0000001913 00000 n 
-0000002051 00000 n 
-0000002189 00000 n 
-0000002327 00000 n 
-0000002465 00000 n 
-0000002603 00000 n 
-0000002741 00000 n 
-0000002879 00000 n 
-0000003017 00000 n 
-0000003155 00000 n 
-0000003293 00000 n 
-0000003431 00000 n 
-0000003569 00000 n 
-0000003707 00000 n 
-0000003845 00000 n 
-0000003983 00000 n 
-0000004121 00000 n 
-0000004259 00000 n 
-0000004397 00000 n 
-0000004535 00000 n 
-0000004673 00000 n 
-0000004811 00000 n 
-0000004949 00000 n 
-0000005087 00000 n 
-0000005225 00000 n 
-0000005363 00000 n 
-0000005501 00000 n 
-0000005639 00000 n 
-0000005777 00000 n 
-0000005915 00000 n 
-0000006053 00000 n 
-0000006191 00000 n 
-0000006329 00000 n 
-0000006467 00000 n 
-0000006605 00000 n 
-0000006743 00000 n 
-0000006881 00000 n 
-0000007020 00000 n 
-0000007159 00000 n 
-0000007298 00000 n 
-0000007437 00000 n 
-0000007576 00000 n 
-0000008309 00000 n 
-0000009747 00000 n 
-0000011185 00000 n 
-0000012622 00000 n 
-0000014060 00000 n 
-0000015498 00000 n 
-0000016935 00000 n 
-0000018373 00000 n 
-0000019811 00000 n 
-0000021268 00000 n 
-0000022726 00000 n 
-0000024184 00000 n 
-0000025641 00000 n 
-0000027099 00000 n 
-0000028557 00000 n 
-0000030014 00000 n 
-0000031472 00000 n 
-0000032930 00000 n 
-0000034387 00000 n 
-0000035845 00000 n 
-0000037303 00000 n 
-0000038760 00000 n 
-0000040218 00000 n 
-0000041676 00000 n 
-0000043133 00000 n 
-0000044591 00000 n 
-0000046049 00000 n 
-0000047506 00000 n 
-0000048964 00000 n 
-0000050422 00000 n 
-0000051879 00000 n 
-0000053337 00000 n 
-0000054795 00000 n 
-0000056252 00000 n 
-0000057710 00000 n 
-0000059168 00000 n 
-0000060625 00000 n 
-0000062083 00000 n 
-0000063541 00000 n 
-0000064998 00000 n 
-0000066456 00000 n 
-0000067914 00000 n 
-0000069371 00000 n 
-0000070829 00000 n 
-0000072287 00000 n 
-0000073745 00000 n 
-0000075204 00000 n 
-0000076663 00000 n 
-0000078121 00000 n 
-0000079580 00000 n 
-0000079700 00000 n 
-0000079821 00000 n 
-0000079942 00000 n 
-0000080063 00000 n 
+0000000222 00000 n 
+0000000621 00000 n 
+0000000691 00000 n 
+0000000766 00000 n 
+0000000822 00000 n 
+0000000877 00000 n 
+0000001110 00000 n 
+0000001247 00000 n 
+0000001384 00000 n 
+0000001522 00000 n 
+0000001660 00000 n 
+0000001798 00000 n 
+0000001936 00000 n 
+0000002074 00000 n 
+0000002212 00000 n 
+0000002350 00000 n 
+0000002488 00000 n 
+0000002626 00000 n 
+0000002764 00000 n 
+0000002902 00000 n 
+0000003040 00000 n 
+0000003178 00000 n 
+0000003316 00000 n 
+0000003454 00000 n 
+0000003592 00000 n 
+0000003730 00000 n 
+0000003868 00000 n 
+0000004006 00000 n 
+0000004144 00000 n 
+0000004282 00000 n 
+0000004420 00000 n 
+0000004558 00000 n 
+0000004696 00000 n 
+0000004834 00000 n 
+0000004972 00000 n 
+0000005110 00000 n 
+0000005248 00000 n 
+0000005386 00000 n 
+0000005524 00000 n 
+0000005662 00000 n 
+0000005800 00000 n 
+0000005938 00000 n 
+0000006076 00000 n 
+0000006214 00000 n 
+0000006352 00000 n 
+0000006490 00000 n 
+0000006628 00000 n 
+0000006766 00000 n 
+0000006904 00000 n 
+0000007043 00000 n 
+0000007182 00000 n 
+0000007321 00000 n 
+0000007460 00000 n 
+0000007599 00000 n 
+0000007738 00000 n 
+0000007877 00000 n 
+0000008791 00000 n 
+0000010229 00000 n 
+0000011667 00000 n 
+0000013104 00000 n 
+0000014542 00000 n 
+0000015980 00000 n 
+0000017417 00000 n 
+0000018855 00000 n 
+0000020293 00000 n 
+0000021750 00000 n 
+0000023208 00000 n 
+0000024666 00000 n 
+0000026123 00000 n 
+0000027581 00000 n 
+0000029039 00000 n 
+0000030496 00000 n 
+0000031954 00000 n 
+0000033412 00000 n 
+0000034869 00000 n 
+0000036327 00000 n 
+0000037785 00000 n 
+0000039242 00000 n 
+0000040700 00000 n 
+0000042158 00000 n 
+0000043615 00000 n 
+0000045073 00000 n 
+0000046531 00000 n 
+0000047988 00000 n 
+0000049446 00000 n 
+0000050904 00000 n 
+0000052361 00000 n 
+0000053819 00000 n 
+0000055277 00000 n 
+0000056734 00000 n 
+0000058192 00000 n 
+0000059650 00000 n 
+0000061107 00000 n 
+0000062565 00000 n 
+0000064023 00000 n 
+0000065480 00000 n 
+0000066938 00000 n 
+0000068396 00000 n 
+0000069853 00000 n 
+0000071312 00000 n 
+0000072771 00000 n 
+0000074229 00000 n 
+0000075688 00000 n 
+0000077147 00000 n 
+0000078605 00000 n 
+0000080064 00000 n 
 0000080184 00000 n 
-0000080318 00000 n 
-0000080395 00000 n 
-0000080499 00000 n 
-0000080618 00000 n 
-0000080737 00000 n 
-0000080856 00000 n 
+0000080305 00000 n 
+0000080426 00000 n 
+0000080547 00000 n 
+0000080668 00000 n 
+0000080802 00000 n 
+0000080879 00000 n 
+0000080983 00000 n 
+0000081102 00000 n 
+0000081221 00000 n 
+0000081340 00000 n 
+0000081446 00000 n 
+0000081580 00000 n 
+0000081694 00000 n 
 trailer
-<< /Size 117 /Root 1 0 R >>
+<< /Size 122 /Root 1 0 R /Info 121 0 R >>
 startxref
-80962
+82006
 %%EOF

@@ -1,0 +1,83 @@
+import { Checkbox, Stack, Text, UnstyledButton } from '@mantine/core';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
+import React from 'react';
+import { useDocViewerContext } from '../DocViewer.context';
+import { downloadAttachment, PdfAttachment, PdfProperty } from './document-info';
+import type { PdfLayer } from './use-pdf-layers';
+
+interface PdfDocumentInfoProps {
+  document: PDFDocumentProxy;
+  properties: PdfProperty[] | null;
+  attachments: PdfAttachment[];
+  layers: PdfLayer[];
+  onLayerChange: (id: string, visible: boolean) => void;
+}
+
+/** Document properties, attachments and layers, shown in a popover from the toolbar */
+export function PdfDocumentInfo({
+  document,
+  properties,
+  attachments,
+  layers,
+  onLayerChange,
+}: PdfDocumentInfoProps) {
+  const { getStyles, labels } = useDocViewerContext();
+
+  return (
+    <div {...getStyles('documentInfo')}>
+      <section aria-labelledby="doc-viewer-properties">
+        <Text id="doc-viewer-properties" fw={600} size="sm" mb={4}>
+          {labels.properties}
+        </Text>
+        <dl {...getStyles('properties')}>
+          {(properties ?? []).map((property) => (
+            <React.Fragment key={property.key}>
+              <dt>{labels.propertyNames[property.key]}</dt>
+              <dd>{property.value}</dd>
+            </React.Fragment>
+          ))}
+        </dl>
+      </section>
+
+      {attachments.length > 0 && (
+        <section aria-labelledby="doc-viewer-attachments">
+          <Text id="doc-viewer-attachments" fw={600} size="sm" mb={4}>
+            {labels.attachments}
+          </Text>
+          <Stack gap={2}>
+            {attachments.map((attachment) => (
+              <UnstyledButton
+                key={attachment.id}
+                {...getStyles('outlineItem')}
+                title={attachment.description || undefined}
+                aria-label={labels.downloadAttachment(attachment.filename)}
+                onClick={() => downloadAttachment(document, attachment)}
+              >
+                {attachment.filename}
+              </UnstyledButton>
+            ))}
+          </Stack>
+        </section>
+      )}
+
+      {layers.length > 0 && (
+        <section aria-labelledby="doc-viewer-layers">
+          <Text id="doc-viewer-layers" fw={600} size="sm" mb={4}>
+            {labels.layers}
+          </Text>
+          <Stack gap={6}>
+            {layers.map((layer) => (
+              <Checkbox
+                key={layer.id}
+                size="xs"
+                label={layer.name}
+                checked={layer.visible}
+                onChange={(event) => onLayerChange(layer.id, event.currentTarget.checked)}
+              />
+            ))}
+          </Stack>
+        </section>
+      )}
+    </div>
+  );
+}

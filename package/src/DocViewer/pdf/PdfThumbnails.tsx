@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useDocViewerContext } from '../DocViewer.context';
 import { getPageViewport, PdfRotation, renderPageToCanvas, rotateSize } from './render-page';
 import type { PdfPageSize } from './use-pdf-document';
+import type { PdfLayersState } from './use-pdf-layers';
 import { useNearViewport } from './use-near-viewport';
 import { useReleasePage } from './use-release-page';
 
@@ -39,6 +40,7 @@ interface PdfThumbnailProps {
   placeholderSize: PdfPageSize;
   active: boolean;
   rotation: PdfRotation;
+  layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   scrollRoot: HTMLElement | null;
   onSelect: (pageNumber: number) => void;
@@ -50,6 +52,7 @@ function PdfThumbnail({
   placeholderSize,
   active,
   rotation,
+  layers,
   orientation,
   scrollRoot,
   onSelect,
@@ -81,7 +84,14 @@ function PdfThumbnail({
 
       const { width: pageWidth, height } = getPageViewport(page, 1, rotation);
       setSize({ width: pageWidth, height });
-      renderTask = renderPageToCanvas(page, canvas, width / pageWidth, maxCanvasPixels, rotation);
+      renderTask = renderPageToCanvas(
+        page,
+        canvas,
+        width / pageWidth,
+        maxCanvasPixels,
+        rotation,
+        layers?.config ?? undefined
+      );
       renderTask.promise.catch(() => {});
     });
 
@@ -89,7 +99,9 @@ function PdfThumbnail({
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [document, pageNumber, near, width, maxCanvasPixels, rotation]);
+    // Pages draw with the document's own layer visibility until a layer is toggled (version)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document, pageNumber, near, width, maxCanvasPixels, rotation, layers?.version]);
 
   useReleasePage(document, pageNumber, near);
 
@@ -150,6 +162,7 @@ interface PdfThumbnailsProps {
   placeholderSize: PdfPageSize;
   currentPage: number;
   rotation: PdfRotation;
+  layers?: PdfLayersState;
   orientation: ThumbnailsOrientation;
   onSelect: (pageNumber: number) => void;
 }
@@ -159,6 +172,7 @@ export function PdfThumbnails({
   placeholderSize,
   currentPage,
   rotation,
+  layers,
   orientation,
   onSelect,
 }: PdfThumbnailsProps) {
@@ -215,6 +229,7 @@ export function PdfThumbnails({
           placeholderSize={placeholderSize}
           active={currentPage === index + 1}
           rotation={rotation}
+          layers={layers}
           orientation={orientation}
           scrollRoot={scrollRoot}
           onSelect={onSelect}

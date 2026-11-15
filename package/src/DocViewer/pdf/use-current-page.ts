@@ -12,7 +12,7 @@ const LONG_JUMP_SCREENS = 3;
 const SCROLL_SETTLE_TIMEOUT = 1000;
 
 /** Tracks which page takes up most of the scroll container, and scrolls to pages */
-export function useCurrentPage(scrollRoot: HTMLElement | null) {
+export function useCurrentPage(scrollRoot: HTMLElement | null, horizontal = false) {
   const [currentPage, setCurrentPage] = useState(1);
   const pages = useRef(new Map<number, HTMLDivElement>());
   const visible = useRef(new Set<number>());
@@ -37,13 +37,19 @@ export function useCurrentPage(scrollRoot: HTMLElement | null) {
         return;
       }
 
-      const view = scrollRoot.getBoundingClientRect();
       const boxes: VisibleBox[] = [];
       visible.current.forEach((page) => {
         const rect = pages.current.get(page)?.getBoundingClientRect();
-        rect && boxes.push({ page, top: rect.top, bottom: rect.bottom });
+        rect &&
+          boxes.push({
+            page,
+            top: rect.top,
+            bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
+          });
       });
-      const best = getMostVisiblePage(boxes, view.top, view.bottom);
+      const best = getMostVisiblePage(boxes, scrollRoot.getBoundingClientRect());
       best && setCurrentPage(best);
     };
 
@@ -114,11 +120,13 @@ export function useCurrentPage(scrollRoot: HTMLElement | null) {
 
       // Long jumps are instant: scrolling smoothly past hundreds of pages would draw each one
       const top = node.offsetTop - PAGE_SCROLL_OFFSET + offset;
+      const left = horizontal ? node.offsetLeft - PAGE_SCROLL_OFFSET : scrollRoot.scrollLeft;
       const far =
-        Math.abs(top - scrollRoot.scrollTop) > scrollRoot.clientHeight * LONG_JUMP_SCREENS;
-      scrollRoot.scrollTo({ top, behavior: far ? 'auto' : getScrollBehavior() });
+        Math.abs(top - scrollRoot.scrollTop) > scrollRoot.clientHeight * LONG_JUMP_SCREENS ||
+        Math.abs(left - scrollRoot.scrollLeft) > scrollRoot.clientWidth * LONG_JUMP_SCREENS;
+      scrollRoot.scrollTo({ top, left, behavior: far ? 'auto' : getScrollBehavior() });
     },
-    [scrollRoot]
+    [scrollRoot, horizontal]
   );
 
   return { currentPage, registerPage, scrollToPage };
