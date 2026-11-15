@@ -52,6 +52,12 @@ test('Alt+arrow moves the focused page and focus follows it', async ({ page }) =
     .poll(() => order(page))
     .toEqual(['Page 2, position 1 of 3', 'Page 1, position 2 of 3', 'Page 3, position 3 of 3']);
   await expect.poll(() => focusedOption(page)).toBe('Page 1, position 2 of 3');
+  // The roving tab stop follows a frame later (move() in use-page-editor-state sets focusedIndex in
+  // requestAnimationFrame); a key pressed before that moves the page at the old index
+  await expect(pages(page).locator('[tabindex="0"]')).toHaveAttribute(
+    'aria-label',
+    'Page 1, position 2 of 3'
+  );
   await expect(
     page.getByRole('status').filter({ hasText: 'Page 1 moved to position 2' })
   ).toBeAttached();
