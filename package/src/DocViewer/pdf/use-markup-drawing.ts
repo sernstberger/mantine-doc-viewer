@@ -10,7 +10,7 @@ interface DrawingInput extends MarkupLayerInput {
   commitText: () => void;
 }
 
-/** Drawing with the current tool: the drag or stroke in progress and its pointer handlers */
+/** Drawing with the current tool: the drag or stroke in progress, its pointer handlers and the commit keys share */
 export function useMarkupDrawing({
   pageNumber,
   width,
@@ -71,6 +71,9 @@ export function useMarkupDrawing({
       : null;
 
   return {
+    draft,
+    setDraft,
+    commit,
     draftMark,
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: () => setDraft(null) },
   };

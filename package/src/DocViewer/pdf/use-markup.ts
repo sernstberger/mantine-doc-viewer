@@ -61,6 +61,9 @@ export interface PdfMarkup {
   /** Removes the last mark */
   undo: () => void;
 
+  /** Reads a message out through the viewer's status region, such as a mark placed from the keyboard */
+  announce: (message: string) => void;
+
   /** Whether the marks are being written into the PDF */
   saving: boolean;
 
@@ -68,7 +71,10 @@ export interface PdfMarkup {
   save: (document: PDFDocumentProxy) => Promise<Uint8Array>;
 }
 
-export function useMarkup(props: DocViewerMarkupProps): PdfMarkup {
+export function useMarkup(
+  props: DocViewerMarkupProps,
+  announce: (message: string) => void
+): PdfMarkup {
   const theme = useMantineTheme();
   const [tool, setTool] = useUncontrolled<DocViewerMarkupTool | null>({
     value: props.markupTool,
@@ -108,6 +114,7 @@ export function useMarkup(props: DocViewerMarkupProps): PdfMarkup {
     width: props.markupWidth ?? DEFAULT_WIDTH,
     fontSize: props.markupFontSize ?? DEFAULT_FONT_SIZE,
     undo: () => setMarks(marks.slice(0, -1)),
+    announce,
     saving,
     save,
   };

@@ -6,7 +6,8 @@ export type EditorKeyAction =
   | 'toggle'
   | 'remove'
   | 'rotate'
-  | 'selectAll';
+  | 'selectAll'
+  | 'escape';
 
 /** An action to run, and for move and focus which way: -1 earlier, 1 later */
 export interface EditorKey {
@@ -39,6 +40,7 @@ const PLAIN_ACTIONS: Record<string, EditorKey> = {
   ' ': later('toggle'),
   Delete: later('remove'),
   Backspace: later('remove'),
+  Escape: later('escape'),
 };
 
 /** Letter keys: [action, whether Ctrl/Cmd must be held] */

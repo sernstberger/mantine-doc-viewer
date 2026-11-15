@@ -1,6 +1,7 @@
 import { VisuallyHidden } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { focusIfLost } from '../a11y';
 import { useDocViewerContext } from '../DocViewer.context';
 import { EditorBar } from './PdfEditorBar';
 import { PageTile } from './PdfPageTile';
@@ -32,7 +33,12 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     onDone,
     onSave,
   });
-  const handleKeyDown = usePageEditorKeys(editor);
+  const handleKeyDown = usePageEditorKeys(editor, onCancel);
+
+  // The editor replaces the reader and the Edit pages button with it: focus moves to the pages
+  useEffect(() => {
+    focusIfLost(scrollRoot?.querySelector<HTMLElement>('[tabindex="0"]'));
+  }, [scrollRoot]);
 
   return (
     <div {...getStyles('editor')}>
@@ -58,7 +64,7 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
         role="listbox"
         aria-multiselectable
         aria-label={labels.pages}
-        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A"
+        aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Delete Space R Control+A Escape"
         onKeyDown={handleKeyDown}
         data-dragging={reorder.dragging || undefined}
       >

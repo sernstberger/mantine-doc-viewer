@@ -11,6 +11,7 @@ describe('getEditorKeyAction', () => {
     [' ', 'toggle', 1],
     ['Delete', 'remove', 1],
     ['Backspace', 'remove', 1],
+    ['Escape', 'escape', 1],
     ['r', 'rotate', 1],
     ['R', 'rotate', 1],
   ])('maps %j to %s', (key, action, step) => {

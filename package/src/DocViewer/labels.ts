@@ -30,6 +30,8 @@ export interface DocViewerLabels {
   pagesRemoved: (count: number) => string;
   pagesRotated: (count: number) => string;
   exitPresentation: string;
+  /** Read out when a presentation starts */
+  presentationStarted: string;
   fullscreen: string;
   exitFullscreen: string;
   loading: string;
@@ -37,6 +39,8 @@ export interface DocViewerLabels {
   zoomIn: string;
   zoomOut: string;
   resetZoom: string;
+  /** Read out after zooming, with the zoom as a percentage */
+  zoomLevel: (percent: string) => string;
   fitToWidth: string;
   fitToView: string;
   rotate: string;
@@ -85,6 +89,8 @@ export interface DocViewerLabels {
   previousPage: string;
   nextPage: string;
   pageOf: (page: number, total: number) => string;
+  /** Read inside a page that has no text layer, such as a scanned page */
+  pageHasNoText: string;
   /** Screen reader name of a page thumbnail */
   thumbnail: (page: number) => string;
   /** Screen reader name of a link inside a PDF that goes to another page */
@@ -112,6 +118,13 @@ export interface DocViewerLabels {
   /** Screen reader name of the box a text mark is typed into */
   markupText: string;
   markupSaved: string;
+  /** Screen reader name of a page while a markup tool is picked, where keys place marks */
+  markupLayer: (tool: string, page: number) => string;
+  /** How to place marks with the keyboard, read after the page's markup name */
+  markupKeys: string;
+  markStarted: (tool: string) => string;
+  markAdded: (tool: string) => string;
+  markCancelled: string;
 
   wrapLines: string;
   doNotWrapLines: string;
@@ -159,6 +172,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   pagesRemoved: (count) => (count === 1 ? '1 page removed' : `${count} pages removed`),
   pagesRotated: (count) => (count === 1 ? '1 page turned' : `${count} pages turned`),
   exitPresentation: 'Exit presentation',
+  presentationStarted: 'Presentation started, press Escape to exit',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
   loading: 'Loading document',
@@ -166,6 +180,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
   resetZoom: 'Reset zoom to 100%',
+  zoomLevel: (percent) => `Zoom ${percent}`,
   fitToWidth: 'Fit to width',
   fitToView: 'Fit to view',
   rotate: 'Rotate',
@@ -213,6 +228,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   previousPage: 'Previous page',
   nextPage: 'Next page',
   pageOf: (page, total) => `Page ${page} of ${total}`,
+  pageHasNoText: 'No text on this page',
   thumbnail: (page) => `Page ${page}`,
   linkToPage: (page) => `Go to page ${page}`,
 
@@ -243,6 +259,12 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   closeMarkup: 'Close markup',
   markupText: 'Text box text',
   markupSaved: 'Markup saved',
+  markupLayer: (tool, page) => `${tool} on page ${page}`,
+  markupKeys:
+    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels.',
+  markStarted: (tool) => `${tool} started`,
+  markAdded: (tool) => `${tool} added`,
+  markCancelled: 'Mark cancelled',
 
   wrapLines: 'Wrap lines',
   doNotWrapLines: 'Do not wrap lines',

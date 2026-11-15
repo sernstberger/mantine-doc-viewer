@@ -12,6 +12,7 @@ import { usePdfPageContent } from './use-pdf-page-content';
 import { usePdfPageSync } from './use-pdf-page-sync';
 import { usePdfPageTurns } from './use-pdf-page-turns';
 import { usePdfReadingPosition } from './use-pdf-reading-position';
+import { usePdfModes } from './use-pdf-modes';
 import { usePdfViewActions } from './use-pdf-view-actions';
 import { usePdfViewGeometry } from './use-pdf-view-geometry';
 
@@ -45,6 +46,7 @@ export function PdfView() {
     turns,
   });
   const { presenting, thumbnailsPanel } = view;
+  const modes = usePdfModes(edited, presenting, position.announce);
 
   if (editing && ready) {
     return (
@@ -66,9 +68,7 @@ export function PdfView() {
   const parts = { view, position, content };
   return (
     <>
-      {!presenting && (
-        <PdfReaderBars ready={ready} {...parts} actions={actions} setEditing={setEditing} />
-      )}
+      {!presenting && <PdfReaderBars ready={ready} {...parts} actions={actions} modes={modes} />}
 
       <PdfMain
         position={thumbnailsPanel.position}

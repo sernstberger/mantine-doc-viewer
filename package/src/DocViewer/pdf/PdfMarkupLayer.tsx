@@ -5,6 +5,7 @@ import { getOverlayStyle } from './page-overlay';
 import { PdfMarkupTextInput, PdfMarkupTexts } from './PdfMarkupText';
 import type { PdfRotation } from './render-page';
 import { useMarkupDrawing } from './use-markup-drawing';
+import { useMarkupKeyboard } from './use-markup-keyboard';
 import type { PdfMarkup } from './use-markup';
 import { useTextDraft } from './use-text-draft';
 
@@ -62,7 +63,10 @@ export function PdfMarkupLayer({
   const input = { pageNumber, width, height, scale, rotation, markup };
   const text = useTextDraft(input);
   const { textDraft } = text;
-  const { draftMark, handlers } = useMarkupDrawing({ ...input, ...text });
+  const drawing = useMarkupDrawing({ ...input, ...text });
+  const { draftMark, handlers } = drawing;
+  const keyboard = useMarkupKeyboard({ ...input, ...text, ...drawing });
+  const { caret } = keyboard;
   const pageMarks = marks.filter((mark) => mark.page === pageNumber);
 
   if (pageMarks.length === 0 && !tool && !textDraft) {
@@ -76,6 +80,8 @@ export function PdfMarkupLayer({
       })}
       data-tool={tool ?? undefined}
       data-page-number={pageNumber}
+      ref={keyboard.layerRef}
+      {...keyboard.keyboardProps}
       {...handlers}
     >
       <svg width={width * scale} height={height * scale} aria-hidden>
@@ -83,6 +89,23 @@ export function PdfMarkupLayer({
           <MarkShape key={mark.id} mark={mark} scale={scale} />
         ))}
         {draftMark && <MarkShape mark={draftMark} scale={scale} />}
+        {caret && (
+          // The keyboard cursor, shown while the layer has keyboard focus
+          <g data-markup-caret stroke={markup.getColor(tool!)}>
+            <line
+              x1={caret[0] * scale - 6}
+              x2={caret[0] * scale + 6}
+              y1={caret[1] * scale}
+              y2={caret[1] * scale}
+            />
+            <line
+              x1={caret[0] * scale}
+              x2={caret[0] * scale}
+              y1={caret[1] * scale - 6}
+              y2={caret[1] * scale + 6}
+            />
+          </g>
+        )}
       </svg>
 
       <PdfMarkupTexts marks={pageMarks} scale={scale} />

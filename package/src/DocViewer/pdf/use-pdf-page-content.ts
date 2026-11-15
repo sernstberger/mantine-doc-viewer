@@ -15,7 +15,7 @@ export function usePdfPageContent(
   context: DocViewerContextValue,
   document: PDFDocumentProxy | null,
   { scrollRoot, viewport, scale, rotation }: PdfViewGeometry,
-  { currentPage, scrollToPage }: PdfReadingPosition
+  { currentPage, scrollToPage, announce }: PdfReadingPosition
 ) {
   const { events } = context;
   const search = usePdfSearchBar(document, scrollRoot);
@@ -40,7 +40,7 @@ export function usePdfPageContent(
     rotation,
   });
   useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
-  const markup = useMarkup(context.markup);
+  const markup = useMarkup(context.markup, announce);
   const pdfLayers = usePdfLayers(document);
   const layers = { config: pdfLayers.config, version: pdfLayers.version };
   const linkService = useLinkService({ document, currentPage, scale, scrollToPage, events });

@@ -151,6 +151,7 @@ export function PdfThumbnails({
       role="listbox"
       aria-label={labels.pages}
       aria-orientation={horizontal ? 'horizontal' : 'vertical'}
+      aria-keyshortcuts={onDelete && numPages > 1 ? 'Delete Backspace' : undefined}
       data-orientation={orientation}
       onKeyDown={handleKeyDown}
     >

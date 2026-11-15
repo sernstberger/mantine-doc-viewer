@@ -32,8 +32,8 @@ interface PdfViewActionsInput {
 export function usePdfViewActions(input: PdfViewActionsInput) {
   const { context, loaded, edited, view, position, content, turns } = input;
   const { document, numPages } = loaded;
-  const { scale, scrollRoot, presenting, setZoom } = view;
-  const { currentPage, scrollToPage, goToPage } = position;
+  const { scale, scrollRoot, presenting } = view;
+  const { currentPage, scrollToPage, goToPage, zoomTo } = position;
   const { search, markup } = content;
 
   const print = async () => {
@@ -48,7 +48,7 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     scrollRoot,
     withPageEditing: context.withPageEditing,
     goToPage,
-    setZoom,
+    setZoom: zoomTo,
     setEditing: edited.setEditing,
     toggleThumbnails: view.thumbnailsPanel.toggle,
     togglePresentation: view.presentation.toggle,
@@ -85,14 +85,14 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     markup,
   });
 
-  useWheelZoom(scrollRoot, !presenting, scale, setZoom);
+  useWheelZoom(scrollRoot, !presenting, scale, zoomTo);
 
   const keyActions: Record<PdfKeyAction['type'], (action: PdfKeyAction) => void> = {
     page: (action) => action.type === 'page' && goToPage(action.page),
     exit: () => view.presentation.stop(),
-    'zoom-in': () => setZoom(zoomIn(scale)),
-    'zoom-out': () => setZoom(zoomOut(scale)),
-    fit: () => setZoom('fit-width'),
+    'zoom-in': () => zoomTo(zoomIn(scale)),
+    'zoom-out': () => zoomTo(zoomOut(scale)),
+    fit: () => zoomTo('fit-width'),
     search: () => search.open(),
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

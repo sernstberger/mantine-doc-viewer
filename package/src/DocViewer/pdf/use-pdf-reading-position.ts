@@ -1,4 +1,5 @@
 import type { DocViewerContextValue } from '../DocViewer.context';
+import { useAnnouncedZoom } from '../use-zoom-announcement';
 import { getPointOffset } from './page-points';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
@@ -6,7 +7,10 @@ import { useKeepPageOnLayout } from './use-page-layout';
 import type { PdfLoaded, PdfViewGeometry } from './use-pdf-view-geometry';
 import { useReadingProgress } from './use-reading-progress';
 
-/** Where the reader is: reading progress, the current page, moving to a page, and reading it out */
+/**
+ * Where the reader is: reading progress, the current page, moving to a page, and reading it out;
+ * zooming too, read out once it settles
+ */
 export function usePdfReadingPosition(
   context: DocViewerContextValue,
   { document, numPages }: PdfLoaded,
@@ -29,6 +33,8 @@ export function usePdfReadingPosition(
   );
   useKeepPageOnLayout(view.layout, currentPage, scrollToPage);
   const [pageAnnouncement, announce] = useAnnouncement();
+  // Zoom from keys, buttons, the wheel and the app; fit zoom after a resize stays silent
+  const zoomTo = useAnnouncedZoom(scale, view.setZoom, announce);
 
   /** Moves to a page, and reads it out unless something else already does (the thumbnails) */
   const goToPage = (
@@ -56,6 +62,7 @@ export function usePdfReadingPosition(
     pageAnnouncement,
     announce,
     goToPage,
+    zoomTo,
   };
 }
 

@@ -1,9 +1,12 @@
+import { VisuallyHidden } from '@mantine/core';
 import { useElementSize, useMergedRef } from '@mantine/hooks';
 import React, { useState } from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../DocViewer.context';
 import { DocViewerToolbar } from '../DocViewerToolbar';
 import { printImage } from '../print';
 import { getRegionProps } from '../a11y';
+import { useAnnouncement } from '../pdf/use-announcement';
+import { useZoomAnnouncement } from '../use-zoom-announcement';
 import { getFrameStyle, getImageFitScale, getImageStyle, ImageRotation } from './image-fit';
 import { nextImageRotation } from './image-zoom';
 import { ImageControls } from './ImageControls';
@@ -24,13 +27,16 @@ export function ImageView() {
   const stageRef = useMergedRef(sizeRef, setStage, pan.ref);
   const { naturalSize, failed, ready, checkLoaded, onLoad, onError } = useImageLoad();
 
+  const [announcement, announce] = useAnnouncement();
   const fitScale = naturalSize ? getImageFitScale({ width, height }, naturalSize, rotation) : 1;
   const { zoom, scale, zoomTo, overflowing } = useImageZoom({
     stage,
     defaultZoom,
     fitScale,
     layoutKey: `${rotation}:${width}x${height}`,
+    onZoom: () => markZoom(),
   });
+  const markZoom = useZoomAnnouncement(scale, announce);
   const rotate = () => setRotation(nextImageRotation);
   const handleKeyDown = useImageKeys({ scale, zoomTo, rotate });
   const imageAlt = alt ?? fileName ?? labels.image;
@@ -73,6 +79,8 @@ export function ImageView() {
 
         {!ready && <ImageOverlay failed={failed} />}
       </div>
+
+      {ready && <VisuallyHidden role="status">{announcement}</VisuallyHidden>}
     </>
   );
 }

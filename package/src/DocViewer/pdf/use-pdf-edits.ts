@@ -10,6 +10,7 @@ import {
   removeSelected,
   type PdfSaveReason,
 } from './page-edits';
+import { focusThumbnail, getFocusedThumbnailViewer } from './thumbnail-focus';
 import type { PdfMarkup } from './use-markup';
 
 /**
@@ -69,6 +70,8 @@ export function usePdfEdits({
   // waits for the new document: right after the bytes change, the old one is still loaded
   const pageAfterEdit = useRef(1);
   const replacedDocument = useRef<unknown>(null);
+  // A sidebar edit reloads the document and the thumbnails with it: focus comes back to the page
+  const thumbnailViewer = useRef<Element | null>(null);
   const showEdited = (bytes: Uint8Array, page = 1) => {
     pageAfterEdit.current = page;
     replacedDocument.current = document;
@@ -78,6 +81,8 @@ export function usePdfEdits({
     if (editedData && document && document !== replacedDocument.current) {
       scrollToPage(pageAfterEdit.current);
       replacedDocument.current = document;
+      focusThumbnail(thumbnailViewer.current, pageAfterEdit.current);
+      thumbnailViewer.current = null;
     }
     // Only when a new edited document is ready
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,6 +101,7 @@ export function usePdfEdits({
 
   /** Moves a page by dragging its thumbnail: the viewer shows the reordered document */
   const reorderPages = async (page: number, toIndex: number) => {
+    thumbnailViewer.current = getFocusedThumbnailViewer();
     const order = movePage(initialOrder(numPages), page, toIndex);
     const bytes = (await document!.extractPages(buildExtractRequest(order))) as Uint8Array;
     showEdited(bytes, toIndex + 1);
@@ -106,6 +112,7 @@ export function usePdfEdits({
 
   /** Removes a page with its thumbnail's delete button: the viewer shows the shorter document */
   const deletePage = async (page: number) => {
+    thumbnailViewer.current = getFocusedThumbnailViewer();
     // Thumbnails only offer delete while there are two pages or more
     const order = removeSelected(initialOrder(numPages), new Set([page]));
     const bytes = (await document!.extractPages(buildExtractRequest(order))) as Uint8Array;
