@@ -106,5 +106,20 @@ describe('pdf search', () => {
       expect(normalizeForSearch('ﬁne İstanbul', {})).toHaveLength('ﬁne İstanbul'.length);
       expect(normalizeForSearch('Exact', { matchCase: true, matchAccents: true })).toBe('Exact');
     });
+
+    it('changes only capitals and characters outside ASCII', () => {
+      expect(normalizeForSearch('ÀB 😀 c-1', {})).toBe('ab 😀 c-1');
+      expect(normalizeForSearch('ÀB 😀 c-1', { matchCase: true })).toBe('AB 😀 c-1');
+      expect(normalizeForSearch('ÀB', { matchAccents: true })).toBe('àb');
+    });
+
+    it('normalises a page once per set of options, not once per query', () => {
+      const cached = buildPageText([{ str: 'Alpha beta', hasEOL: false }]);
+      expect(findMatches([cached], 'alpha')).toHaveLength(1);
+      // The text of a page never changes; a changed one shows whether the cache was read
+      (cached as { text: string }).text = 'Gamma delta';
+      expect(findMatches([cached], 'beta')).toHaveLength(1);
+      expect(findMatches([cached], 'Gamma', { matchCase: true })).toHaveLength(1);
+    });
   });
 });
