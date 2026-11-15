@@ -34,6 +34,15 @@ const PAGE_INSET = 12;
 /** Length of a page turn in ms */
 const FLIP_MS = 640;
 
+/**
+ * Narrowest page, in px, that still reads well as half of an open book. A spread is shown in a
+ * landscape view whenever each of its two pages gets at least this much width
+ */
+const MIN_SPREAD_PAGE = 250;
+
+/** Thickest the page block shows at either outer edge, in px (the inset leaves room for it) */
+const EDGE_MAX = 10;
+
 type Paper = 'white' | 'sepia' | 'night';
 type Direction = 1 | -1;
 
@@ -49,6 +58,20 @@ function BackIcon() {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
       <path
         d="M12.5 4.5L7 10l5.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function NextIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M7.5 4.5L13 10l-5.5 5.5"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
@@ -151,6 +174,33 @@ function snapshot(source: HTMLCanvasElement | null) {
   return copy;
 }
 
+/* --------------------------------- spreads --------------------------------- */
+
+/*
+ * The book opens like a printed one ('two-page-cover'): page 1 alone on the right, then 2-3, 4-5,
+ * so odd pages are always on the right. A spread is named by its first page: 1, 2, 4, 6, ...
+ */
+
+/** First page of the spread `page` is on */
+function spreadStart(page: number) {
+  return page === 1 ? 1 : page - (page % 2);
+}
+
+/** First page of the spread before or after the one starting at `first` (0 before the book) */
+function stepSpread(first: number, direction: Direction) {
+  if (first === 1) {
+    return direction === 1 ? 2 : 0;
+  }
+  return first === 2 && direction === -1 ? 1 : first + 2 * direction;
+}
+
+/** The two sides of the spread starting at `first`; null where the inside of a cover shows */
+function spreadSides(first: number, total: number) {
+  return first === 1
+    ? { left: null, right: 1 }
+    : { left: first, right: !total || first + 1 <= total ? first + 1 : null };
+}
+
 /* ---------------------------------- story ---------------------------------- */
 
 /**
@@ -178,8 +228,13 @@ export function Leaf() {
   const [turning, setTurning] = useState<'flip' | 'fade' | 'jump' | null>(null);
   const [announcement, setAnnouncement] = useState('');
 
-  // Two pages side by side when the window is wide enough for a spread to be read comfortably
-  const spread = deskWidth >= 880 && deskWidth / Math.max(deskHeight, 1) >= 1.15;
+  // An open book in any landscape view where each of its two pages is still readable: a laptop,
+  // a tablet held sideways, a short wide window. A phone gets one page either way up
+  const spreadScale = Math.min(
+    (deskWidth - PAGE_INSET * 2) / (BOOK.pageWidth * 2),
+    (deskHeight - PAGE_INSET * 2) / BOOK.pageHeight
+  );
+  const spread = deskWidth > deskHeight && BOOK.pageWidth * spreadScale >= MIN_SPREAD_PAGE;
   const perView = spread ? 2 : 1;
 
   // The viewer is sized to exactly one page (or spread) plus its inset, so 'fit-page' fills it and
@@ -196,16 +251,38 @@ export function Leaf() {
     height: Math.floor(BOOK.pageHeight * scale + PAGE_INSET * 2),
   };
 
-  // Pages in view: a spread starts on an odd page (1-2, 3-4, ...)
-  const first = spread ? page - ((page - 1) % 2) : page;
-  const visible = useMemo(
-    () =>
-      Array.from({ length: perView }, (_, index) => first + index).filter(
-        (number) => !numPages || number <= numPages
-      ),
-    [first, perView, numPages]
-  );
+  // Pages in view: page 1 alone on the right, then 2-3, 4-5, ... (one page at a time otherwise)
+  const first = spread ? spreadStart(page) : page;
+  const visible = useMemo(() => {
+    const sides = spread ? spreadSides(first, numPages) : { left: null, right: first };
+    return [sides.left, sides.right].filter(
+      (number): number is number => number !== null && (!numPages || number <= numPages)
+    );
+  }, [first, spread, numPages]);
   const last = visible[visible.length - 1] ?? first;
+
+  // The page block at the outer edges follows how far the reader is: more under the right hand at
+  // the start, more under the left at the end. It changes once a turn has landed, not before
+  const [settledFirst, setSettledFirst] = useState(first);
+  useEffect(() => {
+    if (!turning) {
+      setSettledFirst(first);
+    }
+  }, [first, turning]);
+  const pageWidth = BOOK.pageWidth * scale;
+  // Any pages at all on a side show as a sliver of 2px; the rest grows with their share
+  const edgeMax = Math.min(EDGE_MAX, Math.max(4, Math.round(pageWidth * 0.025)));
+  const edge = (pages: number) =>
+    numPages && pages > 0 ? Math.round(2 + ((edgeMax - 2) * pages) / numPages) : 0;
+  const settledSides = spreadSides(settledFirst, numPages);
+  const bookFrame = spread
+    ? ({
+        '--leaf-page-w': `${pageWidth}px`,
+        '--leaf-page-h': `${BOOK.pageHeight * scale}px`,
+        '--leaf-edge-left': `${edge(settledFirst - 1)}px`,
+        '--leaf-edge-right': `${edge(numPages - (settledSides.right ?? settledFirst))}px`,
+      } as React.CSSProperties)
+    : undefined;
 
   const chapterIndex = chapters.reduce(
     (found, chapter, index) => (chapter.page <= last ? index : found),
@@ -218,8 +295,8 @@ export function Leaf() {
   // Busy while a turn plays; one more turn asked for meanwhile runs right after it
   const busy = useRef(false);
   const queued = useRef<Direction | null>(null);
-  const state = useRef({ first, perView, numPages, reduceMotion });
-  state.current = { first, perView, numPages, reduceMotion };
+  const state = useRef({ first, spread, numPages, reduceMotion });
+  state.current = { first, spread, numPages, reduceMotion };
 
   const pageElement = (number: number) =>
     bookRef.current?.querySelector<HTMLElement>(`.${classes.page}[data-page-number="${number}"]`) ??
@@ -253,8 +330,8 @@ export function Leaf() {
 
   const finishTurn = useRef<() => void>(() => {});
   const turn = useCallback((direction: Direction) => {
-    const { first: from, perView: count, numPages: total, reduceMotion: still } = state.current;
-    const to = from + direction * count;
+    const { first: from, spread: open, numPages: total, reduceMotion: still } = state.current;
+    const to = open ? stepSpread(from, direction) : from + direction;
     if (!total || to < 1 || to > total) {
       return;
     }
@@ -263,33 +340,62 @@ export function Leaf() {
       return;
     }
 
+    // What lies on each side before and after the turn; null is the inside of a cover
+    const fromSides = open ? spreadSides(from, total) : { left: null, right: from };
+    const toSides = open ? spreadSides(to, total) : { left: null, right: to };
+
     const room = roomRef.current;
     const overlay = overlayRef.current;
-    const currentNode = pageElement(from);
+    const currentNode = pageElement(fromSides.right ?? fromSides.left!);
     if (!room || !overlay || !currentNode) {
       controller.current?.goToPage(to);
       return;
     }
 
-    const roomBox = room.getBoundingClientRect();
-    const slotOf = (node: HTMLElement): Slot => {
-      const box = node.getBoundingClientRect();
-      return {
-        left: box.left - roomBox.left,
-        top: box.top - roomBox.top,
-        width: box.width,
-        height: box.height,
-      };
-    };
+    // Both halves of the book, measured from the spine: the page on screen is on one side of it.
     // Pages land PAGE_INSET below the top of the viewer's scroll area; the overlay draws them there
-    const pageTop = landingTop(currentNode);
-    const firstSlot = { ...slotOf(currentNode), top: pageTop - roomBox.top };
-    const secondSlot =
-      count === 2 ? { ...firstSlot, left: firstSlot.left + firstSlot.width } : null;
-    const copy = (number: number) =>
-      number >= 1 && number <= total
+    const roomBox = room.getBoundingClientRect();
+    const box = currentNode.getBoundingClientRect();
+    const top = landingTop(currentNode);
+    const spine = fromSides.right === null ? box.right : box.left;
+    const slot = (left: number): Slot => ({
+      left: left - roomBox.left,
+      top: top - roomBox.top,
+      width: box.width,
+      height: box.height,
+    });
+    const leftSlot = slot(spine - box.width);
+    const rightSlot = slot(open ? spine : box.left);
+    const copy = (number: number | null) =>
+      number !== null && number >= 1 && number <= total
         ? snapshot(controller.current?.getPageCanvas(number) ?? null)
         : null;
+    const rightSide = open ? 'right' : 'single';
+    /** A page lying open, or the inside of a cover where there is none */
+    const lying = (at: Slot, number: number | null, side: 'left' | 'right' | 'single') =>
+      number === null
+        ? makeFace(at, null, side, `${classes.face} ${classes.cover}`)
+        : makeFace(at, copy(number), side, classes.face);
+
+    // The sheet turns over the spine: its front is the right-hand page it leaves or lands on, its
+    // back the left-hand one. Under it lie the pages it uncovers and covers
+    const forward = direction === 1;
+    const sheetFront = forward ? fromSides.right : toSides.right;
+    const sheetBack = open ? (forward ? toSides.left : fromSides.left) : null;
+    const under = forward
+      ? { left: fromSides.left, right: toSides.right }
+      : { left: toSides.left, right: fromSides.right };
+    const front = copy(sheetFront);
+    const back = copy(sheetBack);
+    const missing =
+      !front ||
+      (sheetBack !== null && !back) ||
+      [under.left, under.right].some((number) => number !== null && !copy(number));
+    if (!still && missing) {
+      // Not drawn yet (a long jump, a slow device): turn without the flip
+      controller.current?.goToPage(to);
+      return;
+    }
 
     busy.current = true;
     overlay.replaceChildren();
@@ -306,23 +412,16 @@ export function Leaf() {
     };
     finishTurn.current = done;
 
-    // Reduced motion: no flip, the page on screen fades into the next one
+    // Reduced motion: no flip, the pages on screen fade into the next ones
     if (still) {
-      const faces = [from, from + 1]
-        .slice(0, count)
-        .map((number, index) =>
-          makeFace(
-            index === 0 ? firstSlot : secondSlot!,
-            copy(number),
-            count === 2 ? (index === 0 ? 'left' : 'right') : 'single',
-            classes.face
-          )
-        );
-      overlay.append(...faces);
+      overlay.append(
+        ...(open ? [lying(leftSlot, fromSides.left, 'left')] : []),
+        lying(rightSlot, fromSides.right, rightSide)
+      );
       setTurning('fade');
       // The overlay covers the view: jump straight there underneath it
       controller.current?.goToPage(to, { behavior: 'instant' });
-      whenSettled(to, pageTop, () => {
+      whenSettled(to, top, () => {
         const fade = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
           duration: 160,
           easing: 'ease-out',
@@ -332,36 +431,9 @@ export function Leaf() {
       return;
     }
 
-    // The sheet that turns, the pages it uncovers, and the one it lands on, all copied now
-    const spreadMode = count === 2;
-    const sheetSlot = spreadMode ? secondSlot! : firstSlot;
-    const forward = direction === 1;
-    const sheetFront = spreadMode ? (forward ? from + 1 : to + 1) : forward ? from : to;
-    const sheetBack = spreadMode ? (forward ? to : from) : null;
-    const under = spreadMode
-      ? { left: forward ? from : to, right: forward ? to + 1 : from + 1 }
-      : { left: null, right: forward ? to : from };
-
-    const front = copy(sheetFront);
-    const back = sheetBack === null ? null : copy(sheetBack);
-    const underRight = copy(under.right);
-    const underLeft = under.left === null ? null : copy(under.left);
-    const missing =
-      !front ||
-      (spreadMode && (!back || !underLeft) && sheetBack! <= total) ||
-      (!underRight && under.right <= total);
-
-    if (missing) {
-      // Not drawn yet (a long jump, a slow device): turn without the flip
-      busy.current = false;
-      controller.current?.goToPage(to);
-      return;
-    }
-
-    const faceSide = spreadMode ? 'right' : 'single';
     const staticFaces = [
-      spreadMode ? makeFace(firstSlot, underLeft, 'left', classes.face) : null,
-      makeFace(sheetSlot, underRight, faceSide, classes.face),
+      open ? lying(leftSlot, under.left, 'left') : null,
+      lying(rightSlot, under.right, rightSide),
     ].filter((face): face is HTMLDivElement => !!face);
     // Shade cast by the lifting sheet on the page it uncovers or covers
     const shades = staticFaces.map((face) => {
@@ -374,28 +446,24 @@ export function Leaf() {
     const sheet = document.createElement('div');
     sheet.className = classes.sheet;
     Object.assign(sheet.style, {
-      left: `${sheetSlot.left}px`,
-      top: `${sheetSlot.top}px`,
-      width: `${sheetSlot.width}px`,
-      height: `${sheetSlot.height}px`,
+      left: `${rightSlot.left}px`,
+      top: `${rightSlot.top}px`,
+      width: `${rightSlot.width}px`,
+      height: `${rightSlot.height}px`,
     });
-    const frontFace = makeFace(
-      { left: 0, top: 0, width: sheetSlot.width, height: sheetSlot.height },
-      front,
-      faceSide,
-      `${classes.face} ${classes.front}`
-    );
+    const own = { left: 0, top: 0, width: rightSlot.width, height: rightSlot.height };
+    const frontFace = makeFace(own, front, rightSide, `${classes.face} ${classes.front}`);
     const backFace = makeFace(
-      { left: 0, top: 0, width: sheetSlot.width, height: sheetSlot.height },
+      own,
       back,
-      spreadMode ? 'left' : 'single',
+      open ? 'left' : 'single',
       `${classes.face} ${classes.back}`
     );
     const frontShade = document.createElement('div');
     frontShade.className = classes.bendShade;
     frontFace.append(frontShade);
     sheet.append(backFace, frontFace);
-    overlay.style.perspectiveOrigin = `${sheetSlot.left}px ${sheetSlot.top + sheetSlot.height / 2}px`;
+    overlay.style.perspectiveOrigin = `${rightSlot.left}px ${rightSlot.top + rightSlot.height / 2}px`;
     overlay.append(...staticFaces, sheet);
 
     // The viewer jumps to the new page underneath, hidden while the overlay plays
@@ -423,7 +491,7 @@ export function Leaf() {
     frontFace.animate(edgeOn(forward), { duration: FLIP_MS, easing, fill: 'forwards' });
     backFace.animate(edgeOn(!forward), { duration: FLIP_MS, easing, fill: 'forwards' });
     // One page at a time, there is no left page for the sheet to land on: it fades as it leaves
-    if (!spreadMode) {
+    if (!open) {
       sheet.animate(
         forward
           ? [{ opacity: 1 }, { opacity: 1, offset: 0.55 }, { opacity: 0 }]
@@ -437,7 +505,7 @@ export function Leaf() {
     );
     // The page being uncovered is shaded early in the turn, the page being covered late
     shades.forEach((shade, index) => {
-      const coveredLate = spreadMode && (index === 0) === forward;
+      const coveredLate = open && (index === 0) === forward;
       shade.animate(
         coveredLate
           ? [
@@ -455,7 +523,7 @@ export function Leaf() {
         { duration: FLIP_MS, easing: 'linear' }
       );
     });
-    flip.onfinish = () => whenSettled(to, pageTop, done);
+    flip.onfinish = () => whenSettled(to, top, done);
   }, []);
 
   // Leaving the story mid-turn: stop listening for the end of it
@@ -463,7 +531,7 @@ export function Leaf() {
 
   /** Goes straight to a page (the scrubber, the contents): a quick fade, no flip */
   const jump = (target: number) => {
-    const node = pageElement(first);
+    const node = pageElement(visible[0]);
     if (busy.current || !node || visible.includes(target)) {
       return;
     }
@@ -584,11 +652,24 @@ export function Leaf() {
       data-paper={paper}
       data-chrome={chrome || undefined}
       data-turning={turning ?? undefined}
+      data-spread={spread || undefined}
     >
       <div ref={roomRef} className={classes.room}>
         <div ref={deskRef} className={classes.desk}>
           {scale > 0 && (
-            <div ref={bookRef} className={classes.book} style={bookSize}>
+            <div ref={bookRef} className={classes.book} style={{ ...bookSize, ...bookFrame }}>
+              {/* Under the pages: the book's shadow, the page block at the outer edges and the
+                  inside of a cover where a spread has one page. They stay while a flip plays */}
+              {spread && (
+                <div className={classes.binding} aria-hidden>
+                  <div className={classes.edge} data-side="left" />
+                  <div className={classes.edge} data-side="right" />
+                  {settledSides.left === null && <div className={classes.cover} data-side="left" />}
+                  {settledSides.right === null && (
+                    <div className={classes.cover} data-side="right" />
+                  )}
+                </div>
+              )}
               <DocViewer
                 src={BOOK.src}
                 fileName={BOOK.title}
@@ -599,8 +680,9 @@ export function Leaf() {
                 radius={0}
                 pageGap={0}
                 pageBackground="var(--leaf-paper)"
-                // The app picks one page or a spread from the window; the page stays when it changes
-                pageLayout={spread ? 'two-page' : 'single'}
+                // The app picks one page or an open book from the window; the page stays when it changes.
+                // A book opens on page 1 alone on the right, so odd pages are always right-hand pages
+                pageLayout={spread ? 'two-page-cover' : 'single'}
                 defaultZoom="fit-page"
                 // The app turns the pages
                 withScroll={false}
@@ -621,7 +703,7 @@ export function Leaf() {
                 renderPageOverlay={({ pageNumber }) => (
                   <div
                     className={classes.gutter}
-                    data-side={spread ? (pageNumber % 2 ? 'left' : 'right') : 'single'}
+                    data-side={spread ? (pageNumber % 2 ? 'right' : 'left') : 'single'}
                   />
                 )}
                 classNames={{
@@ -642,6 +724,11 @@ export function Leaf() {
         {/* Taps: the edges turn, the middle shows and hides the bars */}
         <div
           className={classes.zones}
+          // Pointer only, out of the tab order and hidden from screen readers: the bottom bar has
+          // real Previous and Next buttons, and the arrow keys turn from anywhere
+          aria-hidden
+          // A click keeps the focus where it was, so none lands inside the hidden zones
+          onMouseDown={(event) => event.preventDefault()}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
           onPointerCancel={() => {
@@ -651,6 +738,7 @@ export function Leaf() {
           <button
             type="button"
             className={classes.zone}
+            tabIndex={-1}
             data-zone="previous"
             aria-label="Previous page"
             disabled={first <= 1}
@@ -662,6 +750,7 @@ export function Leaf() {
           <button
             type="button"
             className={classes.zone}
+            tabIndex={-1}
             data-zone="middle"
             aria-label={chrome ? 'Hide reading controls' : 'Show reading controls'}
             onClick={tap(() => (chrome ? hideChrome() : setChrome(true)))}
@@ -669,6 +758,7 @@ export function Leaf() {
           <button
             type="button"
             className={classes.zone}
+            tabIndex={-1}
             data-zone="next"
             aria-label="Next page"
             disabled={!!numPages && last >= numPages}
@@ -832,7 +922,29 @@ export function Leaf() {
           }}
         />
         <div className={classes.progress}>
-          <span>{numPages ? `${pageLabel} of ${numPages}` : 'Opening…'}</span>
+          <span className={classes.pager}>
+            <ActionIcon
+              className={classes.pagerButton}
+              variant="transparent"
+              size="md"
+              aria-label="Previous page"
+              disabled={first <= 1}
+              onClick={() => turn(-1)}
+            >
+              <BackIcon />
+            </ActionIcon>
+            <span>{numPages ? `${pageLabel} of ${numPages}` : 'Opening…'}</span>
+            <ActionIcon
+              className={classes.pagerButton}
+              variant="transparent"
+              size="md"
+              aria-label="Next page"
+              disabled={!numPages || last >= numPages}
+              onClick={() => turn(1)}
+            >
+              <NextIcon />
+            </ActionIcon>
+          </span>
           <span className={classes.brand}>
             <LeafMark />
           </span>
