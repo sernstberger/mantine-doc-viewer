@@ -293,6 +293,21 @@
   font-size: 14px;
 }
 
+.captionRule {
+  flex: 0 0 72px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--fr-rule);
+
+  & > span {
+    display: block;
+    height: 100%;
+    background: var(--fr-teal);
+    transform-origin: left;
+  }
+}
+
 .captionStatus {
   min-width: 96px;
   color: var(--fr-muted);

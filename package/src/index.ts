@@ -33,5 +33,6 @@ export type {
   DocViewerEvents,
   DocViewerLoadInfo,
   DocViewerOutlineItem,
+  DocViewerReadingProgress,
   DocViewerZoom,
 } from './DocViewer/controller';

@@ -30,6 +30,7 @@ import { PdfThumbnails } from './PdfThumbnails';
 import { PdfRotation, rotateSize } from './render-page';
 import { useAnnouncement } from './use-announcement';
 import { useCurrentPage } from './use-current-page';
+import { useReadingProgress } from './use-reading-progress';
 import { useLinkService } from './use-link-service';
 import { usePdfLayers } from './use-pdf-layers';
 import { usePresentation } from './use-presentation';
@@ -110,9 +111,12 @@ export function PdfView() {
           pageHeight: pageSize.height,
         });
 
+  const horizontal = layout === 'horizontal';
+  const progress = useReadingProgress({ scrollRoot, document, numPages, horizontal, events });
   const { currentPage, registerPage, scrollToPage } = useCurrentPage(
     scrollRoot,
-    layout === 'horizontal'
+    horizontal,
+    progress.sample
   );
   const [pageAnnouncement, announce] = useAnnouncement();
   const search = usePdfSearchBar(document, scrollRoot);
@@ -171,6 +175,7 @@ export function PdfView() {
       ready && presentation.toggle();
     },
     print,
+    resetReadingProgress: progress.reset,
   });
 
   // The page a presentation ended on is restored below, after this has run

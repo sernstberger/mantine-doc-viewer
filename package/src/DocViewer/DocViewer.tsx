@@ -436,6 +436,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
     onDocumentError,
     onPageChange,
     onZoomChange,
+    onReadingProgress,
+    onReachEnd,
     onLinkClick,
     mod,
     ref,
@@ -488,6 +490,8 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
   const handleDocumentError = useCallbackRef(onDocumentError);
   const handlePageChange = useCallbackRef(onPageChange);
   const handleZoomChange = useCallbackRef(onZoomChange);
+  const handleReadingProgress = useCallbackRef(onReadingProgress);
+  const handleReachEnd = useCallbackRef(onReachEnd);
   const handleLinkClick = useCallbackRef(onLinkClick);
   const events = useMemo(
     () => ({
@@ -495,9 +499,19 @@ export const DocViewer = factory<DocViewerFactory>((_props) => {
       onDocumentError: handleDocumentError,
       onPageChange: handlePageChange,
       onZoomChange: handleZoomChange,
+      onReadingProgress: handleReadingProgress,
+      onReachEnd: handleReachEnd,
       onLinkClick: handleLinkClick,
     }),
-    [handleDocumentLoad, handleDocumentError, handlePageChange, handleZoomChange, handleLinkClick]
+    [
+      handleDocumentLoad,
+      handleDocumentError,
+      handlePageChange,
+      handleZoomChange,
+      handleReadingProgress,
+      handleReachEnd,
+      handleLinkClick,
+    ]
   );
 
   return (

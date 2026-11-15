@@ -1,13 +1,16 @@
 import { Button, Checkbox, TextInput } from '@mantine/core';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import React, { useEffect, useRef, useState } from 'react';
-import type { DocViewerController } from '../controller';
+import type { DocViewerController, DocViewerReadingProgress } from '../controller';
 import { DocViewer } from '../DocViewer';
 import classes from './Haven.module.css';
 
 export default { title: 'DocViewer/Apps/Haven (rental agreement checkout)' };
 
 const PAGES = ['Parties and dates', 'House rules', 'Cancellation and damage', 'Signatures'];
+
+/** A page counts as read once this much of it has been on screen */
+const READ = 0.8;
 
 const NIGHTS = 5;
 const RATE = 214;
@@ -20,12 +23,13 @@ function money(value: number) {
 
 /**
  * A guest booking a lake cabin must read the house agreement to the end and sign before
- * paying. The viewer reports which pages have been seen; the booking card turns that into a
- * reading meter and only then lets the guest sign.
+ * paying. The viewer reports how much of each page has been seen and when the end of the
+ * last page is on screen; the booking card turns that into a reading meter and only then lets
+ * the guest sign.
  */
 export function Haven() {
   const controller = useRef<DocViewerController>(null);
-  const [seen, setSeen] = useState<number[]>([1]);
+  const [progress, setProgress] = useState<DocViewerReadingProgress | null>(null);
   const [current, setCurrent] = useState(1);
   const [name, setName] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -40,12 +44,9 @@ export function Haven() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  const handlePageChange = (page: number) => {
-    setCurrent(page);
-    setSeen((previous) => (previous.includes(page) ? previous : [...previous, page]));
-  };
-
-  const readAll = seen.length === PAGES.length;
+  const fractions = PAGES.map((_, index) => progress?.seen[index] ?? 0);
+  const pagesRead = fractions.filter((fraction) => fraction >= READ).length;
+  const readAll = !!progress?.reachedEnd && pagesRead === PAGES.length;
   const trimmed = name.trim();
   const canSign = readAll && trimmed.length > 1 && agreed && !signed;
   const total = NIGHTS * RATE + CLEANING + SERVICE;
@@ -85,7 +86,8 @@ export function Haven() {
               pageBackground="white"
               matchColor="#ffe3a3"
               activeMatchColor="#ffb4bd"
-              onPageChange={handlePageChange}
+              onPageChange={setCurrent}
+              onReadingProgress={setProgress}
               toolbarControls={{
                 title: false,
                 thumbnails: false,
@@ -111,8 +113,6 @@ export function Haven() {
                 body: classes.body,
                 page: classes.docPage,
               }}
-              // MISSING: a page-visibility callback with the fraction seen. onPageChange reports only the current page, so "read" is approximated by pages reached.
-              // MISSING: a scroll-to-end signal ("reached the bottom of the last page") to unlock signing exactly.
               // MISSING: drawing a signature onto a page (annotations layer): the signature is only mirrored in the card.
             />
           </div>
@@ -171,20 +171,24 @@ export function Haven() {
             <div className={classes.progressHead}>
               <span className={classes.progressTitle}>Agreement</span>
               <span className={classes.progressCount} data-done={readAll || undefined}>
-                {seen.length} of {PAGES.length} pages read
+                {pagesRead} of {PAGES.length} pages read
               </span>
             </div>
             <ol className={classes.meter}>
               {PAGES.map((title, index) => {
                 const page = index + 1;
+                const read = fractions[index] >= READ;
                 return (
                   <li key={title}>
                     <button
                       type="button"
                       className={classes.segment}
-                      data-seen={seen.includes(page) || undefined}
+                      data-seen={read || undefined}
                       data-current={current === page || undefined}
-                      aria-label={`Go to page ${page}, ${title}${seen.includes(page) ? ', read' : ''}`}
+                      style={
+                        { '--seen': Math.min(fractions[index] / READ, 1) } as React.CSSProperties
+                      }
+                      aria-label={`Go to page ${page}, ${title}${read ? ', read' : ''}`}
                       onClick={() => controller.current?.goToPage(page)}
                     >
                       <span className={classes.segmentBar} />

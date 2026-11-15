@@ -101,6 +101,7 @@ function buildScatter() {
 export function FieldReport() {
   const controllerRef = useRef<DocViewerController>(null);
   const [page, setPage] = useState(1);
+  const [position, setPosition] = useState(0);
   const scatter = useMemo(buildScatter, []);
 
   return (
@@ -231,6 +232,7 @@ export function FieldReport() {
                 pdfWorkerSrc={pdfWorkerSrc}
                 controllerRef={controllerRef}
                 onPageChange={setPage}
+                onReadingProgress={(progress) => setPosition(progress.position)}
                 withToolbar={false}
                 variant="plain"
                 radius={0}
@@ -246,13 +248,22 @@ export function FieldReport() {
                   page: classes.reportPage,
                 }}
                 // MISSING: `height="auto"` / `autoHeight`; the 640px window scrolls inside the article.
-                // MISSING: a "reading position" API beyond onPageChange, so the caption could say how far through the report the reader is.
               />
             </div>
           </div>
           <div className={classes.captionBar}>
             <div className={classes.captionStatus} aria-live="polite">
-              Page {page} of {REPORT_PAGES}
+              Page {page} of {REPORT_PAGES}, {Math.round(position * 100)}% read
+            </div>
+            <div
+              className={classes.captionRule}
+              role="progressbar"
+              aria-label="Reading position"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(position * 100)}
+            >
+              <span style={{ transform: `scaleX(${position})` }} />
             </div>
             <div className={classes.jumps}>
               {JUMPS.map((jump) => (
