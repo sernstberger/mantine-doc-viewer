@@ -17,12 +17,12 @@ type HighlightName = typeof MATCH_HIGHLIGHT | typeof ACTIVE_MATCH_HIGHLIGHT;
 export const HIGHLIGHT_CSS = `
 ::highlight(${MATCH_HIGHLIGHT}) {
   color: transparent;
-  background-color: color-mix(in srgb, var(--doc-viewer-match-color, rgb(250 176 5)) 40%, transparent);
+  background-color: color-mix(in srgb, var(--doc-viewer-match-color, var(--mantine-color-yellow-6)) 40%, transparent);
 }
 ::highlight(${ACTIVE_MATCH_HIGHLIGHT}) {
   color: transparent;
-  background-color: color-mix(in srgb, var(--doc-viewer-active-match-color, rgb(253 126 20)) 65%, transparent);
-  text-decoration: underline 2px var(--doc-viewer-active-match-color, rgb(217 72 15));
+  background-color: color-mix(in srgb, var(--doc-viewer-active-match-color, var(--mantine-color-orange-6)) 65%, transparent);
+  text-decoration: underline 2px var(--doc-viewer-active-match-color, var(--mantine-color-orange-9));
   text-underline-offset: 2px;
 }
 `;

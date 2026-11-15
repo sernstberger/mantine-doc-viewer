@@ -9,9 +9,9 @@ const PER_ROW = 3;
 
 /**
  * Gives `[data-reorder-item]` elements boxes as if laid out in a grid (3 per row), a vertical
- * rail or a horizontal strip, and every other element the list's box. jsdom has no layout
+ * rail or a horizontal strip (mirrored with `rtl`), and every other element the list's box. jsdom has no layout
  */
-export function mockItemLayout(layout: TestLayout) {
+export function mockItemLayout(layout: TestLayout, rtl = false) {
   return jest
     .spyOn(Element.prototype, 'getBoundingClientRect')
     .mockImplementation(function (this: Element) {
@@ -23,7 +23,10 @@ export function mockItemLayout(layout: TestLayout) {
       const column = layout === 'grid' ? index % PER_ROW : layout === 'horizontal' ? index : 0;
       const row =
         layout === 'grid' ? Math.floor(index / PER_ROW) : layout === 'vertical' ? index : 0;
-      const left = 100 + column * (ITEM.width + ITEM.gap);
+      // Right to left: the first column is on the right
+      const left = rtl
+        ? LIST.width - 100 - ITEM.width - column * (ITEM.width + ITEM.gap)
+        : 100 + column * (ITEM.width + ITEM.gap);
       const top = 100 + row * (ITEM.height + ITEM.gap);
       return { left, top, right: left + ITEM.width, bottom: top + ITEM.height } as DOMRect;
     });

@@ -16,7 +16,7 @@ export function ViewModeToggle<T extends string>({
   data,
   label,
 }: ViewModeToggleProps<T>) {
-  const { size } = useDocViewerContext();
+  const { getStyles, size } = useDocViewerContext();
 
   return (
     <SegmentedControl
@@ -25,6 +25,7 @@ export function ViewModeToggle<T extends string>({
       onChange={(next) => onChange(next as T)}
       data={data}
       aria-label={label}
+      {...getStyles('viewMode')}
     />
   );
 }

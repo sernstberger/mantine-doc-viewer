@@ -10,13 +10,19 @@ export interface ItemRect {
 
 /**
  * Where a dragged item would be inserted, as an index into the current list (0 is before the
- * first item, `rects.length` after the last), from the pointer position and the items' boxes
+ * first item, `rects.length` after the last), from the pointer position and the items' boxes.
+ * With `rtl`, items in a row run from right to left: the first one is the rightmost
  */
 export function getDropIndex(
   rects: ItemRect[],
   [x, y]: [number, number],
-  layout: ReorderLayout
+  layout: ReorderLayout,
+  rtl = false
 ): number | null {
+  // True when the pointer is before the middle of the item, in reading order across the row
+  const beforeMiddle = ({ left, right }: ItemRect) =>
+    rtl ? x > (left + right) / 2 : x < (left + right) / 2;
+
   if (rects.length === 0) {
     return null;
   }
@@ -25,7 +31,7 @@ export function getDropIndex(
     const vertical = layout === 'vertical';
     const pointer = vertical ? y : x;
     const index = rects.findIndex((rect) =>
-      vertical ? pointer < (rect.top + rect.bottom) / 2 : pointer < (rect.left + rect.right) / 2
+      vertical ? pointer < (rect.top + rect.bottom) / 2 : beforeMiddle(rect)
     );
     return index === -1 ? rects.length : index;
   }
@@ -43,7 +49,7 @@ export function getDropIndex(
     }
   });
   const row = rows.find((item) => y <= item.bottom) ?? rows[rows.length - 1];
-  const inRow = row.items.findIndex((rect) => x < (rect.left + rect.right) / 2);
+  const inRow = row.items.findIndex(beforeMiddle);
   return row.first + (inRow === -1 ? row.items.length : inRow);
 }
 

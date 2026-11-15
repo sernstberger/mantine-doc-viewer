@@ -2,16 +2,20 @@
   --_color: var(--doc-viewer-color, var(--mantine-primary-color-filled));
   --_color-light: color-mix(in srgb, var(--_color) 15%, transparent);
   --_font-size: var(--doc-viewer-font-size, var(--mantine-font-size-sm));
-  --_page-background: var(--doc-viewer-page-background, white);
+  --_page-background: var(--doc-viewer-page-background, var(--mantine-color-white));
+  --_page-filter: none;
 
+  /* Own stacking context: the z-index values inside (1 to 3) never compete with the host page */
+  isolation: isolate;
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 200px;
+  min-height: rem(200px);
   overflow: hidden;
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--doc-viewer-radius);
   background-color: var(--mantine-color-body);
+  color: var(--mantine-color-text);
 }
 
 .toolbar {
@@ -19,7 +23,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  min-height: var(--doc-viewer-toolbar-height, 44px);
+  min-height: var(--doc-viewer-toolbar-height, rem(44px));
   padding-inline: var(--mantine-spacing-sm);
   border-bottom: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
@@ -36,7 +40,7 @@
   inset-inline-end: var(--mantine-spacing-xs);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: rem(6px);
 }
 
 .toolbarStart {
@@ -85,7 +89,7 @@
   }
 
   :where([data-doc-type='image']) > & {
-    min-height: 240px;
+    min-height: rem(240px);
   }
 
   /* withScroll={false}: the app moves the view; programmatic scrolling still works */
@@ -105,6 +109,7 @@
 
   &[data-scroll-snap] > .pages > .page {
     scroll-snap-align: start;
+    /* Page pixels, like the gutters in pdf/zoom.ts: not scaled with the root font size */
     scroll-margin: 12px;
   }
 
@@ -176,7 +181,7 @@
 .empty {
   justify-content: center;
   height: 100%;
-  min-height: 160px;
+  min-height: rem(160px);
   padding: var(--mantine-spacing-xl);
   color: var(--mantine-color-dimmed);
   font-size: var(--_font-size);
@@ -189,14 +194,14 @@
   justify-content: flex-end;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  padding-block: 4px;
+  padding-block: rem(4px);
 
   /* Wraps onto more lines in narrow viewers and at high zoom, instead of cutting controls off */
   margin-inline-start: auto;
 }
 
 .pageIndicator {
-  min-width: 56px;
+  min-width: rem(56px);
   font-size: var(--_font-size);
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -204,8 +209,8 @@
 }
 
 .zoomLevel {
-  min-width: 48px;
-  padding: 2px 4px;
+  min-width: rem(48px);
+  padding: rem(2px) rem(4px);
   border-radius: var(--mantine-radius-sm);
   font-size: var(--_font-size);
   font-variant-numeric: tabular-nums;
@@ -281,24 +286,27 @@
   display: block;
   width: 100%;
   height: 100%;
+
+  /* pageColorScheme sets the filter on the root; none otherwise */
+  filter: var(--_page-filter);
 }
 
 .search {
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  padding: 6px var(--mantine-spacing-sm);
+  padding: rem(6px) var(--mantine-spacing-sm);
   border-bottom: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
 }
 
 .searchInput {
   flex: 1;
-  max-width: 320px;
+  max-width: rem(320px);
 }
 
 .searchCount {
-  min-width: 72px;
+  min-width: rem(72px);
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-dimmed);
   font-variant-numeric: tabular-nums;
@@ -424,15 +432,16 @@
   align-items: center;
   gap: var(--mantine-spacing-sm);
   flex-shrink: 0;
-  width: calc(var(--doc-viewer-thumbnail-width, 112px) + 40px);
+  width: calc(var(--doc-viewer-thumbnail-width, rem(112px)) + rem(40px));
   padding: var(--mantine-spacing-sm) 0;
   overflow-y: auto;
-  border-right: 1px solid var(--mantine-color-default-border);
+  border-inline-end: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
 
-  [data-thumbnails-position='right'] > & {
-    border-right: 0;
-    border-left: 1px solid var(--mantine-color-default-border);
+  /* "left" and "right" are the start and end of the line: the rail swaps sides in RTL */
+  :where([data-thumbnails-position='right']) > & {
+    border-inline-end: 0;
+    border-inline-start: 1px solid var(--mantine-color-default-border);
   }
 
   &[data-orientation='horizontal'] {
@@ -442,11 +451,11 @@
     max-height: 40%;
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
     overflow: auto hidden;
-    border-right: 0;
+    border-inline: 0;
     border-bottom: 1px solid var(--mantine-color-default-border);
   }
 
-  [data-thumbnails-position='bottom'] > &[data-orientation='horizontal'] {
+  :where([data-thumbnails-position='bottom']) > &[data-orientation='horizontal'] {
     border-bottom: 0;
     border-top: 1px solid var(--mantine-color-default-border);
   }
@@ -456,8 +465,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
+  gap: rem(4px);
+  padding: rem(4px);
   border: 0;
   border-radius: var(--mantine-radius-sm);
   background: none;
@@ -467,6 +476,11 @@
 
   @mixin hover {
     background-color: var(--mantine-color-default-hover);
+
+    /* The delete button shows when the thumbnail is hovered (on touch screens: pressed) */
+    & > :where(.thumbnailDelete) {
+      opacity: 1;
+    }
   }
 
   &:focus-visible {
@@ -480,7 +494,7 @@
   }
 }
 
-/* Width must match THUMBNAIL_WIDTH in pdf/PdfThumbnails.tsx */
+/* The width is set from the thumbnailWidth prop, in pdf/PdfThumbnails.tsx */
 .thumbnailImage {
   display: block;
   overflow: hidden;
@@ -522,7 +536,7 @@
 }
 
 .markdown {
-  max-width: 820px;
+  max-width: rem(820px);
   min-height: 100%;
   margin-inline: auto;
   padding: var(--mantine-spacing-xl);
@@ -534,9 +548,9 @@
 }
 
 .outline {
-  max-height: min(60vh, 420px);
-  min-width: 220px;
-  max-width: 340px;
+  max-height: min(60vh, rem(420px));
+  min-width: rem(220px);
+  max-width: rem(340px);
   overflow: auto;
   font-size: var(--_font-size);
 }
@@ -554,7 +568,7 @@
 .outlineItem {
   display: block;
   width: 100%;
-  padding: 4px var(--mantine-spacing-xs);
+  padding: rem(4px) var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text);
   font-size: inherit;
@@ -576,7 +590,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--mantine-spacing-sm);
-  width: min(320px, 100% - 2 * var(--mantine-spacing-md));
+  width: min(rem(320px), 100% - 2 * var(--mantine-spacing-md));
   margin: var(--mantine-spacing-xl) auto;
   padding: var(--mantine-spacing-lg);
   border: 1px solid var(--mantine-color-default-border);
@@ -585,7 +599,12 @@
 }
 
 /* Links in PDF pages: pdf.js's annotation layer with only link annotations, adapted from pdf_viewer.css (Apache-2.0) */
-/* Marks drawn with the markup tools; it takes the pointer only while a tool is picked */
+/*
+ * Marks drawn with the markup tools; it takes the pointer only while a tool is picked.
+ * The layers over a page (markup, overlay, highlights) sit on its physical top left corner and
+ * scale from there: a page is drawn the same in left-to-right and right-to-left, so no logical
+ * properties here
+ */
 .markupLayer {
   position: absolute;
   top: 0;
@@ -625,7 +644,8 @@
   font-family: Helvetica, Arial, sans-serif;
   white-space: pre;
 
-  & textarea {
+  /* The textarea of a box being typed: a descendant, so the class beats the input's own styles */
+  & .markupInput {
     min-width: 8ch;
     min-height: 0;
     padding: 0;
@@ -639,15 +659,15 @@
 .markupBar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px var(--mantine-spacing-sm);
+  gap: rem(4px);
+  padding: rem(6px) var(--mantine-spacing-sm);
   border-bottom: 1px solid var(--mantine-color-default-border);
   background-color: var(--mantine-color-default);
+}
 
-  & > :global(.mantine-Divider-root) {
-    align-self: stretch;
-    margin-inline: 4px;
-  }
+.markupDivider {
+  align-self: stretch;
+  margin-inline: rem(4px);
 }
 
 /* App content over a page: lets clicks through to the text, except on its own children */
@@ -675,12 +695,16 @@
   border-radius: 2px;
   background-color: color-mix(
     in srgb,
-    var(--doc-viewer-active-match-color, rgb(253 126 20)) 40%,
+    var(--doc-viewer-active-match-color, var(--mantine-color-orange-6)) 40%,
     transparent
   );
   mix-blend-mode: multiply;
   outline: 2px solid
-    color-mix(in srgb, var(--doc-viewer-active-match-color, rgb(217 72 15)) 80%, transparent);
+    color-mix(
+      in srgb,
+      var(--doc-viewer-active-match-color, var(--mantine-color-orange-9)) 80%,
+      transparent
+    );
   outline-offset: 1px;
 }
 
@@ -745,35 +769,30 @@
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
-  width: min(360px, 80vw);
-  max-height: min(60vh, 480px);
+  width: min(rem(360px), 80vw);
+  max-height: min(60vh, rem(480px));
   overflow: auto;
   font-size: var(--_font-size);
 }
 
 .properties {
-  /* Long values (file names, producers) wrap instead of widening the popover */
-  & dd {
-    overflow-wrap: anywhere;
-  }
-}
-
-.main[data-presenting] > .body {
-  background-color: #111;
-  cursor: pointer;
+  /* Long values (file names, producers) wrap instead of widening the popover; inherited by the values */
+  overflow-wrap: anywhere;
 }
 
 .presentationControls {
   position: absolute;
-  inset: auto var(--mantine-spacing-md) var(--mantine-spacing-md) auto;
+  inset-block-end: var(--mantine-spacing-md);
+  inset-inline-end: var(--mantine-spacing-md);
   z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  padding: 4px 4px 4px var(--mantine-spacing-sm);
+  padding: rem(4px);
+  padding-inline-start: var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-xl);
-  background-color: rgb(0 0 0 / 60%);
-  color: white;
+  background-color: alpha(var(--mantine-color-black), 0.6);
+  color: var(--mantine-color-white);
   font-size: var(--mantine-font-size-sm);
   font-variant-numeric: tabular-nums;
 }
@@ -807,8 +826,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px;
+  gap: rem(4px);
+  padding: rem(6px);
   border: 2px solid transparent;
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-dimmed);
@@ -834,7 +853,7 @@
 }
 
 /* Drag to reorder (page editor and thumbnails), with Mantine's useDrag */
-[data-reorder-item] {
+:is(.thumbnail, .editorPage) {
   position: relative;
   touch-action: manipulation;
 
@@ -860,33 +879,33 @@
   &[data-drop='after']::after {
     top: 0;
     bottom: 0;
-    width: 3px;
+    width: rem(3px);
   }
 
+  /* Before and after follow the reading direction: the bar is on the right of a page "before" it in RTL */
   &[data-drop='before']::after {
-    left: calc(var(--_drop-offset, -8px) - 1.5px);
+    inset-inline-start: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
   }
 
   &[data-drop='after']::after {
-    right: calc(var(--_drop-offset, -8px) - 1.5px);
+    inset-inline-end: calc(var(--_drop-offset, rem(-8px)) - 1.5px);
   }
 
   /* A vertical rail of thumbnails gets a horizontal bar instead */
   :where(.thumbnails[data-orientation='vertical']) > &[data-drop]::after {
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     width: auto;
-    height: 3px;
+    height: rem(3px);
   }
 
   :where(.thumbnails[data-orientation='vertical']) > &[data-drop='before']::after {
-    top: calc(var(--_drop-offset, -6px) - 1.5px);
+    top: calc(var(--_drop-offset, rem(-6px)) - 1.5px);
     bottom: auto;
   }
 
   :where(.thumbnails[data-orientation='vertical']) > &[data-drop='after']::after {
     top: auto;
-    bottom: calc(var(--_drop-offset, -6px) - 1.5px);
+    bottom: calc(var(--_drop-offset, rem(-6px)) - 1.5px);
   }
 
   @media (forced-colors: active) {
@@ -900,23 +919,26 @@
 .dragHandle {
   position: absolute;
   z-index: 1;
-  top: 6px;
-  right: 6px;
+  top: rem(6px);
+  inset-inline-end: rem(6px);
   display: none;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: rem(32px);
+  height: rem(32px);
   border-radius: var(--mantine-radius-sm);
   background-color: color-mix(in srgb, var(--mantine-color-body) 85%, transparent);
   box-shadow: var(--mantine-shadow-xs);
   color: var(--mantine-color-text);
-  font-size: 18px;
+  font-size: rem(18px);
   touch-action: none;
   cursor: grab;
 
-  /* On touch screens on the current page only: on every thumbnail they would cover the pages */
+  /*
+   * On touch screens on the current thumbnail only (on every thumbnail they would cover the
+   * pages), and on every page of the page editor
+   */
   @media (pointer: coarse) {
-    :where(.thumbnail[data-active]) > & {
+    :where(.thumbnail[data-active], .editorPage) > & {
       display: grid;
     }
   }
@@ -924,47 +946,57 @@
 
 /*
  * height="auto": the viewer is as tall as its content and the window scrolls. Full screen has a
- * height of its own, so it scrolls inside the viewer as usual
+ * height of its own, so it scrolls inside the viewer as usual.
+ * The selectors are in :where() so that an app's own classes win without !important; they come
+ * after the plain rules, which have the same specificity.
  */
-.root[data-auto-height]:not([data-fullscreen]) {
-  /*
-   * The body is as tall as its pages. Beside side thumbnails the main part is a row, where the
-   * body must still fill the width: shrunk to its content, fit to width would fit the pages to
-   * whatever width they had, down to the smallest zoom (Safari)
-   */
-  & .main > .body {
-    flex: 1 1 0%;
-    min-width: 0;
-  }
 
-  & .main:is([data-thumbnails-position='top'], [data-thumbnails-position='bottom']) > .body {
-    flex: none;
-  }
+/*
+ * The body is as tall as its pages. Beside side thumbnails the main part is a row, where the
+ * body must still fill the width: shrunk to its content, fit to width would fit the pages to
+ * whatever width they had, down to the smallest zoom (Safari)
+ */
+:where(.root[data-auto-height]:not([data-fullscreen]) .main) > .body {
+  flex: 1 1 0%;
+  min-width: 0;
+}
 
-  /* Side rails stay in view while the pages scroll past */
-  & .main > .thumbnails:not([data-orientation='horizontal']) {
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    max-height: 100vh;
-  }
+:where(
+    .root[data-auto-height]:not([data-fullscreen])
+      .main:is([data-thumbnails-position='top'], [data-thumbnails-position='bottom'])
+  )
+  > .body {
+  flex: none;
+}
 
-  & .main > .thumbnails[data-orientation='horizontal'] {
-    max-height: none;
-  }
+/* Side rails stay in view while the pages scroll past */
+:where(.root[data-auto-height]:not([data-fullscreen]) .main)
+  > .thumbnails:where(:not([data-orientation='horizontal'])) {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+}
+
+:where(.root[data-auto-height]:not([data-fullscreen]) .main)
+  > .thumbnails[data-orientation='horizontal'] {
+  max-height: none;
 }
 
 /* Delete button on a sidebar thumbnail: shown on hover and focus, always on touch screens */
 .thumbnailDelete {
   position: absolute;
   z-index: 1;
-  top: 6px;
-  left: 6px;
+  top: rem(6px);
+  inset-inline-start: rem(6px);
   opacity: 0;
   transition: opacity 120ms ease;
 
-  :where(.thumbnail:hover, .thumbnail:focus-visible) > &,
   &:focus-visible {
+    opacity: 1;
+  }
+
+  :where(.thumbnail:focus-visible) > & {
     opacity: 1;
   }
 
@@ -975,41 +1007,55 @@
   }
 }
 
-/* variant="plain": just the document, for embedding in a page */
+/*
+ * variant="plain": just the document, for embedding in a page. The inner parts are in :where(),
+ * so an app's classNames for them win without !important
+ */
 .root[data-variant='plain'] {
   border: 0;
   border-radius: 0;
   background-color: transparent;
+  color: inherit;
+}
 
-  & .toolbar {
-    border-bottom: 0;
-    background-color: transparent;
-  }
+:where(.root[data-variant='plain']) .toolbar {
+  border-bottom: 0;
+  background-color: transparent;
+}
 
-  & .body {
-    background-color: transparent;
-  }
+:where(.root[data-variant='plain']) .body {
+  background-color: transparent;
+}
 
-  & .page {
-    box-shadow: none;
-  }
+:where(.root[data-variant='plain']) .page {
+  box-shadow: none;
+}
+
+/* A presentation: pages centred on a dark background. Last, so it also wins over the plain body */
+:where(.main[data-presenting]) > .body {
+  /* Not a theme colour: dark-9 is a little lighter, and a presentation should be as dark as a room */
+  background-color: #111;
+  cursor: pointer;
 }
 
 /* pageColorScheme: inverted pages for dark interfaces, keeping hues */
 .root[data-page-color-scheme='dark'] {
+  /* #121212 is not a palette colour (dark-9 is #141414), kept for the same look as before */
   --_page-background: var(--doc-viewer-page-background, #121212);
+  --_page-filter: invert(0.92) hue-rotate(180deg);
+}
 
-  & .page .canvas,
-  & .thumbnailImage .canvas {
-    filter: invert(0.92) hue-rotate(180deg);
+.root[data-page-color-scheme='auto'] {
+  @mixin dark {
+    --_page-background: var(--doc-viewer-page-background, #121212);
+    --_page-filter: invert(0.92) hue-rotate(180deg);
   }
 }
 
-:where([data-mantine-color-scheme='dark']) .root[data-page-color-scheme='auto'] {
-  --_page-background: var(--doc-viewer-page-background, #121212);
+.passwordInput {
+  width: 100%;
+}
 
-  & .page .canvas,
-  & .thumbnailImage .canvas {
-    filter: invert(0.92) hue-rotate(180deg);
-  }
+.editorTitle {
+  font-weight: 600;
 }

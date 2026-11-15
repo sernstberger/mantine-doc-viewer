@@ -146,7 +146,7 @@ export function EditorBar(props: EditorBarProps) {
   return (
     <Group {...getStyles('editorBar')} gap="xs" justify="space-between" wrap="wrap">
       <Group gap="xs" wrap="wrap">
-        <Text fw={600} size="sm">
+        <Text size="sm" {...getStyles('editorTitle')}>
           {labels.editPages}
         </Text>
         <Text size="sm" c="dimmed" aria-live="polite">

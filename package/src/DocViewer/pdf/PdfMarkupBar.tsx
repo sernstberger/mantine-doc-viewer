@@ -58,7 +58,7 @@ export function PdfMarkupBar({ markup, onSave, onClose }: PdfMarkupBarProps) {
           </DocViewerTooltip>
         );
       })}
-      <Divider orientation="vertical" />
+      <Divider orientation="vertical" {...getStyles('markupDivider')} />
       <DocViewerTooltip label={labels.undoMark}>
         <ActionIcon
           {...controlProps()}

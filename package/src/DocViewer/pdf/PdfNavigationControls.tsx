@@ -36,7 +36,7 @@ export interface ThumbnailsControlProps {
 }
 
 function ThumbnailsPositionPopover(props: ThumbnailsControlProps) {
-  const { labels, size } = useDocViewerContext();
+  const { getStyles, labels, size } = useDocViewerContext();
   const controlProps = useControlProps();
 
   return (
@@ -48,7 +48,7 @@ function ThumbnailsPositionPopover(props: ThumbnailsControlProps) {
           </ActionIcon>
         </DocViewerTooltip>
       </Popover.Target>
-      <Popover.Dropdown p={4}>
+      <Popover.Dropdown p={4} {...getStyles('dropdown')}>
         <SegmentedControl
           size={size.input}
           value={props.position}
@@ -177,7 +177,7 @@ export interface LayoutControlProps {
 
 /** Page layout popover */
 export function LayoutControl({ layout, onLayoutChange }: LayoutControlProps) {
-  const { labels, size } = useDocViewerContext();
+  const { getStyles, labels, size } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
   return (
@@ -190,7 +190,7 @@ export function LayoutControl({ layout, onLayoutChange }: LayoutControlProps) {
             </ActionIcon>
           </DocViewerTooltip>
         </Popover.Target>
-        <Popover.Dropdown>
+        <Popover.Dropdown {...getStyles('dropdown')}>
           <Radio.Group
             value={layout}
             onChange={(value) => onLayoutChange(value as DocViewerPageLayout)}
