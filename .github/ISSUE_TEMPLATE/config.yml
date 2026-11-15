@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://sernstberger.github.io/mantine-doc-viewer/
+    about: Usage, props, Styles API and examples
+  - name: Mantine questions
+    url: https://github.com/orgs/mantinedev/discussions
+    about: Questions about Mantine itself
