@@ -1,8 +1,11 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import React from 'react';
+import { TestDocViewer } from '../../../test-utils/viewer';
+import { createDocViewer } from '../doc-viewer.store';
+import { openPageEditor } from '../DocViewerPageEditor/page-editor-actions';
+import { createPageEditorExtension } from '../DocViewerPageEditor/page-editor-extension';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 
@@ -36,22 +39,20 @@ afterEach(() => {
   URL.revokeObjectURL = originalRevokeObjectURL;
 });
 
-describe('controller', () => {
+describe('actions', () => {
   it('does nothing for a document that is not ready', async () => {
     mockPdf({ fail: true });
-    const controller = createRef<DocViewerController>();
+    const [store, api] = createDocViewer();
     render(
-      <DocViewer
+      <TestDocViewer
         src="/files/broken.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        controllerRef={controller}
-        withPageEditing
+        store={store}
+        extensions={[createPageEditorExtension()]}
       />
     );
     await screen.findByText('This PDF could not be opened');
 
     await act(async () => {
-      const api = controller.current!;
       api.goToPage(2);
       api.highlight({ text: 'quarter' });
       api.clearHighlight();
@@ -62,7 +63,7 @@ describe('controller', () => {
       api.rotate();
       api.openSearch('quarter');
       api.closeSearch();
-      api.editPages();
+      openPageEditor(store);
       api.togglePresentation();
       await api.print();
       expect(await api.getOutline()).toEqual([]);
@@ -72,55 +73,50 @@ describe('controller', () => {
     expect(screen.queryByRole('listbox', { name: 'Pages' })).not.toBeInTheDocument();
   });
 
-  it('zooms, lays out, searches, toggles thumbnails and presents through controllerRef', async () => {
+  it('zooms, lays out, searches, toggles thumbnails and presents through the actions', async () => {
     mockPdf();
-    const controller = createRef<DocViewerController>();
+    const [store, api] = createDocViewer();
     const { container } = render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        controllerRef={controller}
-        defaultZoom={1}
-      />
+      <TestDocViewer src="/files/report.pdf" store={store} defaultZoom={1} />
     );
     await screen.findAllByRole('group', { name: PAGES });
     const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
 
-    await act(async () => controller.current!.zoomIn());
+    await act(async () => api.zoomIn());
     expect(zoomLevel()).toBe('125%');
-    await act(async () => controller.current!.zoomOut());
-    await act(async () => controller.current!.zoomOut());
+    await act(async () => api.zoomOut());
+    await act(async () => api.zoomOut());
     expect(zoomLevel()).toBe('75%');
 
-    await act(async () => controller.current!.setPageLayout('two-page'));
+    await act(async () => api.setPageLayout('two-page'));
     expect(container.querySelector('.mantine-DocViewer-pages')).toHaveAttribute(
       'data-layout',
       'two-page'
     );
 
     // Closing search that is not open does nothing
-    await act(async () => controller.current!.closeSearch());
-    await act(async () => controller.current!.openSearch('quarter'));
+    await act(async () => api.closeSearch());
+    await act(async () => api.openSearch('quarter'));
     expect(await screen.findByRole('textbox', { name: 'Search document' })).toHaveValue('quarter');
-    await act(async () => controller.current!.closeSearch());
+    await act(async () => api.closeSearch());
     expect(screen.queryByRole('textbox', { name: 'Search document' })).not.toBeInTheDocument();
 
     const thumbnails = screen.getByRole('button', { name: 'Page thumbnails' });
     expect(thumbnails).toHaveAttribute('aria-pressed', 'false');
-    await act(async () => controller.current!.toggleThumbnails());
+    await act(async () => api.toggleThumbnails());
     expect(thumbnails).toHaveAttribute('aria-pressed', 'true');
-    await act(async () => controller.current!.toggleThumbnails(true));
+    await act(async () => api.toggleThumbnails(true));
     expect(thumbnails).toHaveAttribute('aria-pressed', 'true');
-    await act(async () => controller.current!.toggleThumbnails());
+    await act(async () => api.toggleThumbnails());
     expect(thumbnails).toHaveAttribute('aria-pressed', 'false');
 
-    // Page editing is off without withPageEditing
-    await act(async () => controller.current!.editPages());
+    // Page editing is off without the page editor extension
+    await act(async () => openPageEditor(store));
     expect(screen.queryByRole('listbox', { name: 'Pages' })).not.toBeInTheDocument();
 
-    await act(async () => controller.current!.togglePresentation());
+    await act(async () => api.togglePresentation());
     expect(screen.getAllByRole('group', { name: PAGES })).toHaveLength(1);
-    await act(async () => controller.current!.togglePresentation());
+    await act(async () => api.togglePresentation());
     expect(screen.getAllByRole('group', { name: PAGES })).toHaveLength(3);
   });
 
@@ -129,23 +125,18 @@ describe('controller', () => {
     patchDocument((document) => {
       document.getOutline = jest.fn(() => Promise.reject(new Error('bad outline')));
     });
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
-    );
+    const [store, api] = createDocViewer();
+    render(<TestDocViewer src="/files/report.pdf" store={store} />);
     await screen.findAllByRole('group', { name: PAGES });
 
-    expect(await controller.current!.getOutline()).toEqual([]);
+    expect(await api.getOutline()).toEqual([]);
   });
 });
 
 describe('navigation', () => {
   it('goes to the previous page and follows named link actions', async () => {
     mockPdf({ links: [{ id: 'next', annotationType: 2, action: 'NextPage' }] });
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
-    );
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await screen.findAllByRole('group', { name: PAGES });
     await waitFor(() => expect(document.querySelector('a[data-element-id="next"]')).not.toBeNull());
@@ -158,7 +149,7 @@ describe('navigation', () => {
 
   it('opens and closes search from its button, and ignores a wheel without Ctrl', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} />);
+    render(<TestDocViewer src="/files/report.pdf" defaultZoom={1} />);
     const region = await screen.findByRole('region', { name: 'report.pdf' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
@@ -172,7 +163,7 @@ describe('navigation', () => {
 
   it('stays on the page a presentation ended on while the layout settles', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
     await screen.findAllByRole('group', { name: PAGES });
 
     await userEvent.click(screen.getByRole('button', { name: 'Presentation' }));
@@ -210,7 +201,7 @@ describe('outline', () => {
         name === 'broken' ? Promise.reject(new Error('bad destination')) : resolve(name)
       );
     });
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Outline' }));
     const outline = await screen.findByRole('navigation', { name: 'Outline' });
@@ -231,7 +222,7 @@ describe('document info', () => {
     URL.createObjectURL = jest.fn(() => 'blob:attachment');
     URL.revokeObjectURL = jest.fn();
     mockPdf({ attachments: new Map([['a.txt', { filename: 'a.txt', description: '' }]]) });
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Document info' }));
     const attachment = await screen.findByRole('button', { name: 'Download attachment a.txt' });

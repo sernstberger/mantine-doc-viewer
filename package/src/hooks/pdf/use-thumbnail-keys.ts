@@ -20,7 +20,6 @@ export function useThumbnailKeys({ numPages, horizontal, onSelect, onDelete }: T
       return;
     }
 
-    // Page Up and Page Down move by the number of thumbnails that fit in the rail
     const perView = getThumbnailsPerView(
       horizontal ? root.clientWidth : root.clientHeight,
       horizontal ? option!.offsetWidth : option!.offsetHeight

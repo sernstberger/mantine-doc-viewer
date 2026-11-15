@@ -4,10 +4,24 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { PDFDocument } from '@cantoo/pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
-import React, { createRef } from 'react';
-import { type DocViewerController, DocViewer } from '../../../test-utils/render-legacy';
+import React from 'react';
+import { createTestPdfAdapter } from '../../../test-utils/adapters';
+import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
+import { useDocViewer, type DocViewerActions, type DocViewerStore } from '../doc-viewer.store';
+import { createPageEditorExtension } from '../DocViewerPageEditor/page-editor-extension';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+
+function renderControlled(props: TestDocViewerProps) {
+  const handle = {} as { actions: DocViewerActions; store: DocViewerStore };
+  function Controlled() {
+    const [store, actions] = useDocViewer();
+    handle.actions = actions;
+    handle.store = store;
+    return <TestDocViewer store={store} {...props} />;
+  }
+  return { ...render(<Controlled />), handle };
+}
 
 describe('DocViewer PDF', () => {
   beforeEach(() => {
@@ -17,7 +31,12 @@ describe('DocViewer PDF', () => {
 
   it('loads the document from src and renders every page', async () => {
     const { page } = mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/pdf.worker.min.mjs" />);
+    render(
+      <TestDocViewer
+        src="/files/report.pdf"
+        pdfAdapter={createTestPdfAdapter('/pdf.worker.min.mjs')}
+      />
+    );
 
     expect(screen.getByText('Loading document')).toBeInTheDocument();
     expect(await screen.findAllByRole('group', { name: /^Page \d of 3$/ })).toHaveLength(3);
@@ -33,7 +52,7 @@ describe('DocViewer PDF', () => {
 
   it('disables previous page on the first page', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     expect(await screen.findByRole('button', { name: 'Previous page' })).toHaveAttribute(
       'aria-disabled',
@@ -44,7 +63,7 @@ describe('DocViewer PDF', () => {
 
   it('zooms in and out in steps and returns to fit width', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     // jsdom has no layout, so fit width falls back to 100%
     expect(await screen.findByText('100%')).toBeInTheDocument();
@@ -68,7 +87,7 @@ describe('DocViewer PDF', () => {
   it('explains how to fix a missing worker', async () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" />);
+    render(<TestDocViewer src="/files/report.pdf" pdfAdapter={createTestPdfAdapter()} />);
 
     expect(
       await screen.findByText('PDF preview is not configured: pass workerSrc to createPdfJsAdapter')
@@ -80,7 +99,7 @@ describe('DocViewer PDF', () => {
 
   it('offers a download when the PDF cannot be opened', async () => {
     mockPdf({ fail: true });
-    render(<DocViewer src="/files/broken.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/broken.pdf" />);
 
     expect(await screen.findByText('This PDF could not be opened')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Download file' })).toHaveAttribute(
@@ -91,7 +110,7 @@ describe('DocViewer PDF', () => {
 
   it('renders selectable text over each page', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     const page1 = await screen.findByRole('group', { name: 'Page 1 of 3' });
     expect(await within(page1).findByText('Quarterly report')).toBeInTheDocument();
@@ -100,7 +119,7 @@ describe('DocViewer PDF', () => {
 
   it('searches every page and steps through matches', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
     const input = screen.getByRole('textbox', { name: 'Search document' });
@@ -120,7 +139,7 @@ describe('DocViewer PDF', () => {
 
   it('reports when nothing matches', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await userEvent.type(screen.getByRole('textbox', { name: 'Search document' }), 'invoice');
@@ -137,7 +156,7 @@ describe('DocViewer PDF', () => {
 
   it('opens search with Ctrl+F and closes it with Escape', async () => {
     mockPdf();
-    const { container } = render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    const { container } = render(<TestDocViewer src="/files/report.pdf" />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
     fireEvent.keyDown(container.querySelector('[role="region"]')!, { key: 'f', ctrlKey: true });
@@ -149,7 +168,7 @@ describe('DocViewer PDF', () => {
 
   it('shows page thumbnails and jumps to the page that is clicked', async () => {
     const { page } = mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     const toggle = await screen.findByRole('button', { name: 'Page thumbnails' });
     expect(screen.queryByRole('listbox', { name: 'Pages' })).not.toBeInTheDocument();
@@ -176,9 +195,7 @@ describe('DocViewer PDF', () => {
 
   it('opens thumbnails by default with defaultThumbnailsOpened', async () => {
     mockPdf();
-    render(
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultThumbnailsOpened />
-    );
+    render(<TestDocViewer src="/files/report.pdf" defaultThumbnailsOpened />);
 
     expect(await screen.findByRole('listbox', { name: 'Pages' })).toBeInTheDocument();
   });
@@ -186,7 +203,7 @@ describe('DocViewer PDF', () => {
   describe('accessibility', () => {
     it('reads each page from its text, not as an image', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       const page1 = await screen.findByRole('group', { name: 'Page 1 of 3' });
       expect(await within(page1).findByText('Quarterly report')).toBeInTheDocument();
@@ -196,7 +213,7 @@ describe('DocViewer PDF', () => {
 
     it('names the focusable scroll area after the file', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       const region = await screen.findByRole('region', { name: 'report.pdf' });
       expect(region).toHaveAttribute('tabindex', '0');
@@ -205,7 +222,7 @@ describe('DocViewer PDF', () => {
 
     it('announces the page after the page buttons, not while scrolling', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       const status = screen
@@ -219,16 +236,15 @@ describe('DocViewer PDF', () => {
 
     it('announces errors as alerts', async () => {
       mockPdf({ fail: true });
-      render(<DocViewer src="/files/broken.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/broken.pdf" />);
       expect(await screen.findByRole('alert')).toHaveTextContent('This PDF could not be opened');
     });
 
     it('uses translated labels', async () => {
       mockPdf();
       render(
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
           labels={{
             nextPageLabel: 'Nächste Seite',
             pageOfLabel: (page, total) => `Seite ${page} von ${total}`,
@@ -244,7 +260,7 @@ describe('DocViewer PDF', () => {
     it('has no axe violations', async () => {
       mockPdf();
       const { container } = render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultThumbnailsOpened />
+        <TestDocViewer src="/files/report.pdf" defaultThumbnailsOpened />
       );
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       expect((await axe(container)).violations).toEqual([]);
@@ -255,9 +271,8 @@ describe('DocViewer PDF', () => {
     it('lays out thumbnails on the side set by defaultThumbnailsPosition', async () => {
       mockPdf();
       const { container } = render(
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
           defaultThumbnailsOpened
           defaultThumbnailsPosition="bottom"
         />
@@ -271,57 +286,16 @@ describe('DocViewer PDF', () => {
       expect(container.querySelector('[data-thumbnails-position="bottom"]')).toBeInTheDocument();
     });
 
-    describe('responsive thumbnailsPosition', () => {
-      const { matchMedia } = window;
-
-      // Viewport between theme.breakpoints.sm and md
-      beforeEach(() => {
-        window.matchMedia = jest.fn().mockImplementation((query: string) => ({
-          matches: /min-width: (36|48)em/.test(query),
-          media: query,
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-          addListener: jest.fn(),
-          removeListener: jest.fn(),
-        }));
-      });
-
-      afterEach(() => {
-        window.matchMedia = matchMedia;
-      });
-
-      it('uses the side of the largest matching breakpoint', async () => {
-        mockPdf();
-        render(
-          <DocViewer
-            src="/files/report.pdf"
-            pdfWorkerSrc="/worker.mjs"
-            defaultThumbnailsOpened
-            thumbnailsPosition={{ base: 'bottom', sm: 'right' }}
-          />
-        );
-
-        const nav = await screen.findByRole('listbox', { name: 'Pages' });
-        await waitFor(() => expect(nav).toHaveAttribute('data-orientation', 'vertical'));
-        expect(document.querySelector('[data-thumbnails-position="right"]')).toBeInTheDocument();
-      });
-    });
-
-    it('lets the reader move thumbnails and reports the change', async () => {
+    it('lets the reader move thumbnails', async () => {
       mockPdf();
-      const onChange = jest.fn();
-      render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          defaultThumbnailsOpened
-          onThumbnailsPositionChange={onChange}
-        />
-      );
+      const { handle } = renderControlled({
+        src: '/files/report.pdf',
+        defaultThumbnailsOpened: true,
+      });
 
       await userEvent.click(await screen.findByRole('button', { name: 'Pages panel position' }));
       await userEvent.click(await screen.findByRole('radio', { name: 'Top' }));
-      expect(onChange).toHaveBeenCalledWith('top');
+      expect(handle.store.getState().thumbnailsPosition).toBe('top');
       expect(screen.getByRole('listbox', { name: 'Pages' })).toHaveAttribute(
         'data-orientation',
         'horizontal'
@@ -330,9 +304,7 @@ describe('DocViewer PDF', () => {
 
     it('is a listbox with one tab stop, where arrow keys change the page', async () => {
       mockPdf();
-      render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultThumbnailsOpened />
-      );
+      render(<TestDocViewer src="/files/report.pdf" defaultThumbnailsOpened />);
 
       const listbox = await screen.findByRole('listbox', { name: 'Pages' });
       expect(listbox).toHaveAttribute('aria-orientation', 'vertical');
@@ -359,9 +331,7 @@ describe('DocViewer PDF', () => {
 
     it('moves the tab stop to the thumbnail of the page scrolled to', async () => {
       mockPdf();
-      render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultThumbnailsOpened />
-      );
+      render(<TestDocViewer src="/files/report.pdf" defaultThumbnailsOpened />);
 
       await screen.findByRole('listbox', { name: 'Pages' });
       await userEvent.click(screen.getByRole('button', { name: 'Next page' }));
@@ -373,7 +343,7 @@ describe('DocViewer PDF', () => {
   describe('focus and announcements', () => {
     it('keeps focus on Next page when it becomes unavailable', async () => {
       mockPdf({ numPages: 2 });
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       const next = await screen.findByRole('button', { name: 'Next page' });
       await userEvent.click(next);
@@ -385,7 +355,7 @@ describe('DocViewer PDF', () => {
 
     it('returns focus to the Search button when search closes', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       const toggle = await screen.findByRole('button', { name: 'Search' });
       await userEvent.click(toggle);
@@ -395,7 +365,7 @@ describe('DocViewer PDF', () => {
 
     it('announces the active match with its page', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
       await userEvent.type(screen.getByRole('textbox', { name: 'Search document' }), 'costs');
@@ -404,7 +374,7 @@ describe('DocViewer PDF', () => {
 
     it('still searches the other pages when one page cannot be read', async () => {
       mockPdf({ unreadablePage: 1 });
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
       await userEvent.type(screen.getByRole('textbox', { name: 'Search document' }), 'quarter');
@@ -416,10 +386,12 @@ describe('DocViewer PDF', () => {
     it('passes pdfOptions to pdf.js over the defaults', async () => {
       mockPdf();
       render(
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          pdfOptions={{ disableAutoFetch: false, withCredentials: true }}
+          pdfAdapter={createTestPdfAdapter('/worker.mjs', {
+            disableAutoFetch: false,
+            withCredentials: true,
+          })}
         />
       );
 
@@ -434,7 +406,7 @@ describe('DocViewer PDF', () => {
 
     it('frees the pdf.js memory of drawn pages when the viewer unmounts', async () => {
       const { page } = mockPdf();
-      const { unmount } = render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      const { unmount } = render(<TestDocViewer src="/files/report.pdf" />);
 
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       unmount();
@@ -442,17 +414,11 @@ describe('DocViewer PDF', () => {
     });
   });
 
-  describe('events and controller', () => {
+  describe('events and actions', () => {
     it('reports load and errors', async () => {
       mockPdf();
       const onDocumentLoad = jest.fn();
-      render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          onDocumentLoad={onDocumentLoad}
-        />
-      );
+      render(<TestDocViewer src="/files/report.pdf" onDocumentLoad={onDocumentLoad} />);
       await waitFor(() =>
         expect(onDocumentLoad).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'pdf', numPages: 3 })
@@ -461,41 +427,30 @@ describe('DocViewer PDF', () => {
 
       mockPdf({ fail: true });
       const onDocumentError = jest.fn();
-      render(
-        <DocViewer
-          src="/files/broken.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          onDocumentError={onDocumentError}
-        />
-      );
+      render(<TestDocViewer src="/files/broken.pdf" onDocumentError={onDocumentError} />);
       await waitFor(() => expect(onDocumentError).toHaveBeenCalledWith(expect.any(Error)));
     });
 
-    it('moves pages and zooms through controllerRef, and reports changes', async () => {
+    it('moves pages and zooms through the store actions, and reports changes', async () => {
       mockPdf();
-      const controller = createRef<DocViewerController>();
       const onPageChange = jest.fn();
       const onZoomChange = jest.fn();
-      render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          controllerRef={controller}
-          onPageChange={onPageChange}
-          onZoomChange={onZoomChange}
-        />
-      );
+      const { handle } = renderControlled({
+        src: '/files/report.pdf',
+        onPageChange,
+        onZoomChange,
+      });
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-      act(() => controller.current!.goToPage(3));
+      act(() => handle.actions.goToPage(3));
       expect(screen.getByText('3 / 3')).toBeInTheDocument();
       expect(onPageChange).toHaveBeenLastCalledWith(3);
 
-      act(() => controller.current!.setZoom(2));
+      act(() => handle.actions.setZoom(2));
       expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('200%');
       expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
 
-      act(() => controller.current!.setZoom('fit'));
+      act(() => handle.actions.setZoom('fit'));
       expect(screen.getByRole('button', { name: 'Fit to width' })).toHaveAttribute(
         'aria-pressed',
         'true'
@@ -504,38 +459,26 @@ describe('DocViewer PDF', () => {
 
     it('follows the page prop', async () => {
       mockPdf();
-      const { rerender } = render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" page={1} />
-      );
+      const { rerender } = render(<TestDocViewer src="/files/report.pdf" page={1} />);
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-      rerender(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" page={2} />);
+      rerender(<TestDocViewer src="/files/report.pdf" page={2} />);
       expect(await screen.findByText('2 / 3')).toBeInTheDocument();
     });
 
     it('opens with defaultZoom and defaultPage', async () => {
       mockPdf();
-      render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          defaultZoom={1.5}
-          defaultPage={3}
-        />
-      );
+      render(<TestDocViewer src="/files/report.pdf" defaultZoom={1.5} defaultPage={3} />);
       expect(await screen.findByText('3 / 3')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Zoom \d/ })).toHaveTextContent('150%');
     });
 
-    it('opens search with a query through controllerRef', async () => {
+    it('opens search with a query through the store actions', async () => {
       mockPdf();
-      const controller = createRef<DocViewerController>();
-      render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
-      );
+      const { handle } = renderControlled({ src: '/files/report.pdf' });
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-      act(() => controller.current!.openSearch('costs'));
+      act(() => handle.actions.openSearch('costs'));
       expect(screen.getByRole('textbox', { name: 'Search document' })).toHaveValue('costs');
       expect(await screen.findByText('Match 1 of 1, page 2')).toBeInTheDocument();
     });
@@ -544,7 +487,7 @@ describe('DocViewer PDF', () => {
   describe('outline, password, layout and print', () => {
     it('jumps to a page from the outline', async () => {
       mockPdf({ outline: [{ title: 'Costs', dest: 'costs', url: null, items: [] }] });
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       await userEvent.click(await screen.findByRole('button', { name: 'Outline' }));
       const outline = await screen.findByRole('navigation', { name: 'Outline' });
@@ -554,14 +497,14 @@ describe('DocViewer PDF', () => {
 
     it('has no outline button for documents without bookmarks', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       expect(screen.queryByRole('button', { name: 'Outline' })).not.toBeInTheDocument();
     });
 
     it('asks for the password of a protected PDF', async () => {
       mockPdf({ password: 'secret' });
-      render(<DocViewer src="/files/locked.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/locked.pdf" />);
 
       const input = await screen.findByLabelText('Password');
       await userEvent.type(input, 'wrong');
@@ -576,15 +519,10 @@ describe('DocViewer PDF', () => {
 
     it('lays pages out from the page layout menu', async () => {
       mockPdf();
-      const controller = createRef<DocViewerController>();
-      const { container } = render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          defaultPageLayout="two-page-cover"
-          controllerRef={controller}
-        />
-      );
+      const { container, handle } = renderControlled({
+        src: '/files/report.pdf',
+        defaultPageLayout: 'two-page-cover',
+      });
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       const pages = container.querySelector('.mantine-DocViewer-pages')!;
       expect(pages).toHaveAttribute('data-layout', 'two-page-cover');
@@ -594,7 +532,7 @@ describe('DocViewer PDF', () => {
       expect(pages).toHaveAttribute('data-layout', 'horizontal');
       expect(screen.getByRole('button', { name: 'Fit to view' })).toBeInTheDocument();
 
-      act(() => controller.current!.setPageLayout('single'));
+      act(() => handle.actions.setPageLayout('single'));
       expect(pages).toHaveAttribute('data-layout', 'single');
       expect(screen.getByRole('button', { name: 'Fit to width' })).toBeInTheDocument();
     });
@@ -603,7 +541,7 @@ describe('DocViewer PDF', () => {
       URL.createObjectURL = jest.fn(() => 'blob:report');
       URL.revokeObjectURL = jest.fn();
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
 
       await userEvent.click(await screen.findByRole('button', { name: 'Print' }));
       await waitFor(() => expect(document.querySelector('iframe')).toBeInTheDocument());
@@ -612,9 +550,8 @@ describe('DocViewer PDF', () => {
     it('hides print and download with toolbarControls', async () => {
       mockPdf();
       render(
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
           toolbarControls={{ print: false, download: false }}
         />
       );
@@ -634,9 +571,7 @@ describe('DocViewer PDF', () => {
     it('makes links in pages clickable, with names', async () => {
       mockPdf({ links });
       const onLinkClick = jest.fn((_url: string, event: MouseEvent) => event.preventDefault());
-      render(
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" onLinkClick={onLinkClick} />
-      );
+      render(<TestDocViewer src="/files/report.pdf" pagesProps={{ onLinkClick }} />);
 
       const pageLink = await screen.findByRole('link', { name: 'Go to page 3' });
       const webLink = screen.getByRole('link', { name: 'https://mantine.dev/' });
@@ -661,11 +596,7 @@ describe('DocViewer PDF', () => {
             <button type="button" onClick={() => setCount(count + 1)}>
               Render again {count}
             </button>
-            <DocViewer
-              src="/files/report.pdf"
-              pdfWorkerSrc="/worker.mjs"
-              onDocumentLoad={onDocumentLoad}
-            />
+            <TestDocViewer src="/files/report.pdf" onDocumentLoad={onDocumentLoad} />
           </>
         );
       }
@@ -680,7 +611,7 @@ describe('DocViewer PDF', () => {
 
   it('narrows search with match case and whole words', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await userEvent.type(screen.getByRole('textbox', { name: 'Search document' }), 'quarter');
@@ -698,15 +629,7 @@ describe('DocViewer PDF', () => {
 
   it('rotates pages a quarter turn at a time', async () => {
     mockPdf();
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        controllerRef={controller}
-      />
-    );
+    const { handle } = renderControlled({ src: '/files/report.pdf', defaultZoom: 1 });
 
     const page1 = await screen.findByRole('group', { name: 'Page 1 of 3' });
     expect(page1).toHaveStyle({ width: '612px', height: '792px' });
@@ -714,7 +637,7 @@ describe('DocViewer PDF', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
     await waitFor(() => expect(page1).toHaveStyle({ width: '792px', height: '612px' }));
 
-    act(() => controller.current!.rotate());
+    act(() => handle.actions.rotate());
     await waitFor(() => expect(page1).toHaveStyle({ width: '612px', height: '792px' }));
   });
 
@@ -727,7 +650,7 @@ describe('DocViewer PDF', () => {
           <button type="button" onClick={() => setPage(3)}>
             Show page 3
           </button>
-          <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" page={page} />
+          <TestDocViewer src="/files/report.pdf" page={page} />
         </>
       );
     }
@@ -748,7 +671,7 @@ describe('DocViewer PDF', () => {
       layers: [{ id: '5R', name: 'Annotations', visible: true }],
       attachments: new Map([['notes.txt', { filename: 'notes.txt', description: 'Notes' }]]),
     });
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Document info' }));
     // The page text also says "Quarterly report", so look for it as a property value
@@ -772,10 +695,7 @@ describe('DocViewer PDF', () => {
 
   it('presents one page at a time, moving with keys and ending with Escape', async () => {
     mockPdf();
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
-    );
+    const { handle } = renderControlled({ src: '/files/report.pdf' });
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
     await userEvent.click(screen.getByRole('button', { name: 'Presentation' }));
@@ -797,22 +717,26 @@ describe('DocViewer PDF', () => {
     // Stays on the page the presentation ended on
     await waitFor(() => expect(screen.getByText('3 / 3')).toBeInTheDocument());
 
-    act(() => controller.current!.togglePresentation());
+    act(() => handle.actions.togglePresentation());
     await userEvent.click(screen.getByRole('button', { name: 'Exit presentation' }));
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
   });
 
   describe('page editing', () => {
-    const openEditor = async (props: Partial<React.ComponentProps<typeof DocViewer>> = {}) => {
+    const editorExtensions = (onSave?: jest.Mock) => [
+      createPageEditorExtension({
+        onDocumentChange: onSave && ((bytes, details) => onSave(bytes, details)),
+        onExtract: onSave && ((bytes, { pages }) => onSave(bytes, { reason: 'extract', pages })),
+      }),
+    ];
+
+    const openEditor = async ({ withOnSave = true } = {}) => {
       mockPdf();
       const onSave = jest.fn();
       render(
-        <DocViewer
+        <TestDocViewer
           src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          withPageEditing
-          onSave={onSave}
-          {...props}
+          extensions={editorExtensions(withOnSave ? onSave : undefined)}
         />
       );
       await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
@@ -824,9 +748,9 @@ describe('DocViewer PDF', () => {
       return { onSave, listbox, order };
     };
 
-    it('is off unless withPageEditing is set', async () => {
+    it('is off unless the page editor extension is added', async () => {
       mockPdf();
-      render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+      render(<TestDocViewer src="/files/report.pdf" />);
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
       expect(screen.queryByRole('button', { name: 'Edit pages' })).not.toBeInTheDocument();
     });
@@ -936,14 +860,7 @@ describe('DocViewer PDF', () => {
       [1, 2, 3].forEach(() => original.addPage([612, 792]));
       document.extractPages.mockResolvedValue((await original.save()) as never);
       const onSave = jest.fn();
-      render(
-        <DocViewer
-          src="/files/report.pdf"
-          pdfWorkerSrc="/worker.mjs"
-          withPageEditing
-          onSave={onSave}
-        />
-      );
+      render(<TestDocViewer src="/files/report.pdf" extensions={editorExtensions(onSave)} />);
       await userEvent.click(await screen.findByRole('button', { name: 'Edit pages' }));
 
       // A turn alone is an edit: Reset becomes available, and undoes it
@@ -980,7 +897,7 @@ describe('DocViewer PDF', () => {
       URL.revokeObjectURL = jest.fn();
       // jsdom cannot follow the download link: keep the click and check what it saves
       const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-      await openEditor({ onSave: undefined });
+      await openEditor({ withOnSave: false });
       await userEvent.click(screen.getByRole('button', { name: 'Save' }));
       await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
       expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('report-edited.pdf');
@@ -990,7 +907,7 @@ describe('DocViewer PDF', () => {
 
   it('zooms PDFs with + - 0 and with Ctrl+wheel or trackpad pinch', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultZoom={1} />);
+    render(<TestDocViewer src="/files/report.pdf" defaultZoom={1} />);
     const region = await screen.findByRole('region', { name: 'report.pdf' });
     const zoomLevel = () => screen.getByRole('button', { name: /^Zoom \d/ }).textContent;
 
@@ -1011,7 +928,7 @@ describe('DocViewer PDF', () => {
     await waitFor(() => expect(zoomLevel()).not.toBe('100%'));
   });
 
-  it('gives the outline with page numbers through controllerRef', async () => {
+  it('gives the outline with page numbers through the store actions', async () => {
     mockPdf({
       outline: [
         {
@@ -1022,13 +939,10 @@ describe('DocViewer PDF', () => {
         },
       ],
     });
-    const controller = createRef<DocViewerController>();
-    render(
-      <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" controllerRef={controller} />
-    );
+    const { handle } = renderControlled({ src: '/files/report.pdf' });
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-    expect(await controller.current!.getOutline()).toEqual([
+    expect(await handle.actions.getOutline()).toEqual([
       {
         title: 'Costs',
         page: 2,

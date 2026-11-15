@@ -24,14 +24,12 @@ export function usePdfSearchBar(
   const open = (nextQuery?: string) => {
     nextQuery !== undefined && setQuery(nextQuery);
     setOpened(true);
-    // Focus after the search bar has rendered
     requestAnimationFrame(() => inputRef.current?.select());
   };
 
   const close = () => {
     setOpened(false);
     setQuery('');
-    // The search bar held focus, so return it to the button that opens search
     requestAnimationFrame(() => (toggleRef.current ?? fallbackFocus)?.focus());
   };
 

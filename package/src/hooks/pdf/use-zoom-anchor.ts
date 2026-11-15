@@ -71,7 +71,6 @@ export function useZoomAnchor(
   const previousScale = useRef(scale);
   const anchor = useRef<ZoomAnchor | null>(null);
 
-  // Read while rendering, before React puts the new page sizes into the DOM
   if (scrollRoot && enabled && scale !== previousScale.current) {
     anchor.current = getZoomAnchor(scrollRoot);
   }
@@ -87,8 +86,6 @@ export function useZoomAnchor(
 
     const page =
       target && scrollRoot.querySelector<HTMLElement>(`[data-page-number="${target.page}"]`);
-    // No page to keep in view (none laid out yet, as when a document first fits), or the start in
-    // view: the padding before the first page does not scale, so leaving the offset is right
     if (!page || target.atStart) {
       return;
     }

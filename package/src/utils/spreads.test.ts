@@ -1,6 +1,7 @@
 import {
   fitsAcross,
   getSpreadIndex,
+  getNextPage,
   getSpreads,
   getSwipeDirection,
   getTapDirection,
@@ -118,5 +119,25 @@ describe('fitsAcross', () => {
 
   it('never lets a swipe turn the horizontal layout, which scrolls sideways', () => {
     expect(fitsAcross({ ...base, layout: 'horizontal' })).toBe(false);
+  });
+});
+
+describe('getNextPage', () => {
+  it('goes one page on, and loops or stops at the end', () => {
+    expect(getNextPage(1, 3, 'single', true)).toBe(2);
+    expect(getNextPage(3, 3, 'single', true)).toBe(1);
+    expect(getNextPage(3, 3, 'wrapped', false)).toBeNull();
+  });
+
+  it('turns two-page layouts a spread at a time', () => {
+    expect(getNextPage(1, 6, 'two-page', true)).toBe(3);
+    expect(getNextPage(2, 6, 'two-page', true)).toBe(3);
+    expect(getNextPage(5, 6, 'two-page', true)).toBe(1);
+
+    // With a cover the spreads are 1, 2-3, 4-5
+    expect(getNextPage(1, 6, 'two-page-cover', true)).toBe(2);
+    expect(getNextPage(2, 6, 'two-page-cover', true)).toBe(4);
+    expect(getNextPage(3, 6, 'two-page-cover', true)).toBe(4);
+    expect(getNextPage(6, 6, 'two-page-cover', false)).toBeNull();
   });
 });

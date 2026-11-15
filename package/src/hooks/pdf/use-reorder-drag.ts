@@ -90,13 +90,10 @@ export function useReorderList({
   enabled = true,
 }: ReorderListOptions) {
   const [drag, setDrag] = useState<DragState | null>(null);
-  // Rows run from right to left in RTL, so a drop before an item is on its right half
   const rtl = useDirection().dir === 'rtl';
-  // A drag ends with a click on the item it started on; that click must not select it
   const suppressClickUntil = useRef(0);
 
   const handleDrag = useCallbackRef((page: number, state: UseDragState) => {
-    // Items are inside the container, so it is mounted by the time one is dragged
     const list = container!;
     const fromIndex = order.indexOf(page);
 
@@ -142,7 +139,6 @@ export function useReorderList({
     return dragging || drop ? { dragging, drop, offset: dragging ? drag.offset : undefined } : IDLE;
   };
 
-  // The same object through a drag, so items render again only when their own state changes
   const list = useMemo(
     () => ({ enabled, handleDrag, isDragClick }),
     [enabled, handleDrag, isDragClick]

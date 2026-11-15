@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { HIGHLIGHT_CSS } from '../utils/highlights';
+import { HIGHLIGHT_CSS } from './utils/highlights';
 
-const css = fs.readFileSync(path.join(__dirname, '../DocViewer.module.css'), 'utf8');
+const css = fs.readFileSync(path.join(__dirname, './DocViewer.module.css'), 'utf8');
 
 /** The text of the rule that starts with `selector`, up to its closing brace at the same depth */
 function ruleOf(selector: string) {
@@ -18,7 +18,15 @@ function ruleOf(selector: string) {
   throw new Error(`Rule ${selector} is not closed`);
 }
 
-describe('DocViewer.module.css rules', () => {
+describe('DocViewer.module.css', () => {
+  it('has no custom property that refers to itself, which would make it invalid', () => {
+    const selfReferences = Array.from(css.matchAll(/(--[\w-]+)\s*:([^;]+);/g))
+      .filter(([, name, value]) => value.includes(`var(${name})`) || value.includes(`var(${name},`))
+      .map(([declaration]) => declaration.trim());
+
+    expect(selfReferences).toEqual([]);
+  });
+
   it('shows the drag handle on touch screens in the page editor as well as on the current thumbnail', () => {
     const coarse = ruleOf('.dragHandle').match(/@media \(pointer: coarse\) \{[^}]*\{[^}]*\}/)![0];
     expect(coarse).toContain('.thumbnail[data-active]');

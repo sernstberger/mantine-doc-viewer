@@ -1,7 +1,8 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
-import React, { createRef } from 'react';
-import { DocViewer, type DocViewerController } from '../../../test-utils/render-legacy';
+import React, { useEffect } from 'react';
+import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
+import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import {
   getReadingPosition,
   getSeenSummary,
@@ -78,6 +79,17 @@ function rect(top: number, bottom: number, left = 0, right = 100) {
   return { top, bottom, left, right, width: right - left, height: bottom - top } as DOMRect;
 }
 
+function ControlledViewer({
+  onActions,
+  ...props
+}: TestDocViewerProps & { onActions: (actions: DocViewerActions) => void }) {
+  const [store, actions] = useDocViewer();
+  useEffect(() => {
+    onActions(actions);
+  }, [actions, onActions]);
+  return <TestDocViewer store={store} {...props} />;
+}
+
 describe('onReadingProgress and onReachEnd', () => {
   let io: ReturnType<typeof installIntersectionObserver>;
 
@@ -87,18 +99,16 @@ describe('onReadingProgress and onReachEnd', () => {
   });
   afterEach(() => io.uninstall());
 
-  async function setup(props: Record<string, unknown> = {}) {
+  async function setup(props: Partial<TestDocViewerProps> = {}) {
     mockPdf();
-    const controller = createRef<DocViewerController>();
+    let actions!: DocViewerActions;
     const onReadingProgress = jest.fn();
     const onReachEnd = jest.fn();
     render(
-      <DocViewer
+      <ControlledViewer
         src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        controllerRef={controller}
-        onReadingProgress={onReadingProgress}
-        onReachEnd={onReachEnd}
+        onActions={(value) => (actions = value)}
+        pagesProps={{ onReadingProgress, onReachEnd }}
         {...props}
       />
     );
@@ -108,7 +118,13 @@ describe('onReadingProgress and onReachEnd', () => {
     pages.forEach((page, index) => {
       page.getBoundingClientRect = () => rect(index * 100 - 50, index * 100 + 50);
     });
-    return { controller, onReadingProgress, onReachEnd, pages, root };
+    return {
+      reset: () => actions.resetReadingProgress(),
+      onReadingProgress,
+      onReachEnd,
+      pages,
+      root,
+    };
   }
 
   it('reports the fraction of each page seen, the position and the end', async () => {
@@ -157,14 +173,14 @@ describe('onReadingProgress and onReachEnd', () => {
   });
 
   it('starts over with resetReadingProgress, and signals the end again', async () => {
-    const { controller, pages, onReadingProgress, onReachEnd } = await setup();
+    const { reset, pages, onReadingProgress, onReachEnd } = await setup();
     pages.forEach((page, index) => {
       page.getBoundingClientRect = () => rect(index * 100 - 200, index * 100 - 100);
     });
     await act(async () => io.setIntersecting(pages[2], true));
     expect(onReachEnd).toHaveBeenCalledTimes(1);
 
-    act(() => controller.current!.resetReadingProgress());
+    act(() => reset());
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0, 0, 0],
       position: 0,

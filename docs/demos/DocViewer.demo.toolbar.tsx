@@ -9,8 +9,7 @@ import { DocViewer } from 'mantine-doc-viewer';
 function Demo() {
   return (
     <DocViewer.Root src="/sample.pdf" size="sm" h={500}>
-      <DocViewer.Toolbar>
-        <DocViewer.Title subtitle="Draft 4" />
+      <DocViewer.Toolbar subtitle="Draft 4">
         <DocViewer.PageControls />
         <DocViewer.ZoomControls />
         <DocViewer.SearchButton />
@@ -26,8 +25,7 @@ function Demo() {
 function Demo() {
   return (
     <DocViewer.Root src={asset('sample.pdf')} size="sm" h={500}>
-      <DocViewer.Toolbar>
-        <DocViewer.Title subtitle="Draft 4" />
+      <DocViewer.Toolbar subtitle="Draft 4">
         <DocViewer.PageControls />
         <DocViewer.ZoomControls />
         <DocViewer.SearchButton />

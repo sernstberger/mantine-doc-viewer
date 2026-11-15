@@ -19,7 +19,6 @@ interface TextLayerInput {
 /** While text is being selected, pdf.js stretches `.endOfContent` over the layer to stop the selection jumping */
 function useSelectingClass(textLayerRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
-    // The text layer element is always rendered, so it exists once the page has mounted
     const layer = textLayerRef.current!;
 
     const stop = () => layer.classList.remove('selecting');

@@ -11,7 +11,7 @@ type LoadOptions = Omit<DocumentInitParameters, 'url' | 'data' | 'range'>;
  */
 export const DEFAULT_PDF_LOAD_OPTIONS: LoadOptions = {
   disableAutoFetch: true,
-  // pdf.js only stops pre-fetching when streaming is off too
+  // Workaround: pdf.js only stops pre-fetching when streaming is off too
   disableStream: true,
 };
 
@@ -24,7 +24,7 @@ export function buildLoadParameters(
   return {
     ...DEFAULT_PDF_LOAD_OPTIONS,
     ...options,
-    // pdf.js takes ownership of the buffer it is given, so it gets a copy
+    // Workaround: pdf.js takes ownership of the buffer it is given, so it gets a copy
     ...(data ? { data: data.slice() } : { url: src }),
   };
 }

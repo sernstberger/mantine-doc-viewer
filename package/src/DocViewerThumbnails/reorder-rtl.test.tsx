@@ -3,7 +3,7 @@ import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 
 const items = (listbox: HTMLElement) => within(listbox).getAllByRole('option');
 
@@ -12,7 +12,7 @@ describe('thumbnail keys in a right-to-left app', () => {
     mockPdf();
     render(
       <DirectionProvider initialDirection="rtl" detectDirection={false}>
-        <DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" defaultThumbnailsOpened />
+        <TestDocViewer src="/files/report.pdf" defaultThumbnailsOpened />
       </DirectionProvider>
     );
     const listbox = await screen.findByRole('listbox', { name: 'Pages' });

@@ -77,7 +77,6 @@ function PdfPageView({
   const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   const pageLayers = usePageLayers();
-  // What the canvas, text and link layers draw from; each hook takes the fields it needs
   const page = { ...props, rotation, near };
 
   useEffect(() => {
@@ -92,7 +91,6 @@ function PdfPageView({
 
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
   const { width, height } = baseSize ?? placeholderSize;
-  // Overlays and marks follow the page before the viewer's rotation, then turn with it
   const layerSize = { width, height, scale, rotation };
   const overlay = renderPageOverlay?.({ pageNumber, ...layerSize });
 
@@ -108,7 +106,6 @@ function PdfPageView({
       })}
       data-page-number={pageNumber}
       data-rendered={rendered || undefined}
-      // A group, not an image: screen readers read the page from its text layer
       role="group"
       aria-label={labels.pageOfLabel(pageNumber, numPages)}
     >

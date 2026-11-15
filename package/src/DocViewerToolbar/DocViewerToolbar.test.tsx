@@ -175,16 +175,42 @@ describe('mantine-doc-viewer/DocViewerToolbar', () => {
     expect(screen.getByRole('toolbar')).toContainElement(screen.getByText('More'));
   });
 
-  it('shows its children in place of the default controls and title', () => {
+  it('shows its children in place of the default controls, after the title', () => {
     render(
-      <Harness rightSection="More">
+      <Harness rightSection="More" subtitle="Draft 4">
         <button type="button">Mine</button>
       </Harness>
     );
+    const toolbar = screen.getByRole('toolbar');
     expect(screen.getByRole('button', { name: 'Mine' })).toBeInTheDocument();
     expect(screen.getByText('More')).toBeInTheDocument();
-    expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
+    expect(toolbar).not.toContainElement(screen.getByText('report.pdf'));
+    expect(screen.getByText('Draft 4')).toBeInTheDocument();
+    expect(
+      screen
+        .getByText('report.pdf')
+        .compareDocumentPosition(screen.getByRole('button', { name: 'Mine' }))
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('takes the title from the title prop with children, and hides it with title={false}', () => {
+    const { rerender } = render(
+      <Harness title="Contract">
+        <button type="button">Mine</button>
+      </Harness>
+    );
+    expect(screen.getByText('Contract')).toBeInTheDocument();
+    expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();
+
+    rerender(
+      <Harness title={false}>
+        <button type="button">Mine</button>
+      </Harness>
+    );
+    expect(screen.queryByText('Contract')).not.toBeInTheDocument();
+    expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mine' })).toBeInTheDocument();
   });
 
   it('is named with the toolbar label of the viewer', () => {

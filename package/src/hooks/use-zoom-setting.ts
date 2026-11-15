@@ -55,20 +55,17 @@ export function useZoomSetting({
     onZoomChange(next, { scale: nextScale });
   };
 
-  // The zoom shown changed: report it unless it is the echo of a request already reported
   useEffect(() => {
     if (ready && `${zoom}:${scale}` !== reported.current) {
       report(zoom, scale);
     }
-    // report reads the ref and the stable onZoomChange
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- report reads the ref and the stable onZoomChange
   }, [ready, zoom, scale]);
 
   useEffect(() => {
     ready && updateDocViewerStateAction({ zoom, scale }, store);
   }, [ready, zoom, scale, store]);
 
-  // Stable, so listeners that zoom (the wheel) stay attached
   const setZoom = useCallbackRef((next: DocViewerZoom) => {
     const normalized = normalizeZoom(next);
     if (controlled) {

@@ -110,7 +110,6 @@ function SearchResults(props: PdfSearchBarProps) {
   return (
     <>
       <span {...getStyles('searchCount')}>{getCountLabel(props, labels)}</span>
-      {/* Read out once the results have settled, with the page, but not "Searching…" on every key */}
       <VisuallyHidden role="status">{getAnnouncement(props, labels)}</VisuallyHidden>
       <DocViewerTooltip label={labels.previousMatchLabel}>
         <ActionIcon

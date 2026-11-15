@@ -29,7 +29,6 @@ export function useReturnFocus(active: boolean) {
 
   return useCallback(
     (node: HTMLElement | null) => {
-      // A focused button that goes with the toolbar (while a document reloads) takes focus back
       if (!node && button.current === document.activeElement) {
         pending.current = true;
       }

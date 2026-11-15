@@ -45,3 +45,23 @@ describe('getDocViewerType', () => {
     expect(getCodeLanguage({ src: 'README' })).toBeUndefined();
   });
 });
+
+describe('detection from the MIME type, data urls and file names together', () => {
+  it('detects languages and types', () => {
+    expect(getCodeLanguage({ src: '/a/b.py' })).toBe('python');
+    expect(getCodeLanguage({ src: 'blob:x', fileName: 'x.ts' })).toBe('ts');
+    expect(getCodeLanguage({ src: 'blob:x' })).toBeUndefined();
+    expect(getDocViewerType({ mimeType: 'text/plain' })).toBe('text');
+    expect(getDocViewerType({ mimeType: 'application/x-weird', src: 'a.pdf' })).toBe('pdf');
+    expect(getDocViewerType({ src: 'data:image/png;base64,AAAA' })).toBe('image');
+    expect(getDocViewerType({ src: 'data:application/x-weird,1', fileName: 'a.md' })).toBe(
+      'markdown'
+    );
+    expect(getDocViewerType({ src: '/a.json' })).toBe('code');
+    expect(getDocViewerType({ src: '/a.csv' })).toBe('text');
+    expect(getDocViewerType({ src: '/a.zip' })).toBe('unknown');
+    expect(getDocViewerType({ mimeType: 'text/markdown' })).toBe('markdown');
+    expect(getDocViewerType({ mimeType: 'application/json' })).toBe('code');
+    expect(getDocViewerType({})).toBe('unknown');
+  });
+});

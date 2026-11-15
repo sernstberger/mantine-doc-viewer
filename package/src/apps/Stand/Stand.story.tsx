@@ -210,7 +210,6 @@ function StandScreen() {
                     />
                   </svg>
                 </ActionIcon>
-                <DocViewer.Title />
               </>
             }
           >

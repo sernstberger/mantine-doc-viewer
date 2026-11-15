@@ -71,7 +71,6 @@ export function Composition() {
         h={600}
       >
         <DocViewer.Toolbar>
-          <DocViewer.Title />
           <DocViewer.PageControls />
           <DocViewer.ZoomControls />
           <DocViewerMarkupButton />

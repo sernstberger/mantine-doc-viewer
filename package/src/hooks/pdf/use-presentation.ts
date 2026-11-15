@@ -40,7 +40,6 @@ export function usePresentation({ store, fullscreen, toggleFullscreen, body }: P
     }
   };
 
-  // Leaving full screen (Escape, or the browser's own controls) ends the presentation
   useEffect(() => {
     if (!fullscreen && enteredFullscreen.current) {
       enteredFullscreen.current = false;
@@ -48,7 +47,6 @@ export function usePresentation({ store, fullscreen, toggleFullscreen, body }: P
     }
   }, [fullscreen]);
 
-  // Keys go to the presentation as soon as it starts
   useEffect(() => {
     presenting && body?.focus();
   }, [presenting, body]);

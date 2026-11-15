@@ -79,9 +79,7 @@ function PdfThumbnailView({
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
 
   return (
-    // An option in the thumbnails listbox: the listbox handles the keys for the focused option
-    // (Enter and Space show its page, arrows move), as in the ARIA listbox pattern
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- the listbox handles the keys for the focused option, as in the ARIA listbox pattern
     <div
       ref={thumbnailRef}
       {...getStyles('thumbnail')}
@@ -89,7 +87,6 @@ function PdfThumbnailView({
       role="option"
       aria-selected={active}
       aria-label={labels.thumbnailLabel(pageNumber)}
-      // One tab stop for the whole list: the current page. Arrow keys move from there
       tabIndex={active ? 0 : -1}
       data-page-number={pageNumber}
       data-active={active || undefined}
@@ -222,9 +219,7 @@ function PdfThumbnailsView({
   });
 
   return (
-    // Focus moves between the options (roving tabindex: the current page is the tab stop), so
-    // the listbox itself does not take focus, as in the ARIA listbox pattern
-    // eslint-disable-next-line jsx-a11y/interactive-supports-focus
+    // eslint-disable-next-line jsx-a11y/interactive-supports-focus -- options are the tab stops (roving tabindex), as in the ARIA listbox pattern
     <Box
       ref={mergedRef}
       {...getStyles('thumbnails', stylesOptions)}

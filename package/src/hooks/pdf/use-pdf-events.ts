@@ -65,15 +65,13 @@ export function usePageSync({
     if (laidOut && initialPage && initialPage > 1) {
       scrollToPage(clampPage(initialPage, numPages));
     }
-    // Only when the pages are first laid out
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the pages are first laid out
   }, [laidOut]);
 
   useEffect(() => {
     if (laidOut && page && page !== pageReported.current) {
       scrollToPage(clampPage(page, numPages));
     }
-    // Only when the page prop changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the page prop changes
   }, [page]);
 }

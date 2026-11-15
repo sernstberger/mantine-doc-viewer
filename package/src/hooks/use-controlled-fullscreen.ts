@@ -26,7 +26,6 @@ export function useControlledFullscreen(
     }
   }, [fullscreen, report]);
 
-  // Only when the app changes `value`: the browser leaving full screen must not enter it again
   useEffect(() => {
     if (value !== undefined && value !== current.current) {
       toggle().catch(() => report(current.current));

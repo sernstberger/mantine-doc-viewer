@@ -40,7 +40,6 @@ export function usePdfPageContent(
   });
   useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
   const pdfLayers = usePdfLayers(document);
-  // One object per layer change, so pages only draw again (and render) when a layer is toggled
   const layers = useMemo(
     () => ({ config: pdfLayers.config, version: pdfLayers.version }),
     [pdfLayers.config, pdfLayers.version]

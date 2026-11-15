@@ -4,7 +4,7 @@ import { render } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import * as pdfjs from 'pdfjs-dist';
 import React, { useLayoutEffect } from 'react';
-import { DocViewer } from '../../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../../test-utils/viewer';
 import { DocViewerProvider } from '../../doc-viewer.context';
 import { createDocViewerStore } from '../../doc-viewer.store';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
@@ -862,7 +862,7 @@ describe('PdfPage', () => {
       )(getDocument.getMockImplementation()!)
     );
 
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
     expect(await screen.findByRole('link', { name: 'https://mantine.dev/' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Example title' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Already named' })).toBeInTheDocument();
@@ -876,7 +876,7 @@ describe('PdfPage', () => {
 
   it('marks the text layer as selecting from pointer down until pointer up', async () => {
     mockPdf();
-    render(<DocViewer src="/files/report.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/report.pdf" />);
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     const layer = document.querySelector('.mantine-DocViewer-textLayer')!;
     act(() => {

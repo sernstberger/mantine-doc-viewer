@@ -212,10 +212,7 @@ function ProoflineScreen() {
               page: classes.page,
             }}
           >
-            <DocViewer.Toolbar
-              leftSection={<DocViewer.Title />}
-              tooltipProps={{ openDelay: 400, position: 'bottom' }}
-            >
+            <DocViewer.Toolbar tooltipProps={{ openDelay: 400, position: 'bottom' }}>
               <DocViewer.PageControls />
               <DocViewer.ZoomControls />
             </DocViewer.Toolbar>

@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { within } from '@testing-library/react';
 import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 
 describe('pages without text', () => {
   beforeEach(() => getDocument.mockReset());
@@ -10,7 +10,7 @@ describe('pages without text', () => {
   it('says a page has no text when its text layer comes back empty', async () => {
     // The mock has text for three pages, so the fourth is like a scanned page
     mockPdf({ numPages: 4 });
-    render(<DocViewer src="/files/scan.pdf" pdfWorkerSrc="/worker.mjs" />);
+    render(<TestDocViewer src="/files/scan.pdf" />);
 
     const scanned = await screen.findByRole('group', { name: 'Page 4 of 4' });
     expect(await within(scanned).findByText('No text on this page')).toBeInTheDocument();
@@ -22,11 +22,7 @@ describe('pages without text', () => {
   it('takes the text from labels', async () => {
     mockPdf({ numPages: 4 });
     render(
-      <DocViewer
-        src="/files/scan.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        labels={{ pageHasNoTextLabel: 'Seite ohne Text' }}
-      />
+      <TestDocViewer src="/files/scan.pdf" labels={{ pageHasNoTextLabel: 'Seite ohne Text' }} />
     );
     const scanned = await screen.findByRole('group', { name: 'Page 4 of 4' });
     expect(await within(scanned).findByText('Seite ohne Text')).toBeInTheDocument();

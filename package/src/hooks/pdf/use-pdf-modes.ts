@@ -11,8 +11,7 @@ export function usePdfModes(presenting: boolean, announce: (message: string) => 
 
   useEffect(() => {
     presenting && announce(labels.presentationStartedLabel);
-    // Only when a presentation starts
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when a presentation starts
   }, [presenting]);
 
   return { presentRef: useReturnFocus(presenting) };

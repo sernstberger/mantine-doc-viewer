@@ -62,7 +62,6 @@ export function usePdfController(input: PdfControllerInput) {
       ready && input.togglePresentation();
     },
     getBytes: async () => (document ? document.getData() : null),
-    // Only a page element carries data-rendered, once its canvas holds the drawn page
     getPageCanvas: (page) =>
       input.scrollRoot?.querySelector<HTMLCanvasElement>(
         `[data-page-number="${page}"][data-rendered] canvas`

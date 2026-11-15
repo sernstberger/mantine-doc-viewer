@@ -62,7 +62,6 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     },
   });
 
-  // The page a presentation ended on is restored below, after this has run
   useZoomAnchor(scrollRoot, scale, !presenting && !view.viewport, position.resumeScroll);
 
   usePresentationRestore(presenting, currentPage, scale, scrollToPage);

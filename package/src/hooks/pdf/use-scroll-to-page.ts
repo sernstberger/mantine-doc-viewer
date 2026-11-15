@@ -66,7 +66,6 @@ export function useScrollToPage({
         return;
       }
 
-      // Finish any scroll still in progress, so its listener cannot end this one early
       settleScroll.current?.();
       scrollTarget.current = page;
       pendingOffset.current = offset;
@@ -75,7 +74,6 @@ export function useScrollToPage({
       const scroller: HTMLElement | Window = viewport ? window : scrollRoot;
       trackScroll(scroller, scrollTarget, settleScroll);
 
-      // Long jumps are instant: scrolling smoothly past hundreds of pages would draw each one
       const target = getScrollTarget({
         pageTop: viewport ? node.getBoundingClientRect().top + window.scrollY : node.offsetTop,
         pageLeft: node.offsetLeft,
@@ -87,7 +85,6 @@ export function useScrollToPage({
       const { top, left, pageLeft, far } = target;
       const behavior: ScrollBehavior = instant ? 'instant' : far ? 'auto' : getScrollBehavior();
       scroller.scrollTo({ top, left, behavior });
-      // A row of pages is scrolled sideways inside the viewer, even when the window scrolls
       viewport && horizontal && scrollRoot.scrollTo({ left: pageLeft, behavior });
     },
     [scrollRoot, horizontal, viewport]

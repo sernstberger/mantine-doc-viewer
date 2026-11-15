@@ -112,7 +112,6 @@ export function Composition() {
       <DocViewer.Root src="/sample-50.pdf" defaultThumbnailsOpened h={600}>
         <DocViewer.Toolbar>
           <DocViewer.ThumbnailsButton />
-          <DocViewer.Title />
           <DocViewer.PageControls />
           <DocViewer.ZoomControls />
           <DocViewer.SearchButton />

@@ -23,7 +23,6 @@ export function useWheelZoom(
       return undefined;
     }
 
-    // The scale the events so far lead to, set at the next frame
     let pending: number | null = null;
     let frame = 0;
     const apply = () => {

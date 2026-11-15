@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { DocViewer } from '../../../test-utils/render-legacy';
+import { TestDocViewer } from '../../../test-utils/viewer';
 import { getOverlayStyle } from './page-overlay';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
@@ -32,12 +32,7 @@ describe('renderPageOverlay', () => {
       </button>
     ));
     render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        renderPageOverlay={renderPageOverlay}
-      />
+      <TestDocViewer src="/files/report.pdf" defaultZoom={1} pagesProps={{ renderPageOverlay }} />
     );
 
     const page2 = await screen.findByRole('group', { name: 'Page 2 of 3' });
@@ -56,12 +51,7 @@ describe('renderPageOverlay', () => {
     mockPdf();
     const renderPageOverlay = jest.fn(({ pageNumber }) => <span>Mark {pageNumber}</span>);
     render(
-      <DocViewer
-        src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        defaultZoom={1}
-        renderPageOverlay={renderPageOverlay}
-      />
+      <TestDocViewer src="/files/report.pdf" defaultZoom={1} pagesProps={{ renderPageOverlay }} />
     );
 
     const overlay = (await screen.findByText('Mark 1')).parentElement!;
@@ -80,10 +70,11 @@ describe('renderPageOverlay', () => {
   it('adds no overlay element for pages that get nothing', async () => {
     mockPdf();
     render(
-      <DocViewer
+      <TestDocViewer
         src="/files/report.pdf"
-        pdfWorkerSrc="/worker.mjs"
-        renderPageOverlay={({ pageNumber }) => pageNumber === 1 && <span>Only first</span>}
+        pagesProps={{
+          renderPageOverlay: ({ pageNumber }) => pageNumber === 1 && <span>Only first</span>,
+        }}
       />
     );
 

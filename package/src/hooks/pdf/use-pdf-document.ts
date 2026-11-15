@@ -68,7 +68,6 @@ export function usePdfDocument(
         const task = pdfjs.getDocument(buildLoadParameters(adapter.getOptions?.(src), src, data));
         destroy = () => task.destroy();
 
-        // The size of the file is known once the first bytes arrive
         let total: number | undefined;
         task.onProgress = (progress: { total?: number }) => {
           total = progress.total;
