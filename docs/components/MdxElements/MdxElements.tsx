@@ -4,7 +4,9 @@ import { Demo } from '@mantinex/demo';
 import cx from 'clsx';
 import type { MDXComponents } from 'mdx/types';
 import React from 'react';
+import { DataTable } from '../DataTable';
 import { MdxInfo } from '../MdxInfo/MdxInfo';
+import { PartSelectors } from '../PartSelectors';
 import classes from './MdxElements.module.css';
 
 export function MdxTitle({
@@ -82,6 +84,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h6: h(6),
     pre: MdxPre,
     Demo,
+    DataTable,
+    PartSelectors,
     ...components,
   };
 }
