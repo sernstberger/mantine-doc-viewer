@@ -25,6 +25,9 @@ jobs:
         run: yarn
       - name: Build package
         run: npm run build
+      # Types resolve for require, import (node16/nodenext) and bundlers
+      - name: Check package exports
+        run: npm run check:exports
       - name: Build docs
         run: npm run docs:build
       - name: Run tests
