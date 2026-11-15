@@ -147,3 +147,7 @@ docs/docgen.json
 
 # Browser automation scratch files
 .playwright-mcp/
+
+# Agent worktrees and Storybook builds (copies of the source; keep them out of format, lint and tests)
+.claude/worktrees/
+storybook-static/
