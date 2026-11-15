@@ -261,7 +261,7 @@ export const DEFAULT_LABELS: DocViewerLabels = {
   markupSaved: 'Markup saved',
   markupLayer: (tool, page) => `${tool} on page ${page}`,
   markupKeys:
-    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels.',
+    'Arrow keys move the cursor. Enter starts and finishes a mark or opens a text box, Shift with arrow keys draws from the cursor, Escape cancels. Page Up and Page Down go to the previous and next page.',
   markStarted: (tool) => `${tool} started`,
   markAdded: (tool) => `${tool} added`,
   markCancelled: 'Mark cancelled',

@@ -68,6 +68,12 @@ export interface PdfLayerMarkup {
 
   /** Puts `next` where `mark` is */
   replaceMark: (mark: DocViewerMark, next: DocViewerMark) => void;
+
+  /** Called with each page's markup layer element, and with `null` when it is removed */
+  registerLayer: (pageNumber: number, node: HTMLElement | null) => void;
+
+  /** Scrolls to a page and moves keyboard focus to its markup layer, once the layer is there */
+  focusPage: (pageNumber: number) => void;
 }
 
 /** What the markup layer's hooks read: the page it sits on and the markup state */
@@ -108,20 +114,61 @@ export interface PdfMarkup {
   marksByPage: ReadonlyMap<number, DocViewerMark[]>;
 }
 
+/**
+ * Focus moving from one page's markup layer to another's. Layers mount only near the view, so
+ * the page's layer may not be there yet: it takes focus when it mounts
+ */
+function useLayerFocus(scrollToPage: (pageNumber: number) => void) {
+  const layers = useRef(new Map<number, HTMLElement>());
+  const pending = useRef<number | null>(null);
+
+  const registerLayer = useCallbackRef((pageNumber: number, node: HTMLElement | null) => {
+    if (!node) {
+      layers.current.delete(pageNumber);
+      return;
+    }
+    layers.current.set(pageNumber, node);
+    if (pending.current === pageNumber) {
+      pending.current = null;
+      node.focus({ preventScroll: true });
+    }
+  });
+
+  const focusPage = useCallbackRef((pageNumber: number) => {
+    scrollToPage(pageNumber);
+    const node = layers.current.get(pageNumber);
+    pending.current = node ? null : pageNumber;
+    node?.focus({ preventScroll: true });
+  });
+
+  return { registerLayer, focusPage };
+}
+
+interface LayerMarkupInput {
+  props: DocViewerMarkupProps;
+  tool: DocViewerMarkupTool | null;
+  marks: DocViewerMark[];
+  setMarks: (marks: DocViewerMark[]) => void;
+  announce: (message: string) => void;
+  scrollToPage: (pageNumber: number) => void;
+}
+
 /** The layers' part of the markup: stable while the tool and its settings are */
-function useLayerMarkup(
-  props: DocViewerMarkupProps,
-  tool: DocViewerMarkupTool | null,
-  marks: DocViewerMark[],
-  setMarks: (marks: DocViewerMark[]) => void,
-  announce: (message: string) => void
-): PdfLayerMarkup {
+function useLayerMarkup({
+  props,
+  tool,
+  marks,
+  setMarks,
+  announce,
+  scrollToPage,
+}: LayerMarkupInput): PdfLayerMarkup {
   const theme = useMantineTheme();
   // Read the marks when called, so the functions stay the same while marks are added
   const addMark = useCallbackRef((mark: DocViewerMark) => setMarks([...marks, mark]));
   const replaceMark = useCallbackRef((mark: DocViewerMark, next: DocViewerMark) =>
     setMarks(marks.map((item) => (item === mark ? next : item)))
   );
+  const { registerLayer, focusPage } = useLayerFocus(scrollToPage);
   const { markupColor, markupWidth, markupFontSize } = props;
 
   return useMemo(
@@ -136,8 +183,21 @@ function useLayerMarkup(
       announce,
       addMark,
       replaceMark,
+      registerLayer,
+      focusPage,
     }),
-    [tool, theme, markupColor, markupWidth, markupFontSize, announce, addMark, replaceMark]
+    [
+      tool,
+      theme,
+      markupColor,
+      markupWidth,
+      markupFontSize,
+      announce,
+      addMark,
+      replaceMark,
+      registerLayer,
+      focusPage,
+    ]
   );
 }
 
@@ -153,7 +213,8 @@ function useMarksByPage(marks: DocViewerMark[]) {
 /** The markup state pages draw with; the same object until something in it changes, so pages can skip renders */
 export function useMarkup(
   props: DocViewerMarkupProps,
-  announce: (message: string) => void
+  announce: (message: string) => void,
+  scrollToPage: (pageNumber: number) => void
 ): PdfMarkup {
   const [tool, changeTool] = useUncontrolled<DocViewerMarkupTool | null>({
     value: props.markupTool,
@@ -170,7 +231,7 @@ export function useMarkup(
   const setTool = useCallbackRef(changeTool);
   const setMarks = useCallbackRef(changeMarks);
   const [saving, setSaving] = useState(false);
-  const layer = useLayerMarkup(props, tool, marks, setMarks, announce);
+  const layer = useLayerMarkup({ props, tool, marks, setMarks, announce, scrollToPage });
   const marksByPage = useMarksByPage(marks);
   const { markupTools } = props;
 

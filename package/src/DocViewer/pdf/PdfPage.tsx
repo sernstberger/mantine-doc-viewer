@@ -53,6 +53,9 @@ interface PdfPageProps {
 
   /** Marks to show on the page */
   marks?: DocViewerMark[];
+
+  /** The page whose markup layer the Tab key reaches while a tool is picked */
+  markupTabStop?: boolean;
 }
 
 function PdfPageView({
@@ -64,6 +67,7 @@ function PdfPageView({
   highlightRects,
   markup,
   marks = NO_MARKS,
+  markupTabStop = false,
   ...props
 }: PdfPageProps) {
   const { document, pageNumber, scale } = props;
@@ -108,8 +112,16 @@ function PdfPageView({
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
       {highlightRects && <PdfHighlightLayer rects={highlightRects} {...layerSize} />}
-      {markup && (
-        <PdfMarkupLayer pageNumber={pageNumber} markup={markup} marks={marks} {...layerSize} />
+      {/* Only near the view: a long document would otherwise hold a layer for every page */}
+      {markup && near && (
+        <PdfMarkupLayer
+          pageNumber={pageNumber}
+          numPages={numPages}
+          tabStop={markupTabStop}
+          markup={markup}
+          marks={marks}
+          {...layerSize}
+        />
       )}
       {overlay != null && overlay !== false && (
         <div

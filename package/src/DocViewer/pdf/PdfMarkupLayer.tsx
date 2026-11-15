@@ -11,6 +11,10 @@ import { useTextDraft } from './use-text-draft';
 
 interface PdfMarkupLayerProps {
   pageNumber: number;
+  numPages: number;
+
+  /** The layer the Tab key reaches while a tool is picked: the current page's */
+  tabStop: boolean;
 
   /** Page size at 100%, before the viewer's rotation */
   width: number;
@@ -55,6 +59,8 @@ function MarkShape({ mark, scale }: { mark: DocViewerMark; scale: number }) {
 /** Marks on one PDF page, and drawing new ones with the current markup tool */
 export function PdfMarkupLayer({
   pageNumber,
+  numPages,
+  tabStop,
   width,
   height,
   scale,
@@ -69,7 +75,7 @@ export function PdfMarkupLayer({
   const { textDraft } = text;
   const drawing = useMarkupDrawing({ ...input, ...text });
   const { draftMark, handlers } = drawing;
-  const keyboard = useMarkupKeyboard({ ...input, ...text, ...drawing });
+  const keyboard = useMarkupKeyboard({ ...input, ...text, ...drawing, numPages, tabStop });
   const { caret } = keyboard;
 
   if (marks.length === 0 && !tool && !textDraft) {

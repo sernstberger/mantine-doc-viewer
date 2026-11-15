@@ -66,3 +66,25 @@ test('Escape drops the mark being drawn', async ({ page }) => {
   await expect(first.locator('[data-mark]')).toHaveCount(0);
   await expect(first).toBeFocused();
 });
+
+test('the current page is the one tab stop, and Page Down moves to the next page', async ({
+  page,
+}) => {
+  await pickHighlight(page);
+  const first = layer(page, 'Highlight', 1);
+  const second = layer(page, 'Highlight', 2);
+  await expect(first).toHaveAttribute('tabindex', '0');
+  await expect(second).toHaveAttribute('tabindex', '-1');
+
+  await first.focus();
+  await page.keyboard.press('PageDown');
+  await expect(second).toBeFocused();
+  await expect(second).toBeInViewport();
+  await page.keyboard.press('PageUp');
+  await expect(first).toBeFocused();
+
+  // One Tab leaves the pages: the other pages' layers are no tab stops
+  await page.keyboard.press('Tab');
+  const focused = await page.evaluate(() => document.activeElement?.getAttribute('role'));
+  expect(focused).not.toBe('application');
+});

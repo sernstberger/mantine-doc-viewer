@@ -5,6 +5,7 @@ import React from 'react';
 import { DocViewer, DocViewerProps } from '../DocViewer';
 import type { DocViewerMarkupTool } from './markup';
 
+import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 
 function renderViewer(tool: DocViewerMarkupTool, props: Partial<DocViewerProps> = {}) {
@@ -35,12 +36,17 @@ const status = (text: string) =>
 describe('markup from the keyboard', () => {
   beforeEach(() => getDocument.mockReset());
 
-  it('makes each page a tab stop that says how to draw', async () => {
+  it('makes the current page the one tab stop, and says how to draw', async () => {
     mockPdf();
     renderViewer('rectangle');
     const layer = await screen.findByRole('application', { name: 'Rectangle on page 2' });
 
-    expect(layer).toHaveAttribute('tabindex', '0');
+    // One tab stop for the pages: the current page's layer. The others are reached by Page Down
+    expect(screen.getByRole('application', { name: 'Rectangle on page 1' })).toHaveAttribute(
+      'tabindex',
+      '0'
+    );
+    expect(layer).toHaveAttribute('tabindex', '-1');
     expect(layer).toHaveAttribute('aria-description', expect.stringContaining('Arrow keys'));
     expect(layer).toHaveAttribute('aria-keyshortcuts', expect.stringContaining('Enter'));
     // The cursor starts in the middle of the page
@@ -154,7 +160,17 @@ describe('markup from the keyboard', () => {
 
   it('leaves focus where it went when the text box closes by Tab', async () => {
     mockPdf();
-    renderViewer('text');
+    render(
+      <>
+        <DocViewer
+          src="/files/report.pdf"
+          pdfWorkerSrc="/worker.mjs"
+          defaultZoom={1}
+          markupTool="text"
+        />
+        <button type="button">After the viewer</button>
+      </>
+    );
     await focusLayer('Text box on page 1');
     await userEvent.keyboard('{Enter}');
     await waitFor(() =>
@@ -165,7 +181,8 @@ describe('markup from the keyboard', () => {
     await waitFor(() =>
       expect(screen.queryByRole('textbox', { name: 'Text box text' })).not.toBeInTheDocument()
     );
-    expect(screen.getByRole('application', { name: 'Text box on page 2' })).toHaveFocus();
+    // Tab leaves the pages (the other pages' layers are no tab stops); focus stays where it went
+    expect(screen.getByRole('button', { name: 'After the viewer' })).toHaveFocus();
   });
 
   it('is no tab stop without a tool', async () => {
@@ -173,5 +190,82 @@ describe('markup from the keyboard', () => {
     renderViewer('pen', { markupTool: null, defaultMarkup: [] });
     await screen.findByRole('group', { name: 'Page 1 of 3' });
     expect(screen.queryByRole('application')).not.toBeInTheDocument();
+  });
+
+  it('moves to the layer of the next and previous page with Page Down and Page Up', async () => {
+    mockPdf();
+    const { onMarkupChange } = renderViewer('rectangle');
+    await focusLayer('Rectangle on page 1');
+    const layer = (page: number) =>
+      screen.getByRole('application', { name: `Rectangle on page ${page}` });
+
+    await userEvent.keyboard('{PageDown}');
+    expect(layer(2)).toHaveFocus();
+    await userEvent.keyboard('{PageDown}{PageDown}');
+    // The last page: nowhere further to go
+    expect(layer(3)).toHaveFocus();
+    await userEvent.keyboard('{PageUp}{PageUp}{PageUp}');
+    expect(layer(1)).toHaveFocus();
+
+    // A mark being drawn is dropped when focus leaves its page
+    await userEvent.keyboard('{Enter}{ArrowRight}{PageDown}');
+    await status('Mark cancelled');
+    expect(layer(2)).toHaveFocus();
+    expect(layer(1).querySelectorAll('path')).toHaveLength(0);
+    expect(onMarkupChange).not.toHaveBeenCalled();
+
+    // With a modifier the key is the viewer's
+    await userEvent.keyboard('{Control>}{PageUp}{/Control}');
+    expect(layer(2)).toHaveFocus();
+  });
+
+  it('makes the layer of the current page the tab stop as the page changes', async () => {
+    mockPdf();
+    const view = renderViewer('rectangle', { page: 1 });
+    const layer = (page: number) =>
+      screen.getByRole('application', { name: `Rectangle on page ${page}` });
+    await screen.findByRole('application', { name: 'Rectangle on page 3' });
+
+    view.rerender(
+      <DocViewer
+        src="/files/report.pdf"
+        pdfWorkerSrc="/worker.mjs"
+        defaultZoom={1}
+        markupTool="rectangle"
+        page={3}
+      />
+    );
+    await waitFor(() => expect(layer(3)).toHaveAttribute('tabindex', '0'));
+    expect(layer(1)).toHaveAttribute('tabindex', '-1');
+  });
+
+  describe('on pages away from the view', () => {
+    let io: ReturnType<typeof installIntersectionObserver>;
+    beforeEach(() => {
+      io = installIntersectionObserver();
+    });
+    afterEach(() => io.uninstall());
+
+    const pageGroup = (page: number) => screen.getByRole('group', { name: `Page ${page} of 3` });
+
+    it('has no layer, and takes focus once the page comes near', async () => {
+      mockPdf();
+      renderViewer('rectangle');
+      await screen.findByRole('group', { name: 'Page 3 of 3' });
+      await act(async () => io.setIntersecting(pageGroup(1), true));
+      const first = await focusLayer('Rectangle on page 1');
+      // Page 2 is not near the view: no layer to draw on
+      expect(screen.queryByRole('application', { name: 'Rectangle on page 2' })).toBeNull();
+
+      await userEvent.keyboard('{PageDown}');
+      expect(first).toHaveFocus();
+      // Scrolling to page 2 brings it near, and its layer takes focus as it mounts
+      await act(async () => io.setIntersecting(pageGroup(2), true));
+      expect(screen.getByRole('application', { name: 'Rectangle on page 2' })).toHaveFocus();
+
+      // A layer that leaves is no longer one to move focus to
+      await act(async () => io.setIntersecting(pageGroup(1), false));
+      expect(screen.queryByRole('application', { name: 'Rectangle on page 1' })).toBeNull();
+    });
   });
 });

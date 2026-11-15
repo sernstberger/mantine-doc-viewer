@@ -40,7 +40,7 @@ export function usePdfPageContent(
     rotation,
   });
   useTextSelect({ scrollRoot, scale, rotation, onTextSelect: events.onTextSelect });
-  const markup = useMarkup(context.markup, announce);
+  const markup = useMarkup(context.markup, announce, scrollToPage);
   const pdfLayers = usePdfLayers(document);
   // One object per layer change, so pages only draw again (and render) when a layer is toggled
   const layers = useMemo(
