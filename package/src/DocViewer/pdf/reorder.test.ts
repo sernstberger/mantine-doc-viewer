@@ -37,6 +37,31 @@ describe('getDropIndex', () => {
   });
 });
 
+describe('getDropIndex in right-to-left lists', () => {
+  it('uses the right half as the "before" side in a strip, whose first item is the rightmost', () => {
+    const strip = [box(240, 0), box(120, 0), box(0, 0)];
+    expect(getDropIndex(strip, [390, 50], 'horizontal', true)).toBe(0);
+    expect(getDropIndex(strip, [250, 50], 'horizontal', true)).toBe(1);
+    expect(getDropIndex(strip, [-20, 50], 'horizontal', true)).toBe(3);
+    // The left-to-right reading of the same boxes is the mirror image
+    expect(getDropIndex(strip, [250, 50], 'horizontal')).toBe(0);
+  });
+
+  it('finds the place in a row of a wrapping grid from the right', () => {
+    const grid = [box(120, 0), box(0, 0), box(120, 120), box(0, 120)];
+    expect(getDropIndex(grid, [210, 50], 'grid', true)).toBe(0);
+    expect(getDropIndex(grid, [110, 50], 'grid', true)).toBe(1);
+    expect(getDropIndex(grid, [-50, 50], 'grid', true)).toBe(2);
+    expect(getDropIndex(grid, [10, 170], 'grid', true)).toBe(4);
+  });
+
+  it('does not change a vertical rail', () => {
+    const rail = [box(0, 0), box(0, 120)];
+    expect(getDropIndex(rail, [50, 10], 'vertical', true)).toBe(0);
+    expect(getDropIndex(rail, [50, 100], 'vertical', true)).toBe(1);
+  });
+});
+
 describe('getMoveIndex and isNoopDrop', () => {
   it('accounts for the item leaving its old place', () => {
     expect(getMoveIndex(0, 3)).toBe(2);

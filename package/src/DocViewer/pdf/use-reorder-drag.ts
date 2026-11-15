@@ -1,3 +1,4 @@
+import { useDirection } from '@mantine/core';
 import { useDrag, UseDragState } from '@mantine/hooks';
 import React, { useRef, useState } from 'react';
 import { getDropIndex, getMoveIndex, isNoopDrop, ItemRect, ReorderLayout } from './reorder';
@@ -63,6 +64,8 @@ export function useReorderList({
   enabled = true,
 }: ReorderListOptions) {
   const [drag, setDrag] = useState<DragState | null>(null);
+  // Rows run from right to left in RTL, so a drop before an item is on its right half
+  const rtl = useDirection().dir === 'rtl';
   // A drag ends with a click on the item it started on; that click must not select it
   const suppressClickUntil = useRef(0);
 
@@ -74,7 +77,9 @@ export function useReorderList({
     if (state.last) {
       setDrag(null);
       suppressClickUntil.current = state.event.timeStamp + 300;
-      const dropIndex = state.canceled ? null : getDropIndex(readRects(list), state.xy, layout);
+      const dropIndex = state.canceled
+        ? null
+        : getDropIndex(readRects(list), state.xy, layout, rtl);
       if (dropIndex !== null && !isNoopDrop(fromIndex, dropIndex)) {
         onReorder(page, getMoveIndex(fromIndex, dropIndex));
       }
@@ -85,7 +90,7 @@ export function useReorderList({
     setDrag({
       page,
       fromIndex,
-      dropIndex: getDropIndex(readRects(list), state.xy, layout),
+      dropIndex: getDropIndex(readRects(list), state.xy, layout, rtl),
       offset: state.movement,
     });
   };
