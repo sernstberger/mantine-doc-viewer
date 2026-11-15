@@ -14,6 +14,7 @@ import { usePdfPageTurns } from './use-pdf-page-turns';
 import { usePdfReadingPosition } from './use-pdf-reading-position';
 import { usePdfViewActions } from './use-pdf-view-actions';
 import { usePdfViewGeometry } from './use-pdf-view-geometry';
+import { useReturnFocus } from './use-return-focus';
 
 /** The PDF viewer: wires the hook groups (in this order, since effects run in call order) to the layout */
 export function PdfView() {
@@ -45,6 +46,10 @@ export function PdfView() {
     turns,
   });
   const { presenting, thumbnailsPanel } = view;
+  const returnFocus = {
+    present: useReturnFocus(presenting),
+    editPages: useReturnFocus(editing),
+  };
 
   if (editing && ready) {
     return (
@@ -67,7 +72,13 @@ export function PdfView() {
   return (
     <>
       {!presenting && (
-        <PdfReaderBars ready={ready} {...parts} actions={actions} setEditing={setEditing} />
+        <PdfReaderBars
+          ready={ready}
+          {...parts}
+          actions={actions}
+          setEditing={setEditing}
+          returnFocus={returnFocus}
+        />
       )}
 
       <PdfMain

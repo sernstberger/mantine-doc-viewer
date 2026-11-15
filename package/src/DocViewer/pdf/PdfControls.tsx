@@ -42,6 +42,10 @@ export interface PdfControlsProps {
   onPresent: () => void;
   onEditPages: () => void;
 
+  /** Take focus back after a presentation or the page editor ends */
+  presentRef?: React.Ref<HTMLButtonElement>;
+  editPagesRef?: React.Ref<HTMLButtonElement>;
+
   searchOpened: boolean;
   searchToggleRef: React.Ref<HTMLButtonElement>;
   onToggleSearch: () => void;
@@ -76,8 +80,8 @@ export function PdfControls(props: PdfControlsProps) {
         layers={props.layers}
         onLayerChange={props.onLayerChange}
       />
-      <PresentationControl onPresent={props.onPresent} />
-      <EditPagesControl onEditPages={props.onEditPages} />
+      <PresentationControl onPresent={props.onPresent} buttonRef={props.presentRef} />
+      <EditPagesControl onEditPages={props.onEditPages} buttonRef={props.editPagesRef} />
       <SearchControl
         opened={props.searchOpened}
         toggleRef={props.searchToggleRef}

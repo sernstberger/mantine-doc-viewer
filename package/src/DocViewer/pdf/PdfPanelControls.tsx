@@ -121,14 +121,25 @@ export function InfoControl(props: InfoControlProps) {
 }
 
 /** Presentation mode button */
-export function PresentationControl({ onPresent }: { onPresent: () => void }) {
+export function PresentationControl({
+  onPresent,
+  buttonRef,
+}: {
+  onPresent: () => void;
+  buttonRef?: React.Ref<HTMLButtonElement>;
+}) {
   const { labels } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
   return (
     show('presentation') && (
       <DocViewerTooltip label={labels.presentation}>
-        <ActionIcon {...controlProps()} aria-label={labels.presentation} onClick={onPresent}>
+        <ActionIcon
+          ref={buttonRef}
+          {...controlProps()}
+          aria-label={labels.presentation}
+          onClick={onPresent}
+        >
           <PresentationIcon />
         </ActionIcon>
       </DocViewerTooltip>
@@ -137,7 +148,13 @@ export function PresentationControl({ onPresent }: { onPresent: () => void }) {
 }
 
 /** Page editor button, when page editing is enabled */
-export function EditPagesControl({ onEditPages }: { onEditPages: () => void }) {
+export function EditPagesControl({
+  onEditPages,
+  buttonRef,
+}: {
+  onEditPages: () => void;
+  buttonRef?: React.Ref<HTMLButtonElement>;
+}) {
   const { labels, withPageEditing } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
@@ -145,7 +162,12 @@ export function EditPagesControl({ onEditPages }: { onEditPages: () => void }) {
     show('editPages') &&
     withPageEditing && (
       <DocViewerTooltip label={labels.editPages}>
-        <ActionIcon {...controlProps()} aria-label={labels.editPages} onClick={onEditPages}>
+        <ActionIcon
+          ref={buttonRef}
+          {...controlProps()}
+          aria-label={labels.editPages}
+          onClick={onEditPages}
+        >
           <EditPagesIcon />
         </ActionIcon>
       </DocViewerTooltip>

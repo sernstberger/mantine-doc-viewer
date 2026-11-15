@@ -22,3 +22,13 @@ export function getRegionProps(ready: boolean, title: string, keyShortcuts?: str
     ? { tabIndex: 0, role: 'region', 'aria-label': title, 'aria-keyshortcuts': keyShortcuts }
     : {};
 }
+
+/**
+ * Focuses `node` when focus was lost to the document body, as it is when the focused element is
+ * removed. Focus the reader moved somewhere else stays where it is
+ */
+export function focusIfLost(node: HTMLElement | null | undefined) {
+  if (node && node.ownerDocument.activeElement === node.ownerDocument.body) {
+    node.focus();
+  }
+}

@@ -1,6 +1,7 @@
 import { VisuallyHidden } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { focusIfLost } from '../a11y';
 import { useDocViewerContext } from '../DocViewer.context';
 import { EditorBar } from './PdfEditorBar';
 import { PageTile } from './PdfPageTile';
@@ -33,6 +34,11 @@ export function PdfPageEditor({ document, onDone, onCancel, onSave }: PdfPageEdi
     onSave,
   });
   const handleKeyDown = usePageEditorKeys(editor);
+
+  // The editor replaces the reader and the Edit pages button with it: focus moves to the pages
+  useEffect(() => {
+    focusIfLost(scrollRoot?.querySelector<HTMLElement>('[tabindex="0"]'));
+  }, [scrollRoot]);
 
   return (
     <div {...getStyles('editor')}>

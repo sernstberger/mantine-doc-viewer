@@ -20,6 +20,11 @@ interface PdfReaderBarsProps {
   content: PdfPageContent;
   actions: PdfViewActions;
   setEditing: (editing: boolean) => void;
+  /** Refs of the buttons that take focus back after a presentation and the page editor */
+  returnFocus: {
+    present: React.Ref<HTMLButtonElement>;
+    editPages: React.Ref<HTMLButtonElement>;
+  };
 }
 
 /** The toolbar with the PDF's controls, and the markup and search bars below it */
@@ -30,6 +35,7 @@ export function PdfReaderBars({
   content,
   actions,
   setEditing,
+  returnFocus,
 }: PdfReaderBarsProps) {
   const { thumbnailsPanel } = view;
   const { search, pdfLayers } = content;
@@ -64,6 +70,8 @@ export function PdfReaderBars({
             onToggleSearch={() => (search.opened ? search.close() : search.open())}
             onPresent={view.presentation.start}
             onEditPages={() => setEditing(true)}
+            presentRef={returnFocus.present}
+            editPagesRef={returnFocus.editPages}
           />
         )
       }
