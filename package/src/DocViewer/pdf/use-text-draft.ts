@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createMarkId } from './markup';
 import type { TextDraft } from './markup-draft';
-import { addMark, type MarkupLayerInput } from './markup-layer-input';
+import type { MarkupLayerInput } from './use-markup';
 
 /** The text box being typed, and writing it into the marks */
 export function useTextDraft({
@@ -14,7 +14,7 @@ export function useTextDraft({
     const text = textDraft?.text.trimEnd();
     setTextDraft(null);
     text &&
-      addMark(markup, {
+      markup.addMark({
         type: 'text',
         id: createMarkId(),
         page: pageNumber,

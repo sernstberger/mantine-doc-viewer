@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { DocViewer } from '../DocViewer';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
+import type { DocViewerMark } from './markup';
 
 /**
  * renderPageOverlay is called once each time a PdfPage renders, so it counts page renders.
@@ -187,5 +188,49 @@ describe('page renders on a page turn and a new mark', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Turn' }));
     await act(async () => {});
     expect(rendersSince(renderPageOverlay, before)).toEqual([]);
+  });
+
+  it('renders only the page a new mark is on', async () => {
+    mockPdf({ numPages: NUM_PAGES });
+    const renderPageOverlay = countPageRenders();
+    function App() {
+      const [marks, setMarks] = useState<DocViewerMark[]>([]);
+      const add = () =>
+        setMarks([
+          ...marks,
+          {
+            type: 'highlight',
+            id: `mark-${marks.length}`,
+            page: 2,
+            color: 'yellow',
+            rect: { x: 10, y: 10, width: 50, height: 20 },
+          },
+        ]);
+      return (
+        <>
+          <button type="button" onClick={add}>
+            Mark
+          </button>
+          <DocViewer
+            src="/files/report.pdf"
+            pdfWorkerSrc="/worker.mjs"
+            defaultZoom={1}
+            markup={marks}
+            onMarkupChange={setMarks}
+            renderPageOverlay={renderPageOverlay}
+          />
+        </>
+      );
+    }
+    const { container } = render(<App />);
+    await allTextLayersRendered(container);
+    await act(async () => {});
+
+    const before = renderPageOverlay.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Mark' }));
+    await act(async () => {});
+    expect(rendersSince(renderPageOverlay, before)).toEqual([2, 2]);
+    expect(container.querySelectorAll('rect[data-mark="highlight"]')).toHaveLength(2);
   });
 });

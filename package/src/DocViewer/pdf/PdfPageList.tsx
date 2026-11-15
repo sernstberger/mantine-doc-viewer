@@ -1,10 +1,15 @@
 import React from 'react';
 import type { DocViewerPageLayout } from '../DocViewer';
 import { useDocViewerContext } from '../DocViewer.context';
+import type { DocViewerMark } from './markup';
+import { NO_MARKS } from './marks-by-page';
 import type { DocViewerPageRect } from './page-points';
 import { PdfPage } from './PdfPage';
 
-type PageProps = Omit<React.ComponentProps<typeof PdfPage>, 'pageNumber' | 'highlightRects'>;
+type PageProps = Omit<
+  React.ComponentProps<typeof PdfPage>,
+  'pageNumber' | 'highlightRects' | 'marks'
+>;
 
 interface PdfPageListProps extends PageProps {
   pagesRef: (node: HTMLDivElement | null) => void;
@@ -16,6 +21,8 @@ interface PdfPageListProps extends PageProps {
   viewport: boolean;
   /** Boxes a passage highlight marks, on its page */
   highlight: { page: number; rects: DocViewerPageRect[] } | null | undefined;
+  /** The marks of each page */
+  marksByPage: ReadonlyMap<number, DocViewerMark[]>;
 }
 
 /** The PDF's pages in the scroll area: every page, or the current one in a presentation */
@@ -27,6 +34,7 @@ export function PdfPageList({
   highlight,
   viewport,
   scrollRoot,
+  marksByPage,
   ...page
 }: PdfPageListProps) {
   const { getStyles } = useDocViewerContext();
@@ -43,6 +51,7 @@ export function PdfPageList({
           scrollRoot={viewport ? null : scrollRoot}
           pageNumber={pageNumber}
           highlightRects={highlight?.page === pageNumber ? highlight.rects : undefined}
+          marks={marksByPage.get(pageNumber) ?? NO_MARKS}
         />
       ))}
     </div>

@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { createMarkId, DocViewerStrokeMark, MIN_MARK_SIZE, rectFromPoints } from './markup';
 import { type Draft, isStrokeTool, makeMark } from './markup-draft';
-import { addMark, type MarkupLayerInput } from './markup-layer-input';
+import type { MarkupLayerInput } from './use-markup';
 
 /** Writes a finished drag or stroke into the marks; the function it returns says whether a mark was added */
 export function useMarkCommit({
   pageNumber,
   markup,
-}: Pick<MarkupLayerInput, 'pageNumber' | 'markup'>) {
-  const { tool, marks, setMarks } = markup;
+  marks,
+}: Pick<MarkupLayerInput, 'pageNumber' | 'markup' | 'marks'>) {
+  const { tool } = markup;
   // The signature being written: strokes join it until the reader picks another tool
   const signature = useRef<string | null>(null);
   useEffect(() => {
@@ -21,17 +22,13 @@ export function useMarkCommit({
         ? marks.find((mark): mark is DocViewerStrokeMark => mark.id === signature.current)
         : undefined;
     if (existing) {
-      setMarks(
-        marks.map((mark) =>
-          mark === existing ? { ...existing, strokes: [...existing.strokes, points] } : mark
-        )
-      );
+      markup.replaceMark(existing, { ...existing, strokes: [...existing.strokes, points] });
       return;
     }
 
     const id = createMarkId();
     signature.current = id;
-    addMark(markup, makeMark(tool!, id, pageNumber, markup.getColor(tool!), markup.width, points));
+    markup.addMark(makeMark(tool!, id, pageNumber, markup.getColor(tool!), markup.width, points));
   };
 
   return (points: Draft) => {
@@ -45,7 +42,7 @@ export function useMarkCommit({
       return false;
     }
     const id = createMarkId();
-    addMark(markup, makeMark(tool!, id, pageNumber, markup.getColor(tool!), markup.width, points));
+    markup.addMark(makeMark(tool!, id, pageNumber, markup.getColor(tool!), markup.width, points));
     return true;
   };
 }

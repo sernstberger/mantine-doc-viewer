@@ -1,8 +1,10 @@
 import { MantineColor, parseThemeColor, useMantineTheme } from '@mantine/core';
 import { useCallbackRef, useUncontrolled } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { DocViewerMark, DocViewerMarkupTool, MARKUP_TOOLS, saveMarkedDocument } from './markup';
+import { groupMarksByPage } from './marks-by-page';
+import type { PdfRotation } from './render-page';
 
 /** Props of the viewer for drawing on PDF pages and saving the marks into the PDF */
 export interface DocViewerMarkupProps {
@@ -46,6 +48,43 @@ export interface DocViewerMarkupProps {
 const DEFAULT_WIDTH = 2;
 const DEFAULT_FONT_SIZE = 14;
 
+/**
+ * What each page's markup layer draws with. The same object until the tool or a setting changes,
+ * so a new mark renders only the page it is on
+ */
+export interface PdfLayerMarkup {
+  tool: DocViewerMarkupTool | null;
+
+  /** Colour of a new mark made with a tool, resolved from the theme to a CSS color */
+  getColor: (tool: DocViewerMarkupTool) => string;
+  width: number;
+  fontSize: number;
+
+  /** Reads a message out through the viewer's status region, such as a mark placed from the keyboard */
+  announce: (message: string) => void;
+
+  /** Adds a mark after the others */
+  addMark: (mark: DocViewerMark) => void;
+
+  /** Puts `next` where `mark` is */
+  replaceMark: (mark: DocViewerMark, next: DocViewerMark) => void;
+}
+
+/** What the markup layer's hooks read: the page it sits on and the markup state */
+export interface MarkupLayerInput {
+  pageNumber: number;
+
+  /** Page size at 100%, before the viewer's rotation */
+  width: number;
+  height: number;
+  scale: number;
+  rotation: PdfRotation;
+  markup: PdfLayerMarkup;
+
+  /** The marks on this page */
+  marks: DocViewerMark[];
+}
+
 export interface PdfMarkup {
   tools: DocViewerMarkupTool[];
   tool: DocViewerMarkupTool | null;
@@ -53,22 +92,62 @@ export interface PdfMarkup {
   marks: DocViewerMark[];
   setMarks: (marks: DocViewerMark[]) => void;
 
-  /** Colour of a new mark made with a tool, resolved from the theme to a CSS color */
-  getColor: (tool: DocViewerMarkupTool) => string;
-  width: number;
-  fontSize: number;
-
   /** Removes the last mark */
   undo: () => void;
-
-  /** Reads a message out through the viewer's status region, such as a mark placed from the keyboard */
-  announce: (message: string) => void;
 
   /** Whether the marks are being written into the PDF */
   saving: boolean;
 
   /** Writes the marks into the document and returns the new file's bytes */
   save: (document: PDFDocumentProxy) => Promise<Uint8Array>;
+
+  /** What the pages' markup layers draw with */
+  layer: PdfLayerMarkup;
+
+  /** The marks of each page; a page keeps its array until its own marks change */
+  marksByPage: ReadonlyMap<number, DocViewerMark[]>;
+}
+
+/** The layers' part of the markup: stable while the tool and its settings are */
+function useLayerMarkup(
+  props: DocViewerMarkupProps,
+  tool: DocViewerMarkupTool | null,
+  marks: DocViewerMark[],
+  setMarks: (marks: DocViewerMark[]) => void,
+  announce: (message: string) => void
+): PdfLayerMarkup {
+  const theme = useMantineTheme();
+  // Read the marks when called, so the functions stay the same while marks are added
+  const addMark = useCallbackRef((mark: DocViewerMark) => setMarks([...marks, mark]));
+  const replaceMark = useCallbackRef((mark: DocViewerMark, next: DocViewerMark) =>
+    setMarks(marks.map((item) => (item === mark ? next : item)))
+  );
+  const { markupColor, markupWidth, markupFontSize } = props;
+
+  return useMemo(
+    () => ({
+      tool,
+      getColor: (forTool: DocViewerMarkupTool) => {
+        const color = markupColor ?? (forTool === 'highlight' ? 'yellow' : 'red');
+        return parseThemeColor({ color, theme }).value;
+      },
+      width: markupWidth ?? DEFAULT_WIDTH,
+      fontSize: markupFontSize ?? DEFAULT_FONT_SIZE,
+      announce,
+      addMark,
+      replaceMark,
+    }),
+    [tool, theme, markupColor, markupWidth, markupFontSize, announce, addMark, replaceMark]
+  );
+}
+
+/** The marks grouped by page, keeping each page's array while its marks stay the same */
+function useMarksByPage(marks: DocViewerMark[]) {
+  const previous = useRef<ReadonlyMap<number, DocViewerMark[]>>(undefined);
+  return useMemo(() => {
+    previous.current = groupMarksByPage(marks, previous.current);
+    return previous.current;
+  }, [marks]);
 }
 
 /** The markup state pages draw with; the same object until something in it changes, so pages can skip renders */
@@ -76,7 +155,6 @@ export function useMarkup(
   props: DocViewerMarkupProps,
   announce: (message: string) => void
 ): PdfMarkup {
-  const theme = useMantineTheme();
   const [tool, changeTool] = useUncontrolled<DocViewerMarkupTool | null>({
     value: props.markupTool,
     defaultValue: props.defaultMarkupTool,
@@ -92,14 +170,11 @@ export function useMarkup(
   const setTool = useCallbackRef(changeTool);
   const setMarks = useCallbackRef(changeMarks);
   const [saving, setSaving] = useState(false);
-  const { markupTools, markupColor, markupWidth, markupFontSize } = props;
+  const layer = useLayerMarkup(props, tool, marks, setMarks, announce);
+  const marksByPage = useMarksByPage(marks);
+  const { markupTools } = props;
 
   return useMemo(() => {
-    const getColor = (forTool: DocViewerMarkupTool) => {
-      const color = markupColor ?? (forTool === 'highlight' ? 'yellow' : 'red');
-      return parseThemeColor({ color, theme }).value;
-    };
-
     const save = async (document: PDFDocumentProxy) => {
       setSaving(true);
       try {
@@ -115,25 +190,11 @@ export function useMarkup(
       setTool,
       marks,
       setMarks,
-      getColor,
-      width: markupWidth ?? DEFAULT_WIDTH,
-      fontSize: markupFontSize ?? DEFAULT_FONT_SIZE,
       undo: () => setMarks(marks.slice(0, -1)),
-      announce,
       saving,
       save,
+      layer,
+      marksByPage,
     };
-  }, [
-    theme,
-    tool,
-    setTool,
-    marks,
-    setMarks,
-    announce,
-    saving,
-    markupTools,
-    markupColor,
-    markupWidth,
-    markupFontSize,
-  ]);
+  }, [tool, setTool, marks, setMarks, saving, markupTools, layer, marksByPage]);
 }

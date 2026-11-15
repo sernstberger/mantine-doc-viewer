@@ -4,7 +4,7 @@ import { useDocViewerPageContext } from '../DocViewer.context';
 import type { DocViewerMarkPoint } from './markup';
 import type { Draft, TextDraft } from './markup-draft';
 import { getMarkupKeyAction, MARKUP_KEY_SHORTCUTS, type MarkupKeyAction } from './markup-keys';
-import type { MarkupLayerInput } from './markup-layer-input';
+import type { MarkupLayerInput } from './use-markup';
 
 interface MarkupKeyboardInput extends MarkupLayerInput {
   draft: Draft | null;

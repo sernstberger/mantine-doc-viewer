@@ -6,7 +6,7 @@ import { PdfMarkupTextInput, PdfMarkupTexts } from './PdfMarkupText';
 import type { PdfRotation } from './render-page';
 import { useMarkupDrawing } from './use-markup-drawing';
 import { useMarkupKeyboard } from './use-markup-keyboard';
-import type { PdfMarkup } from './use-markup';
+import type { PdfLayerMarkup } from './use-markup';
 import { useTextDraft } from './use-text-draft';
 
 interface PdfMarkupLayerProps {
@@ -17,7 +17,10 @@ interface PdfMarkupLayerProps {
   height: number;
   scale: number;
   rotation: PdfRotation;
-  markup: PdfMarkup;
+  markup: PdfLayerMarkup;
+
+  /** The marks on this page */
+  marks: DocViewerMark[];
 }
 
 function MarkShape({ mark, scale }: { mark: DocViewerMark; scale: number }) {
@@ -57,19 +60,19 @@ export function PdfMarkupLayer({
   scale,
   rotation,
   markup,
+  marks,
 }: PdfMarkupLayerProps) {
   const { getStyles } = useDocViewerPageContext();
-  const { tool, marks } = markup;
-  const input = { pageNumber, width, height, scale, rotation, markup };
+  const { tool } = markup;
+  const input = { pageNumber, width, height, scale, rotation, markup, marks };
   const text = useTextDraft(input);
   const { textDraft } = text;
   const drawing = useMarkupDrawing({ ...input, ...text });
   const { draftMark, handlers } = drawing;
   const keyboard = useMarkupKeyboard({ ...input, ...text, ...drawing });
   const { caret } = keyboard;
-  const pageMarks = marks.filter((mark) => mark.page === pageNumber);
 
-  if (pageMarks.length === 0 && !tool && !textDraft) {
+  if (marks.length === 0 && !tool && !textDraft) {
     return null;
   }
 
@@ -85,7 +88,7 @@ export function PdfMarkupLayer({
       {...handlers}
     >
       <svg width={width * scale} height={height * scale} aria-hidden>
-        {pageMarks.map((mark) => (
+        {marks.map((mark) => (
           <MarkShape key={mark.id} mark={mark} scale={scale} />
         ))}
         {draftMark && <MarkShape mark={draftMark} scale={scale} />}
@@ -108,7 +111,7 @@ export function PdfMarkupLayer({
         )}
       </svg>
 
-      <PdfMarkupTexts marks={pageMarks} scale={scale} />
+      <PdfMarkupTexts marks={marks} scale={scale} />
 
       {textDraft && (
         <PdfMarkupTextInput

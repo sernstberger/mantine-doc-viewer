@@ -8,8 +8,10 @@ import { type PdfRotation, rotateSize } from './render-page';
 import { getOverlayStyle } from './page-overlay';
 import type { DocViewerPageRect } from './page-points';
 import { PdfHighlightLayer } from './PdfHighlightLayer';
+import { NO_MARKS } from './marks-by-page';
 import { PdfMarkupLayer } from './PdfMarkupLayer';
-import type { PdfMarkup } from './use-markup';
+import type { DocViewerMark } from './markup';
+import type { PdfLayerMarkup } from './use-markup';
 import { useLinkLayer } from './use-link-layer';
 import { useNearViewport } from './use-near-viewport';
 import { usePageCanvas } from './use-page-canvas';
@@ -46,8 +48,11 @@ interface PdfPageProps {
 
   /** Boxes marked by `controller.highlight`, in page coordinates */
   highlightRects?: DocViewerPageRect[];
-  /** Marks to show on the page and the tool to draw new ones with */
-  markup?: PdfMarkup;
+  /** The tool to draw new marks with */
+  markup?: PdfLayerMarkup;
+
+  /** Marks to show on the page */
+  marks?: DocViewerMark[];
 }
 
 function PdfPageView({
@@ -58,6 +63,7 @@ function PdfPageView({
   registerPage,
   highlightRects,
   markup,
+  marks = NO_MARKS,
   ...props
 }: PdfPageProps) {
   const { document, pageNumber, scale } = props;
@@ -102,7 +108,9 @@ function PdfPageView({
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
       {highlightRects && <PdfHighlightLayer rects={highlightRects} {...layerSize} />}
-      {markup && <PdfMarkupLayer pageNumber={pageNumber} markup={markup} {...layerSize} />}
+      {markup && (
+        <PdfMarkupLayer pageNumber={pageNumber} markup={markup} marks={marks} {...layerSize} />
+      )}
       {overlay != null && overlay !== false && (
         <div
           {...getStyles('pageOverlay', {
