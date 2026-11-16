@@ -14,3 +14,8 @@ export function getScrollLeft(node: HTMLElement) {
 export function setScrollLeft(node: HTMLElement, left: number) {
   node.scrollLeft = isRightToLeft(node) ? left - (node.scrollWidth - node.clientWidth) : left;
 }
+
+/** How far the node is scrolled from where reading starts: its left edge, or its right edge in a right-to-left layout */
+export function getScrollStart(node: HTMLElement) {
+  return isRightToLeft(node) ? Math.abs(node.scrollLeft) : node.scrollLeft;
+}

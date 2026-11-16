@@ -26,6 +26,16 @@ describe('getVisibleRange', () => {
     ]);
   });
 
+  it('measures a horizontal page from its right edge in a right-to-left layout', () => {
+    const page = { top: 0, bottom: 0, left: 150, right: 250 };
+    expect(getVisibleRange(page, view, true, true)).toEqual([0.5, 1]);
+    expect(getVisibleRange({ ...page, left: -50, right: 50 }, view, true, true)).toEqual([0, 0.5]);
+    expect(getVisibleRange({ ...page, left: -50, right: 50 }, view, true)).toEqual([0.5, 1]);
+    expect(
+      getVisibleRange({ top: 0, bottom: 100, left: 150, right: 250 }, view, false, true)
+    ).toEqual([0, 1]);
+  });
+
   it('gives nothing for a page out of view or without size', () => {
     expect(getVisibleRange({ top: 100, bottom: 200, left: 0, right: 10 }, view, false)).toBeNull();
     expect(getVisibleRange({ top: 10, bottom: 10, left: 0, right: 10 }, view, false)).toBeNull();
@@ -200,6 +210,24 @@ describe('onReadingProgress and onReachEnd', () => {
     Object.defineProperty(root, 'scrollWidth', { value: 300, configurable: true });
     Object.defineProperty(root, 'clientWidth', { value: 100, configurable: true });
     root.scrollLeft = 100;
+    await act(async () => io.setIntersecting(pages[0], true));
+    expect(onReadingProgress).toHaveBeenLastCalledWith({
+      seen: [0.5, 0, 0],
+      position: 0.5,
+      reachedEnd: false,
+    });
+  });
+
+  it('counts the position from the right edge, where reading starts', async () => {
+    const { pages, root, onReadingProgress } = await setup({ defaultPageLayout: 'horizontal' });
+    root.style.direction = 'rtl';
+    pages.forEach((page, index) => {
+      page.getBoundingClientRect = () => rect(0, 100, 50 - index * 100, 150 - index * 100);
+    });
+    root.getBoundingClientRect = () => rect(0, 100, 0, 100);
+    Object.defineProperty(root, 'scrollWidth', { value: 300, configurable: true });
+    Object.defineProperty(root, 'clientWidth', { value: 100, configurable: true });
+    root.scrollLeft = -100;
     await act(async () => io.setIntersecting(pages[0], true));
     expect(onReadingProgress).toHaveBeenLastCalledWith({
       seen: [0.5, 0, 0],

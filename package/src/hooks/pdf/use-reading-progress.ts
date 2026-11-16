@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getScrollStart, isRightToLeft } from '../../utils/scroll-left';
 import type { DocViewerPagesEvents } from '../use-controller-registry';
 import type { Box, VisibleBox } from '../../utils/geometry';
 import {
@@ -47,7 +48,11 @@ export function useReadingProgress({
     }
     const { seen, reachedEnd } = getSeenSummary(ranges.current, numPages);
     const position = horizontal
-      ? getReadingPosition(scrollRoot.scrollLeft, scrollRoot.scrollWidth, scrollRoot.clientWidth)
+      ? getReadingPosition(
+          getScrollStart(scrollRoot),
+          scrollRoot.scrollWidth,
+          scrollRoot.clientWidth
+        )
       : viewport
         ? getWindowPosition(scrollRoot)
         : getReadingPosition(
@@ -70,7 +75,12 @@ export function useReadingProgress({
   /** Takes in the pages that are on screen */
   const sample = (boxes: VisibleBox[], view: Box) => {
     boxes.forEach((box) => {
-      const range = getVisibleRange(box, view, horizontal);
+      const range = getVisibleRange(
+        box,
+        view,
+        horizontal,
+        !!scrollRoot && isRightToLeft(scrollRoot)
+      );
       range && ranges.current.set(box.page, mergeRange(ranges.current.get(box.page), range));
     });
     report();

@@ -12,14 +12,27 @@ const END_SEEN = 0.99;
 
 const round = (value: number) => Math.round(value * STEPS) / STEPS;
 
-/** The part of a page inside the view along the scroll axis, or null when none of it is */
-export function getVisibleRange(page: Box, view: Box, horizontal: boolean): SeenRange | null {
+/**
+ * The part of a page inside the view along the scroll axis, or null when none of it is.
+ * `rightToLeft` measures a horizontal page from its right edge, where reading starts
+ */
+export function getVisibleRange(
+  page: Box,
+  view: Box,
+  horizontal: boolean,
+  rightToLeft = false
+): SeenRange | null {
   const start = horizontal ? page.left : page.top;
   const end = horizontal ? page.right : page.bottom;
   const size = end - start;
   const from = Math.max(start, horizontal ? view.left : view.top);
   const to = Math.min(end, horizontal ? view.right : view.bottom);
-  return size > 0 && to > from ? [(from - start) / size, (to - start) / size] : null;
+  if (size <= 0 || to <= from) {
+    return null;
+  }
+  return horizontal && rightToLeft
+    ? [(end - to) / size, (end - from) / size]
+    : [(from - start) / size, (to - start) / size];
 }
 
 /**

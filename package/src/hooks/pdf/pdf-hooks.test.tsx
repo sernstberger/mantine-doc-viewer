@@ -624,14 +624,15 @@ describe('PdfThumbnails', () => {
   const restore: (() => void)[] = [];
   afterEach(() => restore.splice(0).forEach((fn) => fn()));
 
-  function layout() {
+  function layout(sign = 1) {
     restore.push(
       defineOn(HTMLElement.prototype, {
         offsetTop: function (this: HTMLElement) {
           return Number(this.dataset.pageNumber ?? 0) * 100;
         },
         offsetLeft: function (this: HTMLElement) {
-          return Number(this.dataset.pageNumber ?? 0) * 100;
+          const page = Number(this.dataset.pageNumber ?? 0);
+          return sign > 0 ? page * 100 : 250 - page * 100;
         },
         offsetHeight: () => 100,
         offsetWidth: () => 100,
@@ -711,6 +712,26 @@ describe('PdfThumbnails', () => {
     );
     await act(async () => {});
     expect(scrollTo).toHaveBeenLastCalledWith({ left: 600 - 125 + 50 });
+  });
+
+  it('keeps the active thumbnail in view in a right-to-left rail, where offsets are negative', async () => {
+    layout(-1);
+    const { scrollTo, rerender, doc, onSelect } = await setup({ orientation: 'horizontal' });
+    const rail = screen.getByRole('listbox', { name: 'Pages' });
+    rail.style.direction = 'rtl';
+    expect(scrollTo).not.toHaveBeenCalled();
+    rerender(
+      <PdfThumbnails
+        document={doc}
+        placeholderSize={placeholder}
+        currentPage={6}
+        rotation={0}
+        orientation="horizontal"
+        onSelect={onSelect}
+      />
+    );
+    await act(async () => {});
+    expect(scrollTo).toHaveBeenLastCalledWith({ left: -350 - 125 + 50 });
   });
 
   it('moves with the arrow, page, home and end keys and focuses the thumbnail', async () => {

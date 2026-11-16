@@ -142,6 +142,40 @@ describe('scrollRangeIntoView in the window', () => {
   });
 });
 
+describe('scrollRangeIntoView in a scroll area', () => {
+  const rangeAt = (left: number, right: number) =>
+    ({
+      getBoundingClientRect: () => ({ ...box(100, 120), left, right, width: right - left }),
+    }) as unknown as Range;
+
+  function container(scrollLeft: number) {
+    const node = document.createElement('div');
+    node.scrollTo = jest.fn();
+    node.scrollLeft = scrollLeft;
+    node.getBoundingClientRect = () =>
+      ({ ...box(0, 400), left: 0, right: 200, width: 200 }) as DOMRect;
+    Object.defineProperty(node, 'clientHeight', { value: 400 });
+    Object.defineProperty(node, 'clientWidth', { value: 200 });
+    return node;
+  }
+
+  it('moves from the current scrollLeft by how far the range is from the middle', () => {
+    const node = container(300);
+    scrollRangeIntoView(node, rangeAt(400, 420));
+    expect(node.scrollTo).toHaveBeenCalledWith(
+      expect.objectContaining({ left: 300 + 400 - 100 + 10 })
+    );
+  });
+
+  it('does the same in a right-to-left scroll area, where scrollLeft is negative', () => {
+    const node = container(-300);
+    scrollRangeIntoView(node, rangeAt(-80, -60));
+    expect(node.scrollTo).toHaveBeenCalledWith(
+      expect.objectContaining({ left: -300 - 80 - 100 + 10 })
+    );
+  });
+});
+
 describe('PDF viewer with autosize', () => {
   beforeEach(() => getDocument.mockReset());
 

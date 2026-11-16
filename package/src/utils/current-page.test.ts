@@ -68,6 +68,15 @@ describe('getScrollTarget', () => {
     expect(getScrollTarget({ ...base, horizontal: true, viewport: true, view }).left).toBe(30);
   });
 
+  it('uses the coordinates of a right-to-left scroller, where pages sit at negative offsets', () => {
+    const rtl = { ...view, scrollLeft: -600 };
+    const target = getScrollTarget({ ...base, horizontal: true, pageLeft: -388, view: rtl });
+    expect(target).toMatchObject({ left: -400, pageLeft: -400, far: false });
+    expect(getScrollTarget({ ...base, horizontal: true, pageLeft: -2000, view: rtl }).far).toBe(
+      true
+    );
+  });
+
   it('is far past three screens in either direction', () => {
     expect(getScrollTarget({ ...base, pageTop: 400, view }).far).toBe(true);
     expect(getScrollTarget({ ...base, pageTop: 300, view }).far).toBe(false);

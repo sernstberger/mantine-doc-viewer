@@ -381,6 +381,23 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
       expect(stage.scrollLeft).toBe(20);
     });
 
+    it('pans a right-to-left stage along its negative scrollLeft', () => {
+      const stage = setup({ scrollWidth: 400, scrollHeight: 100 });
+      stage.style.direction = 'rtl';
+      stage.scrollLeft = -100;
+      act(() => {
+        stage.dispatchEvent(pointerEvent('pointerdown', { clientX: 50, clientY: 50 }));
+      });
+      act(() => {
+        stage.dispatchEvent(pointerEvent('pointermove', { clientX: 70, clientY: 50 }));
+      });
+      expect(stage.scrollLeft).toBe(-120);
+      act(() => {
+        stage.dispatchEvent(pointerEvent('pointermove', { clientX: 40, clientY: 50 }));
+      });
+      expect(stage.scrollLeft).toBe(-90);
+    });
+
     it('pans when only the height overflows', () => {
       const stage = setup({ scrollWidth: 100, scrollHeight: 400 });
       act(() => {

@@ -1,4 +1,4 @@
-import { getScrollLeft, setScrollLeft } from './scroll-left';
+import { getScrollLeft, getScrollStart, setScrollLeft } from './scroll-left';
 
 function scroller(direction: 'ltr' | 'rtl') {
   const node = document.createElement('div');
@@ -30,5 +30,16 @@ describe('scroll-left', () => {
     setScrollLeft(node, 250);
     expect(node.scrollLeft).toBe(-350);
     expect(getScrollLeft(node)).toBe(250);
+  });
+
+  it('counts scrolling from where reading starts: the left edge, or the right edge in right-to-left', () => {
+    const ltr = scroller('ltr');
+    ltr.scrollLeft = 250;
+    expect(getScrollStart(ltr)).toBe(250);
+    const rtl = scroller('rtl');
+    rtl.scrollLeft = -250;
+    expect(getScrollStart(rtl)).toBe(250);
+    rtl.scrollLeft = 0;
+    expect(getScrollStart(rtl)).toBe(0);
   });
 });
