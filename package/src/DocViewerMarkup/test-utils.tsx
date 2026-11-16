@@ -1,4 +1,3 @@
-import React from 'react';
 import * as pdfjs from 'pdfjs-dist';
 import { DocViewer } from '../DocViewer';
 import { createPdfJsAdapter } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';

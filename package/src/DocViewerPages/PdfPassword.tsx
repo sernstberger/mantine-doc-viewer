@@ -1,6 +1,6 @@
 import { Button, PasswordInput, Text } from '@mantine/core';
 import type { DocViewerPasswordInputProps } from '../doc-viewer.types';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { LockIcon } from '../utils/icons';
 

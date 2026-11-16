@@ -1,5 +1,5 @@
 import { act, waitFor } from '@testing-library/react';
-import React, { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { createTestPdfAdapter } from './adapters';
 import { getDocument, mockPdf } from './mock-pdf';
 import type { DocViewerPdfAdapter } from '../package/src/DocViewerAdapterProvider/adapters/pdfjs-adapter';
@@ -17,7 +17,7 @@ export const PDF_ROOT_PROPS = { src: '/files/report.pdf', defaultZoom: 1 };
 
 type PdfPartsRootProps = Partial<DocViewerRootProps> & {
   adapter?: DocViewerPdfAdapter;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 /** Root over a PDF inside the adapter provider, for rendering one part */
@@ -71,13 +71,7 @@ export async function loadReadyState(options?: Parameters<typeof mockPdf>[0]) {
   return ready;
 }
 
-function ReadySession({
-  getReady,
-  children,
-}: {
-  getReady: () => ReadyState;
-  children: React.ReactNode;
-}) {
+function ReadySession({ getReady, children }: { getReady: () => ReadyState; children: ReactNode }) {
   const session = usePdfSession()!;
   const ready = getReady();
   const value = useMemo(() => ({ ...session, loaded: getLoaded(ready) }), [session, ready]);

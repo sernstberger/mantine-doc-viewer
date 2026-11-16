@@ -4,12 +4,12 @@ import { ColorSchemeControl, HeaderControls } from '@mantinex/mantine-header';
 import { MantineLogo } from '@mantinex/mantine-logo';
 import { meta } from '@mantinex/mantine-meta';
 import cx from 'clsx';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { PACKAGE_DATA } from '../../data';
 import classes from './Shell.module.css';
 
 interface ShellProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Shell({ children }: ShellProps) {

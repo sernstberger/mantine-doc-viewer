@@ -1,6 +1,5 @@
 import { Textarea, VisuallyHidden } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
-import React from 'react';
 import { useDocViewerPageContext } from '../../doc-viewer.context';
 import type { DocViewerMarkupLabels } from '../default-labels';
 import type { DocViewerMark } from '../utils/markup';

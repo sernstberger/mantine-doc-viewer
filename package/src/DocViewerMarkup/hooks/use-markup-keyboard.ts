@@ -1,5 +1,5 @@
 import { useMergedRef } from '@mantine/hooks';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { focusIfLost } from '../../utils/a11y';
 import type { DocViewerMarkupLabels } from '../default-labels';
 import type { DocViewerMarkPoint } from '../utils/markup';
@@ -14,11 +14,11 @@ import type { MarkupLayerInput } from './use-markup';
 /** Keys that move focus to the markup layer of the page before or after */
 const PAGE_STEPS: Record<string, number> = { PageUp: -1, PageDown: 1 };
 
-const hasModifier = (event: React.KeyboardEvent) =>
+const hasModifier = (event: KeyboardEvent) =>
   event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 
 /** Pages to move by for the key: 1 for Page Down, -1 for Page Up, 0 for other keys */
-const getPageStep = (event: React.KeyboardEvent) =>
+const getPageStep = (event: KeyboardEvent) =>
   hasModifier(event) ? 0 : (PAGE_STEPS[event.key] ?? 0);
 
 interface MarkupKeyboardInput extends MarkupLayerInput {
@@ -176,7 +176,7 @@ export function useMarkupKeyboard({
     }
   };
 
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) {
       return;
     }

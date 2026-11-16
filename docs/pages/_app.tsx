@@ -13,7 +13,6 @@ import {
   createReactMarkdownAdapter,
   DocViewerAdapterProvider,
 } from 'mantine-doc-viewer';
-import React from 'react';
 import favicon from '../assets/favicon.svg';
 import { theme } from '../theme';
 

@@ -1,7 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
 import { DocViewer } from '../DocViewer';
 import type { DocViewerExtension } from '../doc-viewer.types';

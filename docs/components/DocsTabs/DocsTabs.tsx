@@ -1,14 +1,14 @@
 import { Container, Tabs } from '@mantine/core';
 import { IconAdjustments, IconCode, IconFileText } from '@tabler/icons-react';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { PropsTablesList } from '../PropsTable';
 import { StylesApiTablesList } from '../StylesApiTable';
 import { TableOfContents } from '../TableOfContents';
 import classes from './DocsTabs.module.css';
 
 interface DocsTabsProps {
-  children: React.ReactNode;
+  children: ReactNode;
   docgen: any;
   stylesApiData?: any;
   componentsProps?: string[];

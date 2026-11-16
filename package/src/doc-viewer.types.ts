@@ -1,3 +1,4 @@
+import type { ComponentType, ReactNode } from 'react';
 import type {
   ActionIconProps,
   ElementProps,
@@ -261,28 +262,28 @@ export interface DocViewerExtension {
    * @internal Mounted inside the PDF session around the viewer's content: hooks, registry, store
    * writes, and the contexts the extension's own parts and the session's slot contexts read
    */
-  readonly setup?: React.ComponentType<{ children: React.ReactNode }>;
+  readonly setup?: ComponentType<{ children: ReactNode }>;
 
   /** @internal Toolbar controls the default toolbar inserts after their anchor control */
   readonly toolbarControls?: {
     control: DocViewerControl;
     after: DocViewerControl;
-    Component: React.ComponentType;
+    Component: ComponentType;
   }[];
 
   /** @internal Bar under the toolbar */
-  readonly bar?: React.ComponentType;
+  readonly bar?: ComponentType;
 
   /** @internal Layer drawn on every PDF page */
-  readonly pageLayer?: React.ComponentType<DocViewerPageLayerProps>;
+  readonly pageLayer?: ComponentType<DocViewerPageLayerProps>;
 
   /** @internal Action shown on every thumbnail; reorder support comes from `setup` (DocViewerReorderSlot) */
   readonly thumbnail?: {
-    action?: React.ComponentType<{ page: number }>;
+    action?: ComponentType<{ page: number }>;
   };
 
   /** @internal Screen that replaces the content of `DocViewer.Main` while `state.mode` is `mode` */
-  readonly screen?: { mode: string; Component: React.ComponentType };
+  readonly screen?: { mode: string; Component: ComponentType };
 
   /** @internal Options the extension was created with */
   readonly options: unknown;

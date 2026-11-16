@@ -6,7 +6,7 @@ import {
   UnstyledButton,
   type GetStylesApiOptions,
 } from '@mantine/core';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { formatPercent } from '../utils/format';
 import { MinusIcon, PlusIcon } from '../utils/icons';
@@ -23,7 +23,7 @@ interface ZoomControlsProps {
   /** Whether the content is fitted to the viewer */
   fitted: boolean;
   fitLabel: string;
-  fitIcon: React.ReactNode;
+  fitIcon: ReactNode;
   onZoom: (scale: number) => void;
   onFit: () => void;
 

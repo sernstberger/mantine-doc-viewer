@@ -1,6 +1,6 @@
 import { type GetStylesApiOptions } from '@mantine/core';
 import { shallowEqual } from '@mantine/hooks';
-import React, { useMemo, useRef } from 'react';
+import { type ReactNode, useMemo, useRef } from 'react';
 import {
   DocViewerProvider,
   useDocViewerContext,
@@ -13,7 +13,7 @@ interface PartStylesProps {
 
   /** Fields of the viewer context that differ inside the part */
   overrides?: Partial<DocViewerContextValue>;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /** The value from the last render while it is shallow-equal, for `classNames` objects written inline */

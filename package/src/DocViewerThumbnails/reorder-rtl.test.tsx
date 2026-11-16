@@ -1,7 +1,6 @@
 import { DirectionProvider } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import { fireEvent, waitFor, within } from '@testing-library/react';
-import React from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
 import { TestDocViewer } from '../../../test-utils/viewer';
 

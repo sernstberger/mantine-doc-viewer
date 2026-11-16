@@ -1,5 +1,5 @@
 import { useCallbackRef } from '@mantine/hooks';
-import React, { createContext, use, useMemo } from 'react';
+import { createContext, type ReactNode, use, useMemo } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { useDocViewerExtensionOptions } from '../DocViewerRoot/extensions-context';
 import { getSaveHandler } from './utils/get-save-handler';
@@ -90,7 +90,7 @@ function usePageEditorLabels(overrides: Partial<DocViewerPageEditorLabels> | und
  * The page editor's setup inside the PDF session: the editor mode in the store, the actions of
  * the registry, saving, and reorder and delete for the thumbnails
  */
-export function PageEditorSetup({ children }: { children: React.ReactNode }) {
+export function PageEditorSetup({ children }: { children: ReactNode }) {
   const { store, controller, fileName } = useDocViewerContext();
   const session = usePdfSession()!;
   const options = useDocViewerExtensionOptions<DocViewerPageEditorOptions>('page-editor')!;

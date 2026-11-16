@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDocViewerPageContext } from '../../doc-viewer.context';
 import { getOverlayStyle } from '../../utils/page-overlay';
 import type { PdfRotation } from '../../utils/render-page';

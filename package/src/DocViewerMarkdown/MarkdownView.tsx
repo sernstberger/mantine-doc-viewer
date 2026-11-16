@@ -1,6 +1,6 @@
 import { CodeHighlight } from '@mantine/code-highlight';
 import { Typography } from '@mantine/core';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';

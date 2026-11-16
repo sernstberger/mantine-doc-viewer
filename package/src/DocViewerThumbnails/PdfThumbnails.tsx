@@ -1,7 +1,7 @@
 import { Box, BoxProps, ElementProps, type GetStylesApiOptions, rem } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useCallbackRef, useMergedRef } from '@mantine/hooks';
-import React, { use, useMemo, useState } from 'react';
+import { type ComponentType, memo, type Ref, use, useMemo, useState } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import { DragHandleIcon } from '../utils/icons';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
@@ -41,7 +41,7 @@ interface PdfThumbnailProps {
   dragState: ReorderItemState;
   onSelect: (pageNumber: number) => void;
   /** Actions of the extensions, shown on the thumbnail */
-  actions: React.ComponentType<{ page: number }>[];
+  actions: ComponentType<{ page: number }>[];
 }
 
 function PdfThumbnailView({
@@ -117,7 +117,7 @@ function PdfThumbnailView({
 }
 
 /** Memoised: on a page turn only the thumbnails that become or stop being current render again */
-const PdfThumbnail = React.memo(PdfThumbnailView);
+const PdfThumbnail = memo(PdfThumbnailView);
 
 export interface PdfThumbnailsProps {
   document: PDFDocumentProxy;
@@ -136,7 +136,7 @@ export interface PdfThumbnailsProps {
 
   /** Other props of the `thumbnails` element */
   elementProps?: BoxProps & ElementProps<'div'>;
-  rootRef?: React.Ref<HTMLDivElement>;
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 /** The thumbnail actions of the extensions, the same array while the extensions are */
@@ -260,4 +260,4 @@ function PdfThumbnailsView({
 }
 
 /** Memoised: a zoom or a scroll that does not change the current page leaves the strip alone */
-export const PdfThumbnails = React.memo(PdfThumbnailsView);
+export const PdfThumbnails = memo(PdfThumbnailsView);

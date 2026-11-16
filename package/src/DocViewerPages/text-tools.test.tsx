@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
 import { createDocViewer } from '../doc-viewer.store';
 import { getPageRects, getPointOffset } from '../utils/page-points';
@@ -304,7 +303,9 @@ describe('highlight', () => {
 
     act(() => controller.setZoom(2));
     await waitFor(() =>
-      expect(container.querySelector('.mantine-DocViewer-highlight')).toHaveStyle({ left: '144px' })
+      expect(container.querySelector('.mantine-DocViewer-highlight')).toHaveStyle({
+        left: '144px',
+      })
     );
 
     act(() => controller.clearHighlight());

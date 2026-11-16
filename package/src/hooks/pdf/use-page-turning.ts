@@ -1,5 +1,5 @@
 import { useCallbackRef, useDrag, useWindowEvent } from '@mantine/hooks';
-import React, { useRef } from 'react';
+import { type MouseEvent, type RefCallback, useRef } from 'react';
 import {
   type DocViewerPageTurning,
   getSwipeDirection,
@@ -34,8 +34,8 @@ interface PageTurningInput {
  * Attach `ref` and `onClick` to the scroll area
  */
 export function usePageTurning({ options, active, swipeable, turn }: PageTurningInput): {
-  ref: React.RefCallback<HTMLDivElement | null>;
-  onClick: (event: React.MouseEvent<HTMLElement>) => void;
+  ref: RefCallback<HTMLDivElement | null>;
+  onClick: (event: MouseEvent<HTMLElement>) => void;
 } {
   const swipedAt = useRef(-Infinity);
 
@@ -65,7 +65,7 @@ export function usePageTurning({ options, active, swipeable, turn }: PageTurning
     { enabled: active && options.swipe, threshold: SWIPE_THRESHOLD }
   );
 
-  const onClick = (event: React.MouseEvent<HTMLElement>) => {
+  const onClick = (event: MouseEvent<HTMLElement>) => {
     if (!active || !options.tapZones || event.timeStamp - swipedAt.current < SWIPE_CLICK_TIME) {
       return;
     }

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { factory, Factory, useProps } from '@mantine/core';
 import type {
   DocViewerControl,
@@ -50,7 +50,7 @@ import type { DocViewerZoomControls } from './DocViewerZoomControls/DocViewerZoo
 
 export interface DocViewerProps extends Omit<DocViewerRootProps, 'children'> {
   /** Custom layout, replaces the default layout for the document type */
-  children?: React.ReactNode;
+  children?: ReactNode;
 
   /** Determines whether the toolbar is shown @default true */
   withToolbar?: boolean;

@@ -2,11 +2,10 @@ import { Stack, Text } from '@mantine/core';
 import { useIdle, useInterval } from '@mantine/hooks';
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer, useDocViewer } from 'mantine-doc-viewer';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { asset } from './_assets';
 
 const code = `
-import { useEffect } from 'react';
 import { Stack, Text } from '@mantine/core';
 import { useIdle, useInterval } from '@mantine/hooks';
 import { DocViewer, useDocViewer } from 'mantine-doc-viewer';

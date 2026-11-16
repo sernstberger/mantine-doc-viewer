@@ -1,5 +1,5 @@
 import { Tooltip, TooltipProps, type GetStylesApiOptions } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { useDocViewerToolbarContext } from './toolbar-context';
 

@@ -1,5 +1,5 @@
 import { render, screen } from '@mantine-tests/core';
-import React from 'react';
+import type { ComponentProps } from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { TextStatus } from './TextStatus';
 
@@ -9,7 +9,7 @@ const states = [
   { status: 'ready', text: 'hi', size: 2, mimeType: undefined },
 ] as const;
 
-const view = (state: React.ComponentProps<typeof TextStatus>['state']) => (
+const view = (state: ComponentProps<typeof TextStatus>['state']) => (
   <TestDocViewer src="/a.bin">
     <TextStatus state={state} />
   </TestDocViewer>

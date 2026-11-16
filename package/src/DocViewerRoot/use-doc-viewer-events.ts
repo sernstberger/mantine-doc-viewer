@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { type RefObject, useMemo, useRef } from 'react';
 import { useIsomorphicEffect } from '@mantine/hooks';
 import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
 import type { ControllerImplementation, DocViewerEvents } from '../hooks/use-controller-registry';
@@ -12,7 +12,7 @@ interface DocViewerEventsInput {
   type: DocViewerType;
   unsupported: boolean;
   store: DocViewerStore;
-  controller: React.RefObject<ControllerImplementation>;
+  controller: RefObject<ControllerImplementation>;
 }
 
 /**
@@ -21,8 +21,8 @@ interface DocViewerEventsInput {
  */
 function createEvents(
   store: DocViewerStore,
-  controller: React.RefObject<ControllerImplementation>,
-  latest: React.RefObject<DocViewerEventsInput>
+  controller: RefObject<ControllerImplementation>,
+  latest: RefObject<DocViewerEventsInput>
 ): Required<DocViewerEvents> {
   const update = (state: Parameters<typeof updateDocViewerStateAction>[0]) =>
     updateDocViewerStateAction(state, store);

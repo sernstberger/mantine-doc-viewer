@@ -1,6 +1,7 @@
+import type { ComponentType } from 'react';
 /** The markdown renderer and its GFM plugin as the viewer uses them, typed by their shape */
 export interface DocViewerMarkdownEngine {
-  Markdown: React.ComponentType<any>;
+  Markdown: ComponentType<any>;
   defaultUrlTransform: (url: string) => string;
   remarkGfm: unknown;
 }
@@ -11,7 +12,7 @@ export interface DocViewerMarkdownAdapter {
 }
 
 interface ReactMarkdownModule {
-  default: React.ComponentType<any>;
+  default: ComponentType<any>;
   defaultUrlTransform: (url: string) => string;
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useDocViewerContext } from '../../doc-viewer.context';
 import type { Size } from '../../utils/image-fit';
 import { useDocViewerView } from '../view/use-doc-viewer-view';
@@ -19,7 +19,7 @@ export function useImageLoad() {
     }
   }, []);
 
-  const onLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+  const onLoad = useCallback((event: SyntheticEvent<HTMLImageElement>) => {
     const { naturalWidth, naturalHeight } = event.currentTarget;
     setNaturalSize({ width: naturalWidth, height: naturalHeight });
   }, []);

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ComponentType } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerControl } from '../doc-viewer.types';
 import { DocViewerDownloadButton } from '../DocViewerDownloadButton/DocViewerDownloadButton';
@@ -21,7 +21,7 @@ import type { DocViewerType } from '../utils/get-doc-viewer-type';
 
 type ControlsMap = Partial<Record<DocViewerControl, boolean>>;
 
-const CONTROLS: Partial<Record<DocViewerType, [DocViewerControl, React.ComponentType][]>> = {
+const CONTROLS: Partial<Record<DocViewerType, [DocViewerControl, ComponentType][]>> = {
   pdf: [
     ['thumbnails', DocViewerThumbnailsButton],
     ['pages', DocViewerPageControls],

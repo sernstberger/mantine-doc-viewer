@@ -1,6 +1,5 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import { fireEvent } from '@testing-library/react';
-import React from 'react';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
 import {
   DocViewerFullscreenButton,

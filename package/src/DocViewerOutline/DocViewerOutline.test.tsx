@@ -1,4 +1,3 @@
-import React from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

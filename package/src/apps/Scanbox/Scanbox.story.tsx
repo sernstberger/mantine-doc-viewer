@@ -6,7 +6,7 @@ import {
   type MantineColorsTuple,
   type MantineSize,
 } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPageEditorExtension, DocViewerPageEditorButton } from '../../editor';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Scanbox.module.css';

@@ -1,7 +1,7 @@
 import { Box, BoxProps, ElementProps, VisuallyHidden } from '@mantine/core';
 import { useCallbackRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useEffect, useState } from 'react';
+import { type Ref, useEffect, useState } from 'react';
 import { focusIfLost } from '../utils/a11y';
 import { EditorBar } from './EditorBar';
 import { usePageEditorKeys } from './hooks/use-page-editor-keys';
@@ -13,7 +13,7 @@ import { PageTile } from './PageTile';
 import type { PdfSaveReason } from './utils/page-edits';
 
 interface PageEditorViewProps extends BoxProps, Omit<ElementProps<'div'>, 'onCancel'> {
-  ref?: React.Ref<HTMLDivElement>;
+  ref?: Ref<HTMLDivElement>;
   document: PDFDocumentProxy;
 
   /** Ends editing: with the edited document's bytes, or null when nothing changed */

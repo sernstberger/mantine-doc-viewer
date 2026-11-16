@@ -1,6 +1,6 @@
 import { useMergedRef } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React from 'react';
+import { memo, type MouseEvent } from 'react';
 import { usePageEditor } from './page-editor-setup';
 import { usePageEditorStyles } from './page-editor-styles';
 import { DragHandleIcon } from '../utils/icons';
@@ -26,7 +26,7 @@ interface PageTileProps {
   reorder: ReorderList;
   dragState: ReorderItemState;
   /** A click on the tile, with the page and its index */
-  onSelect: (page: number, index: number, event: React.MouseEvent) => void;
+  onSelect: (page: number, index: number, event: MouseEvent) => void;
 }
 
 /** Width of page previews in the editor, in px */
@@ -107,4 +107,4 @@ function PageTileView(props: PageTileProps) {
 }
 
 /** Memoised: moving focus or the selection renders only the tiles whose state changed */
-export const PageTile = React.memo(PageTileView);
+export const PageTile = memo(PageTileView);

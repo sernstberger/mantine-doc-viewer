@@ -1,4 +1,3 @@
-import React from 'react';
 import { createTestPdfAdapter, testMarkdownAdapter } from './adapters';
 import { DocViewer } from '../package/src/DocViewer';
 import { DocViewerAdapterProvider } from '../package/src/DocViewerAdapterProvider/DocViewerAdapterProvider';

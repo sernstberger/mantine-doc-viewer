@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import type React from 'react';
+import type { RefObject } from 'react';
 import { useRegisterController, type ControllerImplementation } from '../use-controller-registry';
 import { zoomIn, zoomOut } from '../../utils/zoom';
 import { clampPage } from '../../utils/geometry';
@@ -11,7 +11,7 @@ import { toPdfZoom, type PdfZoom } from '../../utils/pdf-zoom';
 type Actions = ControllerImplementation;
 
 interface PdfControllerInput {
-  controller: React.RefObject<ControllerImplementation>;
+  controller: RefObject<ControllerImplementation>;
   /** The loaded document, or null while it loads or after it failed */
   document: PDFDocumentProxy | null;
   numPages: number;

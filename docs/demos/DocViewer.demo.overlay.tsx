@@ -1,7 +1,6 @@
 import { Badge } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer, DocViewerPageOverlayInfo } from 'mantine-doc-viewer';
-import React from 'react';
 import { asset } from './_assets';
 
 const code = `

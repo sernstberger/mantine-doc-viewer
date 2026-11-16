@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import {
   Box,
   BoxProps,
@@ -16,10 +16,10 @@ export type DocViewerTitleStylesNames = 'heading' | 'title' | 'subtitle';
 export interface DocViewerTitleProps
   extends BoxProps, CompoundStylesApiProps<DocViewerTitleFactory>, ElementProps<'div', 'title'> {
   /** Replaces the file name */
-  title?: React.ReactNode;
+  title?: ReactNode;
 
   /** Small text under the title */
-  subtitle?: React.ReactNode;
+  subtitle?: ReactNode;
 }
 
 export type DocViewerTitleFactory = Factory<{

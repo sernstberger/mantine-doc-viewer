@@ -1,6 +1,6 @@
-import React from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 
-export type IconProps = React.ComponentPropsWithoutRef<'svg'>;
+export type IconProps = ComponentPropsWithoutRef<'svg'>;
 
 /** A 24px stroke icon, hidden from assistive technology, that the other icons draw in */
 export function Icon({ children, ...others }: IconProps) {

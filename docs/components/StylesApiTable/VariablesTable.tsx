@@ -1,5 +1,5 @@
 import { Table, TableProps, Text } from '@mantine/core';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { TableInlineCode } from '../TableInlineCode';
 import type { StylesApiData } from './StylesApiTable';
 
@@ -9,7 +9,7 @@ interface VariablesTableProps extends Omit<TableProps, 'data'> {
 }
 
 export function VariablesTable({ data, fixedLayout = true, ...others }: VariablesTableProps) {
-  const rows = Object.keys(data.vars).reduce<React.ReactNode[]>((acc, selector) => {
+  const rows = Object.keys(data.vars).reduce<ReactNode[]>((acc, selector) => {
     Object.keys(data.vars[selector]).forEach((variable, index) => {
       acc.push(
         <Table.Tr key={`${selector}-${variable}`}>

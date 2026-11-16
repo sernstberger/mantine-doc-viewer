@@ -1,12 +1,12 @@
 import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import { openPageEditor } from '../DocViewerPageEditor/page-editor-actions';
 
-function renderWithActions(content: React.ReactNode, props: Partial<TestDocViewerProps> = {}) {
+function renderWithActions(content: ReactNode, props: Partial<TestDocViewerProps> = {}) {
   let actions!: DocViewerActions;
   let storeRef!: ReturnType<typeof useDocViewer>[0];
   function App() {

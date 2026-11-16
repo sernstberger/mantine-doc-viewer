@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import type { DocViewerMarkupOptions } from '../markup-extension';
 import { MarkupViewer, type MarkupViewerProps } from '../test-utils';
 import type { DocViewerMark, DocViewerMarkupTool } from '../utils/markup';

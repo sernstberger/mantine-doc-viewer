@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -21,7 +21,7 @@ function Present() {
   return null;
 }
 
-function PresentingRoot({ children }: { children?: React.ReactNode }) {
+function PresentingRoot({ children }: { children?: ReactNode }) {
   return (
     <PdfPartsRoot>
       <Present />

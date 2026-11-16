@@ -2,11 +2,10 @@ import { Stack, Text } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer } from 'mantine-doc-viewer';
 import { createPageEditorExtension } from 'mantine-doc-viewer/editor';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { asset } from './_assets';
 
 const code = `
-import { useState } from 'react';
 import { Stack, Text } from '@mantine/core';
 import { DocViewer } from 'mantine-doc-viewer';
 import { createPageEditorExtension } from 'mantine-doc-viewer/editor';

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { render, screen, tests } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -52,7 +52,7 @@ import { createDocViewer } from './doc-viewer.store';
 
 const pdfAdapter = createTestPdfAdapter('/worker.mjs');
 
-function Providers({ children }: { children: React.ReactNode }) {
+function Providers({ children }: { children: ReactNode }) {
   return (
     <DocViewerAdapterProvider pdf={pdfAdapter} markdown={testMarkdownAdapter}>
       {children}

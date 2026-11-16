@@ -3,7 +3,7 @@ import { Anchor, Code, Image, Title } from '@mantine/core';
 import { Demo } from '@mantinex/demo';
 import cx from 'clsx';
 import type { MDXComponents } from 'mdx/types';
-import React from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { DataTable } from '../DataTable';
 import { MdxInfo } from '../MdxInfo/MdxInfo';
 import { PartSelectors } from '../PartSelectors';
@@ -14,7 +14,7 @@ export function MdxTitle({
   children,
   order = 2,
   ...others
-}: React.ComponentPropsWithoutRef<typeof Title>) {
+}: ComponentPropsWithoutRef<typeof Title>) {
   return (
     <>
       <div id={id} data-heading={children} data-order={order} className={classes.titleOffset} />
@@ -41,7 +41,7 @@ function getCode(children: any) {
   return children.props.children;
 }
 
-export function MdxPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
+export function MdxPre({ children }: ComponentPropsWithoutRef<'pre'>) {
   return (
     <CodeHighlight
       className={classes.code}
@@ -51,19 +51,19 @@ export function MdxPre({ children }: React.ComponentPropsWithoutRef<'pre'>) {
   );
 }
 
-export function MdxParagraph(props: React.ComponentPropsWithoutRef<'p'>) {
+export function MdxParagraph(props: ComponentPropsWithoutRef<'p'>) {
   return <p className={classes.paragraph} {...props} />;
 }
 
-export function MdxUl(props: React.ComponentPropsWithoutRef<'ul'>) {
+export function MdxUl(props: ComponentPropsWithoutRef<'ul'>) {
   return <ul className={classes.ul} {...props} />;
 }
 
-export function MdxLi(props: React.ComponentPropsWithoutRef<'li'>) {
+export function MdxLi(props: ComponentPropsWithoutRef<'li'>) {
   return <li className={classes.li} {...props} />;
 }
 
-export function MdxLink({ href, ...others }: React.ComponentPropsWithoutRef<'a'>) {
+export function MdxLink({ href, ...others }: ComponentPropsWithoutRef<'a'>) {
   return <Anchor className={classes.link} href={href} {...others} />;
 }
 

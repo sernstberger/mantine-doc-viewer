@@ -1,12 +1,10 @@
 module.exports = {
   testEnvironment: 'jest-environment-jsdom',
-  // esbuild-jest hands any file containing the text "ock(" (meant to catch jest.mock) to Babel,
-  // which is not set up here. Avoid that text in names such as getCodeBlock(), and mock modules
-  // through moduleNameMapper below instead of jest.mock().
+  // esbuild with the automatic JSX runtime (esbuild-jest only knows the classic factory).
+  // es2022 keeps object spread as it is (no injected helpers that count as uncovered branches),
+  // and source maps make coverage point at the source lines
   transform: {
-    // es2022 keeps object spread as it is (no injected helpers that count as uncovered branches),
-    // and source maps make coverage point at the source lines
-    '^.+\\.tsx?$': ['esbuild-jest', { target: 'es2022', sourcemap: true }],
+    '^.+\\.tsx?$': '<rootDir>/jest-transform.cjs',
   },
   testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
   // Agent worktrees under .claude/ hold whole copies of the repo; their tests are not ours

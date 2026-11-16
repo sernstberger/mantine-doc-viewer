@@ -1,5 +1,5 @@
 import { Anchor, Avatar, Button } from '@mantine/core';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './FieldReport.module.css';
 

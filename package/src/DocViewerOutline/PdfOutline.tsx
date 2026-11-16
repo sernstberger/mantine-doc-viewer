@@ -7,7 +7,7 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useEffect, useState } from 'react';
+import { type Ref, useEffect, useState } from 'react';
 import type { DocViewerOutlineItem } from '../hooks/use-controller-registry';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { resolveDestination } from '../utils/link-service';
@@ -70,7 +70,7 @@ interface PdfOutlineProps {
 
   /** Other props of the `outline` element */
   elementProps?: BoxProps & ElementProps<'nav'>;
-  rootRef?: React.Ref<HTMLElement>;
+  rootRef?: Ref<HTMLElement>;
 }
 
 type OutlineListProps = Pick<PdfOutlineProps, 'document' | 'items' | 'onSelect'>;

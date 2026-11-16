@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

@@ -1,5 +1,5 @@
 import { ActionIcon, useMatches } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DocViewer,
   useDocViewer,

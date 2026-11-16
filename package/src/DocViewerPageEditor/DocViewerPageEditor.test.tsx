@@ -1,7 +1,7 @@
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { createDocViewer } from '../doc-viewer.store';
 import { DocViewerMain } from '../DocViewerMain/DocViewerMain';

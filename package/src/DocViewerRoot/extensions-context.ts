@@ -1,4 +1,4 @@
-import { createContext, createElement, use, useRef } from 'react';
+import { createContext, createElement, type ReactNode, use, useRef } from 'react';
 import type { DocViewerExtension } from '../doc-viewer.types';
 
 const DocViewerExtensionsContext = createContext<readonly DocViewerExtension[]>([]);
@@ -47,7 +47,7 @@ export function DocViewerExtensionsProvider({
   children,
 }: {
   extensions: readonly DocViewerExtension[] | undefined;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const stable = useStableExtensions(extensions);
   return createElement(

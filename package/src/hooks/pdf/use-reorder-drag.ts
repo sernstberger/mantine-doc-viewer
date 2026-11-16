@@ -1,6 +1,6 @@
 import { useDirection } from '@mantine/core';
 import { useCallbackRef, useDrag, UseDragState } from '@mantine/hooks';
-import React, { useMemo, useRef, useState } from 'react';
+import { type MouseEvent, type RefCallback, useMemo, useRef, useState } from 'react';
 import {
   getDropIndex,
   getMoveIndex,
@@ -120,7 +120,7 @@ export function useReorderList({
 
   /** True for a click that ends a drag, which should not count as a click */
   const isDragClick = useCallbackRef(
-    (event: React.MouseEvent) => event.timeStamp < suppressClickUntil.current
+    (event: MouseEvent) => event.timeStamp < suppressClickUntil.current
   );
 
   /** The drop marker and the dragged item's position for the item at `index` */
@@ -158,8 +158,8 @@ export function useReorderItem(
   list: ReorderList,
   page: number
 ): {
-  itemRef: React.RefCallback<HTMLElement | null>;
-  handleRef: React.RefCallback<HTMLElement | null>;
+  itemRef: RefCallback<HTMLElement | null>;
+  handleRef: RefCallback<HTMLElement | null>;
 } {
   const { enabled } = list;
   const item = useDrag(

@@ -1,6 +1,5 @@
 import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { createMarkdownComponents, scrollToHeading } from './markdown-components';
 
 describe('markdown components', () => {

@@ -1,5 +1,4 @@
 import { render, screen } from '@mantine-tests/core';
-import React from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { useDocViewerContext as useContextValue } from '../doc-viewer.context';
 import { useDocViewerContext } from '../hooks/view/use-doc-viewer-context';

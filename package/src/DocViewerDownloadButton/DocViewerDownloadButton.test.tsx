@@ -1,5 +1,4 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import React from 'react';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
 import {
   DocViewerDownloadButton,

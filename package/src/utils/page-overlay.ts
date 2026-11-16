@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { PdfRotation } from './render-page';
 
 /** What `renderPageOverlay` gets for each PDF page */
@@ -20,7 +20,7 @@ export interface DocViewerPageOverlayInfo {
 }
 
 /** Renders content over one PDF page, positioned in page coordinates times `scale` */
-export type DocViewerRenderPageOverlay = (page: DocViewerPageOverlayInfo) => React.ReactNode;
+export type DocViewerRenderPageOverlay = (page: DocViewerPageOverlayInfo) => ReactNode;
 
 /**
  * Style of the overlay box: the page's unrotated size at `scale`, turned with the page so content
@@ -30,7 +30,7 @@ export function getOverlayStyle(
   width: number,
   height: number,
   rotation: PdfRotation
-): React.CSSProperties {
+): CSSProperties {
   const translate: Record<PdfRotation, string> = {
     0: '',
     90: `translate(${height}px, 0px) `,

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps, type CSSProperties, memo } from 'react';
 import type { DocViewerPageLayout } from '../doc-viewer.types';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerPageRect } from '../utils/page-points';
@@ -6,7 +6,7 @@ import { usePageScaleStore } from '../hooks/pdf/use-page-scale';
 import { PdfPage } from './PdfPage';
 
 type PageProps = Omit<
-  React.ComponentProps<typeof PdfPage>,
+  ComponentProps<typeof PdfPage>,
   'pageNumber' | 'highlightRects' | 'scaleStore'
 >;
 
@@ -28,7 +28,7 @@ interface PdfPageListProps extends PageProps {
  * the session renders for each keystroke in the search box and each page change, and a list that
  * is the same would otherwise build one element per page again
  */
-export const PdfPageList = React.memo(function PdfPageList({
+export const PdfPageList = memo(function PdfPageList({
   pagesRef,
   layout,
   presenting,
@@ -48,7 +48,7 @@ export const PdfPageList = React.memo(function PdfPageList({
   return (
     <div
       ref={pagesRef}
-      {...getStyles('pages', { style: { '--total-scale-factor': scale } as React.CSSProperties })}
+      {...getStyles('pages', { style: { '--total-scale-factor': scale } as CSSProperties })}
       data-layout={presenting ? 'presentation' : layout}
     >
       {numbers.map((pageNumber) => (

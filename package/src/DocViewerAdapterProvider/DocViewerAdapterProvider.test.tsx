@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { DocViewer } from '../DocViewer';

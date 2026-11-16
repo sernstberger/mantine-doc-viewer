@@ -1,5 +1,5 @@
 import { useCallbackRef, useIsomorphicEffect } from '@mantine/hooks';
-import React, { createContext, use, useMemo, useState } from 'react';
+import { createContext, type ReactNode, use, useMemo, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.store';
 import { useDocViewerExtensionOptions } from '../DocViewerRoot/extensions-context';
@@ -68,7 +68,7 @@ function useMarkupLabels(labels: DocViewerMarkupLabelsInput | undefined) {
  * The markup's setup inside the PDF session: the markup state, the actions of the registry, the
  * tool in the store, and the contexts the bar, the button and the page layers read
  */
-export function MarkupSetup({ children }: { children: React.ReactNode }) {
+export function MarkupSetup({ children }: { children: ReactNode }) {
   const { store, controller, fileName } = useDocViewerContext();
   const session = usePdfSession()!;
   const options = useDocViewerExtensionOptions<DocViewerMarkupOptions>('markup')!;

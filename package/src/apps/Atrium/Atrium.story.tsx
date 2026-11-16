@@ -1,5 +1,5 @@
 import { useIdle, useInterval } from '@mantine/hooks';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, useDocViewerStore } from '../../index';
 import classes from './Atrium.module.css';
 

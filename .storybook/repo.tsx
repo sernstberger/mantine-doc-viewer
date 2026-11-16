@@ -10,7 +10,6 @@ import {
   DocViewerAdapterProvider,
 } from '../package/src';
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import React from 'react';
 
 const shikiAdapter = createShikiAdapter(async () => {
   const { createHighlighter } = await import('shiki');

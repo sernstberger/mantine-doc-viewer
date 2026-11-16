@@ -1,5 +1,5 @@
 import { useDirection } from '@mantine/core';
-import React from 'react';
+import type { KeyboardEvent } from 'react';
 import { EditorKeyAction, getEditorKeyAction } from '../utils/editor-keys';
 import type { PageEditorState } from './use-page-editor-state';
 
@@ -36,7 +36,7 @@ export function usePageEditorKeys(editor: PageEditorKeysInput, onCancel: () => v
     escape: () => (editor.selected.size > 0 ? editor.clear() : onCancel()),
   };
 
-  return (event: React.KeyboardEvent<HTMLDivElement>) => {
+  return (event: KeyboardEvent<HTMLDivElement>) => {
     const key = getEditorKeyAction(event, rtl);
     if (key) {
       event.preventDefault();

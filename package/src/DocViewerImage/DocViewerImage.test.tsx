@@ -1,6 +1,6 @@
-import React from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
+import { useEffect } from 'react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { createDocViewer } from '../doc-viewer.store';
@@ -277,6 +277,24 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     loadImage(640, 480);
     expect(onDocumentLoad).toHaveBeenCalledWith({ type: 'image', width: 640, height: 480 });
     expect(store.getState()).toMatchObject({ status: 'ready', canPrint: true });
+  });
+
+  it('takes a zoom request made before the stage has mounted', () => {
+    const [store, actions] = createDocViewer();
+    function ZoomOnMount() {
+      useEffect(() => actions.setZoom(2), []);
+      return null;
+    }
+    render(
+      <DocViewerRoot src="/files/photo.png" store={store}>
+        <DocViewerToolbar />
+        <DocViewerImage />
+        <ZoomOnMount />
+      </DocViewerRoot>
+    );
+    loadImage();
+
+    expect(screen.getByText('200%')).toBeInTheDocument();
   });
 
   it('zooms, rotates and prints through the store actions', async () => {

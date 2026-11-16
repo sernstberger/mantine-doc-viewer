@@ -1,5 +1,5 @@
 import { useCallbackRef } from '@mantine/hooks';
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import type { DocViewerActions, DocViewerStore } from '../doc-viewer.store';
 import type {
   DocViewerLoadInfo,
@@ -47,7 +47,7 @@ export type ControllerImplementation = Partial<
   [extensionAction: string]: unknown;
 };
 
-const registries = new WeakMap<DocViewerStore, React.RefObject<ControllerImplementation>>();
+const registries = new WeakMap<DocViewerStore, RefObject<ControllerImplementation>>();
 
 /** The registry of a store: the actions its views registered */
 export function getControllerRegistry(store: DocViewerStore) {
@@ -69,7 +69,7 @@ export function getExtensionAction<Action extends (...args: never[]) => unknown>
 
 /** Puts a view's actions into the registry, always the latest ones, and takes them out on unmount */
 export function useRegisterController(
-  registry: React.RefObject<ControllerImplementation>,
+  registry: RefObject<ControllerImplementation>,
   actions: ControllerImplementation
 ) {
   const latest = useRef(actions);

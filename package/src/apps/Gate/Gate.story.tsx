@@ -6,7 +6,7 @@ import {
   type MantineColorsTuple,
   type MantineSize,
 } from '@mantine/core';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Gate.module.css';
 

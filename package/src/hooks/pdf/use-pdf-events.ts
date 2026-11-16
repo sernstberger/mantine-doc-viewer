@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import type { DocViewerEvents } from '../use-controller-registry';
 import { clampPage } from '../../utils/geometry';
 import type { PdfDocumentState } from './use-pdf-document';
@@ -52,7 +52,7 @@ interface PageSyncInput {
   laidOut: boolean;
   page: number | undefined;
   defaultPage: number | undefined;
-  pageReported: React.RefObject<number>;
+  pageReported: RefObject<number>;
   scrollToPage: (page: number) => void;
 }
 

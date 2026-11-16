@@ -1,6 +1,14 @@
 import { ActionIcon, Menu, Popover, SegmentedControl, Slider, VisuallyHidden } from '@mantine/core';
 import { useElementSize, useHotkeys, useReducedMotion } from '@mantine/hooks';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type PointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Leaf.module.css';
@@ -279,7 +287,7 @@ export function Leaf() {
         '--leaf-page-h': `${BOOK.pageHeight * scale}px`,
         '--leaf-edge-left': `${edge(settledFirst - 1)}px`,
         '--leaf-edge-right': `${edge(numPages - (settledSides.right ?? settledFirst))}px`,
-      } as React.CSSProperties)
+      } as CSSProperties)
     : undefined;
 
   const chapterIndex = chapters.reduce(
@@ -606,11 +614,11 @@ export function Leaf() {
   // A sideways swipe anywhere on the page turns it; the click that ends a swipe is not a tap
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null);
   const swiped = useRef(false);
-  const onPointerDown = (event: React.PointerEvent) => {
+  const onPointerDown = (event: PointerEvent) => {
     swipe.current = { x: event.clientX, y: event.clientY, id: event.pointerId };
     swiped.current = false;
   };
-  const onPointerUp = (event: React.PointerEvent) => {
+  const onPointerUp = (event: PointerEvent) => {
     const start = swipe.current;
     swipe.current = null;
     if (!start || start.id !== event.pointerId) {

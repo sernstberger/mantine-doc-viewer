@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Drawer, Popover, TextInput, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import { createMarkupExtension, type DocViewerMark } from '../../markup';
 import classes from './PlanRoom.module.css';

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { MantineProvider } from '@mantine/core';
 import { renderHook } from '@testing-library/react';
 import { createDocViewer } from '../../doc-viewer.store';
@@ -16,7 +16,7 @@ describe('@mantine/doc-viewer/useDocViewerContext', () => {
 
   it('returns what custom views and controls read, and nothing internal', () => {
     const [store] = createDocViewer();
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
+    const wrapper = ({ children }: { children: ReactNode }) => (
       <MantineProvider env="test">
         <DocViewerRoot src="/files/data.csv" store={store} labels={{ documentLabel: 'Sheet' }}>
           {children}

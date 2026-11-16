@@ -1,7 +1,6 @@
 import { Button, Group, Stack } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer, useDocViewer } from 'mantine-doc-viewer';
-import React from 'react';
 import { asset } from './_assets';
 
 const code = `

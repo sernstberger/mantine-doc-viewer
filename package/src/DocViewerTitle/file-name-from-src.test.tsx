@@ -1,5 +1,4 @@
 import { render, screen } from '@mantine-tests/core';
-import React from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { DocViewerTitle } from './DocViewerTitle';
 

@@ -9,7 +9,7 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
-import React from 'react';
+import type { Ref } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
 import type { DocViewerLabels } from '../default-labels';
@@ -19,7 +19,7 @@ import { softDisabled } from '../utils/a11y';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 
 interface PdfSearchBarProps {
-  inputRef: React.Ref<HTMLInputElement>;
+  inputRef: Ref<HTMLInputElement>;
   query: string;
   onQueryChange: (query: string) => void;
   matchCount: number;
@@ -40,7 +40,7 @@ interface PdfSearchBarProps {
 
   /** Other props of the `search` element */
   elementProps?: BoxProps & ElementProps<'div'>;
-  rootRef?: React.Ref<HTMLDivElement>;
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 function getCountLabel(

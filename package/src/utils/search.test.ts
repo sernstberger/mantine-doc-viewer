@@ -50,6 +50,14 @@ describe('pdf search', () => {
     ]);
   });
 
+  it('skips the space that joins two items', () => {
+    const page = buildPageText(items);
+    const [match] = findMatches([page], 'report revenue');
+    expect(getMatchSegments(page, { ...match, start: match.start + 6 }, items)).toEqual([
+      { itemIndex: 1, start: 0, end: 7 },
+    ]);
+  });
+
   it('creates ranges on the text nodes of rendered spans', () => {
     const page = buildPageText(items);
     const textDivs = items.map((item) => {

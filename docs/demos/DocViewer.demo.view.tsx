@@ -6,11 +6,10 @@ import {
   useDocViewerText,
   useDocViewerView,
 } from 'mantine-doc-viewer';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { asset } from './_assets';
 
 const code = `
-import { useEffect } from 'react';
 import { Table } from '@mantine/core';
 import {
   DocViewer,

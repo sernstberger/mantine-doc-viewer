@@ -1,6 +1,6 @@
 import { Box, BoxProps, ElementProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
-import React from 'react';
+import type { KeyboardEvent, MouseEvent, Ref } from 'react';
 import { useDocumentTitle } from '../doc-viewer.context';
 import type { DocViewerPasswordInputProps } from '../doc-viewer.types';
 import type { PdfSession } from '../DocViewerRoot/pdf-session-context';
@@ -15,7 +15,7 @@ type BodyProps = BoxProps & ElementProps<'div'>;
 interface PdfPagesBodyProps {
   session: PdfSession;
   bodyProps: BodyProps;
-  bodyRef: React.Ref<HTMLDivElement> | undefined;
+  bodyRef: Ref<HTMLDivElement> | undefined;
   maxCanvasPixels: number;
   renderPageOverlay: DocViewerRenderPageOverlay | undefined;
   passwordInputProps: DocViewerPasswordInputProps | undefined;
@@ -45,11 +45,11 @@ export function PdfPagesBody({
       {...bodyProps}
       {...getRegionProps(!!ready, title, turns.keyShortcuts)}
       {...turns.bodyAttributes}
-      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
         onKeyDown?.(event);
         actions.handleKeyDown(event);
       }}
-      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+      onClick={(event: MouseEvent<HTMLDivElement>) => {
         onClick?.(event);
         presenting ? goToPage(Math.min(currentPage + 1, numPages)) : turns.onEdgeClick(event);
       }}

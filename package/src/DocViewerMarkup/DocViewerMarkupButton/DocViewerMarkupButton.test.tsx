@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
@@ -21,7 +21,7 @@ const value = {
   opened: false,
 } as MarkupContextValue;
 
-function MarkupRoot({ children }: { children: React.ReactNode }) {
+function MarkupRoot({ children }: { children: ReactNode }) {
   return (
     <DocViewerRoot src="/files/photo.png">
       <MarkupContext value={value}>{children}</MarkupContext>

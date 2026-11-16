@@ -1,5 +1,4 @@
 import { act, render, screen } from '@testing-library/react';
-import React from 'react';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { useNearViewport } from '../../hooks/pdf/use-near-viewport';
 

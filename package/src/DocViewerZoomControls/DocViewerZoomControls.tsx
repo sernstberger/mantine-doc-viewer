@@ -6,7 +6,6 @@ import {
   Factory,
   useProps,
 } from '@mantine/core';
-import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';

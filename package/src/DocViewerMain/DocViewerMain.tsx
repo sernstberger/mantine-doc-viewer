@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import {
   Box,
   BoxProps,
@@ -22,7 +22,7 @@ export type DocViewerMainStylesNames = 'main';
 export interface DocViewerMainProps
   extends BoxProps, CompoundStylesApiProps<DocViewerMainFactory>, ElementProps<'div'> {
   /** Content of the row under the toolbar @default thumbnails and pages */
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export type DocViewerMainFactory = Factory<{

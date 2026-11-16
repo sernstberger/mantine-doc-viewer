@@ -1,12 +1,12 @@
 import { Table } from '@mantine/core';
-import React from 'react';
+import type { ReactNode } from 'react';
 
 export interface DataTableProps {
   /** Column headings */
   head: string[];
 
   /** One array of cells per row. Cells are rendered as they are: use `<code>` for code, backticks are shown as typed */
-  data: React.ReactNode[][];
+  data: ReactNode[][];
 }
 
 /** Table for mdx pages, which have no Markdown pipe tables */

@@ -1,6 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
-import React, { useEffect } from 'react';
+import { type ComponentProps, useEffect } from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import { toPdfZoom } from '../utils/pdf-zoom';
@@ -20,7 +20,7 @@ describe('toPdfZoom', () => {
 function ControlledViewer({
   onActions,
   ...props
-}: React.ComponentProps<typeof TestDocViewer> & {
+}: ComponentProps<typeof TestDocViewer> & {
   onActions: (actions: DocViewerActions) => void;
 }) {
   const [store, actions] = useDocViewer();

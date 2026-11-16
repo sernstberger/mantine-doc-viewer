@@ -1,5 +1,4 @@
 import { Box, VisuallyHidden } from '@mantine/core';
-import React from 'react';
 import { useDocumentTitle, useDocViewerContext } from '../doc-viewer.context';
 import { useImageView } from '../hooks/image/use-image-view';
 import { getRegionProps } from '../utils/a11y';

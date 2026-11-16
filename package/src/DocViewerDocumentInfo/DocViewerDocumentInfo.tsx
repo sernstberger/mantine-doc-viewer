@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ComponentProps, memo } from 'react';
 import {
   BoxProps,
   CompoundStylesApiProps,
@@ -33,10 +33,10 @@ export type DocViewerDocumentInfoFactory = Factory<{
   compound: true;
 }>;
 
-type InfoProps = Omit<React.ComponentProps<typeof PdfDocumentInfo>, 'properties' | 'attachments'>;
+type InfoProps = Omit<ComponentProps<typeof PdfDocumentInfo>, 'properties' | 'attachments'>;
 
 /** The properties and attachments of a document, read once and not for each session render */
-const DocumentInfoView = React.memo(function DocumentInfoView({ document, ...props }: InfoProps) {
+const DocumentInfoView = memo(function DocumentInfoView({ document, ...props }: InfoProps) {
   const { locale } = useDocViewerContext();
   const properties = usePdfProperties(document, true, locale);
   const attachments = usePdfAttachments(document);

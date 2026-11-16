@@ -1,6 +1,6 @@
 import { Avatar, Button, Drawer, Menu, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerPageRect } from '../../index';
 import classes from './Dealroom.module.css';
 

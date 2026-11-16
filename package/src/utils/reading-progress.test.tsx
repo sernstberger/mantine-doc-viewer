@@ -1,6 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
 import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import {

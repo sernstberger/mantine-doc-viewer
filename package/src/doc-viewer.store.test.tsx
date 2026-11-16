@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

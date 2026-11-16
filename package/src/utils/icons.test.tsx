@@ -1,5 +1,4 @@
 import { render } from '@mantine-tests/core';
-import React from 'react';
 import * as markupIcons from '../DocViewerMarkup/markup-icons';
 import * as icons from './icons';
 

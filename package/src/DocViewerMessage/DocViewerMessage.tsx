@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import {
   Anchor,
   BoxProps,
@@ -18,7 +18,7 @@ export type DocViewerMessageStylesNames = 'empty';
 export interface DocViewerMessageProps
   extends BoxProps, CompoundStylesApiProps<DocViewerMessageFactory>, ElementProps<'div'> {
   /** Message content */
-  children?: React.ReactNode;
+  children?: ReactNode;
 
   /** Adds a link that downloads the document */
   withDownload?: boolean;

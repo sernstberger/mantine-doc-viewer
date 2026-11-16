@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import { Fragment, use } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { useDocViewerAdapters } from '../DocViewerAdapterProvider/DocViewerAdapterProvider';
 import { DocViewerCode } from '../DocViewerCode/DocViewerCode';
@@ -61,9 +61,9 @@ export function DefaultLayout() {
   return (
     <>
       {withToolbar !== false && <DocViewerToolbar {...toolbarProps} controls={toolbarControls} />}
-      <React.Fragment key={keepView ? type : `${type}:${src}`}>
+      <Fragment key={keepView ? type : `${type}:${src}`}>
         <DocumentView />
-      </React.Fragment>
+      </Fragment>
       {withOverlayControls && <DocViewerOverlayControls controls={toolbarControls} />}
     </>
   );

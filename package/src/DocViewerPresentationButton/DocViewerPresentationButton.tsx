@@ -1,6 +1,5 @@
 import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
-import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';

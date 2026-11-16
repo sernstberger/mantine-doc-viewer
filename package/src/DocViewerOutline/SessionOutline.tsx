@@ -1,8 +1,8 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React from 'react';
+import { type ComponentProps, memo } from 'react';
 import { PdfOutline, usePdfOutline } from './PdfOutline';
 
-type OutlineProps = Omit<React.ComponentProps<typeof PdfOutline>, 'items'>;
+type OutlineProps = Omit<ComponentProps<typeof PdfOutline>, 'items'>;
 
 /** The outline of a document, nothing while it loads or when the document has none */
 function SessionOutlineView({ document, ...props }: OutlineProps & { document: PDFDocumentProxy }) {
@@ -14,4 +14,4 @@ function SessionOutlineView({ document, ...props }: OutlineProps & { document: P
 }
 
 /** Memoised: it only renders again for another document, handler or styles, not for each session render */
-export const SessionOutline = React.memo(SessionOutlineView);
+export const SessionOutline = memo(SessionOutlineView);

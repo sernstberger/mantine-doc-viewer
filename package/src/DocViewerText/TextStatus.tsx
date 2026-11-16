@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerLoading } from '../DocViewerLoading/DocViewerLoading';
 import { DocViewerMessage } from '../DocViewerMessage/DocViewerMessage';

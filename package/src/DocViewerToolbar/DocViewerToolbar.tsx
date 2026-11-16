@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import {
   Box,
   BoxProps,
@@ -25,22 +25,22 @@ export type DocViewerToolbarStylesNames = 'toolbar' | 'toolbarSection' | 'contro
 export interface DocViewerToolbarProps
   extends BoxProps, CompoundStylesApiProps<DocViewerToolbarFactory>, ElementProps<'div', 'title'> {
   /** Controls; without children the default controls for the document type are rendered. The title is shown before them either way */
-  children?: React.ReactNode;
+  children?: ReactNode;
 
   /** Default controls to hide (ignored with children) */
   controls?: Partial<Record<DocViewerControl, boolean>>;
 
   /** Content before the title, for example a menu button */
-  leftSection?: React.ReactNode;
+  leftSection?: ReactNode;
 
   /** Content after the document controls, before print, download and full screen */
-  rightSection?: React.ReactNode;
+  rightSection?: ReactNode;
 
   /** Replaces the file name in the title shown before the controls, `false` hides the title */
-  title?: React.ReactNode;
+  title?: ReactNode;
 
   /** Small text under the title */
-  subtitle?: React.ReactNode;
+  subtitle?: ReactNode;
 
   /** Tapping the document with a finger hides and shows the toolbar @default false */
   toggleOnTap?: boolean;

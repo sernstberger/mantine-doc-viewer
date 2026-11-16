@@ -1,5 +1,5 @@
 import { useDirection } from '@mantine/core';
-import type React from 'react';
+import type { KeyboardEvent } from 'react';
 import { getNextThumbnailPage, getThumbnailsPerView } from '../../utils/thumbnail-keys';
 
 interface ThumbnailKeysInput {
@@ -12,7 +12,7 @@ interface ThumbnailKeysInput {
 /** Listbox keys, with selection following focus: moving to a thumbnail shows its page */
 export function useThumbnailKeys({ numPages, horizontal, onSelect, onDelete }: ThumbnailKeysInput) {
   const rtl = useDirection().dir === 'rtl';
-  return (event: React.KeyboardEvent<HTMLElement>) => {
+  return (event: KeyboardEvent<HTMLElement>) => {
     const root = event.currentTarget;
     const option = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
     const page = Number(option?.dataset.pageNumber);

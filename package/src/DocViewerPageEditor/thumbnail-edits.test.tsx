@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { centerOf, ITEM, mockItemLayout, pointerDrag } from '../../../test-utils/pointer-drag';
 import { EditorViewer, type EditorViewerProps } from '../../../test-utils/page-editor';

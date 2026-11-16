@@ -1,5 +1,5 @@
 import { CodeHighlight, JsonViewer } from '@mantine/code-highlight';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { getCodeLanguage } from '../utils/get-doc-viewer-type';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';

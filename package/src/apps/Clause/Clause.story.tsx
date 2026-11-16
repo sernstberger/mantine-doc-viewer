@@ -1,5 +1,5 @@
 import { Button, SegmentedControl, Textarea } from '@mantine/core';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Clause.module.css';
 
@@ -476,7 +476,7 @@ export function Clause() {
                     const active = item.number === selected || undefined;
                     const box = { top: top * scale, height: (bottom - top) * scale };
                     return (
-                      <React.Fragment key={item.number}>
+                      <Fragment key={item.number}>
                         <div
                           className={classes.wash}
                           data-status={itemStatus}
@@ -498,7 +498,7 @@ export function Clause() {
                         >
                           <StatusDot status={itemStatus} />
                         </button>
-                      </React.Fragment>
+                      </Fragment>
                     );
                   })
                 }

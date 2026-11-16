@@ -693,7 +693,11 @@ function gridAndDims(plan: { topDims?: boolean } = {}) {
     );
     ops.push(bubble(px(x), py(BD) + 60, String(i + 1)));
     ops.push(
-      line(px(x), py(BD) + 8, px(x), py(BD) + 51, { color: GREY, width: 0.35, dash: [14, 3, 2, 3] })
+      line(px(x), py(BD) + 8, px(x), py(BD) + 51, {
+        color: GREY,
+        width: 0.35,
+        dash: [14, 3, 2, 3],
+      })
     );
     ops.push(bubble(px(x), py(0) - 60, String(i + 1)));
     ops.push(
@@ -707,7 +711,11 @@ function gridAndDims(plan: { topDims?: boolean } = {}) {
     );
     ops.push(bubble(px(0) - 58, py(y), label));
     ops.push(
-      line(px(BW) + 8, py(y), px(BW) + 41, py(y), { color: GREY, width: 0.35, dash: [14, 3, 2, 3] })
+      line(px(BW) + 8, py(y), px(BW) + 41, py(y), {
+        color: GREY,
+        width: 0.35,
+        dash: [14, 3, 2, 3],
+      })
     );
     ops.push(bubble(px(BW) + 50, py(y), label));
   });

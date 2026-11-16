@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -266,7 +266,7 @@ describe('@mantine/doc-viewer/DocViewerMarkdown', () => {
       const Markdown = jest.fn(({ children }: { children: string }) => <div>{children}</div>);
       overrideMarkdownModule({ ...markdownModule, Markdown });
       function App() {
-        const [count, setCount] = React.useState(0);
+        const [count, setCount] = useState(0);
         return (
           <>
             <button type="button" onClick={() => setCount(count + 1)}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import {
   ActionIcon,
   BoxProps,
@@ -29,7 +29,7 @@ import classes from '../../DocViewer.module.css';
 import { useMarkupContext } from '../markup-setup';
 import type { DocViewerMarkupTool } from '../utils/markup';
 
-const TOOL_ICONS: Record<DocViewerMarkupTool, React.FC> = {
+const TOOL_ICONS: Record<DocViewerMarkupTool, FC> = {
   highlight: HighlightIcon,
   pen: PenIcon,
   text: TextBoxIcon,

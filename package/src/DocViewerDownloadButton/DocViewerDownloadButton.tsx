@@ -1,5 +1,4 @@
 import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
-import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import type { DocViewerLinkControlProps } from '../doc-viewer.types';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';

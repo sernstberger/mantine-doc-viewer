@@ -1,5 +1,4 @@
 import { render, screen } from '@mantine-tests/core';
-import React from 'react';
 import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TestDocViewer } from '../../test-utils/viewer';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 import type { PageOrder } from '../utils/page-edits';
 import { clickSelection, toggleSelection } from '../utils/page-selection';
 
@@ -15,7 +15,7 @@ export function usePageSelection(order: PageOrder) {
     clear: () => setSelected(new Set()),
     selectAll: () => setSelected(new Set(order)),
     /** A click on this page: shift, meta or ctrl add to the selection */
-    click: (page: number, event: React.MouseEvent) =>
+    click: (page: number, event: MouseEvent) =>
       event.shiftKey || event.metaKey || event.ctrlKey
         ? toggle(page)
         : setSelected(clickSelection(selected, page)),

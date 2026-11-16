@@ -1,6 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import type { ComponentType } from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
 import { createPartHarness } from '../../../test-utils/toolbar-parts';
 import { DocViewerFullscreenButton } from '../DocViewerFullscreenButton/DocViewerFullscreenButton';
@@ -66,7 +66,7 @@ describe('toolbar buttons compose onClick with their action', () => {
   it.each(cases)('%s', async (name, Part, options, action) => {
     const onClick = jest.fn();
     const { Harness } = createPartHarness(
-      Part as React.ComponentType<{ onClick: () => void }>,
+      Part as ComponentType<{ onClick: () => void }>,
       options as never
     );
     render(<Harness onClick={onClick} />);

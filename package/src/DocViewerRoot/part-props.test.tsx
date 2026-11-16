@@ -1,4 +1,4 @@
-import React from 'react';
+import { act } from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { mockFetch } from '../../../test-utils/mock-fetch';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
@@ -120,7 +120,7 @@ describe('part props of DocViewer', () => {
       }
     );
     await pagesBody();
-    React.act(() => controller.openSearch());
+    act(() => controller.openSearch());
     expect(await screen.findByPlaceholderText('From the instance')).toBeInTheDocument();
   });
 });

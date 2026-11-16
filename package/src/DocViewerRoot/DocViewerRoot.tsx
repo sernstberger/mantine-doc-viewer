@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import {
   Box,
   BoxProps,
@@ -135,7 +135,7 @@ export interface DocViewerRootProps
   onDocumentError?: (error: Error) => void;
 
   /** Viewer content: parts */
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export type DocViewerRootFactory = Factory<{

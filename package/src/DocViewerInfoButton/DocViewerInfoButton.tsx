@@ -9,7 +9,6 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import type { DocViewerControlProps } from '../doc-viewer.types';
 import { PdfDocumentInfo } from '../DocViewerDocumentInfo/PdfDocumentInfo';

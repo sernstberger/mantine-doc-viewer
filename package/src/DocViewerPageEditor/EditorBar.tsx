@@ -1,5 +1,5 @@
 import { ActionIcon, Button, ButtonProps, Group, Text, useDirection } from '@mantine/core';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { softDisabled } from '../utils/a11y';
 import { DocViewerTooltip } from '../DocViewerToolbar/DocViewerTooltip';
 import { useDocViewerContext } from '../doc-viewer.context';
@@ -20,7 +20,7 @@ import type { PageOrder } from './utils/page-edits';
 
 interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   onClick?: () => void;
   /** Props from `softDisabled`: they carry the click handler */
   [key: string]: unknown;

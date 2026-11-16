@@ -1,11 +1,11 @@
 import { render, screen } from '@mantine-tests/core';
 import { waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import type { ComponentProps } from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { TestDocViewer } from '../../../test-utils/viewer';
 
-const renderPdf = (props: Partial<React.ComponentProps<typeof TestDocViewer>> = {}) =>
+const renderPdf = (props: Partial<ComponentProps<typeof TestDocViewer>> = {}) =>
   render(<TestDocViewer src="/files/report.pdf" {...props} />);
 
 describe('screen reader details', () => {

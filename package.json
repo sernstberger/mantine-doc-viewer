@@ -76,7 +76,6 @@
     "@types/yargs": "^17.0.33",
     "@vitejs/plugin-react": "^4.5.0",
     "esbuild": "^0.25.5",
-    "esbuild-jest": "^0.5.0",
     "fs-extra": "^11.3.0",
     "gh-pages": "^6.3.0",
     "hash-css-selector": "^1.1.0",

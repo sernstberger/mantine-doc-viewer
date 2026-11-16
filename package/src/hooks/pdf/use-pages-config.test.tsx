@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import { type ReactNode, use } from 'react';
 import { render } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import { useDocViewerContext } from '../../doc-viewer.context';
@@ -16,12 +16,12 @@ function Probe({ onContext }: { onContext: (context: PdfPagesContextValue) => vo
   return null;
 }
 
-function setup(pages: React.ReactNode) {
+function setup(pages: ReactNode) {
   const seen: { context?: PdfPagesContextValue } = {};
   const onContext = (value: PdfPagesContextValue) => {
     seen.context = value;
   };
-  const tree = (content: React.ReactNode) => (
+  const tree = (content: ReactNode) => (
     <PdfPartsRoot>
       <Probe onContext={onContext} />
       {content}
@@ -30,7 +30,7 @@ function setup(pages: React.ReactNode) {
   const view = render(tree(pages));
   return {
     seen,
-    rerender: (content: React.ReactNode) => view.rerender(<>{tree(content)}</>),
+    rerender: (content: ReactNode) => view.rerender(<>{tree(content)}</>),
   };
 }
 

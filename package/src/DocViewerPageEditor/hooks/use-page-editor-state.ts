@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 import type { DocViewerPageEditorLabels } from '../default-labels';
 import {
   initialOrder,
@@ -79,7 +79,7 @@ export function usePageEditorState({ document, scrollRoot, labels }: PageEditorS
   };
 
   /** A click on the page at this index: shift, meta or ctrl add to the selection */
-  const select = (page: number, index: number, event: React.MouseEvent) => {
+  const select = (page: number, index: number, event: MouseEvent) => {
     setFocusedIndex(index);
     pageSelection.click(page, event);
   };

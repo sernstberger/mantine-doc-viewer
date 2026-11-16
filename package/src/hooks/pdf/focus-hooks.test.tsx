@@ -1,5 +1,4 @@
 import { act, render } from '@testing-library/react';
-import React from 'react';
 import { useReturnFocus } from './use-return-focus';
 import { useUnlockFocus } from './use-unlock-focus';
 import type { PdfDocumentState } from './use-pdf-document';
@@ -50,6 +49,20 @@ describe('useReturnFocus', () => {
     document.body.append(fallback);
     const view = render(<ReturnFocus active withButton fallback={fallback} />);
 
+    view.rerender(<ReturnFocus active={false} withButton fallback={fallback} />);
+    await nextFrame();
+    expect(document.querySelector('button')).toHaveFocus();
+    expect(fallback).not.toHaveFocus();
+    fallback.remove();
+  });
+
+  it('leaves the fallback alone when the button arrives within the frame', async () => {
+    const fallback = document.createElement('div');
+    fallback.tabIndex = 0;
+    document.body.append(fallback);
+    const view = render(<ReturnFocus active withButton={false} fallback={fallback} />);
+
+    view.rerender(<ReturnFocus active={false} withButton={false} fallback={fallback} />);
     view.rerender(<ReturnFocus active={false} withButton fallback={fallback} />);
     await nextFrame();
     expect(document.querySelector('button')).toHaveFocus();

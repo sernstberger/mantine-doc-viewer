@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { type CSSProperties, useMemo, useState } from 'react';
 import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/core';
 import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../../scripts/story-pdfs/essays/layout';
 import { DocViewer } from '../../index';
@@ -397,7 +397,7 @@ export function Markbook() {
                           height: (anchor.bottom - anchor.top) * scale,
                           width: 66 * scale,
                           '--mb-scale': scale,
-                        } as React.CSSProperties
+                        } as CSSProperties
                       }
                     >
                       <p className={classes.penNote}>

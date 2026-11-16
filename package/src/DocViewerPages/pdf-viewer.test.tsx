@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { createDocViewer } from '../doc-viewer.store';
 import { openPageEditor } from '../DocViewerPageEditor/page-editor-actions';

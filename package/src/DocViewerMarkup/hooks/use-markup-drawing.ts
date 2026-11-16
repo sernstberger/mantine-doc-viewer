@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { type PointerEvent, useState } from 'react';
 import { DocViewerMark, toPagePoint } from '../utils/markup';
 import { type Draft, makeMark, type TextDraft } from '../utils/markup-draft';
 import type { MarkupLayerInput } from './use-markup';
@@ -27,7 +27,7 @@ export function useMarkupDrawing({
   const [draft, setDraft] = useState<Draft | null>(null);
   const commit = useMarkCommit({ pageNumber, markup, marks });
 
-  const getPoint = (event: React.PointerEvent<HTMLDivElement>) => {
+  const getPoint = (event: PointerEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     return toPagePoint(
       event.clientX - box.left,
@@ -39,7 +39,7 @@ export function useMarkupDrawing({
     );
   };
 
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!tool || event.button !== 0) {
       return;
     }
@@ -56,7 +56,7 @@ export function useMarkupDrawing({
     setDraft([[x, y]]);
   };
 
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     draft && setDraft([...draft, getPoint(event)]);
   };
 

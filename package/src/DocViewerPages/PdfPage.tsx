@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useEffect, useMemo } from 'react';
+import { type CSSProperties, memo, useEffect, useMemo } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import type { PdfLinkService } from '../utils/link-service';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
@@ -106,7 +106,7 @@ function PdfPageView({
         style: {
           '--page-width': `${pageSize.width}px`,
           '--page-height': `${pageSize.height}px`,
-        } as React.CSSProperties,
+        } as CSSProperties,
       })}
       data-page-number={pageNumber}
       data-rendered={rendered || undefined}
@@ -137,4 +137,4 @@ function PdfPageView({
  * Memoised: a long document has a PdfPage per page, and only the pages whose props change (the
  * current page moving does not change any) need to render again
  */
-export const PdfPage = React.memo(PdfPageView);
+export const PdfPage = memo(PdfPageView);

@@ -1,5 +1,5 @@
 import { Code } from '@mantine/core';
-import React from 'react';
+import { Fragment } from 'react';
 import { DataTable } from '../DataTable';
 import { getComponentName } from '../PropsTable';
 
@@ -15,10 +15,10 @@ export function PartSelectors({ data }: PartSelectorsProps) {
     .map(([part, selectors]) => [
       <Code key={part}>{getComponentName({ component: part, componentPrefix: 'DocViewer' })}</Code>,
       selectors.map((selector, index) => (
-        <React.Fragment key={selector}>
+        <Fragment key={selector}>
           {index > 0 && ', '}
           <Code>{selector}</Code>
-        </React.Fragment>
+        </Fragment>
       )),
     ]);
 

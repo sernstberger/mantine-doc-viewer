@@ -1,7 +1,6 @@
 import { render, screen, tests } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
 import {

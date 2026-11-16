@@ -3,7 +3,13 @@ import { MantineProvider } from '@mantine/core';
 import { render } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import * as pdfjs from 'pdfjs-dist';
-import React, { useLayoutEffect } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { TestDocViewer } from '../../../../test-utils/viewer';
 import { DocViewerProvider } from '../../doc-viewer.context';
 import { createDocViewerStore } from '../../doc-viewer.store';
@@ -543,7 +549,7 @@ describe('useZoomAnchor', () => {
 
 function makeContext(overrides: Record<string, unknown> = {}) {
   return {
-    getStyles: (name: string, options?: { style?: React.CSSProperties }) => ({
+    getStyles: (name: string, options?: { style?: CSSProperties }) => ({
       className: name,
       style: options?.style,
     }),
@@ -557,7 +563,7 @@ function makeContext(overrides: Record<string, unknown> = {}) {
 }
 
 function withContext(overrides?: Record<string, unknown>) {
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <MantineProvider env="test">
       <DocViewerProvider value={makeContext(overrides)}>{children}</DocViewerProvider>
     </MantineProvider>
@@ -638,7 +644,7 @@ describe('PdfThumbnails', () => {
   const placeholder = { width: 612, height: 792 };
 
   async function setup(
-    props: Partial<React.ComponentProps<typeof PdfThumbnails>> = {},
+    props: Partial<ComponentProps<typeof PdfThumbnails>> = {},
     scrollTo = jest.spyOn(Element.prototype, 'scrollTo')
   ) {
     const { doc } = await loadDocument();
@@ -791,8 +797,8 @@ function PdfPageForTest({
   textLayer?: unknown;
   linkService?: any;
 }) {
-  const [root, setRoot] = React.useState<HTMLElement | null>(null);
-  const [scaleStore] = React.useState(() => createPageScaleStore(1));
+  const [root, setRoot] = useState<HTMLElement | null>(null);
+  const [scaleStore] = useState(() => createPageScaleStore(1));
   return (
     <div ref={setRoot}>
       <PdfPage
@@ -879,6 +885,23 @@ describe('PdfPage', () => {
     { id: 'labelled', annotationType: 2, url: 'https://labelled.test/' },
     { id: 'missing', annotationType: 2, url: 'https://missing.test/' },
   ];
+
+  it('does not name links of a page that was removed while its links were drawn', async () => {
+    mockPdf({ links });
+    const doc = (await (getDocument as any)({}).promise) as any;
+    const slow = deferred<void>();
+    jest
+      .spyOn(pdfjs.AnnotationLayer.prototype as any, 'render')
+      .mockImplementation(() => slow.promise);
+    const view = rtlRender(<PdfPageForTest doc={doc} onTextLayer={jest.fn()} linkService={{}} />, {
+      wrapper: withContext(),
+    });
+    await act(async () => {});
+    view.unmount();
+    slow.resolve();
+    await act(async () => {});
+    expect(pdfjs.AnnotationLayer.prototype.render).toHaveBeenCalled();
+  });
 
   it('names links after their address, title or target page', async () => {
     mockPdf({ links });

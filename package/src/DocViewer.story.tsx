@@ -1,5 +1,5 @@
 import { Button, Group, Stack, Table, Text as MantineText } from '@mantine/core';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   createPdfJsAdapter,
   DocViewer,
@@ -334,7 +334,7 @@ function CsvView({ src }: { src: string }) {
   const state = useDocViewerText(src, 2_000_000);
   const view = useDocViewerView();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (state.status === 'ready') {
       view.onLoad();
     } else if (state.status === 'error') {

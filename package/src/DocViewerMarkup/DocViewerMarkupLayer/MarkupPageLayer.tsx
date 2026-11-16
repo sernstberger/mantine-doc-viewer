@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import type { DocViewerPageLayerProps } from '../../doc-viewer.types';
 import { useDocViewerState } from '../../hooks/use-doc-viewer-state';
 import type { PdfLayerMarkup } from '../hooks/use-markup';
@@ -15,7 +15,7 @@ interface MarkupPageLayerViewProps extends DocViewerPageLayerProps {
 }
 
 /** Memoised: a new mark renders only the layer of the page it is on */
-const MarkupPageLayerView = React.memo(function MarkupPageLayerView({
+const MarkupPageLayerView = memo(function MarkupPageLayerView({
   page,
   numPages,
   near,

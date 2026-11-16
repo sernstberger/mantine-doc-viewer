@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { type KeyboardEvent, type ReactNode, useEffect, useState } from 'react';
 import {
   DocViewer,
   useDocViewer,
@@ -129,7 +129,7 @@ const FILES: DriveFile[] = [
 /* Icons                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const GLYPHS: Record<Kind, React.ReactNode> = {
+const GLYPHS: Record<Kind, ReactNode> = {
   pdf: (
     <>
       <path d="M4.5 2.5h5l3 3v8h-8z" />
@@ -170,7 +170,7 @@ function FileIcon({ kind, large }: { kind: Kind; large?: boolean }) {
   );
 }
 
-function Icon({ children }: { children: React.ReactNode }) {
+function Icon({ children }: { children: ReactNode }) {
   return (
     <svg
       width="16"
@@ -410,7 +410,7 @@ export function Locker() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  const onKeyDown = (event: React.KeyboardEvent) => {
+  const onKeyDown = (event: KeyboardEvent) => {
     const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
     if (step) {
       event.preventDefault();

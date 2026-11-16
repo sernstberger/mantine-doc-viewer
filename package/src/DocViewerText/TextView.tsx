@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerBody } from '../DocViewerBody/DocViewerBody';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';

@@ -6,7 +6,7 @@ import {
   ElementProps,
   type GetStylesApiOptions,
 } from '@mantine/core';
-import React from 'react';
+import type { Ref } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { softDisabled } from '../utils/a11y';
 import { formatNumber } from '../utils/format';
@@ -23,7 +23,7 @@ interface PdfPresentationControlsProps {
 
   /** Other props of the `presentationControls` element */
   elementProps?: BoxProps & ElementProps<'div'>;
-  rootRef?: React.Ref<HTMLDivElement>;
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 /** The page count, the previous and next page buttons and the exit button over a presentation */

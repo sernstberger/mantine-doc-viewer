@@ -2,7 +2,7 @@
  * Test harness for the toolbar parts: a Root around one part whose store is seeded with the state a
  * loaded document would give it, and whose registry holds the actions the views would register
  */
-import React, { useEffect } from 'react';
+import { type ComponentType, useEffect } from 'react';
 import { DocViewer } from '../package/src/DocViewer';
 import { DocViewerRoot } from '../package/src/DocViewerRoot/DocViewerRoot';
 import { PdfSessionContext } from '../package/src/DocViewerRoot/pdf-session-context';
@@ -54,7 +54,7 @@ function Seed({ store, state }: { store: DocViewerStore; state: Partial<DocViewe
 
 /** A component that renders `Part` in a Root, and the store of that Root */
 export function createPartHarness<P extends object>(
-  Part: React.ComponentType<P> & { extend?: unknown; classes?: unknown; withProps?: unknown },
+  Part: ComponentType<P> & { extend?: unknown; classes?: unknown; withProps?: unknown },
   {
     src = '/files/report.pdf',
     state = {},

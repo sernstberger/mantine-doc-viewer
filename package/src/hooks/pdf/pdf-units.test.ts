@@ -409,6 +409,26 @@ describe('use-pdf-document', () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
   });
 
+  function unmountOnceOpened(options: Parameters<typeof mockPdf>[0]) {
+    mockPdf(options);
+    const impl = getDocument.getMockImplementation()!;
+    const view = renderHook(() => usePdfDocument('/a.pdf', adapter));
+    getDocument.mockImplementation((...args: unknown[]) => {
+      const task = impl(...args);
+      view.unmount();
+      return task;
+    });
+    return view;
+  }
+
+  it('ignores a password request, a loaded document and a failure after unmounting', async () => {
+    for (const options of [{ password: 'secret' }, {}, { fail: true }]) {
+      unmountOnceOpened(options);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(getDocument).toHaveBeenCalledTimes(3);
+  });
+
   it('reports a worker that is not set', async () => {
     mockPdf();
     pdfjs.GlobalWorkerOptions.workerSrc = '';

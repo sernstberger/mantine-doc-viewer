@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { PDFDocument } from '@cantoo/pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
-import React from 'react';
+import { useState } from 'react';
 import { createTestPdfAdapter } from '../../../test-utils/adapters';
 import { TestDocViewer, type TestDocViewerProps } from '../../../test-utils/viewer';
 import { useDocViewer, type DocViewerActions, type DocViewerStore } from '../doc-viewer.store';
@@ -611,7 +611,7 @@ describe('DocViewer PDF', () => {
       mockPdf();
       const onDocumentLoad = jest.fn();
       function Parent() {
-        const [count, setCount] = React.useState(0);
+        const [count, setCount] = useState(0);
         return (
           <>
             <button type="button" onClick={() => setCount(count + 1)}>
@@ -665,7 +665,7 @@ describe('DocViewer PDF', () => {
   it('scrolls to the page prop when the app changes it', async () => {
     mockPdf();
     function Parent() {
-      const [page, setPage] = React.useState(1);
+      const [page, setPage] = useState(1);
       return (
         <>
           <button type="button" onClick={() => setPage(3)}>

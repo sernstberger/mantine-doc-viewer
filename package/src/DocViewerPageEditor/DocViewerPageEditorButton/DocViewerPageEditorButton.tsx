@@ -1,4 +1,4 @@
-import React from 'react';
+import type { MouseEvent } from 'react';
 import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
@@ -49,7 +49,7 @@ export const DocViewerPageEditorButton = factory<DocViewerPageEditorButtonFactor
         ref={mergedRef}
         aria-label={editor.labels.editPagesLabel}
         {...others}
-        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
           onClick?.(event);
           editor.open();
         }}

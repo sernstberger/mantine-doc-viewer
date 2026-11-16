@@ -6,11 +6,10 @@ import {
   DocViewer,
   DocViewerAdapterProvider,
 } from 'mantine-doc-viewer';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { asset } from './_assets';
 
 const code = `
-import { useState } from 'react';
 import { SegmentedControl, Stack } from '@mantine/core';
 import {
   createPdfJsAdapter,

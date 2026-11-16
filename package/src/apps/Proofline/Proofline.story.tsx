@@ -1,5 +1,5 @@
 import { Button, Checkbox, Switch, Textarea, useMatches } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerPageLayout } from '../../index';
 import classes from './Proofline.module.css';
 

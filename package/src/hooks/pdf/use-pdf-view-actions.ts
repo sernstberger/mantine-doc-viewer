@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { KeyboardEvent } from 'react';
 import type { DocViewerContextValue } from '../../doc-viewer.context';
 import { printPdfBytes } from '../../utils/print';
 import { zoomIn, zoomOut } from '../../utils/zoom';
@@ -83,7 +83,7 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
     fit: () => zoomTo('fit-width'),
     search: () => search.open(),
   };
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const ready = !!loaded.ready;
     const action = getPdfKeyAction(event, {
       ready,

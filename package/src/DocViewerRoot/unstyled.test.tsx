@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import fs from 'node:fs';
 import path from 'node:path';
-import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { BEHAVIOR_SELECTORS } from './use-behavior-styles';

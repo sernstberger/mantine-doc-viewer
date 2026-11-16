@@ -1,5 +1,5 @@
 import { Button, Checkbox, TextInput, UnstyledButton } from '@mantine/core';
-import React, { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerReadingProgress } from '../../index';
 import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../../markup';
 import classes from './Haven.module.css';
@@ -226,9 +226,7 @@ export function Haven() {
                       className={classes.segment}
                       data-seen={read || undefined}
                       data-current={current === page || undefined}
-                      style={
-                        { '--seen': Math.min(fractions[index] / READ, 1) } as React.CSSProperties
-                      }
+                      style={{ '--seen': Math.min(fractions[index] / READ, 1) } as CSSProperties}
                       aria-label={`Go to page ${page}, ${title}${read ? ', read' : ''}`}
                       onClick={() => viewer.goToPage(page)}
                     >

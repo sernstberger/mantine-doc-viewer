@@ -1,4 +1,4 @@
-import React, { createContext, use, useState } from 'react';
+import { Component, createContext, type ReactNode, use, useState } from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -19,7 +19,7 @@ import { DocViewerRoot } from './DocViewerRoot';
 const NUM_PAGES = 6;
 const pdfAdapter = createTestPdfAdapter('/worker.mjs');
 
-function Adapters({ children }: { children: React.ReactNode }) {
+function Adapters({ children }: { children: ReactNode }) {
   return <DocViewerAdapterProvider pdf={pdfAdapter}>{children}</DocViewerAdapterProvider>;
 }
 
@@ -116,7 +116,7 @@ describe('store owner', () => {
     process.env.NODE_ENV = env;
   });
 
-  class Boundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
+  class Boundary extends Component<{ children: ReactNode }, { error: Error | null }> {
     state = { error: null as Error | null };
 
     static getDerivedStateFromError(error: Error) {
@@ -166,7 +166,7 @@ describe('store owner', () => {
 
 const SetupContext = createContext('none');
 
-function TestSetup({ children }: { children: React.ReactNode }) {
+function TestSetup({ children }: { children: ReactNode }) {
   return <SetupContext value="from setup">{children}</SetupContext>;
 }
 

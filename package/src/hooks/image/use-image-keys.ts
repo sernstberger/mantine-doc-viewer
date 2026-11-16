@@ -1,4 +1,4 @@
-import React from 'react';
+import type { KeyboardEvent } from 'react';
 import { zoomIn, zoomOut } from '../../utils/zoom';
 import { getImageKeyAction, type ImageZoom } from '../../utils/image-zoom';
 
@@ -10,7 +10,7 @@ interface ImageKeyInput {
 
 /** Keyboard handler for the image stage: one table of key action to what it does */
 export function useImageKeys({ scale, zoomTo, rotate }: ImageKeyInput) {
-  return (event: React.KeyboardEvent<HTMLDivElement>) => {
+  return (event: KeyboardEvent<HTMLDivElement>) => {
     const action = getImageKeyAction(event);
     if (!action) {
       return;

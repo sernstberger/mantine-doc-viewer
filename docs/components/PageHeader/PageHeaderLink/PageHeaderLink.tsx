@@ -1,11 +1,11 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import classes from './PageHeaderLink.module.css';
 
 interface PageHeaderLinkProps {
   link?: string;
-  label: React.ReactNode;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  label: ReactNode;
+  icon: ReactNode;
+  children: ReactNode;
 }
 
 export function PageHeaderLink({ label, icon, children, link }: PageHeaderLinkProps) {

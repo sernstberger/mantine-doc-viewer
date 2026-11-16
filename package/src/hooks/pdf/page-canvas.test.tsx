@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { DocViewerProvider } from '../../doc-viewer.context';
 import { keepSize } from '../../utils/page-canvas-ref';
 import { usePageCanvas } from '../../hooks/pdf/use-page-canvas';
@@ -40,7 +40,7 @@ function Preview({ document, near }: { document: any; near: boolean }) {
   return <div>{near && <canvas ref={canvasRef} />}</div>;
 }
 
-function withContext(children: React.ReactNode) {
+function withContext(children: ReactNode) {
   return <DocViewerProvider value={{} as any}>{children}</DocViewerProvider>;
 }
 

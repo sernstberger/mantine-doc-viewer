@@ -1,6 +1,6 @@
 import { CodeHighlight } from '@mantine/code-highlight';
 import { VisuallyHidden } from '@mantine/core';
-import React from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { getScrollBehavior } from '../utils/scroll';
 import { getFencedCode, HastNode } from '../utils/markdown-utils';
 
@@ -37,7 +37,7 @@ interface MarkdownComponentsOptions {
 /** react-markdown components: highlighted code blocks, and links that stay in the viewer or open a new tab */
 export function createMarkdownComponents({ opensInNewTab, onHashLink }: MarkdownComponentsOptions) {
   return {
-    pre: ({ node, children }: { node?: HastNode; children?: React.ReactNode }) => {
+    pre: ({ node, children }: { node?: HastNode; children?: ReactNode }) => {
       const fenced = getFencedCode(node);
       return fenced ? (
         <CodeHighlight
@@ -56,7 +56,7 @@ export function createMarkdownComponents({ opensInNewTab, onHashLink }: Markdown
       href,
       children,
       ...others
-    }: React.ComponentPropsWithoutRef<'a'> & { node?: HastNode }) =>
+    }: ComponentPropsWithoutRef<'a'> & { node?: HastNode }) =>
       href?.startsWith('#') ? (
         <a
           href={href}

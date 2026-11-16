@@ -1,7 +1,6 @@
 import { render, screen } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
 import { buildPageText } from '../utils/search';
-import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../test-utils/intersection-observer';
 import { TestDocViewer } from '../../../test-utils/viewer';

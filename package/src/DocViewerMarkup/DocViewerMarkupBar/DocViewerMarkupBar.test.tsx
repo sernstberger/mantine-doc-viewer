@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -30,7 +30,7 @@ const value = {
   opened: true,
 } as MarkupContextValue;
 
-function MarkupRoot({ children }: { children: React.ReactNode }) {
+function MarkupRoot({ children }: { children: ReactNode }) {
   return (
     <DocViewerRoot src="/files/photo.png">
       <MarkupContext value={value}>{children}</MarkupContext>

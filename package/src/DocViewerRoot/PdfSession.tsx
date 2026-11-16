@@ -1,6 +1,6 @@
 import { VisuallyHidden } from '@mantine/core';
 import { useIsomorphicEffect } from '@mantine/hooks';
-import React, { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import {
   updateDocViewerStateAction,
@@ -78,8 +78,8 @@ function useSessionReset(store: DocViewerStore, src: string) {
   }, [store, src]);
 }
 
-function withSetups(extensions: readonly DocViewerExtension[], children: React.ReactNode) {
-  return extensions.reduceRight<React.ReactNode>(
+function withSetups(extensions: readonly DocViewerExtension[], children: ReactNode) {
+  return extensions.reduceRight<ReactNode>(
     (content, extension) =>
       extension.setup ? <extension.setup key={extension.name}>{content}</extension.setup> : content,
     children
@@ -90,7 +90,7 @@ function withSetups(extensions: readonly DocViewerExtension[], children: React.R
  * The PDF session Root runs for a PDF: the hook groups (in this order, since effects run in call
  * order), the store projection and the extensions' setups. The PDF parts are views on it
  */
-export function PdfSession({ children }: { children: React.ReactNode }) {
+export function PdfSession({ children }: { children: ReactNode }) {
   const context = useDocViewerContext();
   const extensions = useDocViewerExtensions();
   const edited = useEditedDocument(context.src);

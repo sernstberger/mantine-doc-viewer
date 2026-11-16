@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon, type IconProps } from '../utils/icons';
 
 export const MarkupIcon = (props: IconProps) => (

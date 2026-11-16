@@ -1,5 +1,5 @@
 import { ActionIcon } from '@mantine/core';
-import React, { use } from 'react';
+import { use } from 'react';
 import { useDocViewerPageContext } from '../doc-viewer.context';
 import { PdfThumbnailEditsContext } from '../DocViewerRoot/pdf-session-context';
 import { TrashIcon } from '../utils/icons';

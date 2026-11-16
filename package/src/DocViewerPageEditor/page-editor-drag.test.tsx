@@ -2,7 +2,6 @@ import { DirectionProvider } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import {
   centerOf,

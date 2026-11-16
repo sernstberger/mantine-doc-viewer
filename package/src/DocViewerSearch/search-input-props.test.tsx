@@ -1,6 +1,5 @@
 import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { TestDocViewer } from '../../../test-utils/viewer';
 

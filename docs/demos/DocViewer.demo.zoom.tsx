@@ -1,11 +1,10 @@
 import { SegmentedControl, Stack, Text } from '@mantine/core';
 import { MantineDemo } from '@mantinex/demo';
 import { DocViewer, DocViewerPageLayout, DocViewerZoom } from 'mantine-doc-viewer';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { asset } from './_assets';
 
 const code = `
-import { useState } from 'react';
 import { SegmentedControl, Stack, Text } from '@mantine/core';
 import { DocViewer, DocViewerPageLayout, DocViewerZoom } from 'mantine-doc-viewer';
 

@@ -1,5 +1,5 @@
 import { createSafeContext, type GetStylesApi, type MantineColor } from '@mantine/core';
-import { createElement } from 'react';
+import { createElement, type ReactNode, type RefObject } from 'react';
 import type { DocViewerLabels } from './default-labels';
 import type { DocViewerPdfAdapter } from './DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import type { DocViewerRootFactory } from './DocViewerRoot/DocViewerRoot';
@@ -28,7 +28,7 @@ export interface DocViewerContextValue {
   size: DocViewerSizeConfig;
   color: MantineColor | undefined;
   unstyled: boolean | undefined;
-  controller: React.RefObject<ControllerImplementation>;
+  controller: RefObject<ControllerImplementation>;
   events: Required<DocViewerEvents>;
   page: number | undefined;
   defaultPage: number | undefined;
@@ -66,7 +66,7 @@ export function DocViewerProvider({
   children,
 }: {
   value: DocViewerContextValue;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const { getStyles, labels, unstyled } = value;
   const pageValue = useShallowStable({ getStyles, labels, unstyled });

@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { useId } from '@mantine/hooks';
-import React from 'react';
+import type { Ref } from 'react';
 import { useDocViewerContext } from '../doc-viewer.context';
 import { downloadAttachment, PdfAttachment, PdfProperty } from '../utils/document-info';
 import type { PdfLayer } from '../hooks/pdf/use-pdf-layers';
@@ -28,7 +28,7 @@ interface PdfDocumentInfoProps {
 
   /** Other props of the `documentInfo` element */
   elementProps?: BoxProps & ElementProps<'div'>;
-  rootRef?: React.Ref<HTMLDivElement>;
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 /** Document properties, attachments and layers, shown in a popover from the toolbar */

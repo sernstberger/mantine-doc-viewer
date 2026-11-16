@@ -1,4 +1,3 @@
-import React from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';

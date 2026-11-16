@@ -1,4 +1,4 @@
-import React, { createContext, use, useMemo } from 'react';
+import { createContext, type ReactNode, use, useMemo } from 'react';
 import type { DocViewerMarkdownAdapter } from './adapters/react-markdown-adapter';
 import type { DocViewerPdfAdapter } from './adapters/pdfjs-adapter';
 
@@ -18,7 +18,7 @@ export interface DocViewerAdapterProviderProps {
 
   /** Markdown engine, from `createReactMarkdownAdapter`. Without it markdown files show their source */
   markdown?: DocViewerMarkdownAdapter;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /** Gives every viewer inside it the engines that show PDF and markdown files. Engines load when a viewer first needs them */

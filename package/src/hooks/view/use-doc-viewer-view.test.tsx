@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { MantineProvider } from '@mantine/core';
 import { render } from '@mantine-tests/core';
 import { act, renderHook } from '@testing-library/react';
@@ -10,7 +10,7 @@ function setup(props: Partial<DocViewerRootProps> = {}) {
   const [store] = createDocViewer();
   const onDocumentLoad = jest.fn();
   const onDocumentError = jest.fn();
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
+  const wrapper = ({ children }: { children: ReactNode }) => (
     <MantineProvider env="test">
       <DocViewerRoot
         src="/files/data.xyz"

@@ -1,6 +1,5 @@
 import { render, screen } from '@mantine-tests/core';
 import { fireEvent } from '@testing-library/react';
-import React from 'react';
 import { TestDocViewer } from '../../../test-utils/viewer';
 import { MAX_ZOOM, MIN_ZOOM } from '../utils/zoom';
 import { ZoomControls } from './ZoomControls';

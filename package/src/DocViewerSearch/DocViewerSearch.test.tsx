@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -22,7 +22,7 @@ function OpenSearch() {
   return null;
 }
 
-function OpenedRoot({ children }: { children?: React.ReactNode }) {
+function OpenedRoot({ children }: { children?: ReactNode }) {
   return (
     <PdfPartsRoot>
       <OpenSearch />

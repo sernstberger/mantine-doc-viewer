@@ -2,7 +2,7 @@ import { render, screen } from '@mantine-tests/core';
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { createTestPdfAdapter } from './adapters';
 import { mockPdf } from './mock-pdf';
 import { DocViewer } from '../package/src/DocViewer';
@@ -102,7 +102,7 @@ export function createEditorContext(
 }
 
 interface EditorPartsProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
   session?: PdfSession;
   editor?: PageEditorContextValue;
 }
