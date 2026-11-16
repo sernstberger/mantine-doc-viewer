@@ -2,10 +2,11 @@ import { useIdle, useInterval } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, useDocViewerStore } from '../../index';
 import classes from './Atrium.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Atrium',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 interface Room {

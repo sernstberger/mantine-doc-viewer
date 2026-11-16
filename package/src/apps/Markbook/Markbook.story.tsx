@@ -3,10 +3,11 @@ import { ActionIcon, Button, UnstyledButton, VisuallyHidden } from '@mantine/cor
 import { ESSAYS, getNoteAnchors, NoteAnchor } from '../../../../scripts/story-pdfs/essays/layout';
 import { DocViewer } from '../../index';
 import classes from './Markbook.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Markbook',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 type Score = 1 | 2 | 3 | 4;

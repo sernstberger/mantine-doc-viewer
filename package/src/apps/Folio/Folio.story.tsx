@@ -3,10 +3,11 @@ import { createPageEditorExtension } from '../../editor';
 import { DocViewer } from '../../index';
 import { createMarkupExtension } from '../../markup';
 import classes from './Folio.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Folio',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 interface Toast {

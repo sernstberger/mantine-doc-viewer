@@ -7,8 +7,9 @@ import {
   openPageEditor,
 } from '../editor';
 import { DocViewer, useDocViewer } from '../index';
+import { pdfConsole } from '../test-utils/pdf-console';
 
-export default { title: 'DocViewerPageEditor' };
+export default { title: 'DocViewerPageEditor', parameters: pdfConsole };
 
 function useSaved() {
   const [saved, setSaved] = useState('Nothing saved yet');

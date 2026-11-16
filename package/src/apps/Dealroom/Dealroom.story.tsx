@@ -3,10 +3,11 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerPageRect } from '../../index';
 import classes from './Dealroom.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Dealroom',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 type Status = 'in-review' | 'changes' | 'approved';

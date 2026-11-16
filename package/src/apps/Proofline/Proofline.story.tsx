@@ -2,10 +2,11 @@ import { Button, Checkbox, Switch, Textarea, useMatches } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerPageLayout } from '../../index';
 import classes from './Proofline.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Proofline',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 const CHECKS = [

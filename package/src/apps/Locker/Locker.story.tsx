@@ -11,10 +11,11 @@ import {
   type DocViewerState,
 } from '../../index';
 import classes from './Locker.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Locker',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 /* -------------------------------------------------------------------------- */

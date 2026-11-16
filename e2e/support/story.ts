@@ -1,5 +1,5 @@
 // Shared by every Mantine lib on the harness: keep this file identical across repos.
-// Opens Storybook stories in a real browser and fails a test on any console error or page error.
+// Opens Storybook stories in a real browser and fails a test on any console error, console warning or page error.
 import { test as base, expect, type Locator, type Page } from '@playwright/test';
 
 export { expect };
@@ -18,17 +18,27 @@ export interface StoryOptions {
 }
 
 interface Fixtures {
-  /** Console messages that do not fail the test; `test.use({ allowConsole: [/ResizeObserver/] })` */
+  /** Console errors and warnings that do not fail the test; `test.use({ allowConsole: [/ResizeObserver/] })` */
   allowConsole: RegExp[];
 
-  /** Lists the console errors and page errors not allowed; the test fails if any are left at the end */
+  /** Lists the console errors, warnings and page errors not allowed; the test fails if any are left at the end */
   consoleErrors: () => string[];
 }
 
 const storyAllowed = new WeakMap<Page, RegExp[]>();
 
 /**
- * Records console errors and page errors on `page`. Returns a function that lists those not
+ * Firefox's own advisory, not a message from the app: Mantine's ScrollArea sets the scrollbar
+ * thumb's transform in its scroll handler, and Firefox flags any such script as a scroll-linked
+ * positioning effect. Any story with a scrolling ScrollArea logs it (`scrollbars={false}` makes it
+ * go away). Mantine's ScrollArea does it by design, so it is allowed by this exact text
+ */
+const MANTINE_SCROLL_AREA_NOTICE =
+  /^\[JavaScript Warning: "This site appears to use a scroll-linked positioning effect/;
+
+/**
+ * Records console errors, console warnings and page errors on `page`, as jest-console.cjs does
+ * for Jest. Returns a function that lists those not
  * matched by `allow` or by the `parameters.e2e.allowConsole` of the story last opened with
  * `openStory`
  */
@@ -36,14 +46,14 @@ export function watchConsole(page: Page, allow: RegExp[] = []) {
   const seen: string[] = [];
 
   page.on('console', (message) => {
-    if (message.type() === 'error') {
+    if (message.type() === 'error' || message.type() === 'warning') {
       seen.push(message.text());
     }
   });
   page.on('pageerror', (error) => seen.push(error.message));
 
   return () => {
-    const patterns = [...allow, ...(storyAllowed.get(page) ?? [])];
+    const patterns = [MANTINE_SCROLL_AREA_NOTICE, ...allow, ...(storyAllowed.get(page) ?? [])];
     return seen.filter((text) => !patterns.some((pattern) => pattern.test(text)));
   };
 }
@@ -54,7 +64,7 @@ export const test = base.extend<Fixtures>({
     async ({ page, allowConsole }, use) => {
       const unexpected = watchConsole(page, allowConsole);
       await use(unexpected);
-      expect(unexpected(), 'console errors and page errors').toEqual([]);
+      expect(unexpected(), 'console errors, warnings and page errors').toEqual([]);
     },
     { auto: true },
   ],
@@ -95,7 +105,7 @@ const COLD_DEV_SERVER_TIMEOUT_MS = 60_000;
 
 /**
  * Opens a story and waits until it has rendered, its fonts have loaded and Mantine has applied
- * the color scheme. Console errors that the story declares in `parameters.e2e.allowConsole` do
+ * the color scheme. Console errors and warnings that the story declares in `parameters.e2e.allowConsole` do
  * not fail the test. Throws Storybook's own error when the story fails to render. Returns the
  * story's root element
  */

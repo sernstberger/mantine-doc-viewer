@@ -34,7 +34,7 @@ export default defineConfig({
   webServer: {
     command: DEV
       ? `npx storybook dev --port ${PORT} --ci --no-open`
-      : `npx vite preview --outDir storybook-static --port ${PORT} --strictPort`,
+      : `npx vite preview --config e2e/vite.preview.config.ts --outDir storybook-static --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/index.json`,
     reuseExistingServer: !CI,
     timeout: 120_000,

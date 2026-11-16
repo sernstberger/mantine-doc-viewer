@@ -2,10 +2,11 @@ import { Button, SegmentedControl, Textarea } from '@mantine/core';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Clause.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Clause',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 type Kind = 'plain' | 'ins' | 'del';

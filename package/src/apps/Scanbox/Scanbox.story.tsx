@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { createPageEditorExtension, DocViewerPageEditorButton } from '../../editor';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Scanbox.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 function saveBytes(bytes: Uint8Array, fileName: string) {
   const link = document.createElement('a');
@@ -21,7 +22,7 @@ function saveBytes(bytes: Uint8Array, fileName: string) {
 
 export default {
   title: 'Apps/Scanbox',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 // Scanbox teal, so the page editor's own buttons (Save, Done) match the app

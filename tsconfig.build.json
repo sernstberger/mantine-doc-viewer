@@ -7,6 +7,7 @@
     "**/test-utils.tsx",
     "**/*.story.tsx",
     "**/*.story.ts",
+    "package/src/test-utils",
     "package/dist"
   ],
   "compilerOptions": {

@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import { createMarkupExtension, type DocViewerMark } from '../../markup';
 import classes from './PlanRoom.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/PlanRoom',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 type Discipline = 'G' | 'A' | 'S' | 'M' | 'E';

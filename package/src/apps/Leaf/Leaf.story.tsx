@@ -12,10 +12,11 @@ import {
 import { flushSync } from 'react-dom';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Leaf.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Leaf',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 /*

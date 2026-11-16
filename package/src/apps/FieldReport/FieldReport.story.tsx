@@ -2,10 +2,11 @@ import { Anchor, Avatar, Button } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './FieldReport.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/FieldReport',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 const REPORT_URL = '/stories/field-report.pdf';

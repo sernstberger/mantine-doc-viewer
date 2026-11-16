@@ -9,8 +9,9 @@ import {
   useDocViewerText,
   useDocViewerView,
 } from './index';
+import { pdfConsole } from './test-utils/pdf-console';
 
-export default { title: 'DocViewer' };
+export default { title: 'DocViewer', parameters: pdfConsole };
 
 const pdfAdapterWithoutWorker = createPdfJsAdapter(() => import('pdfjs-dist'));
 

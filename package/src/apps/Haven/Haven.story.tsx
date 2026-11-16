@@ -3,10 +3,11 @@ import { type CSSProperties, useEffect, useState } from 'react';
 import { DocViewer, useDocViewer, type DocViewerReadingProgress } from '../../index';
 import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../../markup';
 import classes from './Haven.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Haven',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 const PAGES = ['Parties and dates', 'House rules', 'Cancellation and damage', 'Signatures'];

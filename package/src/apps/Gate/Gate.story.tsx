@@ -9,10 +9,11 @@ import {
 import { useState } from 'react';
 import { DocViewer, useDocViewer } from '../../index';
 import classes from './Gate.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Gate',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 // Seabright navy, so anything Mantine draws for the viewer (focus rings, pressed states) is on brand

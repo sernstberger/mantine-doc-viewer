@@ -31,8 +31,8 @@ async function zoomUntilPannable(page: Page) {
 
 test('zoom in, out, reset and fit', async ({ page }) => {
   await openImage(page);
+  await expect.poll(() => percent(page)).toBeLessThan(100);
   const fitted = await percent(page);
-  expect(fitted).toBeLessThan(100);
 
   await page.getByRole('button', { name: 'Zoom in' }).click();
   await expect.poll(() => percent(page)).toBeGreaterThan(fitted);
@@ -83,6 +83,7 @@ test('dragging pans an image larger than the view', async ({ page }) => {
 test('the keyboard zooms the image', async ({ page }) => {
   await openImage(page);
   const view = stage(page);
+  await expect.poll(() => percent(page)).toBeLessThan(100);
   const fitted = await percent(page);
   await view.focus();
 

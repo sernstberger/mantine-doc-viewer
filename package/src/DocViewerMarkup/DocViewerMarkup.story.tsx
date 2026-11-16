@@ -9,8 +9,9 @@ import {
   setMarkupTool,
   type DocViewerMark,
 } from '../markup';
+import { pdfConsole } from '../test-utils/pdf-console';
 
-export default { title: 'DocViewerMarkup' };
+export default { title: 'DocViewerMarkup', parameters: pdfConsole };
 
 export function Usage() {
   const [marks, setMarks] = useState<DocViewerMark[]>([]);

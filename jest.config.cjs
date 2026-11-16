@@ -19,6 +19,7 @@ module.exports = {
   collectCoverageFrom: [
     'package/src/**/*.{ts,tsx}',
     '!package/src/**/*.story.tsx',
+    '!package/src/test-utils/**',
     '!package/src/**/*.d.ts',
     // Dynamic import() wrappers: tests replace them with mocks (moduleNameMapper below), so they
     // never run in Jest. Each is one line that loads pdf-lib, or the code and markdown views

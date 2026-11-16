@@ -9,10 +9,11 @@ import {
 } from '../../index';
 import { createMarkupExtension, saveMarkup, type DocViewerMark } from '../../markup';
 import classes from './Stand.module.css';
+import { pdfConsole } from '../../test-utils/pdf-console';
 
 export default {
   title: 'Apps/Stand',
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', ...pdfConsole },
 };
 
 interface Piece {
