@@ -31,6 +31,9 @@ function countPageRenders() {
 
 async function allTextLayersRendered(container: HTMLElement) {
   await waitFor(() => expect(container.querySelectorAll('.endOfContent')).toHaveLength(NUM_PAGES));
+  await waitFor(() =>
+    expect(container.querySelectorAll('[data-rendered]')).toHaveLength(NUM_PAGES)
+  );
 }
 
 beforeEach(() => getDocument.mockReset());

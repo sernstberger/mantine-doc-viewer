@@ -6,6 +6,7 @@ import { useDocViewer, type DocViewerActions } from '../doc-viewer.store';
 import { toPdfZoom } from '../utils/pdf-zoom';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import { pagesLoaded } from '../../../test-utils/pdf-parts';
 
 describe('toPdfZoom', () => {
   it('fits the width for fit, keeps fit-page and clamps scales', () => {
@@ -57,7 +58,7 @@ describe('fit-page zoom', () => {
     mockPdf();
     let actions!: DocViewerActions;
     const onZoomChange = jest.fn();
-    render(
+    const { container } = render(
       <ControlledViewer
         src="/files/report.pdf"
         defaultZoom={2}
@@ -66,7 +67,7 @@ describe('fit-page zoom', () => {
       />
     );
 
-    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    await pagesLoaded(container, 3);
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
     act(() => actions.setZoom('fit-page'));
     expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: 1 });

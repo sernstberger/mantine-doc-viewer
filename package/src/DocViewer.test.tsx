@@ -265,20 +265,21 @@ describe('PDF parts', () => {
     Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true });
     render(
       <Providers>
-        <DocViewer
+        <DocViewerRoot
           src="/files/report.pdf"
           extensions={[editorEntry.createPageEditorExtension()]}
-          toolbarProps={{ rightSection: <AllParts /> }}
-        />
+        >
+          <AllParts />
+        </DocViewerRoot>
       </Providers>
     );
-    expect(await screen.findAllByRole('button', { name: 'Rotate' })).toHaveLength(3);
+    expect(await screen.findAllByRole('button', { name: 'Rotate' })).toHaveLength(2);
     expect(screen.getAllByRole('button', { name: 'Edit pages' }).length).toBeGreaterThan(0);
     expect(await screen.findAllByRole('navigation', { name: 'Outline' })).not.toHaveLength(0);
 
     await userEvent.click(screen.getAllByRole('button', { name: 'Page thumbnails' })[1]);
     await userEvent.click(screen.getAllByRole('button', { name: 'Search' })[1]);
-    expect(screen.getAllByRole('textbox', { name: 'Search document' }).length).toBeGreaterThan(1);
+    expect(screen.getByRole('textbox', { name: 'Search document' })).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole('button', { name: 'Search' })[1]);
     expect(screen.queryByRole('textbox', { name: 'Search document' })).not.toBeInTheDocument();
     delete (document as any).fullscreenEnabled;
