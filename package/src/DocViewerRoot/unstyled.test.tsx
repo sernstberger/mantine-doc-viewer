@@ -90,6 +90,27 @@ describe('unstyled', () => {
     expect((await screen.findByRole('tooltip')).className).not.toMatch(hashed);
   });
 
+  it('passes unstyled to the page layout, outline and document info popovers', async () => {
+    mockPdf({
+      outline: [{ title: 'Costs', dest: 'costs', items: [] }],
+      attachments: new Map([['a.txt', { filename: 'a.txt', description: '' }]]),
+      layers: [{ id: 'l1', name: 'Notes layer', visible: true }],
+    });
+    render(<TestDocViewer src="/files/report.pdf" unstyled />);
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+
+    for (const [name, content] of [
+      ['Page layout', 'Two pages'],
+      ['Outline', 'Costs'],
+      ['Document info', 'a.txt'],
+    ]) {
+      await userEvent.click(await screen.findByRole('button', { name }));
+      expect(await screen.findByText(content)).toBeInTheDocument();
+      expect(styledElements()).toEqual([]);
+      await userEvent.keyboard('{Escape}');
+    }
+  });
+
   it('passes unstyled to the code and JSON views', async () => {
     mockFetch('const answer = 42;');
     const { unmount } = render(<TestDocViewer src="/src/answer.ts" unstyled />);

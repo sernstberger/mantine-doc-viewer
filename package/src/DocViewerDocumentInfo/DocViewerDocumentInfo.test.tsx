@@ -87,22 +87,4 @@ describe('DocViewerDocumentInfo in a loaded viewer', () => {
     await userEvent.click(layer);
     expect(screen.getByRole('checkbox', { name: 'Notes layer' })).not.toBeChecked();
   });
-
-  it('passes unstyled to the Mantine components inside', async () => {
-    mockPdf({
-      numPages: 3,
-      attachments: new Map([['a.txt', { filename: 'a.txt', description: '' }]]),
-      layers: [{ id: 'l1', name: 'Notes layer', visible: true }],
-    });
-    const { container } = render(
-      <LoadedPdfRoot unstyled>
-        <DocViewerDocumentInfo />
-        <DocViewerPages />
-      </LoadedPdfRoot>
-    );
-    await pagesLoaded(container, 3);
-    await screen.findByText('Finance');
-    const info = document.querySelector('.mantine-DocViewer-documentInfo')!;
-    expect(info.querySelectorAll('[class*="m_"]')).toHaveLength(0);
-  });
 });
