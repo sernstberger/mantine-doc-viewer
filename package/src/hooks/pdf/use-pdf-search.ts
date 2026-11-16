@@ -108,15 +108,12 @@ export function usePdfSearch(
         : [],
     [pages, query, enabled, matchCase, wholeWords, matchAccents]
   );
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [matches]);
+  const [active, setActive] = useState({ matches, index: 0 });
+  const activeIndex = active.matches === matches ? active.index : 0;
 
   const step = (direction: 1 | -1) =>
     matches.length > 0 &&
-    setActiveIndex((current) => (current + direction + matches.length) % matches.length);
+    setActive({ matches, index: (activeIndex + direction + matches.length) % matches.length });
 
   return {
     pages,
