@@ -65,6 +65,7 @@ function InfoPopover({
 
   return (
     <Popover
+      id={buttonProps.id}
       unstyled={unstyled}
       opened={opened}
       onChange={popover.set}
@@ -74,12 +75,11 @@ function InfoPopover({
       trapFocus
       returnFocus
     >
-      <Popover.Target>
-        <DocViewerTooltip label={labels.documentInfoLabel}>
+      <DocViewerTooltip label={labels.documentInfoLabel}>
+        <Popover.Target>
           <ActionIcon
             {...controlProps(opened, stylesApiProps)}
             aria-label={labels.documentInfoLabel}
-            aria-expanded={opened}
             {...buttonProps}
             onClick={(event) => {
               popover.toggle();
@@ -88,8 +88,8 @@ function InfoPopover({
           >
             <InfoIcon />
           </ActionIcon>
-        </DocViewerTooltip>
-      </Popover.Target>
+        </Popover.Target>
+      </DocViewerTooltip>
       <Popover.Dropdown
         {...getStyles('dropdown', {
           classNames: stylesApiProps.classNames,

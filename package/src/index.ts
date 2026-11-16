@@ -162,10 +162,12 @@ import type {
 import type { DocViewerFactory, DocViewerProps } from './DocViewerBase.js';
 import type {
   DocViewerControl,
+  DocViewerControlProps,
   DocViewerCssVariables,
   DocViewerExtension,
   DocViewerGoToPageOptions,
   DocViewerHighlightTarget,
+  DocViewerLinkControlProps,
   DocViewerLoadInfo,
   DocViewerOutlineItem,
   DocViewerPageLayerProps,
@@ -348,6 +350,8 @@ export type {
   DocViewerAdapterProviderProps,
   CreatePdfJsAdapterOptions,
   DocViewerControl,
+  DocViewerControlProps,
+  DocViewerLinkControlProps,
   DocViewerCssVariables,
   DocViewerExtension,
   DocViewerGoToPageOptions,

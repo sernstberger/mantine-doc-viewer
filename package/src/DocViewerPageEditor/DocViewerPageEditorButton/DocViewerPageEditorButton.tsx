@@ -50,8 +50,8 @@ export const DocViewerPageEditorButton = factory<DocViewerPageEditorButtonFactor
         aria-label={editor.labels.editPagesLabel}
         {...others}
         onClick={(event: MouseEvent<HTMLButtonElement>) => {
-          onClick?.(event);
           editor.open();
+          onClick?.(event);
         }}
       >
         <EditPagesIcon />

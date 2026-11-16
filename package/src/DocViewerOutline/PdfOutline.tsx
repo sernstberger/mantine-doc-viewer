@@ -76,7 +76,7 @@ interface PdfOutlineProps {
 type OutlineListProps = Pick<PdfOutlineProps, 'document' | 'items' | 'onSelect'>;
 
 function OutlineList({ document, items, onSelect }: OutlineListProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, unstyled } = useDocViewerContext();
 
   return (
     <ul {...getStyles('outlineList')}>
@@ -94,6 +94,7 @@ function OutlineList({ document, items, onSelect }: OutlineListProps) {
             </a>
           ) : (
             <UnstyledButton
+              unstyled={unstyled}
               {...getStyles('outlineItem')}
               fw={item.bold ? 600 : undefined}
               fs={item.italic ? 'italic' : undefined}

@@ -50,9 +50,9 @@ export const DocViewerMarkupButton = factory<DocViewerMarkupButtonFactory>((_pro
         aria-pressed={barOpened}
         {...others}
         onClick={(event) => {
-          onClick?.(event);
           setOpened(!barOpened);
           barOpened && markup.setTool(null);
+          onClick?.(event);
         }}
       >
         <MarkupIcon />

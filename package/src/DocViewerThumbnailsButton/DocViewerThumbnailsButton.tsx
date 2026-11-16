@@ -79,16 +79,16 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
           trapFocus
           returnFocus
         >
-          <Popover.Target>
-            <DocViewerTooltip label={labels.thumbnailsPositionLabel}>
+          <DocViewerTooltip label={labels.thumbnailsPositionLabel}>
+            <Popover.Target>
               <ActionIcon
                 {...controlProps(false, stylesApiProps)}
                 aria-label={labels.thumbnailsPositionLabel}
               >
                 <PanelPositionIcon />
               </ActionIcon>
-            </DocViewerTooltip>
-          </Popover.Target>
+            </Popover.Target>
+          </DocViewerTooltip>
           <Popover.Dropdown p={4} {...getStyles('dropdown', stylesApiProps)}>
             <SegmentedControl
               unstyled={unstyled}

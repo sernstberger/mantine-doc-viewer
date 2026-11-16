@@ -142,6 +142,12 @@ export interface DocViewerActions {
 
   /** Forgets how much of the PDF has been seen, for the next reader */
   resetReadingProgress: () => void;
+
+  /** Wraps long lines of text files, or shows them on one line */
+  setTextWrap: (wrap: boolean) => void;
+
+  /** Shows the rendered markdown (or JSON tree) or its source */
+  setViewMode: (mode: DocViewerState['viewMode']) => void;
 }
 
 const INITIAL_STATE: DocViewerState = {
@@ -265,12 +271,21 @@ export const docViewerActions = {
   download: (store: DocViewerStore) => call(store).download?.(),
   toggleFullscreen: toggleFullscreenAction,
   resetReadingProgress: (store: DocViewerStore) => call(store).resetReadingProgress?.(),
+  setTextWrap: (textWrap: boolean, store: DocViewerStore) =>
+    updateDocViewerStateAction({ textWrap }, store),
+  setViewMode: (viewMode: DocViewerState['viewMode'], store: DocViewerStore) =>
+    updateDocViewerStateAction({ viewMode }, store),
   updateState: updateDocViewerStateAction,
 };
 
-/** Creates a viewer store and the actions bound to it, for a viewer controlled from outside React too */
-export function createDocViewer() {
-  const store = createDocViewerStore();
+const boundActions = new WeakMap<DocViewerStore, DocViewerActions>();
+
+/** The actions of a store, bound to it once and then reused */
+export function bindDocViewerActions(store: DocViewerStore): DocViewerActions {
+  const bound = boundActions.get(store);
+  if (bound) {
+    return bound;
+  }
   const a = docViewerActions;
   const actions: DocViewerActions = {
     goToPage: (page, options) => a.goToPage(page, options, store),
@@ -296,8 +311,17 @@ export function createDocViewer() {
     download: () => a.download(store),
     toggleFullscreen: () => a.toggleFullscreen(store),
     resetReadingProgress: () => a.resetReadingProgress(store),
+    setTextWrap: (wrap) => a.setTextWrap(wrap, store),
+    setViewMode: (mode) => a.setViewMode(mode, store),
   };
-  return [store, actions] as const;
+  boundActions.set(store, actions);
+  return actions;
+}
+
+/** Creates a viewer store and the actions bound to it, for a viewer controlled from outside React too */
+export function createDocViewer() {
+  const store = createDocViewerStore();
+  return [store, bindDocViewerActions(store)] as const;
 }
 
 /** A viewer store and its actions, created once for the component that calls it */

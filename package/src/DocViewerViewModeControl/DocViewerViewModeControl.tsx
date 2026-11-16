@@ -53,9 +53,7 @@ export const DocViewerViewModeControl = factory<DocViewerViewModeControlFactory>
       unstyled={unstyled}
       size={size.input}
       value={mode}
-      onChange={(value) =>
-        docViewerActions.updateState({ viewMode: value as 'preview' | 'source' }, store)
-      }
+      onChange={(value) => docViewerActions.setViewMode(value as 'preview' | 'source', store)}
       data={[
         { value: 'preview', label: markdown ? labels.previewLabel : labels.treeLabel },
         { value: 'source', label: markdown ? labels.sourceLabel : labels.codeLabel },

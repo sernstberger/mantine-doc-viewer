@@ -48,7 +48,12 @@ export function PdfDocumentInfo({
   return (
     <Box ref={rootRef} {...getStyles('documentInfo', stylesOptions)} {...elementProps}>
       <section aria-labelledby={`${id}-properties`}>
-        <Text id={`${id}-properties`} size="sm" {...getStyles('documentHeading')}>
+        <Text
+          id={`${id}-properties`}
+          unstyled={unstyled}
+          size="sm"
+          {...getStyles('documentHeading')}
+        >
           {labels.propertiesLabel}
         </Text>
         <DataList
@@ -69,12 +74,18 @@ export function PdfDocumentInfo({
 
       {attachments.length > 0 && (
         <section aria-labelledby={`${id}-attachments`}>
-          <Text id={`${id}-attachments`} size="sm" {...getStyles('documentHeading')}>
+          <Text
+            id={`${id}-attachments`}
+            unstyled={unstyled}
+            size="sm"
+            {...getStyles('documentHeading')}
+          >
             {labels.attachmentsLabel}
           </Text>
-          <Stack gap={2}>
+          <Stack unstyled={unstyled} gap={2}>
             {attachments.map((attachment) => (
               <UnstyledButton
+                unstyled={unstyled}
                 key={attachment.id}
                 {...getStyles('outlineItem')}
                 title={attachment.description || undefined}
@@ -90,10 +101,10 @@ export function PdfDocumentInfo({
 
       {layers.length > 0 && (
         <section aria-labelledby={`${id}-layers`}>
-          <Text id={`${id}-layers`} size="sm" {...getStyles('documentHeading')}>
+          <Text id={`${id}-layers`} unstyled={unstyled} size="sm" {...getStyles('documentHeading')}>
             {labels.layersLabel}
           </Text>
-          <Stack gap={6}>
+          <Stack unstyled={unstyled} gap={6}>
             {layers.map((layer) => (
               <Checkbox
                 unstyled={unstyled}

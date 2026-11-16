@@ -42,7 +42,7 @@ const LAYOUTS = [
 
 /** Menu of PDF page layouts */
 export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) => {
-  const { classNames, className, style, styles, vars, layouts, ...others } = useProps(
+  const { classNames, className, style, styles, vars, layouts, id, ...others } = useProps(
     'DocViewerLayoutMenu',
     null,
     _props
@@ -60,6 +60,7 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
 
   return (
     <Popover
+      id={id}
       unstyled={unstyled}
       position="bottom-end"
       shadow="md"
@@ -67,8 +68,8 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
       trapFocus
       returnFocus
     >
-      <Popover.Target>
-        <DocViewerTooltip label={labels.pageLayoutLabel}>
+      <DocViewerTooltip label={labels.pageLayoutLabel}>
+        <Popover.Target>
           <ActionIcon
             {...controlProps(layout !== 'single', { className, style, classNames, styles })}
             aria-label={labels.pageLayoutLabel}
@@ -76,16 +77,17 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
           >
             <TwoPagesIcon />
           </ActionIcon>
-        </DocViewerTooltip>
-      </Popover.Target>
+        </Popover.Target>
+      </DocViewerTooltip>
       <Popover.Dropdown {...getStyles('dropdown', stylesApiProps)}>
         <Radio.Group
+          unstyled={unstyled}
           value={layout}
           onChange={(value) => docViewerActions.setPageLayout(value as DocViewerPageLayout, store)}
           label={labels.pageLayoutLabel}
           size={size.input}
         >
-          <Stack gap={6} mt={6}>
+          <Stack unstyled={unstyled} gap={6} mt={6}>
             {LAYOUTS.filter(([value]) => !layouts || layouts.includes(value)).map(
               ([value, label]) => (
                 <Radio

@@ -82,7 +82,9 @@ describe('mantine-doc-viewer/DocViewerMarkupButton', () => {
       expect(button).toHaveAttribute('aria-pressed', 'true');
       expect(onToolChange).not.toHaveBeenCalled();
 
+      onClick.mockImplementation(() => expect(onToolChange).toHaveBeenCalledWith(null));
       await userEvent.click(button);
+      expect(onClick).toHaveReturned();
       expect(button).toHaveAttribute('aria-pressed', 'false');
       expect(onToolChange).toHaveBeenLastCalledWith(null);
     });

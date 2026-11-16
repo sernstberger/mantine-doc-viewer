@@ -37,9 +37,9 @@ describe('mantine-doc-viewer/DocViewerPageEditorButton', () => {
     error: 'DocViewer.Root component was not found in the tree',
   });
 
-  it('opens the editor and calls its own onClick', async () => {
+  it('opens the editor, then calls its own onClick', async () => {
     const editor = createEditorContext();
-    const onClick = jest.fn();
+    const onClick = jest.fn(() => expect(editor.open).toHaveBeenCalled());
     render(
       <EditorPartsProvider editor={editor}>
         <DocViewerPageEditorButton onClick={onClick} />
@@ -47,6 +47,7 @@ describe('mantine-doc-viewer/DocViewerPageEditorButton', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Edit pages' }));
     expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveReturned();
     expect(editor.open).toHaveBeenCalledTimes(1);
   });
 

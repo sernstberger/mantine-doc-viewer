@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { createTestPdfAdapter } from '../../test-utils/adapters';
 import { getDocument, mockPdf } from '../../test-utils/mock-pdf';
 import {
+  bindDocViewerActions,
   createDocViewer,
   createDocViewerStore,
   docViewerActions,
@@ -99,6 +100,22 @@ describe('store', () => {
     const state = renderHook(() => useDocViewerStore(store));
     act(() => result.current[1].toggleThumbnails(true));
     expect(state.result.current.thumbnailsOpened).toBe(true);
+  });
+
+  it('sets text wrap and view mode', () => {
+    const [store, actions] = createDocViewer();
+    actions.setTextWrap(false);
+    actions.setViewMode('source');
+    expect(store.getState()).toMatchObject({ textWrap: false, viewMode: 'source' });
+  });
+
+  it('binds actions once per store', () => {
+    const [store, actions] = createDocViewer();
+    expect(bindDocViewerActions(store)).toBe(actions);
+    const other = createDocViewerStore();
+    expect(bindDocViewerActions(other)).toBe(bindDocViewerActions(other));
+    bindDocViewerActions(other).toggleThumbnails(true);
+    expect(other.getState().thumbnailsOpened).toBe(true);
   });
 });
 

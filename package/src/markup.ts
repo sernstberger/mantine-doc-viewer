@@ -8,7 +8,10 @@ import type {
   DocViewerMarkupButtonProps,
   DocViewerMarkupButtonStylesNames,
 } from './DocViewerMarkup/DocViewerMarkupButton/DocViewerMarkupButton.js';
-import type { DocViewerMarkupLabels } from './DocViewerMarkup/default-labels.js';
+import type {
+  DocViewerMarkupLabels,
+  DocViewerMarkupLabelsInput,
+} from './DocViewerMarkup/default-labels.js';
 import type { DocViewerMarkupOptions } from './DocViewerMarkup/markup-extension.js';
 import type {
   DocViewerHighlightMark,
@@ -35,6 +38,7 @@ export type {
   DocViewerMarkupButtonProps,
   DocViewerMarkupButtonStylesNames,
   DocViewerMarkupLabels,
+  DocViewerMarkupLabelsInput,
   DocViewerMarkupOptions,
   DocViewerHighlightMark,
   DocViewerMark,

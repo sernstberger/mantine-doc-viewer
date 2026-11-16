@@ -47,7 +47,7 @@ export const DocViewerWrapButton = factory<DocViewerWrapButtonFactory>((_props) 
         aria-pressed={wrap}
         {...others}
         onClick={(event) => {
-          docViewerActions.updateState({ textWrap: !wrap }, store);
+          docViewerActions.setTextWrap(!wrap, store);
           onClick?.(event);
         }}
       >

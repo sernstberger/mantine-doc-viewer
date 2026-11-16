@@ -17,7 +17,8 @@ Components
   `pageColorScheme`, `defaultThumbnailsOpened`, `defaultThumbnailsPosition`, and the value / default /
   on-change triads `zoom` and `pageLayout`, `page` and `fullscreen` that follow their prop and report
   with `onPageChange` and `onFullscreenChange`, plus `onDocumentLoad` and `onDocumentError`).
-  `onPageChange` is not called for the page a document opens on. Parts read the Root from context and
+  `onPageChange` is not called for the page a document opens on, page 1 or the (clamped)
+  `defaultPage` / initial `page`. Parts read the Root from context and
   throw a clear error outside a Root.
 - Toolbar parts: `Toolbar`, `Title`, `PageControls`, `ZoomControls`, `ThumbnailsButton`,
   `RotateButton`, `LayoutMenu`, `OutlineButton`, `InfoButton`, `PresentationButton`, `SearchButton`,
@@ -26,8 +27,13 @@ Components
   which are the defaults for the document type or its children. It is a single row; the title
   truncates first. `leftSection`, `rightSection`, `toggleOnTap` and `tooltipProps` are its slot props.
 - Toolbar button parts take the props of `ActionIcon` (`variant`, `color`, `size`, `radius`,
-  `loading`, ...) next to the Styles API props, and an `onClick` you pass runs after the button's own
-  action, as `Modal.CloseButton` does.
+  `loading`, ...) next to the Styles API props; a `variant` or `color` you pass replaces the pressed
+  look. An `onClick` you pass runs after the button's own action, as `Modal.CloseButton` does, in
+  the core parts and in the extension buttons. Their props types are `DocViewerControlProps` and
+  `DocViewerLinkControlProps` (download).
+- Buttons that open a popover (`LayoutMenu`, `OutlineButton`, `InfoButton` and the thumbnails
+  position button) carry `aria-haspopup`, `aria-expanded` and `aria-controls` themselves: the tooltip
+  wraps `Popover.Target`, not the other way round.
 - Document parts: `Main`, `Body`, `Pages`, `Thumbnails`, `Search`, `Outline`, `DocumentInfo`,
   `PresentationControls`, `OverlayControls`, `Image`, `Text`, `Code`, `Markdown`, `Message`,
   `Loading`. Each is also exported under its own name (`DocViewerPages`, ...), with `Props`,
@@ -62,13 +68,17 @@ State and control
 - Every viewer has a store (`@mantine/store`): `useDocViewer()` / `createDocViewer()` return
   `[store, actions]`, `useDocViewerStore(store)` reads state, `createDocViewerStore` creates a
   bare store. Pass it as `store` to read or drive a viewer from outside: `goToPage`, `goToSpread`,
-  `nextSpread` / `previousSpread({ loop })`, `setZoom`, `zoomIn`, `zoomOut`, `setPageLayout`, `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`,
-  `setThumbnailsPosition`, `togglePresentation`, `highlight`, `clearHighlight`, `getOutline`,
-  `getBytes`, `getPageCanvas`, `print`, `download`, `toggleFullscreen`, `resetReadingProgress`.
+  `nextSpread({ loop })` / `previousSpread()`, `setZoom`, `zoomIn`, `zoomOut`, `setPageLayout`,
+  `rotate`, `openSearch`, `closeSearch`, `toggleThumbnails`, `setThumbnailsPosition`,
+  `togglePresentation`, `highlight`, `clearHighlight`, `getOutline`, `getBytes`, `getPageCanvas`,
+  `print`, `download`, `toggleFullscreen`, `resetReadingProgress`, `setTextWrap`, `setViewMode`.
   State includes `type`, `status`, `canPrint`, `spread`, `thumbnailsOpened` and
   `thumbnailsPosition`. `useDocViewerView` and `useDocViewerContext` serve custom parts: the
-  context hook returns `src`, `type`, `fileName`, `title`, `labels`, `store`, `getStyles` and
-  `controlProps` (`UseDocViewerContextReturnValue`).
+  context hook returns `src`, `type`, `fileName`, `title`, `labels`, `store`, `getStyles`, the
+  store's bound `actions` and `getControlProps(pressed)` (`UseDocViewerContextReturnValue`), so a
+  custom control inside a viewer without an app store can act on it, like Lightbox's
+  `ToolbarItemsPayload` and Carousel's `useCarouselContext`. (Renamed from `controlProps` before
+  the release.)
 - `onZoomChange(zoom, { scale })` fires for every request, also when `zoom` is controlled.
 
 Subpaths
@@ -80,7 +90,8 @@ Subpaths
 - `mantine-doc-viewer/markup`: markup tools that save into the PDF (highlight, text box, shapes,
   signature), as `createMarkupExtension({ tools, tool, defaultTool, onToolChange, value,
   defaultValue, onChange, color, width, fontSize, onDocumentChange })`, `DocViewerMarkupBar`,
-  `DocViewerMarkupButton`, `setMarkupTool(tool, store)` and `saveMarkup(store)`.
+  `DocViewerMarkupButton`, `setMarkupTool(tool, store)` and `saveMarkup(store)`. The type of its
+  `labels` option is `DocViewerMarkupLabelsInput`.
 - Extensions are passed to `Root` as `extensions`. Their labels are exported as `DEFAULT_LABELS` of
   each subpath and merged with `labels`.
 
