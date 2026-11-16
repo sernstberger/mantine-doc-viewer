@@ -3,6 +3,8 @@ import type { DocViewerPageLayout } from '../doc-viewer.types';
 import { useDocViewerContext } from '../doc-viewer.context';
 import type { DocViewerPageRect } from '../utils/page-points';
 import { usePageScaleStore } from '../hooks/pdf/use-page-scale';
+import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
+import { PageOverlayContext } from './PageOverlay';
 import { PdfPage } from './PdfPage';
 
 type PageProps = Omit<
@@ -21,6 +23,8 @@ interface PdfPageListProps extends PageProps {
   viewport: boolean;
   /** Boxes a passage highlight marks, on its page */
   highlight: { page: number; rects: DocViewerPageRect[] } | null | undefined;
+  /** Content laid over each page */
+  renderPageOverlay?: DocViewerRenderPageOverlay;
 }
 
 /**
@@ -37,6 +41,7 @@ export const PdfPageList = memo(function PdfPageList({
   viewport,
   scrollRoot,
   scale,
+  renderPageOverlay,
   ...page
 }: PdfPageListProps) {
   const { getStyles } = useDocViewerContext();
@@ -46,21 +51,23 @@ export const PdfPageList = memo(function PdfPageList({
     : Array.from({ length: page.numPages }, (_, index) => index + 1);
 
   return (
-    <div
-      ref={pagesRef}
-      {...getStyles('pages', { style: { '--total-scale-factor': scale } as CSSProperties })}
-      data-layout={presenting ? 'presentation' : layout}
-    >
-      {numbers.map((pageNumber) => (
-        <PdfPage
-          key={pageNumber}
-          {...page}
-          scaleStore={scaleStore}
-          scrollRoot={viewport ? null : scrollRoot}
-          pageNumber={pageNumber}
-          highlightRects={highlight?.page === pageNumber ? highlight.rects : undefined}
-        />
-      ))}
-    </div>
+    <PageOverlayContext value={renderPageOverlay}>
+      <div
+        ref={pagesRef}
+        {...getStyles('pages', { style: { '--total-scale-factor': scale } as CSSProperties })}
+        data-layout={presenting ? 'presentation' : layout}
+      >
+        {numbers.map((pageNumber) => (
+          <PdfPage
+            key={pageNumber}
+            {...page}
+            scaleStore={scaleStore}
+            scrollRoot={viewport ? null : scrollRoot}
+            pageNumber={pageNumber}
+            highlightRects={highlight?.page === pageNumber ? highlight.rects : undefined}
+          />
+        ))}
+      </div>
+    </PageOverlayContext>
   );
 });

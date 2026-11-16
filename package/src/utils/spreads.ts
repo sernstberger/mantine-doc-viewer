@@ -12,7 +12,7 @@ export interface DocViewerPageTurning {
 
   /**
    * Arrow left and right, Page up and Page down turn, wherever focus is on the page except in
-   * text fields and menus. Page turner pedals send these keys
+   * text fields and menus (Page up and Page down also turn in toolbars and tab lists). Page turner pedals send these keys
    */
   keys?: boolean;
 }
@@ -80,7 +80,9 @@ const TURN_KEYS: Record<string, PageTurnDirection> = {
   PageUp: -1,
 };
 
-/** Elements that use these keys themselves: text fields, menus, sliders and the like */
+const toSelector = (roles: string[]) => roles.map((role) => `[role="${role}"]`);
+
+/** Elements that use all four keys themselves: text fields, menus, sliders and the like */
 const OWN_KEYS_SELECTOR = [
   'input',
   'textarea',
@@ -89,23 +91,22 @@ const OWN_KEYS_SELECTOR = [
   'audio',
   '[contenteditable=""]',
   '[contenteditable="true"]',
-  ...[
+  ...toSelector([
     'menu',
-    'menubar',
     'listbox',
     'slider',
-    'tablist',
-    'radiogroup',
     'dialog',
     'tree',
     'grid',
-    'toolbar',
     'spinbutton',
     'combobox',
     'textbox',
     'application',
-  ].map((role) => `[role="${role}"]`),
+  ]),
 ].join(', ');
+
+/** Widgets that move focus with the arrows only, Page up and Page down still turn pages in them */
+const OWN_ARROWS_SELECTOR = toSelector(['toolbar', 'tablist', 'radiogroup', 'menubar']).join(', ');
 
 /** Way a key turns the page, or null for other keys, keys with modifiers and keys meant for text fields and menus */
 export function getTurnKeyDirection(event: KeyboardEvent): PageTurnDirection | null {
@@ -117,7 +118,9 @@ export function getTurnKeyDirection(event: KeyboardEvent): PageTurnDirection | n
     return null;
   }
   const target = event.target as Element | null;
-  return target?.closest?.(OWN_KEYS_SELECTOR) ? null : direction;
+  const isArrow = event.key.startsWith('Arrow');
+  const selector = isArrow ? `${OWN_KEYS_SELECTOR}, ${OWN_ARROWS_SELECTOR}` : OWN_KEYS_SELECTOR;
+  return target?.closest?.(selector) ? null : direction;
 }
 
 /** Ways of turning pages that are on, from the `withPageTurning` prop */

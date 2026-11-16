@@ -57,7 +57,7 @@ export interface DocViewerPagesProps
   /** Determines whether pages turn by spread with edge clicks, swipes and keys @default false */
   withPageTurning?: boolean | DocViewerPageTurning;
 
-  /** Content laid over each page, placed in page coordinates times `scale` */
+  /** Content laid over each page, placed in page coordinates times `scale`. Called again for every page when the function or the zoom changes */
   renderPageOverlay?: DocViewerRenderPageOverlay;
 
   /** Key of `theme.colors` or any valid CSS color of search matches @default theme.colors.yellow[6] */

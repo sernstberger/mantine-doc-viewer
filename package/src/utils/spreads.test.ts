@@ -94,13 +94,27 @@ describe('getTurnKeyDirection', () => {
     expect(getTurnKeyDirection(key({ key: 'ArrowLeft' }, item))).toBeNull();
   });
 
-  it.each(['tree', 'grid', 'toolbar', 'spinbutton', 'combobox', 'application'])(
+  it.each(['tree', 'grid', 'spinbutton', 'combobox', 'application'])(
     'leaves keys in a %s alone',
     (role) => {
       const widget = document.createElement('div');
       widget.setAttribute('role', role);
       const inner = widget.appendChild(document.createElement('span'));
       expect(getTurnKeyDirection(key({ key: 'ArrowRight' }, inner))).toBeNull();
+      expect(getTurnKeyDirection(key({ key: 'PageDown' }, inner))).toBeNull();
+    }
+  );
+
+  it.each(['toolbar', 'tablist', 'radiogroup', 'menubar'])(
+    'leaves the arrows in a %s alone and turns with Page up and Page down',
+    (role) => {
+      const widget = document.createElement('div');
+      widget.setAttribute('role', role);
+      const inner = widget.appendChild(document.createElement('span'));
+      expect(getTurnKeyDirection(key({ key: 'ArrowRight' }, inner))).toBeNull();
+      expect(getTurnKeyDirection(key({ key: 'ArrowLeft' }, inner))).toBeNull();
+      expect(getTurnKeyDirection(key({ key: 'PageDown' }, inner))).toBe(1);
+      expect(getTurnKeyDirection(key({ key: 'PageUp' }, inner))).toBe(-1);
     }
   );
 

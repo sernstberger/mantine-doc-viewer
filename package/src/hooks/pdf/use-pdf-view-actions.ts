@@ -14,6 +14,9 @@ import { usePresentationRestore } from './use-presentation-restore';
 import { useWheelZoom } from './use-wheel-zoom';
 import { useZoomAnchor } from './use-zoom-anchor';
 
+/** Keys that press a focused button, which a presentation leaves to it */
+const BUTTON_KEYS = new Set([' ', 'Enter']);
+
 interface PdfViewActionsInput {
   context: DocViewerContextValue;
   state: PdfDocumentState;
@@ -85,6 +88,10 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
   };
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const ready = !!loaded.ready;
+    const target = event.target as Element;
+    if (BUTTON_KEYS.has(event.key) && target.closest?.('button, a')) {
+      return;
+    }
     const action = getPdfKeyAction(event, {
       ready,
       presenting,
