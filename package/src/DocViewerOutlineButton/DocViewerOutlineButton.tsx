@@ -15,12 +15,18 @@ import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
 import { PdfOutline, usePdfOutline } from '../DocViewerOutline/PdfOutline';
+import { PartStyles } from '../DocViewerPages/PartStyles';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import { OutlineIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
-export type DocViewerOutlineButtonStylesNames = 'control' | 'dropdown';
+export type DocViewerOutlineButtonStylesNames =
+  | 'control'
+  | 'dropdown'
+  | 'outline'
+  | 'outlineList'
+  | 'outlineItem';
 
 export interface DocViewerOutlineButtonProps
   extends BoxProps, CompoundStylesApiProps<DocViewerOutlineButtonFactory>, ElementProps<'button'> {}
@@ -42,7 +48,7 @@ interface OutlinePopoverProps {
 }
 
 function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopoverProps) {
-  const { store, getStyles, labels } = useDocViewerContext();
+  const { store, getStyles, labels, unstyled } = useDocViewerContext();
   const controlProps = useControlProps();
   const outline = usePdfOutline(document);
   const [opened, popover] = useDisclosure(false);
@@ -53,6 +59,7 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
 
   return (
     <Popover
+      unstyled={unstyled}
       opened={opened}
       onChange={popover.set}
       position="bottom-end"
@@ -81,14 +88,16 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
           styles: stylesApiProps.styles,
         })}
       >
-        <PdfOutline
-          document={document}
-          items={outline}
-          onSelect={(page) => {
-            popover.close();
-            docViewerActions.goToPage(page, undefined, store);
-          }}
-        />
+        <PartStyles classNames={stylesApiProps.classNames} styles={stylesApiProps.styles}>
+          <PdfOutline
+            document={document}
+            items={outline}
+            onSelect={(page) => {
+              popover.close();
+              docViewerActions.goToPage(page, undefined, store);
+            }}
+          />
+        </PartStyles>
       </Popover.Dropdown>
     </Popover>
   );

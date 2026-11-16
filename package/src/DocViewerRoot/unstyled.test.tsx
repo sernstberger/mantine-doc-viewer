@@ -27,6 +27,21 @@ describe('unstyled', () => {
     expect(pages[0].querySelector('.textLayer')).toBeInTheDocument();
   });
 
+  it('passes unstyled to the Mantine components inside the viewer', async () => {
+    const mantineClass = /\bm_[0-9a-f]+\b/;
+    const buttons = () => Array.from(document.querySelectorAll('.mantine-ActionIcon-root'));
+    mockPdf();
+    const { rerender } = render(<TestDocViewer src="/files/report.pdf" />);
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    expect(buttons().length).toBeGreaterThan(0);
+    buttons().forEach((button) => expect(button.className).toMatch(mantineClass));
+
+    rerender(<TestDocViewer src="/files/report.pdf" unstyled />);
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    expect(buttons().length).toBeGreaterThan(0);
+    buttons().forEach((button) => expect(button.className).not.toMatch(mantineClass));
+  });
+
   it('also keeps the page overlay layer', async () => {
     mockPdf();
     render(

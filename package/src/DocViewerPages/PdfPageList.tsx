@@ -12,7 +12,7 @@ interface PdfPageListProps extends PageProps {
   /** A presentation shows only the current page */
   presenting: boolean;
   currentPage: number;
-  /** The window scrolls (height="auto"): pages watch the window instead of the scroll area */
+  /** The window scrolls (autosize): pages watch the window instead of the scroll area */
   viewport: boolean;
   /** Boxes a passage highlight marks, on its page */
   highlight: { page: number; rects: DocViewerPageRect[] } | null | undefined;

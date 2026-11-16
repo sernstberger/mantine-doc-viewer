@@ -183,7 +183,7 @@ describe('@mantine/doc-viewer/DocViewerText', () => {
 
     await screen.findByText(/too large to preview/);
     expect(onDocumentError).toHaveBeenCalledWith(
-      new Error('File is larger than maxTextSize: 5000 bytes')
+      new Error('File is larger than maxSize: 5000 bytes')
     );
   });
 

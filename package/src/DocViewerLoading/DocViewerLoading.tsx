@@ -28,11 +28,11 @@ export type DocViewerLoadingFactory = Factory<{
 /** Spinner with text for screen readers, a label on the spinner itself is not read out */
 export const DocViewerLoading = factory<DocViewerLoadingFactory>((_props) => {
   const props = useProps('DocViewerLoading', null, _props);
-  const { labels } = useDocViewerContext();
+  const { labels, unstyled } = useDocViewerContext();
 
   return (
     <DocViewerMessage {...props}>
-      <Loader size="sm" />
+      <Loader unstyled={unstyled} size="sm" />
       <VisuallyHidden>{labels.loadingLabel}</VisuallyHidden>
     </DocViewerMessage>
   );

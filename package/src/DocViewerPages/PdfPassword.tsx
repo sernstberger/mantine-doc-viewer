@@ -12,7 +12,7 @@ interface PdfPasswordProps {
 
 /** Asks for the password of a protected PDF */
 export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProps) {
-  const { getStyles, labels, size } = useDocViewerContext();
+  const { getStyles, labels, size, unstyled } = useDocViewerContext();
   const [password, setPassword] = useState('');
 
   return (
@@ -28,6 +28,7 @@ export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProp
         {labels.passwordRequiredLabel}
       </Text>
       <PasswordInput
+        unstyled={unstyled}
         label={labels.passwordLabel}
         autoComplete="off"
         data-autofocus
@@ -40,6 +41,7 @@ export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProp
         {...getStyles('passwordInput')}
       />
       <Button
+        unstyled={unstyled}
         type="submit"
         size={size.input}
         disabled={!password}

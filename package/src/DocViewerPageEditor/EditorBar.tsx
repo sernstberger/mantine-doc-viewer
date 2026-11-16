@@ -28,13 +28,14 @@ interface EditorButtonProps extends Pick<ButtonProps, 'variant' | 'loading'> {
 
 /** An action of the editor bar: a labelled button, or an icon with the label as tooltip with the `compact` option */
 function EditorButton({ label, icon, variant, loading, ...others }: EditorButtonProps) {
-  const { size } = useDocViewerContext();
+  const { size, unstyled } = useDocViewerContext();
   const getStyles = usePageEditorStyles();
   const { compact } = usePageEditor()!;
 
   if (!compact) {
     return (
       <Button
+        unstyled={unstyled}
         {...getStyles('editorButton')}
         size={size.input}
         variant={variant}
@@ -49,6 +50,7 @@ function EditorButton({ label, icon, variant, loading, ...others }: EditorButton
   return (
     <DocViewerTooltip label={label}>
       <ActionIcon
+        unstyled={unstyled}
         {...getStyles('editorButton')}
         size={size.input}
         variant={variant}

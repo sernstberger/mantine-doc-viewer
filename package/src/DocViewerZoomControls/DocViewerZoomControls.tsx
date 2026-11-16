@@ -16,7 +16,11 @@ import { FitScreenIcon, FitWidthIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 import { ZoomControls } from './ZoomControls';
 
-export type DocViewerZoomControlsStylesNames = 'zoomLevel' | 'dropdown' | 'control';
+export type DocViewerZoomControlsStylesNames =
+  | 'zoomControls'
+  | 'zoomLevel'
+  | 'dropdown'
+  | 'control';
 
 export interface DocViewerZoomControlsProps
   extends BoxProps, CompoundStylesApiProps<DocViewerZoomControlsFactory>, ElementProps<'div'> {

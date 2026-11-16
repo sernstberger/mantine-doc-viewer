@@ -20,7 +20,8 @@ export type DocViewerDocumentInfoStylesNames =
   | 'documentInfo'
   | 'documentHeading'
   | 'documentLayer'
-  | 'properties';
+  | 'properties'
+  | 'outlineItem';
 
 export interface DocViewerDocumentInfoProps
   extends BoxProps, CompoundStylesApiProps<DocViewerDocumentInfoFactory>, ElementProps<'div'> {}

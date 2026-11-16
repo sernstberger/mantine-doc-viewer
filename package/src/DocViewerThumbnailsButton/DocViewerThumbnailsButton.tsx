@@ -50,7 +50,7 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
     defaultProps,
     _props
   );
-  const { store, getStyles, labels, size } = useDocViewerContext();
+  const { store, getStyles, labels, size, unstyled } = useDocViewerContext();
   const ready = useReadyDocument(PDF_ONLY);
   const available = useDocViewerState(store, (state) => state.thumbnailsAvailable);
   const opened = useDocViewerState(store, (state) => state.thumbnailsOpened);
@@ -77,7 +77,14 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
         </ActionIcon>
       </DocViewerTooltip>
       {opened && withPositionMenu && (
-        <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+        <Popover
+          unstyled={unstyled}
+          position="bottom-end"
+          shadow="md"
+          withinPortal={false}
+          trapFocus
+          returnFocus
+        >
           <Popover.Target>
             <DocViewerTooltip label={labels.thumbnailsPositionLabel}>
               <ActionIcon
@@ -90,6 +97,7 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
           </Popover.Target>
           <Popover.Dropdown p={4} {...getStyles('dropdown', stylesApiProps)}>
             <SegmentedControl
+              unstyled={unstyled}
               size={size.input}
               value={position}
               onChange={(value) =>

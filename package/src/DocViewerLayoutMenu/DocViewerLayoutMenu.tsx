@@ -50,7 +50,7 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
     null,
     _props
   );
-  const { store, getStyles, labels, size } = useDocViewerContext();
+  const { store, getStyles, labels, size, unstyled } = useDocViewerContext();
   const ready = useReadyDocument(PDF_ONLY);
   const layout = useDocViewerState(store, (state) => state.pageLayout);
   const show = useShowControl();
@@ -62,7 +62,14 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
   }
 
   return (
-    <Popover position="bottom-end" shadow="md" withinPortal={false} trapFocus returnFocus>
+    <Popover
+      unstyled={unstyled}
+      position="bottom-end"
+      shadow="md"
+      withinPortal={false}
+      trapFocus
+      returnFocus
+    >
       <Popover.Target>
         <DocViewerTooltip label={labels.pageLayoutLabel}>
           <ActionIcon
@@ -84,7 +91,13 @@ export const DocViewerLayoutMenu = factory<DocViewerLayoutMenuFactory>((_props) 
           <Stack gap={6} mt={6}>
             {LAYOUTS.filter(([value]) => !layouts || layouts.includes(value)).map(
               ([value, label]) => (
-                <Radio key={value} value={value} label={labels[label]} size={size.input} />
+                <Radio
+                  key={value}
+                  unstyled={unstyled}
+                  value={value}
+                  label={labels[label]}
+                  size={size.input}
+                />
               )
             )}
           </Stack>

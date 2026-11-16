@@ -1,5 +1,6 @@
 import { useIsomorphicEffect } from '@mantine/hooks';
 import { useRef } from 'react';
+import { isRightToLeft } from '../../utils/scroll-left';
 
 /** The page under the middle of the view, and where in it the middle falls (0 is its top or left edge, 1 the other) */
 export interface ZoomAnchor {
@@ -22,14 +23,17 @@ function distanceTo(node: HTMLElement, x: number, y: number) {
   return Math.hypot(dx, dy);
 }
 
+/** Whether the view shows the side a page starts on: its left edge, or its right edge in right-to-left layouts */
+function showsStartSide(scrollRoot: HTMLElement, node: HTMLElement) {
+  return isRightToLeft(scrollRoot)
+    ? scrollRoot.scrollLeft + scrollRoot.clientWidth >= node.offsetLeft + node.offsetWidth
+    : scrollRoot.scrollLeft <= node.offsetLeft;
+}
+
 /** Finds the page under the middle of the view, or the nearest one when the middle is in a gap */
 export function getZoomAnchor(scrollRoot: HTMLElement): ZoomAnchor | null {
   const first = getPages(scrollRoot).find((node) => node.offsetHeight > 0);
-  if (
-    first &&
-    scrollRoot.scrollTop <= first.offsetTop &&
-    scrollRoot.scrollLeft <= first.offsetLeft
-  ) {
+  if (first && scrollRoot.scrollTop <= first.offsetTop && showsStartSide(scrollRoot, first)) {
     return { page: first.dataset.pageNumber!, x: 0, y: 0, atStart: true };
   }
   const x = scrollRoot.scrollLeft + scrollRoot.clientWidth / 2;
@@ -59,7 +63,7 @@ const noScroll = () => false;
  * Keeps the middle of the view on the same spot of the same page when the pages are scaled:
  * without it the scroll offset stays put while every page grows or shrinks, so zooming jumps to
  * another page. Anchoring to a page rather than scaling the offset keeps working when the gaps
- * between pages (`pageGap`, the padding of `pages`, an app's own styles) do not scale
+ * between pages (`gap` of `DocViewer.Pages`, the padding of `pages`, an app's own styles) do not scale
  */
 export function useZoomAnchor(
   scrollRoot: HTMLElement | null,
@@ -93,9 +97,7 @@ export function useZoomAnchor(
       0,
       page.offsetTop + target.y * page.offsetHeight - scrollRoot.clientHeight / 2
     );
-    scrollRoot.scrollLeft = Math.max(
-      0,
-      page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2
-    );
+    scrollRoot.scrollLeft =
+      page.offsetLeft + target.x * page.offsetWidth - scrollRoot.clientWidth / 2;
   }, [scrollRoot, scale, enabled, resumeScroll]);
 }

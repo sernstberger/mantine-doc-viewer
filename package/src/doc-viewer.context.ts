@@ -27,6 +27,7 @@ export interface DocViewerContextValue {
   pageLayout: DocViewerPageLayout | undefined;
   size: DocViewerSizeConfig;
   color: MantineColor | undefined;
+  unstyled: boolean | undefined;
   controller: React.RefObject<ControllerImplementation>;
   events: Required<DocViewerEvents>;
   page: number | undefined;
@@ -48,7 +49,10 @@ export { useDocViewerContext };
  * (the controlled page, zoom, fullscreen, the toolbar's tap toggle), so a memoised page only
  * renders again when its own props change
  */
-export type DocViewerPageContextValue = Pick<DocViewerContextValue, 'getStyles' | 'labels'>;
+export type DocViewerPageContextValue = Pick<
+  DocViewerContextValue,
+  'getStyles' | 'labels' | 'unstyled'
+>;
 
 const [DocViewerPageProvider, useDocViewerPageContext] =
   createSafeContext<DocViewerPageContextValue>(
@@ -64,8 +68,8 @@ export function DocViewerProvider({
   value: DocViewerContextValue;
   children: React.ReactNode;
 }) {
-  const { getStyles, labels } = value;
-  const pageValue = useShallowStable({ getStyles, labels });
+  const { getStyles, labels, unstyled } = value;
+  const pageValue = useShallowStable({ getStyles, labels, unstyled });
   return createElement(
     DocViewerFullProvider,
     { value },

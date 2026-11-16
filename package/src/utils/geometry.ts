@@ -77,7 +77,7 @@ export function getPageSize(firstPageSize: PdfPageSize | undefined, rotation: Pd
 }
 
 /**
- * With height="auto" the window scrolls, except in full screen or a presentation, which have a
+ * With autosize the window scrolls, except in full screen or a presentation, which have a
  * fixed height and scroll inside the viewer
  */
 export function scrollsWindow(

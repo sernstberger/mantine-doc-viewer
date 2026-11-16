@@ -38,7 +38,7 @@ export const DocViewerViewModeControl = factory<DocViewerViewModeControlFactory>
     null,
     _props
   );
-  const { store, getStyles, labels, size } = useDocViewerContext();
+  const { store, getStyles, labels, size, unstyled } = useDocViewerContext();
   const ready = useReadyDocument(MARKDOWN_AND_CODE);
   const available = useDocViewerState(store, (state) => state.viewModeAvailable);
   const markdown = useDocViewerState(store, (state) => state.type === 'markdown');
@@ -51,6 +51,7 @@ export const DocViewerViewModeControl = factory<DocViewerViewModeControlFactory>
 
   return (
     <SegmentedControl
+      unstyled={unstyled}
       size={size.input}
       value={mode}
       onChange={(value) =>

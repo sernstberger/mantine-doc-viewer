@@ -70,7 +70,7 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
     null,
     _props
   );
-  const { getStyles, size } = useDocViewerContext();
+  const { getStyles, size, unstyled } = useDocViewerContext();
   const show = useShowControl();
   const controlProps = useControlProps();
   const context = useMarkupContext();
@@ -111,7 +111,11 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
           </DocViewerTooltip>
         );
       })}
-      <Divider orientation="vertical" {...getStyles('markupDivider', stylesApiProps)} />
+      <Divider
+        unstyled={unstyled}
+        orientation="vertical"
+        {...getStyles('markupDivider', stylesApiProps)}
+      />
       <DocViewerTooltip label={labels.undoMarkLabel}>
         <ActionIcon
           {...control()}
@@ -122,6 +126,7 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
         </ActionIcon>
       </DocViewerTooltip>
       <Button
+        unstyled={unstyled}
         size={size.input}
         variant="default"
         loading={markup.saving}
@@ -132,6 +137,7 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
         {labels.saveMarkupLabel}
       </Button>
       <CloseButton
+        unstyled={unstyled}
         {...getStyles('control', stylesApiProps)}
         size={size.control}
         aria-label={labels.closeMarkupLabel}

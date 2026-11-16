@@ -5,7 +5,7 @@ import { useScrollToPage } from './use-scroll-to-page';
 
 /**
  * Tracks which page takes up most of the scroll container, and scrolls to pages. With `viewport`
- * the viewer has no scroll area of its own (`height="auto"`): the browser window scrolls, so the
+ * the viewer has no scroll area of its own (`autosize`): the browser window scrolls, so the
  * window is the view and pages are scrolled into it. `onView` is called with the pages in view and
  * the view whenever either changes, also during a scroll to a page
  */

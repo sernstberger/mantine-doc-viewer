@@ -18,13 +18,17 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
     imageFrame: 'Box with the size of the zoomed and rotated image',
     imageOverlay: 'Loading and error message for images',
     controls: 'Wrapper around toolbar buttons',
-    control: 'Toolbar button and search close button, an ActionIcon',
+    control:
+      'Toolbar button, search close button, markup bar button and presentation exit button, an ActionIcon or a CloseButton',
     overlayControls:
       'Zoom and full screen buttons over the document, from `withOverlayControls` or `DocViewer.OverlayControls`',
     overlayControl: 'A button in the overlay controls',
     empty:
       'Message displayed while loading, on errors and when the document type cannot be previewed',
-    pageIndicator: 'Current page and page count in the PDF toolbar',
+    pageControls: 'Wrapper around the page buttons and the page indicator in the PDF toolbar',
+    pageIndicator:
+      'Current page and page count in the PDF toolbar and in the presentation controls',
+    zoomControls: 'Wrapper around the zoom buttons and the zoom level',
     zoomLevel: 'Zoom percentage button in the PDF toolbar, resets zoom to 100%',
     pages: 'Wrapper around PDF pages',
     page: 'PDF page, sized before the page is drawn',
@@ -86,6 +90,13 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
       '--doc-viewer-font-size': 'Toolbar text size, set by `size`',
       '--doc-viewer-toolbar-height': 'Smallest toolbar height, set by `size`',
       '--doc-viewer-page-background': 'Background of PDF pages and thumbnails, white by default',
+      '--doc-viewer-page-gap': 'Space between PDF pages, set by `gap` of `DocViewer.Pages`',
+      '--doc-viewer-match-color':
+        'Color of search matches, set by `matchColor` of `DocViewer.Pages`',
+      '--doc-viewer-active-match-color':
+        'Color of the current search match and of highlights, set by `activeMatchColor` of `DocViewer.Pages`',
+      '--doc-viewer-thumbnails-width':
+        'Width of the thumbnail rail, set by `width` of `DocViewer.Thumbnails`',
     },
   },
 
@@ -147,7 +158,7 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
       condition: 'A dragged page will land before or after this one',
     },
     { modifier: 'data-fullscreen', selector: 'root', condition: 'Viewer is full screen' },
-    { modifier: 'data-auto-height', selector: 'root', condition: '`height` is `auto`' },
+    { modifier: 'data-auto-height', selector: 'root', condition: '`autosize` is set' },
     {
       modifier: 'data-hidden',
       selector: 'toolbar',

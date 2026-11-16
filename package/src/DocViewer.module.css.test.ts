@@ -75,6 +75,27 @@ describe('DocViewer.module.css', () => {
     );
   });
 
+  it('marks pressed buttons in forced colors by their data attribute, wherever they are', () => {
+    const forced = css.slice(css.indexOf('@media (forced-colors: active) {'));
+    expect(forced).toContain(
+      ":is(.control, .overlayControl):is([data-pressed], [aria-pressed='true'])"
+    );
+    expect(css).not.toContain('.toolbar [aria-pressed');
+  });
+
+  it('screens highlights over dark pages, where multiplying would make them disappear', () => {
+    expect(ruleOf('.highlight')).toContain('mix-blend-mode: var(--_highlight-blend)');
+    expect(ruleOf('.root')).toContain('--_highlight-blend: multiply');
+    expect(ruleOf(".root[data-page-color-scheme='dark']")).toContain('--_highlight-blend: screen');
+    expect(ruleOf(".root[data-page-color-scheme='auto']")).toMatch(
+      /@mixin dark \{[^}]*--_highlight-blend: screen/
+    );
+  });
+
+  it('drops the border and corners in full screen', () => {
+    expect(ruleOf('.root[data-fullscreen]')).toMatch(/border: 0;[\s\S]*border-radius: 0;/);
+  });
+
   it('gives the viewer its own stacking context and text colour', () => {
     const root = ruleOf('.root');
     expect(root).toContain('isolation: isolate');

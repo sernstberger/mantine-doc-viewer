@@ -5,7 +5,7 @@ import {
   ElementProps,
   factory,
   Factory,
-  Group,
+  Box,
   Text,
   useProps,
   VisuallyHidden,
@@ -21,7 +21,7 @@ import { formatNumber } from '../utils/format';
 import { ChevronDownIcon, ChevronUpIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
 
-export type DocViewerPageControlsStylesNames = 'pageIndicator' | 'control';
+export type DocViewerPageControlsStylesNames = 'pageControls' | 'pageIndicator' | 'control';
 
 export interface DocViewerPageControlsProps
   extends BoxProps, CompoundStylesApiProps<DocViewerPageControlsFactory>, ElementProps<'div'> {}
@@ -40,7 +40,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
     null,
     _props
   );
-  const { store, getStyles, labels, locale } = useDocViewerContext();
+  const { store, getStyles, labels, locale, unstyled } = useDocViewerContext();
   const ready = useReadyDocument(PDF_ONLY);
   const page = useDocViewerState(store, (state) => state.page);
   const numPages = useDocViewerState(store, (state) => state.numPages);
@@ -54,7 +54,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
   }
 
   return (
-    <Group gap={2} wrap="nowrap" className={className} style={style} {...others}>
+    <Box {...getStyles('pageControls', { className, style, classNames, styles })} {...others}>
       <DocViewerTooltip label={labels.previousPageLabel}>
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
@@ -65,6 +65,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
         </ActionIcon>
       </DocViewerTooltip>
       <Text
+        unstyled={unstyled}
         {...getStyles('pageIndicator', stylesApiProps)}
         title={labels.pageOfLabel(page, numPages)}
       >
@@ -82,7 +83,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
           <ChevronDownIcon />
         </ActionIcon>
       </DocViewerTooltip>
-    </Group>
+    </Box>
   );
 });
 

@@ -20,7 +20,7 @@ export function useTextView(
     } else if (state.status === 'error') {
       onError(state.error);
     } else if (state.status === 'too-large') {
-      onError(new Error(`File is larger than maxTextSize: ${state.size} bytes`));
+      onError(new Error(`File is larger than maxSize: ${state.size} bytes`));
     }
   }, [state, type, onLoad, onError, mimeType]);
 

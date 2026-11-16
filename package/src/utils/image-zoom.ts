@@ -1,4 +1,5 @@
 import type { ImageRotation } from './image-fit';
+import { getScrollLeft, setScrollLeft } from './scroll-left';
 
 export type ImageZoom = number | 'fit';
 
@@ -18,14 +19,14 @@ export function getAnchor(stage: HTMLElement, clientX?: number, clientY?: number
   return {
     x,
     y,
-    ratioX: stage.scrollWidth > 0 ? (stage.scrollLeft + x) / stage.scrollWidth : 0.5,
+    ratioX: stage.scrollWidth > 0 ? (getScrollLeft(stage) + x) / stage.scrollWidth : 0.5,
     ratioY: stage.scrollHeight > 0 ? (stage.scrollTop + y) / stage.scrollHeight : 0.5,
   };
 }
 
 /** Scrolls so that the anchor point is back under the pointer after the size changed */
 export function applyAnchor(stage: HTMLElement, anchor: ZoomAnchor) {
-  stage.scrollLeft = anchor.ratioX * stage.scrollWidth - anchor.x;
+  setScrollLeft(stage, anchor.ratioX * stage.scrollWidth - anchor.x);
   stage.scrollTop = anchor.ratioY * stage.scrollHeight - anchor.y;
 }
 
