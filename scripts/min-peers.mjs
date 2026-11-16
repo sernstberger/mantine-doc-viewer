@@ -1,13 +1,15 @@
 // Shared by every Mantine lib on the harness: keep this file identical across repos.
 // Tests the lowest versions a package promises in `peerDependencies`.
 //
-//   node scripts/min-peers.mjs            prints the floor of each peer range
-//   node scripts/min-peers.mjs --apply    pins the repo root's dependencies to those floors,
+//   node scripts/min-peers.mjs            prints the floor of each peer range: the lowest
+//                                         version published to npm that the range allows
+//   node scripts/min-peers.mjs --apply    pins every manifest's dependencies to those floors
+//                                         (root, workspaces, and the package's devDependencies),
 //                                         installs, and checks the installed versions
 //
-// `--apply` changes the package.json files (root and workspaces) and the lockfile: run it in CI or a scratch copy, then build and
-// test. Options: `--package package/package.json` (where the peers are declared) and
-// `--root package.json` (where the dependencies are pinned). No dependencies: Node only.
+// `--apply` changes the package.json files and the lockfile: run it in CI or a scratch copy, then
+// docgen, build and test. Options: `--package package/package.json` (where the peers are declared)
+// and `--root package.json` (where the dependencies are pinned). Node only, plus `npm view`.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -67,12 +69,29 @@ function floorOf(range) {
   return floors.sort(compare)[0];
 }
 
+/**
+ * The lowest version on npm that `range` allows: `^6.5.0` may name a version never published
+ * (pdfjs-dist went from 6.4.x to 6.5.438)
+ */
+function lowestPublished(name, range) {
+  const output = execFileSync('npm', ['view', `${name}@${range}`, 'version', '--json'], {
+    encoding: 'utf8',
+  }).trim();
+  const versions = output ? [JSON.parse(output)].flat() : [];
+
+  if (versions.length === 0) {
+    throw new Error(`No published version of ${name} satisfies "${range}"`);
+  }
+
+  return versions.sort(compare)[0];
+}
+
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const peers = readJson(packageFile).peerDependencies ?? {};
 const floors = Object.fromEntries(
   Object.entries(peers)
-    .map(([name, range]) => [name, floorOf(range)])
-    .filter(([, floor]) => floor)
+    .filter(([, range]) => floorOf(range))
+    .map(([name, range]) => [name, lowestPublished(name, range)])
 );
 
 if (Object.keys(floors).length === 0) {
@@ -93,8 +112,12 @@ const lockstep = floors['@mantine/core'];
 const root = readJson(rootFile);
 const rootDir = path.dirname(path.resolve(rootFile));
 const sections = ['dependencies', 'devDependencies', 'optionalDependencies'];
+const shipped = new Set(Object.keys(readJson(packageFile).dependencies ?? {}));
 
-/** package.json of the root and of each workspace (`docs`, `apps/*`), but not the package itself */
+/**
+ * package.json of the root, of each workspace (`docs`, `apps/*`) and of the package itself: a
+ * package devDependency left above the floor installs a second React (hooks break)
+ */
 function manifests() {
   const workspaces = Array.isArray(root.workspaces)
     ? root.workspaces
@@ -110,30 +133,35 @@ function manifests() {
       : [];
   });
 
-  return [rootFile, ...dirs.map((dir) => path.join(dir, 'package.json'))].filter(
-    (file) => fs.existsSync(file) && path.resolve(file) !== path.resolve(packageFile)
+  const files = [rootFile, packageFile, ...dirs.map((dir) => path.join(dir, 'package.json'))];
+  return [...new Set(files.map((file) => path.resolve(file)))].filter((file) =>
+    fs.existsSync(file)
   );
 }
 
 for (const file of manifests()) {
-  const manifest = path.resolve(file) === path.resolve(rootFile) ? root : readJson(file);
+  const isRoot = file === path.resolve(rootFile);
+  const manifest = isRoot ? root : readJson(file);
+  // The package's own peerDependencies and dependencies are what it publishes: only its dev tooling moves
+  const own = file === path.resolve(packageFile) ? ['devDependencies'] : sections;
 
   for (const [name, floor] of Object.entries(floors)) {
-    const section = sections.find((key) => manifest[key]?.[name]);
+    const section = own.find((key) => manifest[key]?.[name]);
 
     if (section) {
       manifest[section][name] = floor;
-    } else if (manifest === root) {
+    } else if (isRoot) {
       manifest.devDependencies = { ...manifest.devDependencies, [name]: floor };
     }
   }
 
-  for (const section of sections) {
+  for (const section of own) {
     for (const name of Object.keys(manifest[section] ?? {})) {
       if (
         lockstep &&
         name.startsWith('@mantine/') &&
         !(name in floors) &&
+        !shipped.has(name) &&
         /^\d/.test(manifest[section][name])
       ) {
         manifest[section][name] = lockstep;

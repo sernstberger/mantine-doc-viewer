@@ -53,6 +53,8 @@ jobs:
         run: node scripts/min-peers.mjs --apply
       - name: Build package
         run: npm run build
+      - name: Generate docgen
+        run: npm run docgen --if-present
       - name: Run tests
         run: npm test
 

@@ -76,6 +76,12 @@ async function release() {
     error: 'The package exports check failed, nothing was published',
   });
 
+  await run($`yarn run docgen`, {
+    info: 'Generating the docs data the docs typecheck reads',
+    success: 'The docs data is ready',
+    error: 'The docs data failed, nothing was published',
+  });
+
   await run($`yarn test`, {
     info: 'Running the tests (syncpack, format, types, lint, coverage)',
     success: 'The tests passed',
