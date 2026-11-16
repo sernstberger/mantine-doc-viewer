@@ -1,4 +1,7 @@
 import { render, screen } from '@mantine-tests/core';
+import { waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockFetch } from '../../../test-utils/mock-fetch';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
@@ -9,6 +12,26 @@ const behaviorCss = fs.readFileSync(
   path.join(__dirname, '../DocViewer.behavior.module.css'),
   'utf8'
 );
+
+const MANTINE_CLASS = /\bm_[0-9a-f]+\b/;
+
+const BEHAVIOUR_PARTS = /mantine-(VisuallyHidden|FloatingIndicator)-root/;
+
+/** Elements inside the viewer that still carry a class from a Mantine stylesheet, behaviour-only parts aside */
+function styledElements() {
+  return Array.from(document.querySelectorAll('[data-doc-type] *'))
+    .filter((element) => {
+      const className = element.getAttribute('class') ?? '';
+      return (
+        MANTINE_CLASS.test(className) &&
+        !BEHAVIOUR_PARTS.test(className) &&
+        !element.parentElement?.closest(
+          '[class*="mantine-CodeHighlight-"], [class*="mantine-JsonViewer-"]'
+        )
+      );
+    })
+    .map((element) => element.outerHTML.slice(0, 300));
+}
 
 describe('unstyled', () => {
   beforeEach(() => getDocument.mockReset());
@@ -43,6 +66,54 @@ describe('unstyled', () => {
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     expect(buttons().length).toBeGreaterThan(0);
     buttons().forEach((button) => expect(button.className).not.toMatch(mantineClass));
+  });
+
+  it('passes unstyled to the zoom menu, the tooltips and the toolbar of a PDF', async () => {
+    const hashed = /\bm_[0-9a-f]+\b/;
+    mockPdf();
+    const { rerender } = render(<TestDocViewer src="/files/report.pdf" />);
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    await userEvent.click(screen.getByRole('button', { name: /^Zoom \d+%$/ }));
+    expect(screen.getByRole('menuitemradio', { name: '100%' }).className).toMatch(hashed);
+    await userEvent.keyboard('{Escape}');
+
+    rerender(
+      <>
+        <TestDocViewer src="/files/report.pdf" unstyled />
+      </>
+    );
+    await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+    expect(screen.getByRole('button', { name: /^Zoom \d+%$/ }).className).not.toMatch(hashed);
+    await userEvent.click(screen.getByRole('button', { name: /^Zoom \d+%$/ }));
+    expect(screen.getByRole('menuitemradio', { name: '100%' }).className).not.toMatch(hashed);
+    await userEvent.hover(screen.getByRole('button', { name: 'Zoom in' }));
+    expect((await screen.findByRole('tooltip')).className).not.toMatch(hashed);
+  });
+
+  it('passes unstyled to the code and JSON views', async () => {
+    mockFetch('const answer = 42;');
+    const { unmount } = render(<TestDocViewer src="/src/answer.ts" unstyled />);
+    expect(await screen.findByText(/answer/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Loading document')).not.toBeInTheDocument());
+    expect(styledElements()).toEqual([]);
+    unmount();
+
+    mockFetch('{"alpha": 1}');
+    render(<TestDocViewer src="/src/data.json" unstyled />);
+    expect(await screen.findByText(/alpha/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Loading document')).not.toBeInTheDocument());
+    expect(styledElements()).toEqual([]);
+  });
+
+  it('passes unstyled to the markdown preview and its source', async () => {
+    mockFetch('# Title');
+    render(<TestDocViewer src="/docs/readme.md" unstyled />);
+    expect(await screen.findByTestId('markdown')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Loading document')).not.toBeInTheDocument());
+    expect(styledElements()).toEqual([]);
+    await userEvent.click(screen.getByRole('radio', { name: /source/i }));
+    expect(await screen.findByText(/# Title/)).toBeInTheDocument();
+    expect(styledElements()).toEqual([]);
   });
 
   it('also keeps the page overlay layer', async () => {

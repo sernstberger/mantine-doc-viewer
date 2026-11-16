@@ -116,6 +116,18 @@ Removed props (the old flat `DocViewer`)
   `tapToggleToolbar` is `toggleOnTap`, `thumbnailWidth` is `Thumbnails width`, `renderToolbarTitle`
   is the `title` node
 
+Styles API
+
+- `unstyled` reaches every Mantine component inside the viewer: the code, JSON and markdown views
+  (including fenced code), the tooltips, the zoom level and the page editor bar
+- The zoom menu is a `Menu.RadioGroup`: its items have the role `menuitemradio` and the current zoom
+  is checked. The `data-active` attribute on the fit item is gone
+- `data-soft-disabled` marks unavailable toolbar buttons (`control`, `markupSave`); the look of it no
+  longer applies outside the viewer. `data-disabled` marks the search bar, presentation and page
+  editor buttons
+- `--doc-viewer-thumbnails-width` is not a `root` variable: the width of the rail is the `width` prop
+  of `DocViewer.Thumbnails`, which also sets the resolution of the previews
+
 Requirements: React 19.2 or newer, Mantine 9.7 or newer (`@mantine/core`, `@mantine/hooks`,
 `@mantine/code-highlight`), and the optional peers `pdfjs-dist` 6.5 or newer (PDFs),
 `@cantoo/pdf-lib` 2.11 or newer (the `/editor` subpath), `react-markdown` 10.1 or

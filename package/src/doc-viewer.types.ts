@@ -135,8 +135,7 @@ export type DocViewerCssVariables = {
     | '--doc-viewer-page-background'
     | '--doc-viewer-page-gap'
     | '--doc-viewer-match-color'
-    | '--doc-viewer-active-match-color'
-    | '--doc-viewer-thumbnails-width';
+    | '--doc-viewer-active-match-color';
 };
 
 /**

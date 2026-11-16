@@ -83,3 +83,24 @@ test('presentation keys still work after a click on the page buttons', async ({ 
   await page.keyboard.press('Escape');
   await expect(controls).toBeHidden();
 });
+
+test('the unavailable presentation button is dimmed on a transparent background', async ({
+  page,
+}) => {
+  await openPdf(page, USAGE);
+  await page.getByRole('button', { name: 'Presentation' }).first().click();
+  const controls = page.locator('.mantine-DocViewer-presentationControls');
+  const previous = controls.getByRole('button', { name: 'Previous page' });
+  await expect(previous).toHaveAttribute('data-disabled', 'true');
+  const style = await previous.evaluate((node) => {
+    const computed = getComputedStyle(node);
+    return { background: computed.backgroundColor, opacity: computed.opacity };
+  });
+  expect(style).toEqual({ background: 'rgba(0, 0, 0, 0)', opacity: '0.4' });
+});
+
+test('the zoom menu checks the current zoom', async ({ page }) => {
+  await openPdf(page, USAGE);
+  await page.getByRole('button', { name: /^Zoom \d+%$/ }).click();
+  await expect(page.getByRole('menuitemradio', { checked: true })).toHaveCount(1);
+});

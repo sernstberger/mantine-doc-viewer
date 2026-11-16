@@ -11,8 +11,15 @@ const TOOLTIP_EVENTS = { hover: true, focus: true, touch: false };
  */
 export function DocViewerTooltip(props: TooltipProps) {
   const toolbar = useDocViewerToolbarContext();
+  const { unstyled } = useDocViewerContext();
   return (
-    <Tooltip events={TOOLTIP_EVENTS} withinPortal={false} {...toolbar?.tooltipProps} {...props} />
+    <Tooltip
+      unstyled={unstyled}
+      events={TOOLTIP_EVENTS}
+      withinPortal={false}
+      {...toolbar?.tooltipProps}
+      {...props}
+    />
   );
 }
 

@@ -159,7 +159,7 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom 125%' }));
-    await userEvent.click(screen.getByRole('menuitem', { name: '100%' }));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: '100%' }));
     expect(image).toHaveStyle({ width: '800px' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));

@@ -45,6 +45,30 @@ describe('DocViewer.module.css', () => {
     expect(current).toContain('pointer-events: auto');
   });
 
+  it('gives the thumbnail delete button a 44px target on touch screens', () => {
+    const coarse = ruleOf('.thumbnailDelete').match(
+      /@media \(pointer: coarse\) \{[\s\S]*\n {2}\}/
+    )![0];
+    expect(coarse).toContain('min-width: rem(44px)');
+    expect(coarse).toContain('min-height: rem(44px)');
+  });
+
+  it('scopes the soft-disabled look to the toolbar buttons and takes the hover and press cues off', () => {
+    expect(css).not.toMatch(/^:where\(\[data-soft-disabled\]\)/m);
+    const rule = ruleOf('.control[data-soft-disabled],\n.markupSave[data-soft-disabled]');
+    expect(rule).toContain('opacity: 0.4');
+    expect(rule).toContain('cursor: not-allowed');
+    expect(rule).toContain('&:hover,\n  &:active');
+    expect(rule).toContain('transform: none');
+  });
+
+  it('dims the unavailable presentation buttons without the disabled background', () => {
+    const rule = ruleOf('.presentationControls .control');
+    expect(rule).toMatch(
+      /&\[data-disabled\] \{[^}]*background-color: transparent;[^}]*opacity: 0.4;/
+    );
+  });
+
   it('scopes the drag to reorder styles to the two module classes', () => {
     expect(css).not.toMatch(/^\[data-reorder-item\]/m);
     expect(css).toContain(':is(.thumbnail, .editorPage) {');

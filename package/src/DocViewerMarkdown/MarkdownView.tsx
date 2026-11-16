@@ -52,7 +52,7 @@ function MarkdownPreview({
   classNames,
   styles,
 }: Pick<DocViewerMarkdownProps, 'classNames' | 'styles'> & { text: string }) {
-  const { getStyles, src, labels } = useDocViewerContext();
+  const { getStyles, src, labels, unstyled } = useDocViewerContext();
   const { module, failed } = useMarkdownModule();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -61,8 +61,9 @@ function MarkdownPreview({
       createMarkdownComponents({
         opensInNewTab: labels.opensInNewTabLabel,
         onHashLink: (hash) => rootRef.current && scrollToHeading(rootRef.current, hash),
+        unstyled,
       }),
-    [labels]
+    [labels, unstyled]
   );
 
   const rendered = useMemo(() => {
@@ -99,7 +100,12 @@ function MarkdownPreview({
   }
 
   return (
-    <Typography ref={rootRef} {...getStyles('markdown', { classNames, styles })} data-markdown>
+    <Typography
+      ref={rootRef}
+      unstyled={unstyled}
+      {...getStyles('markdown', { classNames, styles })}
+      data-markdown
+    >
       {rendered}
     </Typography>
   );
@@ -112,7 +118,7 @@ export function MarkdownView({
   ...others
 }: DocViewerMarkdownProps) {
   const { classNames, styles } = others;
-  const { getStyles, src, store, fileName } = useDocViewerContext();
+  const { getStyles, src, store, fileName, unstyled } = useDocViewerContext();
   const state = useDocViewerText(src, maxSize ?? DEFAULT_MAX_TEXT_SIZE);
   const mode = useDocViewerState(store, (current) => current.viewMode);
   useViewModeAvailable(store, state.status === 'ready');
@@ -146,6 +152,7 @@ export function MarkdownView({
             withLineNumbers
             withFirstLineIndentation
             radius={0}
+            unstyled={unstyled}
             {...codeHighlightProps}
             {...getStyles('code', {
               classNames,
