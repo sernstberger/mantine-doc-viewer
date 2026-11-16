@@ -28,12 +28,16 @@ only docs deploy. It runs on every push to `main`, so the release scripts do not
 2. From a clean `main`: `npm run release:minor`. The template's script:
    - pulls, refuses a dirty tree, and stops unless the `npm test` workflow succeeded in CI for `HEAD`
      (`gh run list --commit <sha> --workflow "npm test"`; no run, a run in progress or a failed run
-     all stop it, so push `main` and wait for CI first; needs the `gh` CLI, logged in)
+     all stop it, so merge to `main` and wait for CI first; needs the `gh` CLI, logged in)
    - installs, cleans and builds
    - runs `npm run check:exports`, `npm run docgen` and `npm test`, and stops before publishing if any fails
    - copies `README.md` and `LICENSE` into `package/`
-   - bumps 0.0.0 to 0.1.0 and runs `npm publish --access public`
-   - commits "Release 0.1.0", pushes, and opens a GitHub release page to fill in
+   - bumps 0.0.0 to 0.1.0 and runs `npm publish --access public` (npm asks for your one-time
+     password in the browser)
+   - commits the version on a `release/0.1.0` branch, opens a pull request with auto-merge (it
+     merges once CI is green), and opens a GitHub release page to fill in
+   - `main` takes changes only through pull requests with green `test_pull_request`, `min_peers`
+     and `e2e` checks (the "Protect main" ruleset), so nothing pushes to it directly
    - the docs site is not part of the release: `Deploy docs` publishes it from `main`
 3. Replace "fill in on release day" in the `CHANGELOG.md` heading with the date of the release (and
    commit it), then move the 0.1.0 notes into the GitHub release.

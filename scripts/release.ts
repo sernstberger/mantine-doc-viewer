@@ -44,7 +44,7 @@ async function release() {
 
   if (ciRuns.length === 0 || ciRuns.some((ciRun) => ciRun.conclusion !== 'success')) {
     signale.error(
-      `CI is not green for ${headSha} (runs: ${JSON.stringify(ciRuns)}). Push main and wait for the "npm test" workflow to succeed, nothing was published.`
+      `CI is not green for ${headSha} (runs: ${JSON.stringify(ciRuns)}). Merge to main through a pull request and wait for the "npm test" workflow to succeed, nothing was published.`
     );
 
     process.exit(1);
@@ -123,9 +123,23 @@ async function release() {
     revertVersion
   );
 
+  const releaseBranch = `release/${nextVersion}`;
+
+  await git.checkoutLocalBranch(releaseBranch);
   await git.add([packageJsonPath]);
-  await git.commit(`Release ${nextVersion}`);
-  await git.push();
+  await git.commit(`[release] Version: ${nextVersion}`);
+  await git.push(['-u', 'origin', releaseBranch]);
+
+  await run(
+    $`gh pr create --base main --head ${releaseBranch} --title ${`[release] Version: ${nextVersion}`} --body ${`Version bump after publishing ${nextVersion} to npm.`} && gh pr merge ${releaseBranch} --auto --merge --delete-branch`,
+    {
+      info: 'Opening the version pull request (main only takes changes through pull requests)',
+      success: 'Version pull request opened; it merges once CI is green',
+      error: 'Failed to open the version pull request, open it by hand from the release branch',
+    }
+  );
+
+  await git.checkout('main');
 
   open(
     githubRelease({
