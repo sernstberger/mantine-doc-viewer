@@ -81,7 +81,9 @@ const workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url
 
 The `options` of `createPdfJsAdapter` are passed to pdf.js `getDocument`, for example `password`,
 `withCredentials`, `httpHeaders`, `cMapUrl` or `disableRange` for signed storage urls that do not
-support range requests. Pass a function to set them per document:
+support range requests. Set `standardFontDataUrl` (the `standard_fonts` folder of `pdfjs-dist`) and
+`useSystemFonts: false` so PDFs that do not embed the standard 14 fonts render the same on every
+system, without pdf.js font warnings in the console. Pass a function to set them per document:
 
 ```tsx
 import { createPdfJsAdapter } from 'mantine-doc-viewer';
