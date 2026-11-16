@@ -19,7 +19,7 @@ export const SEARCH_BATCH_SIZE = 8;
  */
 const searchablePages = new WeakMap<PDFDocumentProxy, Map<number, SearchablePage>>();
 
-async function readSearchablePage(document: PDFDocumentProxy, pageNumber: number) {
+export async function readSearchablePage(document: PDFDocumentProxy, pageNumber: number) {
   let pages = searchablePages.get(document);
   if (!pages) {
     pages = new Map();
@@ -87,6 +87,32 @@ export function useSearchablePages(document: PDFDocumentProxy | null, enabled: b
   }, [document, enabled, pages]);
 
   return pages;
+}
+
+/** Extracts the text of one page, once `pageNumber` is set; null until it is read */
+export function useSearchablePage(document: PDFDocumentProxy | null, pageNumber: number | null) {
+  const [read, setRead] = useState<{
+    document: PDFDocumentProxy;
+    pageNumber: number;
+    page: SearchablePage;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!document || !pageNumber) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    readSearchablePage(document, pageNumber).then(
+      (page) => !cancelled && setRead({ document, pageNumber, page })
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [document, pageNumber]);
+
+  return read && read.document === document && read.pageNumber === pageNumber ? read.page : null;
 }
 
 export function usePdfSearch(

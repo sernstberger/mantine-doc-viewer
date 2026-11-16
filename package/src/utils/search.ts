@@ -132,11 +132,31 @@ export interface MatchSegment {
   end: number;
 }
 
+/** Index of the last item that starts at or before `offset`, by bisection over the sorted starts */
+function findItemAt(itemStarts: number[], offset: number) {
+  let low = 0;
+  let high = itemStarts.length - 1;
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    itemStarts[middle] <= offset ? (low = middle) : (high = middle - 1);
+  }
+  return low;
+}
+
 /** Splits a match into one segment per text item it touches */
 export function getMatchSegments(page: PageText, match: SearchMatch, items: { str: string }[]) {
   const segments: MatchSegment[] = [];
+  const { itemStarts } = page;
 
-  page.itemStarts.forEach((itemStart, itemIndex) => {
+  for (
+    let itemIndex = findItemAt(itemStarts, match.start);
+    itemIndex < itemStarts.length;
+    itemIndex++
+  ) {
+    const itemStart = itemStarts[itemIndex];
+    if (itemStart >= match.end) {
+      break;
+    }
     const itemEnd = itemStart + items[itemIndex].str.length;
     const start = Math.max(match.start, itemStart);
     const end = Math.min(match.end, itemEnd);
@@ -144,7 +164,7 @@ export function getMatchSegments(page: PageText, match: SearchMatch, items: { st
     if (start < end) {
       segments.push({ itemIndex, start: start - itemStart, end: end - itemStart });
     }
-  });
+  }
 
   return segments;
 }

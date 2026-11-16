@@ -106,6 +106,8 @@ export function useSearchHighlights({
   scrollToPage,
 }: SearchHighlightsInput) {
   const pendingScroll = useRef(false);
+  const active = useRef(activeMatch);
+  const painter = useRef<((pageNumber: number) => void) | null>(null);
 
   useEffect(() => {
     if (activeMatch) {
@@ -136,7 +138,7 @@ export function useSearchHighlights({
       let activeRanges: Range[] = [];
       pageMatches.forEach((match) => {
         const ranges = getMatchRanges(getMatchSegments(page.text, match, page.items), textDivs);
-        if (match === activeMatch) {
+        if (match === active.current) {
           activeRanges = ranges;
         } else {
           matchRanges.push(...ranges);
@@ -157,10 +159,20 @@ export function useSearchHighlights({
 
     Array.from(layers.keys()).forEach(paint);
     const unsubscribe = subscribe(paint);
+    painter.current = paint;
 
     return () => {
+      painter.current = null;
       unsubscribe();
       painted.forEach((remove) => remove());
     };
-  }, [pages, matches, activeMatch, layers, subscribe, scrollRoot, viewport]);
+  }, [pages, matches, layers, subscribe, scrollRoot, viewport]);
+
+  useEffect(() => {
+    const previous = active.current;
+    active.current = activeMatch;
+    new Set([previous?.pageNumber, activeMatch?.pageNumber]).forEach(
+      (pageNumber) => pageNumber && painter.current?.(pageNumber)
+    );
+  }, [activeMatch]);
 }
