@@ -4,9 +4,7 @@ import { TableError } from '../TableError';
 import { TableInlineCode } from '../TableInlineCode';
 
 export interface DocgenProp {
-  defaultValue: {
-    value: string;
-  };
+  defaultValue?: string;
   description: string;
   name: string;
   required: boolean;
@@ -58,6 +56,15 @@ export function PropsTable({ component, query, data }: PropsTableProps) {
             <TableInlineCode>{prop.type.name}</TableInlineCode>
           </Table.Td>
           <Table.Td>
+            {prop.defaultValue ? (
+              <TableInlineCode>{prop.defaultValue}</TableInlineCode>
+            ) : (
+              <Text c="dimmed" fz="sm">
+                -
+              </Text>
+            )}
+          </Table.Td>
+          <Table.Td>
             <Text fz="sm" dangerouslySetInnerHTML={{ __html: prop.description }} />
           </Table.Td>
         </Table.Tr>
@@ -87,7 +94,8 @@ export function PropsTable({ component, query, data }: PropsTableProps) {
         <Table.Thead>
           <Table.Tr>
             <Table.Th w={210}>Name</Table.Th>
-            <Table.Th w={310}>Type</Table.Th>
+            <Table.Th w={260}>Type</Table.Th>
+            <Table.Th w={160}>Default</Table.Th>
             <Table.Th>Description</Table.Th>
           </Table.Tr>
         </Table.Thead>

@@ -4,7 +4,7 @@ import * as demos from './demos';
 
 ## Installation
 
-<InstallScript packages="mantine-doc-viewer" />
+<InstallScript packages="mantine-doc-viewer @mantine/core @mantine/hooks @mantine/code-highlight" />
 
 `mantine-doc-viewer` has no dependency on a PDF or markdown library. The engines that show those
 files are optional peer dependencies that your app installs and hands to the viewer through
@@ -12,11 +12,11 @@ adapters, as `@mantine/code-highlight` does for syntax highlighters. Install wha
 show need:
 
 - `pdfjs-dist` to show PDF files
-- `@mantine/code-highlight` to show code, JSON and the source of markdown files
 - `react-markdown` and `remark-gfm` to render markdown files
-- `@cantoo/pdf-lib` for `mantine-doc-viewer/editor`, which writes page rotations into a PDF
+- `@cantoo/pdf-lib` for `mantine-doc-viewer/editor`, which writes page rotations into a PDF; the
+  markup extension does not need it
 
-<InstallScript packages="pdfjs-dist @mantine/code-highlight react-markdown remark-gfm" />
+<InstallScript packages="pdfjs-dist react-markdown remark-gfm @cantoo/pdf-lib" />
 
 After installation import package styles at the root of your application:
 
@@ -308,8 +308,13 @@ pages or the image a quarter turn. It only changes the view, the file is not cha
 Zoom and page layout are controlled like the value of a Mantine input: `zoom` with `onZoomChange`
 and `pageLayout` with `onPageLayoutChange`. Every zoom request goes to `onZoomChange` with the scale
 it gives, and shows once you pass it back. A fitted zoom reports a new scale when the view is
-resized. `page` with `onPageChange` and `fullscreen` with `onFullscreenChange` work the same way,
-and each has a `default` prop for the uncontrolled state:
+resized. `zoom` and `pageLayout` have a `default` prop for the uncontrolled state, `defaultZoom` and
+`defaultPageLayout`.
+
+`page` and `fullscreen` follow their prop rather than hold it. `page` scrolls the reader to that page
+when it changes, the reader can scroll away, and `onPageChange` reports where they are; `defaultPage`
+is the page a PDF opens on, and `onPageChange` is not called for it. `fullscreen` with
+`onFullscreenChange` enters and leaves full screen, and has no `default` prop:
 
 <Demo data={demos.zoom} />
 

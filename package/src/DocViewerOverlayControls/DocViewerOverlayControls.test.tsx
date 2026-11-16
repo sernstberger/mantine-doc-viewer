@@ -1,5 +1,5 @@
 import { render, screen, tests } from '@mantine-tests/core';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { createPartHarness, PART_TEST_OPTIONS } from '../../../test-utils/toolbar-parts';
@@ -78,18 +78,16 @@ describe('mantine-doc-viewer/DocViewerOverlayControls', () => {
     expect(onZoomChange).toHaveBeenLastCalledWith(1, { scale: 1 });
   });
 
-  it('shows full screen as pressed while the viewer is full screen', async () => {
+  it('names the full screen button after what it does while the viewer is full screen', async () => {
     const { Harness: Full } = createPartHarness(DocViewerOverlayControls, {
       ...image,
       state: { ...image.state, fullscreen: true },
     });
     render(<Full />);
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Full screen' })).toHaveAttribute(
-        'aria-pressed',
-        'true'
-      )
+    expect(await screen.findByRole('button', { name: 'Exit full screen' })).not.toHaveAttribute(
+      'aria-pressed'
     );
+    expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();
   });
 
   it('leaves out zoom until the document is shown, and full screen without browser support', () => {

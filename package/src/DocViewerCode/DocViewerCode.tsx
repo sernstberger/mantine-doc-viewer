@@ -17,7 +17,7 @@ export type DocViewerCodeStylesNames = 'body' | 'code' | 'empty';
 
 export interface DocViewerCodeProps
   extends BoxProps, CompoundStylesApiProps<DocViewerCodeFactory>, ElementProps<'div'> {
-  /** Largest file that is shown, in bytes, `2_000_000` by default */
+  /** Largest file that is shown, in bytes @default 2_000_000 */
   maxSize?: number;
 
   /** Highlighter language, detected from the file extension when not set */

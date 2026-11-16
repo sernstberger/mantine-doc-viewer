@@ -10,7 +10,7 @@ export const ACTIVE_MATCH_HIGHLIGHT = 'mantine-doc-viewer-active-match';
 type HighlightName = typeof MATCH_HIGHLIGHT | typeof ACTIVE_MATCH_HIGHLIGHT;
 
 /**
- * Colours of the two highlights. Kept out of the stylesheet because some bundlers (Next.js) cannot
+ * Colors of the two highlights. Kept out of the stylesheet because some bundlers (Next.js) cannot
  * parse ::highlight() and drop or reject it; a constructed stylesheet is never parsed by a bundler,
  * and is allowed under a strict Content Security Policy
  */
@@ -29,7 +29,7 @@ export const HIGHLIGHT_CSS = `
 
 let stylesAdded = false;
 
-/** Adds the highlight colours to the document once, the first time a highlight is shown */
+/** Adds the highlight colors to the document once, the first time a highlight is shown */
 function addHighlightStyles() {
   if (stylesAdded || typeof CSSStyleSheet === 'undefined' || !('adoptedStyleSheets' in document)) {
     return;

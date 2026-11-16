@@ -18,7 +18,7 @@ import {
   useProps,
   useStyles,
 } from '@mantine/core';
-import type { DocViewerLabels } from '../default-labels';
+import type { DocViewerLabelsInput } from '../default-labels';
 import { DocViewerProvider } from '../doc-viewer.context';
 import type { DocViewerStore } from '../doc-viewer.store';
 import type {
@@ -53,61 +53,61 @@ export interface DocViewerRootProps
   /** MIME type of the document, used to detect `type` */
   mimeType?: string;
 
-  /** File name shown in the title and used for downloads, taken from `src` by default */
+  /** File name shown in the title and used for downloads @default taken from `src` */
   fileName?: string;
 
-  /** Keeps zoom, rotation, layout and scroll when `src` changes to a document of the same type, `false` by default */
+  /** Keeps zoom, rotation, layout and scroll when `src` changes to a document of the same type @default false */
   keepView?: boolean;
 
-  /** BCP 47 tag for numbers and dates, the browser's language by default */
+  /** BCP 47 tag for numbers and dates @default the browser's language */
   locale?: string;
 
-  /** Text shown or read out by the viewer, merged with `DEFAULT_LABELS` */
-  labels?: Partial<DocViewerLabels>;
+  /** Text shown or read out by the viewer, merged with `DEFAULT_LABELS`, `propertyNameLabels` too */
+  labels?: DocViewerLabelsInput;
 
-  /** Store created with `createDocViewer` / `useDocViewer`, an internal one by default */
+  /** Store created with `createDocViewer` / `useDocViewer` @default an internal store */
   store?: DocViewerStore;
 
   /** Extensions from `mantine-doc-viewer/editor` and `mantine-doc-viewer/markup` */
   extensions?: DocViewerExtension[];
 
-  /** Size of toolbar, buttons and text, `'sm'` by default */
+  /** Size of toolbar, buttons and text @default 'sm' */
   size?: MantineSize;
 
-  /** Key of `theme.radius` or any valid CSS value to set `border-radius`, `theme.defaultRadius` by default */
+  /** Key of `theme.radius` or any valid CSS value to set `border-radius` @default theme.defaultRadius */
   radius?: MantineRadius;
 
-  /** Accent colour of pressed buttons, current thumbnail and focus outlines, `theme.primaryColor` by default */
+  /** Accent color of pressed buttons, current thumbnail and focus outlines @default theme.primaryColor */
   color?: MantineColor;
 
-  /** Makes the viewer as tall as its content so the window scrolls, `false` by default. Fixed heights use `h` */
+  /** Makes the viewer as tall as its content so the window scrolls. Fixed heights use `h` @default false */
   autosize?: boolean;
 
-  /** Colour behind PDF pages and thumbnails, white by default */
+  /** Color behind PDF pages and thumbnails @default white */
   pageBackground?: MantineColor;
 
-  /** `'light'` (default) | `'dark'` (inverted) | `'auto'` (follows the color scheme) */
+  /** `'light'`, `'dark'` (inverted) or `'auto'` (follows the color scheme) @default 'light' */
   pageColorScheme?: 'light' | 'dark' | 'auto';
 
-  /** PDF page thumbnails are shown when a PDF opens, `false` by default */
+  /** PDF page thumbnails are shown when a PDF opens @default false */
   defaultThumbnailsOpened?: boolean;
 
-  /** Side the thumbnails start on, `'left'` by default */
+  /** Side the thumbnails start on @default 'left' */
   defaultThumbnailsPosition?: DocViewerThumbnailsPosition;
 
-  /** Page of a PDF to show, counted from 1, for a controlled page */
+  /** Page of a PDF to scroll to, counted from 1, whenever it changes. The reader can scroll away, `onPageChange` reports where they are */
   page?: number;
 
   /** Page of a PDF to show when it opens, counted from 1 */
   defaultPage?: number;
 
-  /** Called when the page in view changes */
+  /** Called when the page in view changes, not for the page the document opens on */
   onPageChange?: (page: number) => void;
 
   /** Zoom of a PDF or image, for a controlled zoom */
   zoom?: DocViewerZoom;
 
-  /** Zoom when a PDF or image opens, `'fit'` by default */
+  /** Zoom when a PDF or image opens @default 'fit' */
   defaultZoom?: DocViewerZoom;
 
   /** Called with every zoom request and the scale it gives, where 1 is 100% */
@@ -116,13 +116,13 @@ export interface DocViewerRootProps
   /** Layout of PDF pages, for a controlled layout */
   pageLayout?: DocViewerPageLayout;
 
-  /** Layout of PDF pages when a PDF opens, `'single'` by default */
+  /** Layout of PDF pages when a PDF opens @default 'single' */
   defaultPageLayout?: DocViewerPageLayout;
 
   /** Called when the reader picks a page layout */
   onPageLayoutChange?: (layout: DocViewerPageLayout) => void;
 
-  /** Whether the viewer is full screen, for a controlled state */
+  /** Enters or leaves full screen whenever it changes. The browser decides, so `onFullscreenChange` reports what happened */
   fullscreen?: boolean;
 
   /** Called when the viewer enters or leaves full screen */

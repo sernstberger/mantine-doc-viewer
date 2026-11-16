@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useCallbackRef } from '@mantine/hooks';
 import { clampZoom } from '../../utils/zoom';
 import { getWheelScale } from '../../utils/image-zoom';
 
@@ -15,8 +16,7 @@ export function useWheelZoom(
 ) {
   const scaleRef = useRef(scale);
   scaleRef.current = scale;
-  const setZoomRef = useRef(setZoom);
-  setZoomRef.current = setZoom;
+  const applyZoom = useCallbackRef(setZoom);
 
   useEffect(() => {
     if (!scrollRoot || !enabled) {
@@ -29,7 +29,7 @@ export function useWheelZoom(
       frame = 0;
       const next = pending!;
       pending = null;
-      setZoomRef.current(next);
+      applyZoom(next);
     };
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) {

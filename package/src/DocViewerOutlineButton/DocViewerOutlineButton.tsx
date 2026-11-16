@@ -1,8 +1,6 @@
 import {
   ActionIcon,
-  BoxProps,
   CompoundStylesApiProps,
-  ElementProps,
   factory,
   Factory,
   GetStylesApiOptions,
@@ -13,6 +11,7 @@ import { useDisclosure } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { PdfOutline, usePdfOutline } from '../DocViewerOutline/PdfOutline';
 import { PartStyles } from '../DocViewerPages/PartStyles';
@@ -29,7 +28,7 @@ export type DocViewerOutlineButtonStylesNames =
   | 'outlineItem';
 
 export interface DocViewerOutlineButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerOutlineButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerOutlineButtonFactory> {}
 
 export type DocViewerOutlineButtonFactory = Factory<{
   props: DocViewerOutlineButtonProps;
@@ -74,8 +73,11 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
             {...controlProps(opened, stylesApiProps)}
             aria-label={labels.outlineLabel}
             aria-expanded={opened}
-            onClick={popover.toggle}
             {...buttonProps}
+            onClick={(event) => {
+              popover.toggle();
+              buttonProps.onClick?.(event);
+            }}
           >
             <OutlineIcon />
           </ActionIcon>

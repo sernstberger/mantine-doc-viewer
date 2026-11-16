@@ -201,15 +201,16 @@ test.describe('search', () => {
 test.describe('full screen', () => {
   test('the Full screen button toggles and exits', async ({ page }) => {
     await openPdf(page, 'docviewer--usage');
-    const toggle = page.getByRole('button', { name: /full screen/i });
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    const enter = page.getByRole('button', { name: 'Full screen', exact: true });
+    const exit = page.getByRole('button', { name: 'Exit full screen' });
+    await expect(enter).not.toHaveAttribute('aria-pressed');
 
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await enter.click();
+    await expect(exit).toBeVisible();
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
 
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await exit.click();
+    await expect(enter).toBeVisible();
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
   });
 });

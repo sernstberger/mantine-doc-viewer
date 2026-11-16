@@ -1,14 +1,7 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import {
@@ -22,10 +15,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerFullscreenButtonStylesNames = 'control';
 
 export interface DocViewerFullscreenButtonProps
-  extends
-    BoxProps,
-    CompoundStylesApiProps<DocViewerFullscreenButtonFactory>,
-    ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerFullscreenButtonFactory> {}
 
 export type DocViewerFullscreenButtonFactory = Factory<{
   props: DocViewerFullscreenButtonProps;
@@ -36,7 +26,7 @@ export type DocViewerFullscreenButtonFactory = Factory<{
 
 /** Shows the viewer full screen, or leaves full screen; nothing where the browser has no full screen */
 export const DocViewerFullscreenButton = factory<DocViewerFullscreenButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ...others } = useProps(
+  const { classNames, className, style, styles, vars, onClick, ...others } = useProps(
     'DocViewerFullscreenButton',
     null,
     _props
@@ -51,14 +41,18 @@ export const DocViewerFullscreenButton = factory<DocViewerFullscreenButtonFactor
     return null;
   }
 
+  const label = fullscreen ? labels.exitFullscreenLabel : labels.enterFullscreenLabel;
+
   return (
-    <DocViewerTooltip label={fullscreen ? labels.exitFullscreenLabel : labels.fullscreenLabel}>
+    <DocViewerTooltip label={label}>
       <ActionIcon
         {...controlProps(fullscreen, { className, style, classNames, styles })}
-        aria-label={labels.fullscreenLabel}
-        aria-pressed={fullscreen}
-        onClick={() => docViewerActions.toggleFullscreen(store)}
+        aria-label={label}
         {...others}
+        onClick={(event) => {
+          docViewerActions.toggleFullscreen(store);
+          onClick?.(event);
+        }}
       >
         {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
       </ActionIcon>

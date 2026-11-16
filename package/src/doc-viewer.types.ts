@@ -1,4 +1,9 @@
-import type { PasswordInputProps, TextInputProps } from '@mantine/core';
+import type {
+  ActionIconProps,
+  ElementProps,
+  PasswordInputProps,
+  TextInputProps,
+} from '@mantine/core';
 import type { DocViewerType } from './utils/get-doc-viewer-type';
 import type { DocViewerPageRect } from './utils/page-points';
 
@@ -176,7 +181,7 @@ export type DocViewerHighlightTarget =
       /** Page to look on, counted from 1. The whole document is searched when it is not set */
       page?: number;
 
-      /** Determines whether upper and lower case must match, `false` by default */
+      /** Determines whether upper and lower case must match @default false */
       matchCase?: boolean;
     }
   | {
@@ -282,3 +287,16 @@ export interface DocViewerExtension {
   /** @internal Options the extension was created with */
   readonly options: unknown;
 }
+
+type ActionIconOwnProps = Omit<
+  ActionIconProps,
+  'classNames' | 'styles' | 'vars' | 'unstyled' | 'attributes' | 'children' | 'variant'
+>;
+
+/** Props of a toolbar button part: the props of `ActionIcon`, whose icon is fixed, and the props of a `button` */
+export interface DocViewerControlProps
+  extends ActionIconOwnProps, ElementProps<'button', keyof ActionIconProps> {}
+
+/** Props of a toolbar button part that renders a link: the props of `ActionIcon` and of an `a` */
+export interface DocViewerLinkControlProps
+  extends ActionIconOwnProps, ElementProps<'a', keyof ActionIconProps> {}

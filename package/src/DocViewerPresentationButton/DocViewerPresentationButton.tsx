@@ -1,15 +1,8 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
@@ -20,10 +13,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerPresentationButtonStylesNames = 'control';
 
 export interface DocViewerPresentationButtonProps
-  extends
-    BoxProps,
-    CompoundStylesApiProps<DocViewerPresentationButtonFactory>,
-    ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerPresentationButtonFactory> {}
 
 export type DocViewerPresentationButtonFactory = Factory<{
   props: DocViewerPresentationButtonProps;
@@ -34,7 +24,7 @@ export type DocViewerPresentationButtonFactory = Factory<{
 
 /** Starts a presentation of a PDF: full screen, one page at a time */
 export const DocViewerPresentationButton = factory<DocViewerPresentationButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ref, ...others } = useProps(
+  const { classNames, className, style, styles, vars, ref, onClick, ...others } = useProps(
     'DocViewerPresentationButton',
     null,
     _props
@@ -51,13 +41,16 @@ export const DocViewerPresentationButton = factory<DocViewerPresentationButtonFa
   }
 
   return (
-    <DocViewerTooltip label={labels.presentationLabel}>
+    <DocViewerTooltip label={labels.enterPresentationLabel}>
       <ActionIcon
         {...controlProps(false, { className, style, classNames, styles })}
         ref={mergedRef}
-        aria-label={labels.presentationLabel}
-        onClick={() => docViewerActions.togglePresentation(store)}
+        aria-label={labels.enterPresentationLabel}
         {...others}
+        onClick={(event) => {
+          docViewerActions.togglePresentation(store);
+          onClick?.(event);
+        }}
       >
         <PresentationIcon />
       </ActionIcon>

@@ -42,7 +42,7 @@ export interface DocViewerToolbarProps
   /** Small text under the title */
   subtitle?: React.ReactNode;
 
-  /** Tapping the document with a finger hides and shows the toolbar, `false` by default */
+  /** Tapping the document with a finger hides and shows the toolbar @default false */
   toggleOnTap?: boolean;
 
   /** Props passed to the tooltip of every control inside the toolbar */

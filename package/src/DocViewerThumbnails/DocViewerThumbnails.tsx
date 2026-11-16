@@ -30,7 +30,7 @@ export type DocViewerThumbnailsStylesNames =
 
 export interface DocViewerThumbnailsProps
   extends BoxProps, CompoundStylesApiProps<DocViewerThumbnailsFactory>, ElementProps<'div'> {
-  /** Width of the thumbnails in px in a side rail, half of it in a top or bottom strip, `112` by default */
+  /** Width of the thumbnails in px in a side rail, half of it in a top or bottom strip @default 112 */
   width?: number;
 }
 

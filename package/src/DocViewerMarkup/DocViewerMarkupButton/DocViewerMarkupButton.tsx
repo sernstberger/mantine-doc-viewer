@@ -1,14 +1,7 @@
 import React from 'react';
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
+import type { DocViewerControlProps } from '../../doc-viewer.types';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
 import { MarkupIcon } from '../markup-icons';
 import classes from '../../DocViewer.module.css';
@@ -17,7 +10,7 @@ import { useMarkupContext } from '../markup-setup';
 export type DocViewerMarkupButtonStylesNames = 'control';
 
 export interface DocViewerMarkupButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerMarkupButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerMarkupButtonFactory> {}
 
 export type DocViewerMarkupButtonFactory = Factory<{
   props: DocViewerMarkupButtonProps;

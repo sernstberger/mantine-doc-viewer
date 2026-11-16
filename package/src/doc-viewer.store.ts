@@ -81,7 +81,7 @@ export interface DocViewerActions {
   /** Scrolls a PDF to a page, counted from 1, or to a point in it with `{ top }` */
   goToPage: (page: number, options?: DocViewerGoToPageOptions) => void;
 
-  /** Highlights a passage of a PDF in the colours of the active search match, and scrolls to it */
+  /** Highlights a passage of a PDF in the colors of the active search match, and scrolls to it */
   highlight: (target: DocViewerHighlightTarget) => void;
 
   /** Removes the highlight made with `highlight` */

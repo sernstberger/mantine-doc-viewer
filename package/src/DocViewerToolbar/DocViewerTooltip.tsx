@@ -11,7 +11,7 @@ export function DocViewerTooltip(props: TooltipProps) {
   return <Tooltip events={TOOLTIP_EVENTS} {...toolbar?.tooltipProps} {...props} />;
 }
 
-/** Props shared by every toolbar button: size, colours and the `control` Styles API selector */
+/** Props shared by every toolbar button: size, colors and the `control` Styles API selector */
 export function useControlProps() {
   const { getStyles, size, color, unstyled } = useDocViewerContext();
 

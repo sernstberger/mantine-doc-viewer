@@ -1,14 +1,7 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerLinkControlProps } from '../doc-viewer.types';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import { DownloadIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
@@ -16,7 +9,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerDownloadButtonStylesNames = 'control';
 
 export interface DocViewerDownloadButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerDownloadButtonFactory>, ElementProps<'a'> {}
+  extends DocViewerLinkControlProps, CompoundStylesApiProps<DocViewerDownloadButtonFactory> {}
 
 export type DocViewerDownloadButtonFactory = Factory<{
   props: DocViewerDownloadButtonProps;

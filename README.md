@@ -22,7 +22,7 @@ and screen reader support.
   errors, page, zoom and links
 - **Customisable**: `size`, `color`, `variant="plain"`, dark pages, hideable toolbar controls,
   translatable labels, and renderers for other file types
-- **Small**: about 24 kB gzipped; pdf.js and the markdown renderer load only when needed
+- **Small**: about 36 kB of JavaScript and 4 kB of CSS, gzipped and without Mantine; pdf.js, the markdown renderer and the code view load only when needed
 
 ## Installation
 
@@ -34,7 +34,7 @@ The engines are optional peer dependencies; install the ones you use:
 
 ```bash
 npm install pdfjs-dist                  # PDFs
-npm install @cantoo/pdf-lib             # page editing and markup (the /editor and /markup subpaths)
+npm install @cantoo/pdf-lib             # page editing (the /editor subpath)
 npm install react-markdown remark-gfm   # markdown
 ```
 

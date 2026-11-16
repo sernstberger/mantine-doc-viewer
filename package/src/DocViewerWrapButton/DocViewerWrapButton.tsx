@@ -1,14 +1,7 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
@@ -19,7 +12,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerWrapButtonStylesNames = 'control';
 
 export interface DocViewerWrapButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerWrapButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerWrapButtonFactory> {}
 
 export type DocViewerWrapButtonFactory = Factory<{
   props: DocViewerWrapButtonProps;
@@ -32,7 +25,7 @@ const TEXT_ONLY = ['text'] as const;
 
 /** Wraps long lines of text files, or shows them on one line */
 export const DocViewerWrapButton = factory<DocViewerWrapButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ...others } = useProps(
+  const { classNames, className, style, styles, vars, onClick, ...others } = useProps(
     'DocViewerWrapButton',
     null,
     _props
@@ -53,8 +46,11 @@ export const DocViewerWrapButton = factory<DocViewerWrapButtonFactory>((_props) 
         {...controlProps(wrap, { className, style, classNames, styles })}
         aria-label={labels.wrapLinesLabel}
         aria-pressed={wrap}
-        onClick={() => docViewerActions.updateState({ textWrap: !wrap }, store)}
         {...others}
+        onClick={(event) => {
+          docViewerActions.updateState({ textWrap: !wrap }, store);
+          onClick?.(event);
+        }}
       >
         <WrapIcon />
       </ActionIcon>

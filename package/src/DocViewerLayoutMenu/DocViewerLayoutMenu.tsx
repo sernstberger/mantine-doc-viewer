@@ -1,8 +1,6 @@
 import {
   ActionIcon,
-  BoxProps,
   CompoundStylesApiProps,
-  ElementProps,
   factory,
   Factory,
   Popover,
@@ -13,7 +11,7 @@ import {
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
-import type { DocViewerPageLayout } from '../doc-viewer.types';
+import type { DocViewerControlProps, DocViewerPageLayout } from '../doc-viewer.types';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
@@ -23,8 +21,8 @@ import classes from '../DocViewer.module.css';
 export type DocViewerLayoutMenuStylesNames = 'control' | 'dropdown';
 
 export interface DocViewerLayoutMenuProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerLayoutMenuFactory>, ElementProps<'button'> {
-  /** Layouts in the menu, all by default */
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerLayoutMenuFactory> {
+  /** Layouts in the menu @default all layouts */
   layouts?: DocViewerPageLayout[];
 }
 

@@ -18,7 +18,7 @@ export type DocViewerMarkdownStylesNames = 'body' | 'markdown' | 'code' | 'empty
 
 export interface DocViewerMarkdownProps
   extends BoxProps, CompoundStylesApiProps<DocViewerMarkdownFactory>, ElementProps<'div'> {
-  /** Largest file that is shown, in bytes, `2_000_000` by default */
+  /** Largest file that is shown, in bytes @default 2_000_000 */
   maxSize?: number;
 
   /** Props passed to the CodeHighlight that shows the source */

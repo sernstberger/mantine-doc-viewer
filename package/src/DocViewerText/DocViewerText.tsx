@@ -18,7 +18,7 @@ export type DocViewerTextStylesNames = 'body' | 'text' | 'empty';
 
 export interface DocViewerTextProps
   extends BoxProps, CompoundStylesApiProps<DocViewerTextFactory>, ElementProps<'div'> {
-  /** Largest file that is shown, in bytes, `2_000_000` by default */
+  /** Largest file that is shown, in bytes @default 2_000_000 */
   maxSize?: number;
 }
 

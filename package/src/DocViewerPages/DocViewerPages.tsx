@@ -42,28 +42,28 @@ export type DocViewerPagesStylesNames =
 
 export interface DocViewerPagesProps
   extends BoxProps, CompoundStylesApiProps<DocViewerPagesFactory>, ElementProps<'div'> {
-  /** Key of `theme.spacing` or any valid CSS value for the space between pages, `'md'` by default */
+  /** Key of `theme.spacing` or any valid CSS value for the space between pages @default 'md' */
   gap?: MantineSpacing;
 
-  /** Largest canvas drawn for a page, in pixels, `16_777_216` by default */
+  /** Largest canvas drawn for a page, in pixels @default 16_777_216 */
   maxCanvasPixels?: number;
 
-  /** Determines whether readers can scroll, `true` by default */
+  /** Determines whether readers can scroll @default true */
   withScroll?: boolean;
 
-  /** Determines whether scrolling stops at the start of each page or spread, `false` by default */
+  /** Determines whether scrolling stops at the start of each page or spread @default false */
   withScrollSnap?: boolean;
 
-  /** Determines whether pages turn by spread with edge clicks, swipes and keys, `false` by default */
+  /** Determines whether pages turn by spread with edge clicks, swipes and keys @default false */
   withPageTurning?: boolean | DocViewerPageTurning;
 
   /** Content laid over each page, placed in page coordinates times `scale` */
   renderPageOverlay?: DocViewerRenderPageOverlay;
 
-  /** Key of `theme.colors` or any valid CSS color of search matches, `theme.colors.yellow[6]` by default */
+  /** Key of `theme.colors` or any valid CSS color of search matches @default theme.colors.yellow[6] */
   matchColor?: MantineColor;
 
-  /** Key of `theme.colors` or any valid CSS color of the active search match, `theme.colors.orange[6]` by default */
+  /** Key of `theme.colors` or any valid CSS color of the active search match @default theme.colors.orange[6] */
   activeMatchColor?: MantineColor;
 
   /** Props passed to the password field of a protected PDF */
