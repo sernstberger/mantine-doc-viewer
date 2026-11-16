@@ -62,6 +62,16 @@ describe('mantine-doc-viewer/DocViewerLayoutMenu', () => {
     );
   });
 
+  it('passes unstyled to the Mantine components in the menu', async () => {
+    const { Harness: Unstyled } = createPartHarness(DocViewerLayoutMenu, {
+      state: { type: 'pdf' },
+      rootProps: { unstyled: true },
+    });
+    render(<Unstyled />);
+    await userEvent.click(screen.getByRole('button', { name: 'Page layout' }));
+    expect(screen.getByRole('dialog').querySelectorAll('[class*="m_"]')).toHaveLength(0);
+  });
+
   it('lists the layouts it is given', async () => {
     render(<Harness layouts={['single', 'wrapped']} />);
     await userEvent.click(screen.getByRole('button', { name: 'Page layout' }));

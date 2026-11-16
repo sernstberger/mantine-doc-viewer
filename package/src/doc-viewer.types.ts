@@ -293,7 +293,11 @@ type ActionIconOwnProps = Omit<
   'classNames' | 'styles' | 'vars' | 'unstyled' | 'attributes' | 'children' | 'variant'
 >;
 
-/** Props of a toolbar button part: the props of `ActionIcon`, whose icon is fixed, and the props of a `button` */
+/**
+ * Props of a toolbar button part: the props of `ActionIcon`, whose icon is fixed, and the props of a
+ * `button`. A `variant` or `color` you pass replaces the pressed look, and an `onClick` runs after
+ * the button's own action
+ */
 export interface DocViewerControlProps
   extends ActionIconOwnProps, ElementProps<'button', keyof ActionIconProps> {}
 

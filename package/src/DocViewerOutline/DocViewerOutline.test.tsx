@@ -99,6 +99,21 @@ describe('DocViewerOutline in a loaded viewer', () => {
     expect(store.getState().page).toBe(2);
   });
 
+  it('passes unstyled to the bookmark buttons', async () => {
+    mockPdf({ numPages: 3, outline: OUTLINE });
+    const { container } = render(
+      <LoadedPdfRoot unstyled>
+        <DocViewerOutline />
+        <DocViewerPages />
+      </LoadedPdfRoot>
+    );
+    await pagesLoaded(container, 3);
+    const outline = await screen.findByRole('navigation', { name: 'Outline' });
+    expect(within(outline).getByRole('button', { name: 'Costs' }).className).not.toMatch(
+      /\bm_[0-9a-f]+\b/
+    );
+  });
+
   it('renders nothing for a document without bookmarks', async () => {
     mockPdf({ numPages: 3 });
     const { container } = render(

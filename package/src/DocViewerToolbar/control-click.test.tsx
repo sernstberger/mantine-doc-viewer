@@ -4,6 +4,7 @@ import type { ComponentType } from 'react';
 import { mockPdf } from '../../../test-utils/mock-pdf';
 import { createPartHarness } from '../../../test-utils/toolbar-parts';
 import { DocViewerFullscreenButton } from '../DocViewerFullscreenButton/DocViewerFullscreenButton';
+import { DocViewerLayoutMenu } from '../DocViewerLayoutMenu/DocViewerLayoutMenu';
 import { DocViewerInfoButton } from '../DocViewerInfoButton/DocViewerInfoButton';
 import { DocViewerOutlineButton } from '../DocViewerOutlineButton/DocViewerOutlineButton';
 import { DocViewerPresentationButton } from '../DocViewerPresentationButton/DocViewerPresentationButton';
@@ -141,6 +142,15 @@ describe('toolbar buttons compose onClick with their action', () => {
     expect(onOutline).toHaveBeenCalledTimes(1);
   });
 
+  it('Page layout opens its menu and calls onClick', async () => {
+    const onClick = jest.fn();
+    const { Harness } = createPartHarness(DocViewerLayoutMenu, { state: pdf });
+    render(<Harness onClick={onClick} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Page layout' }));
+    expect(screen.getAllByRole('radio')).toHaveLength(5);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
   it('accepts ActionIcon props', () => {
     const { Harness } = createPartHarness(DocViewerRotateButton, { state: pdf });
     render(<Harness variant="filled" color="red" size="xl" radius="xl" />);
@@ -148,5 +158,55 @@ describe('toolbar buttons compose onClick with their action', () => {
       'data-variant',
       'filled'
     );
+  });
+});
+
+describe('toolbar buttons that open a popover', () => {
+  const expectPopupButton = async (name: string) => {
+    const button = screen.getByRole('button', { name });
+    expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).not.toHaveAttribute('aria-controls');
+
+    await userEvent.click(button);
+    const dialog = screen.getByRole('dialog');
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(button).toHaveAttribute('aria-controls', dialog.id);
+    expect(dialog).toHaveAttribute('aria-labelledby', button.id);
+    expect(document.querySelector('[role="tooltip"][aria-expanded]')).toBeNull();
+  };
+
+  it('Page layout', async () => {
+    const { Harness } = createPartHarness(DocViewerLayoutMenu, { state: pdf });
+    render(<Harness />);
+    await userEvent.hover(screen.getByRole('button', { name: 'Page layout' }));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Page layout');
+    await expectPopupButton('Page layout');
+  });
+
+  it('Pages panel position', async () => {
+    const { Harness } = createPartHarness(DocViewerThumbnailsButton, {
+      state: { ...pdf, thumbnailsAvailable: true, thumbnailsOpened: true },
+    });
+    render(<Harness />);
+    await expectPopupButton('Pages panel position');
+  });
+
+  it('Document info', async () => {
+    const { Harness } = createPartHarness(DocViewerInfoButton, {
+      state: pdf,
+      session: readySession(),
+    });
+    render(<Harness />);
+    await expectPopupButton('Document info');
+  });
+
+  it('Outline', async () => {
+    const { Harness } = createPartHarness(DocViewerOutlineButton, {
+      state: pdf,
+      session: readySession(),
+    });
+    render(<Harness />);
+    await expectPopupButton('Outline');
   });
 });

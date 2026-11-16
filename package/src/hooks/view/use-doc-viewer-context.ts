@@ -1,7 +1,11 @@
 import type { GetStylesApi } from '@mantine/core';
 import type { DocViewerLabels } from '../../default-labels';
 import { useDocumentTitle, useDocViewerContext as useRootContext } from '../../doc-viewer.context';
-import type { DocViewerStore } from '../../doc-viewer.store';
+import {
+  bindDocViewerActions,
+  type DocViewerActions,
+  type DocViewerStore,
+} from '../../doc-viewer.store';
 import type { DocViewerRootFactory } from '../../DocViewerRoot/DocViewerRoot';
 import { useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
 import type { DocViewerType } from '../../utils/get-doc-viewer-type';
@@ -28,14 +32,21 @@ export interface UseDocViewerContextReturnValue {
   /** Store of the viewer, to read its state with `useDocViewerStore` */
   store: DocViewerStore;
 
-  /** Props of a toolbar button: `controlProps(pressed)` styles it as the built-in controls */
-  controlProps: ReturnType<typeof useControlProps>;
+  /** Actions bound to the store, to drive the viewer from a custom control */
+  actions: DocViewerActions;
+
+  /**
+   * Props of a custom toolbar button: `getControlProps(pressed)` gives the size, colors and
+   * `control` Styles API selector of the built-in buttons. Spread them on an `ActionIcon`
+   */
+  getControlProps: ReturnType<typeof useControlProps>;
 }
 
 /** Reads the viewer from a custom view or control inside `DocViewer.Root` */
 export function useDocViewerContext(): UseDocViewerContextReturnValue {
   const { getStyles, labels, src, type, fileName, store } = useRootContext();
-  const controlProps = useControlProps();
+  const getControlProps = useControlProps();
   const title = useDocumentTitle();
-  return { getStyles, labels, src, type, fileName, title, store, controlProps };
+  const actions = bindDocViewerActions(store);
+  return { getStyles, labels, src, type, fileName, title, store, actions, getControlProps };
 }

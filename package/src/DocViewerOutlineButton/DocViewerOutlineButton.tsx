@@ -57,6 +57,7 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
 
   return (
     <Popover
+      id={buttonProps.id}
       unstyled={unstyled}
       opened={opened}
       onChange={popover.set}
@@ -66,12 +67,11 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
       trapFocus
       returnFocus
     >
-      <Popover.Target>
-        <DocViewerTooltip label={labels.outlineLabel}>
+      <DocViewerTooltip label={labels.outlineLabel}>
+        <Popover.Target>
           <ActionIcon
             {...controlProps(opened, stylesApiProps)}
             aria-label={labels.outlineLabel}
-            aria-expanded={opened}
             {...buttonProps}
             onClick={(event) => {
               popover.toggle();
@@ -80,8 +80,8 @@ function OutlinePopover({ document, stylesApiProps, buttonProps }: OutlinePopove
           >
             <OutlineIcon />
           </ActionIcon>
-        </DocViewerTooltip>
-      </Popover.Target>
+        </Popover.Target>
+      </DocViewerTooltip>
       <Popover.Dropdown
         p={4}
         {...getStyles('dropdown', {

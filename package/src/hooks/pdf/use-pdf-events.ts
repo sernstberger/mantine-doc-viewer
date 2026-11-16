@@ -56,7 +56,10 @@ interface PageSyncInput {
   scrollToPage: (page: number) => void;
 }
 
-/** Scrolls to `defaultPage` once the pages are laid out, then to `page` whenever it changes */
+/**
+ * Scrolls to `defaultPage` once the pages are laid out, as the page the document opens on, so it is
+ * not reported; then scrolls to `page` whenever it changes
+ */
 export function usePageSync({
   numPages,
   laidOut,
@@ -69,7 +72,8 @@ export function usePageSync({
 
   useEffect(() => {
     if (laidOut && initialPage && initialPage > 1) {
-      scrollToPage(clampPage(initialPage, numPages));
+      pageReported.current = clampPage(initialPage, numPages);
+      scrollToPage(pageReported.current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the pages are first laid out
   }, [laidOut]);

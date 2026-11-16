@@ -478,6 +478,22 @@ describe('DocViewer PDF', () => {
       expect(onPageChange).toHaveBeenCalledWith(2);
     });
 
+    it.each([
+      ['defaultPage', { defaultPage: 3 }],
+      ['page', { page: 3 }],
+      ['a page past the end', { defaultPage: 9 }],
+    ])('does not report the page a document opens on with %s', async (_, props) => {
+      mockPdf();
+      const onPageChange = jest.fn();
+      const { handle } = renderControlled({ src: '/files/report.pdf', onPageChange, ...props });
+      expect(await screen.findByText('3 / 3')).toBeInTheDocument();
+      expect(onPageChange).not.toHaveBeenCalled();
+
+      act(() => handle.actions.goToPage(1));
+      expect(onPageChange).toHaveBeenCalledTimes(1);
+      expect(onPageChange).toHaveBeenCalledWith(1);
+    });
+
     it('follows the page prop', async () => {
       mockPdf();
       const { rerender } = render(<TestDocViewer src="/files/report.pdf" page={1} />);

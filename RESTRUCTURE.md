@@ -202,8 +202,9 @@ All parts: `factory<…Factory>` with `compound: true`, `CompoundStylesApiProps`
 `ctx.getStyles(selector, { className, style, classNames, styles })`, `ref` as a prop (React 19, no
 forwardRef), `...others` spread onto the root element (so `data-*`, `aria-*`, ActionIcon props pass through).
 **Why:** exactly `LightboxToolbar` / `PaginationControl`; also replaces the requested
-`getControlProps` passthrough (api-shape-4): each button is its own component, so apps set `variant`,
-`data-testid`, `aria-*` on it directly.
+`getControlProps` passthrough (api-shape-4): each button is its own component, so apps set `variant`
+(it replaces the pressed look), `data-testid`, `aria-*` on it directly. Custom buttons get the same
+look from `useDocViewerContext().getControlProps(pressed)` and act through its bound `actions`.
 
 ```ts
 interface DocViewerToolbarProps extends BoxProps, CompoundStylesApiProps<…>, ElementProps<'div'> {
@@ -514,7 +515,7 @@ predates `searchInputProps` and `passwordInputProps`).
 | `goToPage(page, options)` | `actions.goToPage(page, options)` | same options |
 | `highlight(target)` / `clearHighlight()` | `actions.highlight` / `actions.clearHighlight` | |
 | `goToSpread(spread)` | `actions.goToSpread` | |
-| `nextSpread()` / `previousSpread()` | `actions.nextSpread({ loop? })` / `actions.previousSpread({ loop? })` | `loop` absorbs `autoAdvance.loop` (uses `getNextPage`) |
+| `nextSpread()` / `previousSpread()` | `actions.nextSpread({ loop? })` / `actions.previousSpread()` | `loop` absorbs `autoAdvance.loop` (uses `getNextPage`) |
 | `setZoom`, `zoomIn`, `zoomOut` | same names | pdf and image |
 | `setPageLayout` | same | |
 | `rotate` | same | |
