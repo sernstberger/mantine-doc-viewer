@@ -27,6 +27,19 @@ const config: StorybookConfig = {
       mergeConfig(viteConfig, {
         // Vite lists every chunk otherwise; warnings still print
         logLevel: 'warn',
+        // Agent worktrees and build output hold whole copies of the repo; watching them reloads
+        // the dev server on every lane's build and test run
+        server: {
+          watch: {
+            ignored: [
+              '**/.claude/**',
+              '**/coverage/**',
+              '**/storybook-static/**',
+              '**/playwright-report/**',
+              '**/test-results/**',
+            ],
+          },
+        },
         build: {
           // The preview entry (Storybook's runtime, React, Mantine) is over Vite's 500 kB default;
           // Storybook loads it from disk, so splitting it would gain nothing
