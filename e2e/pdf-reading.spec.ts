@@ -214,3 +214,22 @@ test.describe('full screen', () => {
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
   });
 });
+
+test.describe('toolbar popovers', () => {
+  test('the page layout button shows its tooltip and opens its menu', async ({ page }) => {
+    await openPdf(page, 'docviewer--usage');
+    const button = page.getByRole('button', { name: 'Page layout' });
+    await button.hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Page layout');
+
+    await button.click();
+    const dialog = page.getByRole('dialog', { name: 'Page layout' });
+    await expect(dialog.getByRole('radio', { name: 'Two pages', exact: true })).toBeVisible();
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(button).toHaveAttribute('aria-controls', (await dialog.getAttribute('id'))!);
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+});
