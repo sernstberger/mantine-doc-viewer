@@ -32,10 +32,17 @@ interface MarkdownComponentsOptions {
 
   /** Called for `#hash` links, which never change the url of the page around the viewer */
   onHashLink: (hash: string) => void;
+
+  /** Removes the Mantine styles of the code blocks */
+  unstyled?: boolean;
 }
 
 /** react-markdown components: highlighted code blocks, and links that stay in the viewer or open a new tab */
-export function createMarkdownComponents({ opensInNewTab, onHashLink }: MarkdownComponentsOptions) {
+export function createMarkdownComponents({
+  opensInNewTab,
+  onHashLink,
+  unstyled,
+}: MarkdownComponentsOptions) {
   return {
     pre: ({ node, children }: { node?: HastNode; children?: ReactNode }) => {
       const fenced = getFencedCode(node);
@@ -45,6 +52,7 @@ export function createMarkdownComponents({ opensInNewTab, onHashLink }: Markdown
           language={fenced.language ?? 'text'}
           radius="sm"
           my="md"
+          unstyled={unstyled}
         />
       ) : (
         <pre>{children}</pre>

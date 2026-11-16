@@ -95,8 +95,6 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
         'Color of search matches, set by `matchColor` of `DocViewer.Pages`',
       '--doc-viewer-active-match-color':
         'Color of the current search match and of highlights, set by `activeMatchColor` of `DocViewer.Pages`',
-      '--doc-viewer-thumbnails-width':
-        'Width of the thumbnail rail, set by `width` of `DocViewer.Thumbnails`',
     },
   },
 
@@ -125,7 +123,16 @@ export const DocViewerStylesApi: StylesApiData<DocViewerFactory> = {
       selector: 'control',
       condition: 'Toggle button is on',
     },
-    { modifier: 'data-disabled', selector: 'control', condition: 'Button is not available' },
+    {
+      modifier: 'data-disabled',
+      selector: 'control',
+      condition: 'Button of the search bar, presentation controls and page editor is not available',
+    },
+    {
+      modifier: 'data-soft-disabled',
+      selector: ['control', 'markupSave'],
+      condition: 'Toolbar button is not available',
+    },
     { modifier: 'data-size', selector: 'root', value: 'Value of `size` prop' },
     { modifier: 'data-variant', selector: 'root', value: 'default | plain' },
     { modifier: 'data-page-color-scheme', selector: 'root', value: 'dark | auto' },

@@ -599,6 +599,11 @@
 .presentationControls .control {
   color: inherit;
 
+  &[data-disabled] {
+    background-color: transparent;
+    opacity: 0.4;
+  }
+
   @media (pointer: coarse) {
     min-width: rem(44px);
     min-height: rem(44px);
@@ -804,6 +809,8 @@
 
   @media (pointer: coarse) {
     visibility: hidden;
+    min-width: rem(44px);
+    min-height: rem(44px);
     pointer-events: none;
 
     :where(.thumbnail[data-active]) > & {
@@ -874,7 +881,15 @@
   margin-inline-start: auto;
 }
 
-:where([data-soft-disabled]) {
+.control[data-soft-disabled],
+.markupSave[data-soft-disabled] {
   opacity: 0.4;
   cursor: not-allowed;
+
+  &:hover,
+  &:active {
+    color: var(--ai-color, var(--button-color));
+    background-color: var(--ai-bg, var(--button-bg));
+    transform: none;
+  }
 }

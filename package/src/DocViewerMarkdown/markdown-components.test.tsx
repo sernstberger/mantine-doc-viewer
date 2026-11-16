@@ -44,6 +44,29 @@ describe('markdown components', () => {
     expect(screen.getByText('plain text').tagName).toBe('PRE');
   });
 
+  it('drops the Mantine styles of fenced code when unstyled', () => {
+    const { pre: StyledPre } = createMarkdownComponents({
+      opensInNewTab: '',
+      onHashLink,
+      unstyled: true,
+    });
+    const node = {
+      type: 'element',
+      tagName: 'pre',
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: { className: ['language-ts'] },
+          children: [{ type: 'text', value: 'const a = 1;\n' }],
+        },
+      ],
+    };
+    const { container } = render(<StyledPre node={node}>ignored</StyledPre>);
+    expect(container.firstElementChild!.className).not.toMatch(/\bm_[0-9a-f]+\b/);
+    expect(container.querySelector('code')).toBeInTheDocument();
+  });
+
   it('highlights fenced code without a language as text', () => {
     const node = {
       type: 'element',

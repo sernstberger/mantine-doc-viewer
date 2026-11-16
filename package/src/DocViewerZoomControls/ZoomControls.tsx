@@ -15,6 +15,15 @@ import { toolbarSoftDisabled } from '../utils/a11y';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 
 const ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const FIT_VALUE = 'fit';
+
+function getMenuValue(scale: number, fitted: boolean) {
+  if (fitted) {
+    return FIT_VALUE;
+  }
+  const preset = ZOOM_PRESETS.find((candidate) => Math.abs(candidate - scale) < 0.001);
+  return preset === undefined ? null : String(preset);
+}
 
 interface ZoomControlsProps {
   /** Scale currently applied, including a fitted scale */
@@ -42,10 +51,11 @@ interface ZoomLevelProps extends Pick<ZoomControlsProps, 'onZoom' | 'stylesApiPr
 }
 
 function ZoomLevelButton({ percent, onZoom, stylesApiProps }: ZoomLevelProps) {
-  const { getStyles, labels } = useDocViewerContext();
+  const { getStyles, labels, unstyled } = useDocViewerContext();
 
   return (
     <UnstyledButton
+      unstyled={unstyled}
       {...getStyles('zoomLevel', stylesApiProps)}
       data-toolbar-toggle
       onClick={() => onZoom(1)}
@@ -57,19 +67,22 @@ function ZoomLevelButton({ percent, onZoom, stylesApiProps }: ZoomLevelProps) {
 }
 
 function ZoomLevelMenu({
+  scale,
   percent,
   fitLabel,
   fitted,
   onZoom,
   onFit,
   stylesApiProps,
-}: ZoomLevelProps & Pick<ZoomControlsProps, 'fitLabel' | 'fitted' | 'onFit'>) {
+}: ZoomLevelProps & Pick<ZoomControlsProps, 'scale' | 'fitLabel' | 'fitted' | 'onFit'>) {
   const { getStyles, labels, locale, unstyled } = useDocViewerContext();
+  const onChange = (value: string) => (value === FIT_VALUE ? onFit() : onZoom(Number(value)));
 
   return (
     <Menu unstyled={unstyled} withinPortal={false} position="bottom" shadow="md">
       <Menu.Target>
         <UnstyledButton
+          unstyled={unstyled}
           {...getStyles('zoomLevel', stylesApiProps)}
           data-toolbar-toggle
           aria-label={labels.zoomLevelLabel(percent)}
@@ -78,14 +91,16 @@ function ZoomLevelMenu({
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown {...getStyles('dropdown', stylesApiProps)}>
-        <Menu.Item data-active={fitted || undefined} onClick={onFit}>
-          {fitLabel}
-        </Menu.Item>
-        {ZOOM_PRESETS.map((preset) => (
-          <Menu.Item key={preset} onClick={() => onZoom(preset)}>
-            {formatPercent(preset, locale)}
-          </Menu.Item>
-        ))}
+        <Menu.RadioGroup value={getMenuValue(scale, fitted)} onChange={onChange}>
+          <Menu.RadioItem value={FIT_VALUE} closeMenuOnClick>
+            {fitLabel}
+          </Menu.RadioItem>
+          {ZOOM_PRESETS.map((preset) => (
+            <Menu.RadioItem key={preset} value={String(preset)} closeMenuOnClick>
+              {formatPercent(preset, locale)}
+            </Menu.RadioItem>
+          ))}
+        </Menu.RadioGroup>
       </Menu.Dropdown>
     </Menu>
   );
@@ -120,7 +135,13 @@ export function ZoomControls({
         </ActionIcon>
       </DocViewerTooltip>
       {withMenu ? (
-        <ZoomLevelMenu {...levelProps} fitLabel={fitLabel} fitted={fitted} onFit={onFit} />
+        <ZoomLevelMenu
+          {...levelProps}
+          scale={scale}
+          fitLabel={fitLabel}
+          fitted={fitted}
+          onFit={onFit}
+        />
       ) : (
         <ZoomLevelButton {...levelProps} />
       )}

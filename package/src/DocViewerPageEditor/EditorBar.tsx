@@ -83,10 +83,11 @@ interface EditorBarProps {
 /** The editing actions, from moving pages to saving */
 function EditorActions(props: EditorBarProps) {
   const { labels } = usePageEditor()!;
+  const { unstyled } = useDocViewerContext();
   const rtl = useDirection().dir === 'rtl';
 
   return (
-    <Group gap={6} wrap="wrap">
+    <Group gap={6} wrap="wrap" unstyled={unstyled}>
       <EditorButton
         label={labels.moveEarlierLabel}
         icon={rtl ? <ArrowRightIcon /> : <ArrowLeftIcon />}
@@ -150,14 +151,21 @@ function EditorActions(props: EditorBarProps) {
 export function EditorBar(props: EditorBarProps) {
   const getStyles = usePageEditorStyles();
   const { labels } = usePageEditor()!;
+  const { unstyled } = useDocViewerContext();
 
   return (
-    <Group {...getStyles('editorBar')} gap="xs" justify="space-between" wrap="wrap">
-      <Group gap="xs" wrap="wrap">
-        <Text size="sm" {...getStyles('editorTitle')}>
+    <Group
+      {...getStyles('editorBar')}
+      gap="xs"
+      justify="space-between"
+      wrap="wrap"
+      unstyled={unstyled}
+    >
+      <Group gap="xs" wrap="wrap" unstyled={unstyled}>
+        <Text size="sm" unstyled={unstyled} {...getStyles('editorTitle')}>
           {labels.editPagesLabel}
         </Text>
-        <Text size="sm" {...getStyles('editorCount')}>
+        <Text size="sm" unstyled={unstyled} {...getStyles('editorCount')}>
           {labels.selectedCountLabel(props.selectedCount)}
         </Text>
       </Group>

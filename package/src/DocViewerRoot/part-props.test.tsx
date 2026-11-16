@@ -66,7 +66,7 @@ describe('part props of DocViewer', () => {
     expect(
       (await screen.findByRole('listbox')).style.getPropertyValue('--doc-viewer-thumbnails-width')
     ).toBe('calc(5rem * var(--mantine-scale))');
-    for (const name of ['page-gap', 'match-color', 'active-match-color', 'thumbnails-width']) {
+    for (const name of ['page-gap', 'match-color', 'active-match-color']) {
       expect(root.style.getPropertyValue(`--doc-viewer-${name}`)).toBe('');
     }
   });

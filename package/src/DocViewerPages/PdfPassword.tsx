@@ -24,7 +24,7 @@ export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProp
       }}
     >
       <LockIcon width={28} height={28} aria-hidden />
-      <Text size="sm" ta="center">
+      <Text size="sm" ta="center" unstyled={unstyled}>
         {labels.passwordRequiredLabel}
       </Text>
       <PasswordInput

@@ -36,7 +36,7 @@ export function CodeView({
   ...others
 }: DocViewerCodeProps) {
   const { classNames, styles } = others;
-  const { getStyles, src, fileName, store } = useDocViewerContext();
+  const { getStyles, src, fileName, store, unstyled } = useDocViewerContext();
   const state = useDocViewerText(src, maxSize ?? DEFAULT_MAX_TEXT_SIZE);
   const resolvedLanguage = language ?? getCodeLanguage({ src, fileName }) ?? 'text';
   const text = state.status === 'ready' ? state.text : null;
@@ -60,6 +60,7 @@ export function CodeView({
           <JsonViewer
             value={json}
             defaultExpandDepth={2}
+            unstyled={unstyled}
             {...getStyles('code', { classNames, styles })}
           />
         )}
@@ -70,6 +71,7 @@ export function CodeView({
             withLineNumbers
             withFirstLineIndentation
             radius={0}
+            unstyled={unstyled}
             {...codeHighlightProps}
             {...getStyles('code', {
               classNames,

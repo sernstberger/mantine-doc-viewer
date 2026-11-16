@@ -53,5 +53,5 @@ export const zoomLevel = (page: Page) => page.getByRole('button', { name: /^Zoom
 /** Zooms to 100% from the zoom level menu */
 export async function resetZoom(page: Page) {
   await zoomLevel(page).click();
-  await page.getByRole('menuitem', { name: '100%', exact: true }).click();
+  await page.getByRole('menuitemradio', { name: '100%', exact: true }).click();
 }

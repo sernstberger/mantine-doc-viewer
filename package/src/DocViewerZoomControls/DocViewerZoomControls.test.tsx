@@ -85,11 +85,15 @@ describe('mantine-doc-viewer/DocViewerZoomControls', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Zoom 150%' }));
     expect(document.querySelector('.app-dropdown')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('menuitem', { name: '75%' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: '75%' }));
     expect(setZoom).toHaveBeenLastCalledWith(0.75);
+  });
 
+  it('fits from the menu when the zoom does not fit', async () => {
+    const { Zoom, setZoom } = setup();
+    render(<Zoom withMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'Zoom 150%' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Fit to width' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Fit to width' }));
     expect(setZoom).toHaveBeenLastCalledWith('fit');
   });
 
@@ -98,14 +102,13 @@ describe('mantine-doc-viewer/DocViewerZoomControls', () => {
     const { Zoom: Scaled } = setup();
     const { unmount } = render(<Fitted withMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'Zoom 150%' }));
-    expect(screen.getByRole('menuitem', { name: 'Fit to width' })).toHaveAttribute('data-active');
+    expect(screen.getByRole('menuitemradio', { name: 'Fit to width' })).toBeChecked();
     unmount();
 
     render(<Scaled withMenu />);
     await userEvent.click(screen.getByRole('button', { name: 'Zoom 150%' }));
-    expect(screen.getByRole('menuitem', { name: 'Fit to width' })).not.toHaveAttribute(
-      'data-active'
-    );
+    expect(screen.getByRole('menuitemradio', { name: 'Fit to width' })).not.toBeChecked();
+    expect(screen.getByRole('menuitemradio', { name: '150%' })).toBeChecked();
   });
 
   it('renders nothing for other documents', () => {
