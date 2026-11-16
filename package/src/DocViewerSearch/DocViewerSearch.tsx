@@ -8,7 +8,9 @@ import {
   TooltipProps,
   useProps,
 } from '@mantine/core';
+import { useIsomorphicEffect } from '@mantine/hooks';
 import { useDocViewerContext } from '../doc-viewer.context';
+import { updateDocViewerStateAction } from '../doc-viewer.store';
 import { PartStyles } from '../DocViewerPages/PartStyles';
 import type { DocViewerSearchInputProps } from '../doc-viewer.types';
 import { DocViewerToolbarContext } from '../DocViewerToolbar/toolbar-context';
@@ -95,6 +97,12 @@ export const DocViewerSearch = factory<DocViewerSearchFactory>((_props) => {
   const props = useProps('DocViewerSearch', null, mergePartProps(layout.searchProps, _props));
   const { store } = useDocViewerContext();
   const opened = useDocViewerState(store, (state) => state.searchOpened);
+
+  useIsomorphicEffect(() => {
+    updateDocViewerStateAction({ searchAvailable: true }, store);
+    return () => updateDocViewerStateAction({ searchAvailable: false }, store);
+  }, [store]);
+
   return opened ? <SearchBar {...props} /> : null;
 });
 

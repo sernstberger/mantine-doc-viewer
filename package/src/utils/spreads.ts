@@ -81,8 +81,31 @@ const TURN_KEYS: Record<string, PageTurnDirection> = {
 };
 
 /** Elements that use these keys themselves: text fields, menus, sliders and the like */
-const OWN_KEYS_SELECTOR =
-  'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="menu"], [role="listbox"], [role="slider"], [role="tablist"], [role="radiogroup"], [role="dialog"]';
+const OWN_KEYS_SELECTOR = [
+  'input',
+  'textarea',
+  'select',
+  'video',
+  'audio',
+  '[contenteditable=""]',
+  '[contenteditable="true"]',
+  ...[
+    'menu',
+    'menubar',
+    'listbox',
+    'slider',
+    'tablist',
+    'radiogroup',
+    'dialog',
+    'tree',
+    'grid',
+    'toolbar',
+    'spinbutton',
+    'combobox',
+    'textbox',
+    'application',
+  ].map((role) => `[role="${role}"]`),
+].join(', ');
 
 /** Way a key turns the page, or null for other keys, keys with modifiers and keys meant for text fields and menus */
 export function getTurnKeyDirection(event: KeyboardEvent): PageTurnDirection | null {

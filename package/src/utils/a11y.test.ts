@@ -1,4 +1,4 @@
-import { focusIfLost, getRegionProps, softDisabled } from './a11y';
+import { focusIfLost, getRegionProps, softDisabled, toolbarSoftDisabled } from './a11y';
 
 describe('a11y helpers', () => {
   it('makes a loaded scroll area a named, focusable region', () => {
@@ -21,6 +21,20 @@ describe('a11y helpers', () => {
 
     expect(softDisabled(false, onClick).tabIndex).toBeUndefined();
     softDisabled(false, onClick).onClick();
+    expect(onClick).toHaveBeenCalled();
+  });
+
+  it('keeps toolbar buttons in the roving set while they are unavailable', () => {
+    const onClick = jest.fn();
+    const disabled = toolbarSoftDisabled(true, onClick);
+    disabled.onClick();
+    expect(disabled).not.toHaveProperty('tabIndex');
+    expect(disabled).not.toHaveProperty('data-disabled');
+    expect(disabled['aria-disabled']).toBe(true);
+    expect(disabled['data-soft-disabled']).toBe(true);
+    expect(onClick).not.toHaveBeenCalled();
+
+    toolbarSoftDisabled(false, onClick).onClick();
     expect(onClick).toHaveBeenCalled();
   });
 

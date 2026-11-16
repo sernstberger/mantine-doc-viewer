@@ -1,3 +1,4 @@
+import { useMergedRef } from '@mantine/hooks';
 import React from 'react';
 import {
   ActionIcon,
@@ -31,7 +32,7 @@ export type DocViewerMarkupButtonFactory = Factory<{
  * (control key `markup`), shown once a PDF with the markup extension is loaded
  */
 export const DocViewerMarkupButton = factory<DocViewerMarkupButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, onClick, ...others } = useProps(
+  const { classNames, className, style, styles, vars, ref, onClick, ...others } = useProps(
     'DocViewerMarkupButton',
     null,
     _props
@@ -40,6 +41,7 @@ export const DocViewerMarkupButton = factory<DocViewerMarkupButtonFactory>((_pro
   const show = useShowControl();
   const controlProps = useControlProps();
   const context = useMarkupContext();
+  const mergedRef = useMergedRef(ref, context?.markupRef);
   if (!context?.ready || !show('markup')) {
     return null;
   }
@@ -49,6 +51,7 @@ export const DocViewerMarkupButton = factory<DocViewerMarkupButtonFactory>((_pro
   return (
     <DocViewerTooltip label={labels.markupLabel}>
       <ActionIcon
+        ref={mergedRef}
         {...controlProps(barOpened)}
         {...getStyles('control', { className, style, classNames, styles })}
         aria-label={labels.markupLabel}

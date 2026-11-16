@@ -21,6 +21,8 @@ interface PdfKeyState {
   /** A document is loaded */
   ready: boolean;
   presenting: boolean;
+  /** A search bar is mounted, so Ctrl+F has somewhere to go */
+  searchAvailable: boolean;
   currentPage: number;
   numPages: number;
 }
@@ -50,5 +52,7 @@ export function getPdfKeyAction(event: PdfKeyEvent, state: PdfKeyState): PdfKeyA
   if (presentation || !state.ready) {
     return presentation;
   }
-  return getZoomAction(event) ?? (isFind(event) ? { type: 'search' } : null);
+  return (
+    getZoomAction(event) ?? (state.searchAvailable && isFind(event) ? { type: 'search' } : null)
+  );
 }

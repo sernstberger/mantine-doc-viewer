@@ -51,6 +51,8 @@ export interface DocViewerState {
   thumbnailsAvailable: boolean;
   thumbnailsOpened: boolean;
   thumbnailsPosition: DocViewerThumbnailsPosition;
+  /** True while a `DocViewer.Search` part is mounted */
+  searchAvailable: boolean;
   searchOpened: boolean;
   presenting: boolean;
   fullscreen: boolean;
@@ -157,6 +159,7 @@ const INITIAL_STATE: DocViewerState = {
   thumbnailsAvailable: false,
   thumbnailsOpened: false,
   thumbnailsPosition: 'left',
+  searchAvailable: false,
   searchOpened: false,
   presenting: false,
   fullscreen: false,

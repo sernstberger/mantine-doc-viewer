@@ -1,4 +1,5 @@
 import { useMergedRef } from '@mantine/hooks';
+import { useDocViewerState } from '../use-doc-viewer-state';
 import { getBodyAttributes } from '../../utils/body-attributes';
 import { fitsAcross, resolvePageTurning } from '../../utils/spreads';
 import { usePageTurning } from './use-page-turning';
@@ -22,6 +23,7 @@ export function usePdfPageTurns(
     ready: !!ready,
     goToPage,
   });
+  const searchAvailable = useDocViewerState(context.store, (state) => state.searchAvailable);
   const turning = resolvePageTurning(context.withPageTurning);
   const swipeable =
     turning.swipe &&
@@ -40,6 +42,7 @@ export function usePdfPageTurns(
     scroll: context.withScroll,
     swipeable,
     turningKeys: turning.keys,
+    searchAvailable,
   });
 
   return {

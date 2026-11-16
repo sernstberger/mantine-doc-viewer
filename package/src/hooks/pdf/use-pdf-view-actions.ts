@@ -85,7 +85,13 @@ export function usePdfViewActions(input: PdfViewActionsInput) {
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const ready = !!loaded.ready;
-    const action = getPdfKeyAction(event, { ready, presenting, currentPage, numPages });
+    const action = getPdfKeyAction(event, {
+      ready,
+      presenting,
+      currentPage,
+      numPages,
+      searchAvailable: context.store.getState().searchAvailable,
+    });
     if (action) {
       event.preventDefault();
       keyActions[action.type](action);

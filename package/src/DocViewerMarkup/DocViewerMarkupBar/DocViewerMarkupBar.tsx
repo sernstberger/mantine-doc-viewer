@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
-import { softDisabled } from '../../utils/a11y';
+import { toolbarSoftDisabled } from '../../utils/a11y';
 import { UndoIcon } from '../../utils/icons';
 import {
   CloudIcon,
@@ -116,7 +116,7 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
         <ActionIcon
           {...control()}
           aria-label={labels.undoMarkLabel}
-          {...softDisabled(empty, markup.undo)}
+          {...toolbarSoftDisabled(empty, markup.undo)}
         >
           <UndoIcon />
         </ActionIcon>
@@ -127,7 +127,7 @@ export const DocViewerMarkupBar = factory<DocViewerMarkupBarFactory>((_props) =>
         loading={markup.saving}
         {...getStyles('markupSave', stylesApiProps)}
         data-toolbar-toggle
-        {...softDisabled(empty, () => save().catch(logError))}
+        {...toolbarSoftDisabled(empty, () => save().catch(logError))}
       >
         {labels.saveMarkupLabel}
       </Button>

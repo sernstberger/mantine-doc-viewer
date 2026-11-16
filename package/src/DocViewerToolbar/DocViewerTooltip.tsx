@@ -5,10 +5,15 @@ import { useDocViewerToolbarContext } from './toolbar-context';
 
 const TOOLTIP_EVENTS = { hover: true, focus: true, touch: false };
 
-/** Toolbar tooltip with the `tooltipProps` of its toolbar. It also shows on keyboard focus */
+/**
+ * Toolbar tooltip with the `tooltipProps` of its toolbar. It also shows on keyboard focus, and
+ * stays inside the viewer: a portal to `document.body` is not painted in full screen
+ */
 export function DocViewerTooltip(props: TooltipProps) {
   const toolbar = useDocViewerToolbarContext();
-  return <Tooltip events={TOOLTIP_EVENTS} {...toolbar?.tooltipProps} {...props} />;
+  return (
+    <Tooltip events={TOOLTIP_EVENTS} withinPortal={false} {...toolbar?.tooltipProps} {...props} />
+  );
 }
 
 /** Props shared by every toolbar button: size, colours and the `control` Styles API selector */

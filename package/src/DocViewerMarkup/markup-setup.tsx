@@ -5,6 +5,7 @@ import { updateDocViewerStateAction, type DocViewerStore } from '../doc-viewer.s
 import { useDocViewerExtensionOptions } from '../DocViewerRoot/extensions-context';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useShallowStable } from '../DocViewerRoot/use-shallow-stable';
+import { useReturnFocus } from '../hooks/pdf/use-return-focus';
 import { useRegisterController } from '../hooks/use-controller-registry';
 import { saveBytes } from '../utils/files';
 import {
@@ -26,6 +27,9 @@ export interface MarkupContextValue {
   /** Whether the markup bar is open; it is also open while a tool is picked */
   opened: boolean;
   setOpened: (opened: boolean) => void;
+
+  /** Ref of the markup button: focus goes back to it when the bar closes */
+  markupRef: (node: HTMLElement | null) => void;
 
   /** Writes the marks into the PDF and hands the bytes on */
   save: () => Promise<void>;
@@ -73,6 +77,10 @@ export function MarkupSetup({ children }: { children: React.ReactNode }) {
   const markup = useMarkup({ options, labels, announce, scrollToPage });
   const [opened, setOpened] = useState(false);
   const ready = !!session.loaded.ready;
+  const markupRef = useReturnFocus(
+    opened || markup.tool !== null,
+    ready ? session.view.scrollRoot : null
+  );
 
   const save = useCallbackRef(async () => {
     const document = session.loaded.document;
@@ -98,8 +106,8 @@ export function MarkupSetup({ children }: { children: React.ReactNode }) {
   const { layer, marksByPage } = markup;
   const layerValue = useMemo(() => ({ store, layer, marksByPage }), [store, layer, marksByPage]);
   const value = useMemo(
-    () => ({ markup, labels, ready, opened, setOpened, save }),
-    [markup, labels, ready, opened, save]
+    () => ({ markup, labels, ready, opened, setOpened, markupRef, save }),
+    [markup, labels, ready, opened, markupRef, save]
   );
 
   return (
