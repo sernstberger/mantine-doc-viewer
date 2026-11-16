@@ -77,8 +77,10 @@ describe('DocViewer.module.css', () => {
 
   it('marks pressed buttons in forced colors by their data attribute, wherever they are', () => {
     const forced = css.slice(css.indexOf('@media (forced-colors: active) {'));
-    expect(forced).toContain(':is(.control, .overlayControl)[data-pressed]');
-    expect(css).not.toContain('aria-pressed');
+    expect(forced).toContain(
+      ":is(.control, .overlayControl):is([data-pressed], [aria-pressed='true'])"
+    );
+    expect(css).not.toContain('.toolbar [aria-pressed');
   });
 
   it('screens highlights over dark pages, where multiplying would make them disappear', () => {

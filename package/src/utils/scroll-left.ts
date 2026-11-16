@@ -1,5 +1,5 @@
 /** Whether the node lays out from right to left, where browsers count `scrollLeft` from 0 down to a negative number */
-function isRightToLeft(node: HTMLElement) {
+export function isRightToLeft(node: HTMLElement) {
   return getComputedStyle(node).direction === 'rtl';
 }
 
