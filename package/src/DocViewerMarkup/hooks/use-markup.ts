@@ -26,7 +26,7 @@ export interface PdfLayerMarkup {
   /** Text of the markup tools, with the extension's `labels` laid over the defaults */
   labels: DocViewerMarkupLabels;
 
-  /** Colour of a new mark made with a tool, resolved from the theme to a CSS color */
+  /** Color of a new mark made with a tool, resolved from the theme to a CSS color */
   getColor: (tool: DocViewerMarkupTool) => string;
   width: number;
   fontSize: number;

@@ -2,19 +2,29 @@
 export interface DocViewerPageEditorLabels {
   /** Toolbar button that opens the editor, and the editor's title */
   editPagesLabel: string;
+  /** Label of the button that moves the selected pages earlier */
   moveEarlierLabel: string;
+  /** Label of the button that moves the selected pages later */
   moveLaterLabel: string;
+  /** Label of the button that deletes the selected pages */
   deletePagesLabel: string;
   /** Delete button on a thumbnail */
   deletePageLabel: (page: number) => string;
+  /** Label of the button that extracts the selected pages into a new file */
   extractPagesLabel: string;
+  /** Label of the button that turns the selected pages */
   rotatePagesLabel: string;
+  /** Label of the button that undoes all page edits */
   resetPagesLabel: string;
+  /** Label of the button that leaves the editor without keeping the edits */
   cancelLabel: string;
+  /** Label of the button that leaves the editor and keeps the edits */
   doneLabel: string;
+  /** Label of the button that saves the edited document */
   savePagesLabel: string;
   /** Screen reader name of the editor's list of pages */
   pagesLabel: string;
+  /** Shown while pages are selected, with the number of selected pages */
   selectedCountLabel: (count: number) => string;
   /** Screen reader name of a page in the editor */
   editorPageLabel: (page: number, position: number, total: number) => string;

@@ -457,6 +457,18 @@ describe('DocViewer PDF', () => {
       );
     });
 
+    it('does not report the page a document opens on, only changes after it', async () => {
+      mockPdf();
+      const onPageChange = jest.fn();
+      const { handle } = renderControlled({ src: '/files/report.pdf', onPageChange });
+      await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
+      expect(onPageChange).not.toHaveBeenCalled();
+
+      act(() => handle.actions.goToPage(2));
+      expect(onPageChange).toHaveBeenCalledTimes(1);
+      expect(onPageChange).toHaveBeenCalledWith(2);
+    });
+
     it('follows the page prop', async () => {
       mockPdf();
       const { rerender } = render(<TestDocViewer src="/files/report.pdf" page={1} />);

@@ -4,21 +4,29 @@ import type { DocViewerMarkupTool } from './utils/markup';
 export interface DocViewerMarkupLabels {
   /** Toolbar button that opens the markup bar, and the bar's screen reader name */
   markupLabel: string;
+  /** Names of the markup tools */
   markupToolLabels: Record<DocViewerMarkupTool, string>;
+  /** Label of the button that removes the last mark */
   undoMarkLabel: string;
+  /** Label of the button that saves the marks */
   saveMarkupLabel: string;
+  /** Label of the button that closes the markup bar */
   closeMarkupLabel: string;
   /** Screen reader name of the box a text mark is typed into */
   markupTextLabel: string;
   /** How to add or cancel the text being typed, read after the text box's name */
   markupTextKeysLabel: string;
+  /** Read out after the marks were saved */
   markupSavedLabel: string;
   /** Screen reader name of a page while a markup tool is picked, where keys place marks */
   markupLayerLabel: (tool: string, page: number) => string;
   /** How to place marks with the keyboard, read after the page's markup name */
   markupKeysLabel: string;
+  /** Read out when a mark is started with the keyboard, with the tool */
   markStartedLabel: (tool: string) => string;
+  /** Read out when a mark is finished, with the tool */
   markAddedLabel: (tool: string) => string;
+  /** Read out when a mark in progress is cancelled */
   markCancelledLabel: string;
   /** Screen reader name of the hidden list of a page's marks */
   pageMarksLabel: (page: number, count: number) => string;

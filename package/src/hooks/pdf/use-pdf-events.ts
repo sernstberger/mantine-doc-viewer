@@ -10,10 +10,11 @@ interface PdfEventsInput {
   mimeType: string | undefined;
 }
 
-/** Calls the load, error and page events (zoom reports itself, in useZoomSetting). Returns the page last reported */
+/** Calls the load, error and page events (zoom reports itself, in useZoomSetting). The page a document opens on is not reported. Returns the page last seen */
 export function usePdfEvents({ state, events, currentPage, mimeType }: PdfEventsInput) {
   const ready = state.status === 'ready';
   const pageReported = useRef(0);
+  const opened = useRef(false);
 
   useEffect(() => {
     if (state.status === 'ready') {
@@ -30,8 +31,13 @@ export function usePdfEvents({ state, events, currentPage, mimeType }: PdfEvents
   }, [state, events, mimeType]);
 
   useEffect(() => {
-    if (ready && currentPage !== pageReported.current) {
-      pageReported.current = currentPage;
+    if (!ready) {
+      return;
+    }
+    const changed = opened.current && currentPage !== pageReported.current;
+    opened.current = true;
+    pageReported.current = currentPage;
+    if (changed) {
       events.onPageChange(currentPage);
     }
   }, [ready, currentPage, events]);

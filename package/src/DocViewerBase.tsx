@@ -52,13 +52,13 @@ export interface DocViewerProps extends Omit<DocViewerRootProps, 'children'> {
   /** Custom layout, replaces the default layout for the document type */
   children?: React.ReactNode;
 
-  /** Determines whether the toolbar is shown, `true` by default */
+  /** Determines whether the toolbar is shown @default true */
   withToolbar?: boolean;
 
   /** Toolbar and overlay controls to hide, for example `{ print: false, rotate: false }` */
   toolbarControls?: Partial<Record<DocViewerControl, boolean>>;
 
-  /** Zoom and full screen buttons floating over the document, `false` by default */
+  /** Zoom and full screen buttons floating over the document @default false */
   withOverlayControls?: boolean;
 
   /** Props passed to the default toolbar */

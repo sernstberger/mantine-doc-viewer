@@ -21,7 +21,7 @@ export type DocViewerMainStylesNames = 'main';
 
 export interface DocViewerMainProps
   extends BoxProps, CompoundStylesApiProps<DocViewerMainFactory>, ElementProps<'div'> {
-  /** Content of the row under the toolbar, thumbnails and pages by default */
+  /** Content of the row under the toolbar @default thumbnails and pages */
   children?: React.ReactNode;
 }
 

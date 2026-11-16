@@ -18,7 +18,7 @@ export type DocViewerBodyStylesNames = 'body';
 
 export interface DocViewerBodyProps
   extends BoxProps, CompoundStylesApiProps<DocViewerBodyFactory>, ElementProps<'div'> {
-  /** Makes the body a named, focusable region, set it once the content has loaded, `true` by default */
+  /** Makes the body a named, focusable region, set it once the content has loaded @default true */
   focusable?: boolean;
 }
 

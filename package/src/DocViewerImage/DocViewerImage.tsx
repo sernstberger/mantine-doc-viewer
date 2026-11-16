@@ -22,7 +22,7 @@ export type DocViewerImageStylesNames =
 
 export interface DocViewerImageProps
   extends BoxProps, CompoundStylesApiProps<DocViewerImageFactory>, ElementProps<'div'> {
-  /** Alternative text of the image, `fileName` by default */
+  /** Alternative text of the image @default fileName */
   alt?: string;
 }
 

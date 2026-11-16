@@ -1,4 +1,4 @@
-import { DEFAULT_LABELS } from './default-labels';
+import { DEFAULT_LABELS, mergeLabels } from './default-labels';
 
 describe('DEFAULT_LABELS', () => {
   it('formats every default label function', () => {
@@ -11,5 +11,13 @@ describe('DEFAULT_LABELS', () => {
     expect(l.matchOnPageLabel(1, 2, 3)).toBe('Match 1 of 2, page 3');
     expect(l.tooLargeLabel('3 MB')).toBe('This file is too large to preview (3 MB)');
     expect(l.notSupportedYetLabel('pdf')).toBe('Preview for pdf files is not available yet');
+  });
+
+  it('merges a subset of propertyNameLabels over the defaults', () => {
+    const merged = mergeLabels(DEFAULT_LABELS, { propertyNameLabels: { author: 'Autor' } });
+    expect(merged.propertyNameLabels.author).toBe('Autor');
+    expect(merged.propertyNameLabels.title).toBe(DEFAULT_LABELS.propertyNameLabels.title);
+    expect(merged.printLabel).toBe(DEFAULT_LABELS.printLabel);
+    expect(mergeLabels(DEFAULT_LABELS, undefined)).toEqual(DEFAULT_LABELS);
   });
 });

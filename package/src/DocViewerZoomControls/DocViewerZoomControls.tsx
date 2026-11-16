@@ -20,7 +20,7 @@ export type DocViewerZoomControlsStylesNames = 'zoomLevel' | 'dropdown' | 'contr
 
 export interface DocViewerZoomControlsProps
   extends BoxProps, CompoundStylesApiProps<DocViewerZoomControlsFactory>, ElementProps<'div'> {
-  /** Determines whether the zoom level opens a menu of zoom presets, otherwise it resets the zoom to 100%, `true` by default */
+  /** Determines whether the zoom level opens a menu of zoom presets, otherwise it resets the zoom to 100% @default true */
   withMenu?: boolean;
 }
 

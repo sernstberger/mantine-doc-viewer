@@ -8,13 +8,13 @@ import { MarkupSetup } from './markup-setup';
 import { MarkupPageLayer } from './DocViewerMarkupLayer/MarkupPageLayer';
 
 export interface DocViewerMarkupOptions {
-  /** Tools in the markup bar, in that order. All are shown by default */
+  /** Tools in the markup bar, in that order. @default all tools */
   tools?: DocViewerMarkupTool[];
 
   /** Markup tool readers draw with, for a controlled tool. `null` means no tool */
   tool?: DocViewerMarkupTool | null;
 
-  /** Markup tool when a PDF opens, `null` (no tool) by default */
+  /** Markup tool when a PDF opens @default null */
   defaultTool?: DocViewerMarkupTool | null;
 
   /** Called when the reader picks a markup tool, or `null` when they put it down */
@@ -23,19 +23,19 @@ export interface DocViewerMarkupOptions {
   /** Marks on PDF pages, for controlled markup */
   value?: DocViewerMark[];
 
-  /** Marks on PDF pages when a PDF opens, none by default */
+  /** Marks on PDF pages when a PDF opens @default [] */
   defaultValue?: DocViewerMark[];
 
   /** Called with all marks whenever the reader draws, types or undoes a mark */
   onChange?: (marks: DocViewerMark[]) => void;
 
-  /** Key of `theme.colors` or any valid CSS color for new marks. Highlights are `'yellow'` and other marks `'red'` by default */
+  /** Key of `theme.colors` or any valid CSS color for new marks. Highlights are yellow and other marks red @default 'red' */
   color?: MantineColor;
 
-  /** Line width of new pen marks, shapes and signatures in PDF points, `2` by default */
+  /** Line width of new pen marks, shapes and signatures in PDF points @default 2 */
   width?: number;
 
-  /** Font size of new text boxes in PDF points, `14` by default */
+  /** Font size of new text boxes in PDF points @default 14 */
   fontSize?: number;
 
   /** Bytes of the PDF with the marks written in; without it the marked up PDF is downloaded */

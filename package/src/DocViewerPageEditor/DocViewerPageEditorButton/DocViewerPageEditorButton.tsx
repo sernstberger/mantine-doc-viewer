@@ -1,15 +1,8 @@
 import React from 'react';
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import { useDocViewerContext, useShowControl } from '../../doc-viewer.context';
+import type { DocViewerControlProps } from '../../doc-viewer.types';
 import { useReadyPdfSession } from '../../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../../DocViewerToolbar/DocViewerTooltip';
 import { EditPagesIcon } from '../../utils/icons';
@@ -19,10 +12,7 @@ import { usePageEditor } from '../page-editor-setup';
 export type DocViewerPageEditorButtonStylesNames = 'control';
 
 export interface DocViewerPageEditorButtonProps
-  extends
-    BoxProps,
-    CompoundStylesApiProps<DocViewerPageEditorButtonFactory>,
-    ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerPageEditorButtonFactory> {}
 
 export type DocViewerPageEditorButtonFactory = Factory<{
   props: DocViewerPageEditorButtonProps;

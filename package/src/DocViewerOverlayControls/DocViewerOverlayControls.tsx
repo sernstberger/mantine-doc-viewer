@@ -54,6 +54,7 @@ export const DocViewerOverlayControls = factory<DocViewerOverlayControlsFactory>
     variant: 'default',
     color: 'gray',
   };
+  const fullscreenLabel = fullscreen ? labels.exitFullscreenLabel : labels.enterFullscreenLabel;
   const shown = (control: DocViewerControl) => show(control) && controls?.[control] !== false;
 
   return (
@@ -82,13 +83,10 @@ export const DocViewerOverlayControls = factory<DocViewerOverlayControlsFactory>
           </>
         )}
         {shown('fullscreen') && fullscreenAvailable && (
-          <DocViewerTooltip
-            label={fullscreen ? labels.exitFullscreenLabel : labels.fullscreenLabel}
-          >
+          <DocViewerTooltip label={fullscreenLabel}>
             <ActionIcon
               {...buttonProps}
-              aria-label={labels.fullscreenLabel}
-              aria-pressed={fullscreen}
+              aria-label={fullscreenLabel}
               onClick={() => docViewerActions.toggleFullscreen(store)}
             >
               {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}

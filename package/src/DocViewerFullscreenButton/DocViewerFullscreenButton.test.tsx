@@ -39,22 +39,22 @@ describe('mantine-doc-viewer/DocViewerFullscreenButton', () => {
   it('toggles full screen through the store', () => {
     render(<Harness />);
     const button = screen.getByRole('button', { name: 'Full screen' });
-    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(button).not.toHaveAttribute('aria-pressed');
     const requestFullscreen = jest.fn(() => Promise.resolve());
     Element.prototype.requestFullscreen = requestFullscreen;
     fireEvent.click(button);
     expect(requestFullscreen).toHaveBeenCalled();
   });
 
-  it('shows it is pressed while in full screen', () => {
+  it('is named after what it does while in full screen', () => {
     const { Harness: Full } = createPartHarness(DocViewerFullscreenButton, {
       state: { fullscreen: true },
     });
     render(<Full />);
-    expect(screen.getByRole('button', { name: 'Full screen' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
+    expect(screen.getByRole('button', { name: 'Exit full screen' })).not.toHaveAttribute(
+      'aria-pressed'
     );
+    expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();
   });
 
   it('renders nothing where the browser has no full screen', () => {

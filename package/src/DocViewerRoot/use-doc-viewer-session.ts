@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useMergedRef } from '@mantine/hooks';
-import { DEFAULT_LABELS, mergeLabels, type DocViewerLabels } from '../default-labels';
+import { DEFAULT_LABELS, mergeLabels, type DocViewerLabelsInput } from '../default-labels';
 import type { DocViewerStore } from '../doc-viewer.store';
 import { getControllerRegistry, useRegisterController } from '../hooks/use-controller-registry';
 import { useControlledFullscreen } from '../hooks/use-controlled-fullscreen';
@@ -21,7 +21,7 @@ interface DocViewerSessionInput {
   type: DocViewerType | undefined;
   mimeType: string | undefined;
   fileName: string | undefined;
-  labels: Partial<DocViewerLabels> | undefined;
+  labels: DocViewerLabelsInput | undefined;
   fullscreen: boolean | undefined;
   onFullscreenChange: ((fullscreen: boolean) => void) | undefined;
   ref: React.Ref<HTMLDivElement> | undefined;

@@ -1,4 +1,5 @@
-import { type MutableRefObject, useEffect, useRef } from 'react';
+import { type MutableRefObject, useEffect } from 'react';
+import { useCallbackRef } from '@mantine/hooks';
 import { collectVisibleBoxes, getViewBox } from '../../utils/current-page';
 import { Box, getMostVisiblePage, VisibleBox } from '../../utils/geometry';
 
@@ -28,8 +29,7 @@ export function usePageObserver({
   onView,
   onCurrent,
 }: PageObserverOptions) {
-  const handleView = useRef(onView);
-  handleView.current = onView;
+  const handleView = useCallbackRef(onView);
 
   useEffect(() => {
     if (!scrollRoot || typeof IntersectionObserver === 'undefined') {
@@ -40,7 +40,7 @@ export function usePageObserver({
     const update = () => {
       const boxes = collectVisibleBoxes(visible.current, pages.current);
       const view = getViewBox(viewport, scrollRoot);
-      handleView.current?.(boxes, view);
+      handleView(boxes, view);
       if (scrollTarget.current !== null) {
         return;
       }

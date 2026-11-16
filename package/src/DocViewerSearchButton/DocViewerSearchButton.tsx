@@ -1,15 +1,8 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import { useMergedRef } from '@mantine/hooks';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
@@ -21,7 +14,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerSearchButtonStylesNames = 'control';
 
 export interface DocViewerSearchButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerSearchButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerSearchButtonFactory> {}
 
 export type DocViewerSearchButtonFactory = Factory<{
   props: DocViewerSearchButtonProps;
@@ -32,7 +25,7 @@ export type DocViewerSearchButtonFactory = Factory<{
 
 /** Opens and closes the search of a PDF */
 export const DocViewerSearchButton = factory<DocViewerSearchButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ref, ...others } = useProps(
+  const { classNames, className, style, styles, vars, ref, onClick, ...others } = useProps(
     'DocViewerSearchButton',
     null,
     _props
@@ -56,12 +49,15 @@ export const DocViewerSearchButton = factory<DocViewerSearchButtonFactory>((_pro
         ref={mergedRef}
         aria-label={labels.searchLabel}
         aria-pressed={opened}
-        onClick={() =>
-          opened
-            ? docViewerActions.closeSearch(store)
-            : docViewerActions.openSearch(undefined, store)
-        }
         {...others}
+        onClick={(event) => {
+          if (opened) {
+            docViewerActions.closeSearch(store);
+          } else {
+            docViewerActions.openSearch(undefined, store);
+          }
+          onClick?.(event);
+        }}
       >
         <SearchIcon />
       </ActionIcon>

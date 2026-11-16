@@ -6,10 +6,10 @@ import { DocViewerPageEditor } from './DocViewerPageEditor';
 import { ThumbnailDeleteAction } from './ThumbnailDeleteAction';
 
 export interface DocViewerPageEditorOptions {
-  /** Buttons show only icons, labels in tooltips, `false` by default */
+  /** Buttons show only icons, labels in tooltips @default false */
   compact?: boolean;
 
-  /** Thumbnails can be dragged to reorder and deleted, `true` by default */
+  /** Thumbnails can be dragged to reorder and deleted @default true */
   withThumbnailEditing?: boolean;
 
   /** Bytes of the changed document; without it a save downloads the document and a reorder or delete only changes what is shown */

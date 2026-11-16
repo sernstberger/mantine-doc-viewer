@@ -180,7 +180,7 @@ import type {
   DocViewerZoom,
 } from './doc-viewer.types.js';
 import type { DocViewerActions, DocViewerState, DocViewerStore } from './doc-viewer.store.js';
-import type { DocViewerLabels } from './default-labels.js';
+import type { DocViewerLabels, DocViewerLabelsInput } from './default-labels.js';
 import type { DocViewerAdapterProviderProps } from './DocViewerAdapterProvider/DocViewerAdapterProvider.js';
 import type {
   CreatePdfJsAdapterOptions,
@@ -353,6 +353,7 @@ export type {
   DocViewerGoToPageOptions,
   DocViewerHighlightTarget,
   DocViewerLabels,
+  DocViewerLabelsInput,
   DocViewerLoadInfo,
   DocViewerMarkdownAdapter,
   DocViewerMarkdownEngine,

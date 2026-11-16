@@ -1,8 +1,6 @@
 import {
   ActionIcon,
-  BoxProps,
   CompoundStylesApiProps,
-  ElementProps,
   factory,
   Factory,
   GetStylesApiOptions,
@@ -13,6 +11,7 @@ import { useDisclosure } from '@mantine/hooks';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { PdfDocumentInfo } from '../DocViewerDocumentInfo/PdfDocumentInfo';
 import { useReadyPdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
@@ -24,7 +23,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerInfoButtonStylesNames = 'control' | 'dropdown';
 
 export interface DocViewerInfoButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerInfoButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerInfoButtonFactory> {}
 
 export type DocViewerInfoButtonFactory = Factory<{
   props: DocViewerInfoButtonProps;
@@ -73,8 +72,11 @@ function InfoPopover({
             {...controlProps(opened, stylesApiProps)}
             aria-label={labels.documentInfoLabel}
             aria-expanded={opened}
-            onClick={popover.toggle}
             {...buttonProps}
+            onClick={(event) => {
+              popover.toggle();
+              buttonProps.onClick?.(event);
+            }}
           >
             <InfoIcon />
           </ActionIcon>

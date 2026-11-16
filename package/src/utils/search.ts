@@ -35,13 +35,13 @@ export function buildPageText(items: Pick<TextItem, 'str' | 'hasEOL'>[]): PageTe
 }
 
 export interface SearchOptions {
-  /** Upper and lower case must match, off by default */
+  /** Upper and lower case must match @default false */
   matchCase?: boolean;
 
-  /** Matches must be whole words, off by default */
+  /** Matches must be whole words @default false */
   wholeWords?: boolean;
 
-  /** Accents must match, off by default, so "cafe" also finds "café" */
+  /** Accents must match, so "cafe" also finds "café" @default false */
   matchAccents?: boolean;
 }
 

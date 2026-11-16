@@ -1,14 +1,7 @@
-import {
-  ActionIcon,
-  BoxProps,
-  CompoundStylesApiProps,
-  ElementProps,
-  factory,
-  Factory,
-  useProps,
-} from '@mantine/core';
+import { ActionIcon, CompoundStylesApiProps, factory, Factory, useProps } from '@mantine/core';
 import React, { useState } from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
+import type { DocViewerControlProps } from '../doc-viewer.types';
 import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
@@ -18,7 +11,7 @@ import classes from '../DocViewer.module.css';
 export type DocViewerPrintButtonStylesNames = 'control';
 
 export interface DocViewerPrintButtonProps
-  extends BoxProps, CompoundStylesApiProps<DocViewerPrintButtonFactory>, ElementProps<'button'> {}
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerPrintButtonFactory> {}
 
 export type DocViewerPrintButtonFactory = Factory<{
   props: DocViewerPrintButtonProps;
@@ -29,7 +22,7 @@ export type DocViewerPrintButtonFactory = Factory<{
 
 /** Prints the document, renders nothing until the document is loaded and can be printed */
 export const DocViewerPrintButton = factory<DocViewerPrintButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, ...others } = useProps(
+  const { classNames, className, style, styles, vars, onClick, ...others } = useProps(
     'DocViewerPrintButton',
     null,
     _props
@@ -61,8 +54,11 @@ export const DocViewerPrintButton = factory<DocViewerPrintButtonFactory>((_props
         {...controlProps(false, { className, style, classNames, styles })}
         aria-label={labels.printLabel}
         loading={printing}
-        onClick={print}
         {...others}
+        onClick={(event) => {
+          print();
+          onClick?.(event);
+        }}
       >
         <PrintIcon />
       </ActionIcon>

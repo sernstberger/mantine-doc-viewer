@@ -1,8 +1,6 @@
 import {
   ActionIcon,
-  BoxProps,
   CompoundStylesApiProps,
-  ElementProps,
   factory,
   Factory,
   Popover,
@@ -12,7 +10,7 @@ import {
 import React from 'react';
 import { useDocViewerContext, useShowControl } from '../doc-viewer.context';
 import { docViewerActions } from '../doc-viewer.store';
-import type { DocViewerThumbnailsPosition } from '../doc-viewer.types';
+import type { DocViewerControlProps, DocViewerThumbnailsPosition } from '../doc-viewer.types';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
@@ -22,11 +20,8 @@ import classes from '../DocViewer.module.css';
 export type DocViewerThumbnailsButtonStylesNames = 'control' | 'dropdown';
 
 export interface DocViewerThumbnailsButtonProps
-  extends
-    BoxProps,
-    CompoundStylesApiProps<DocViewerThumbnailsButtonFactory>,
-    ElementProps<'button'> {
-  /** Determines whether the button has a menu to move the thumbnails while they are shown, `true` by default */
+  extends DocViewerControlProps, CompoundStylesApiProps<DocViewerThumbnailsButtonFactory> {
+  /** Determines whether the button has a menu to move the thumbnails while they are shown @default true */
   withPositionMenu?: boolean;
 }
 
@@ -45,11 +40,8 @@ const defaultProps = {
 
 /** Shows and hides the PDF page thumbnails, and moves them to another side of the viewer. It is shown while a `DocViewer.Thumbnails` part is mounted */
 export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactory>((_props) => {
-  const { classNames, className, style, styles, vars, withPositionMenu, ...others } = useProps(
-    'DocViewerThumbnailsButton',
-    defaultProps,
-    _props
-  );
+  const { classNames, className, style, styles, vars, withPositionMenu, onClick, ...others } =
+    useProps('DocViewerThumbnailsButton', defaultProps, _props);
   const { store, getStyles, labels, size } = useDocViewerContext();
   const ready = useReadyDocument(PDF_ONLY);
   const available = useDocViewerState(store, (state) => state.thumbnailsAvailable);
@@ -65,13 +57,16 @@ export const DocViewerThumbnailsButton = factory<DocViewerThumbnailsButtonFactor
 
   return (
     <>
-      <DocViewerTooltip label={opened ? labels.hidePagesLabel : labels.showPagesLabel}>
+      <DocViewerTooltip label={opened ? labels.hideThumbnailsLabel : labels.showThumbnailsLabel}>
         <ActionIcon
           {...controlProps(opened, { className, style, classNames, styles })}
           aria-label={labels.pageThumbnailsLabel}
           aria-pressed={opened}
-          onClick={() => docViewerActions.toggleThumbnails(undefined, store)}
           {...others}
+          onClick={(event) => {
+            docViewerActions.toggleThumbnails(undefined, store);
+            onClick?.(event);
+          }}
         >
           <SidebarIcon />
         </ActionIcon>
