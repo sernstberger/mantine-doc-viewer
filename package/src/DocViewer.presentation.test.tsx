@@ -123,10 +123,12 @@ describe('DocViewer presentation', () => {
       expect(screen.getByRole('button', { name: 'Full screen' })).toBeInTheDocument();
 
       rerender(
-        <TestDocViewer
-          src="/files/photo.png"
-          toolbarControls={{ print: false, download: false, fullscreen: false }}
-        />
+        <>
+          <TestDocViewer
+            src="/files/photo.png"
+            toolbarControls={{ print: false, download: false, fullscreen: false }}
+          />
+        </>
       );
       loadImage();
       expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
@@ -134,7 +136,11 @@ describe('DocViewer presentation', () => {
       expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();
 
-      rerender(<TestDocViewer src="/files/photo.png" toolbarControls={{ fullscreen: false }} />);
+      rerender(
+        <>
+          <TestDocViewer src="/files/photo.png" toolbarControls={{ fullscreen: false }} />
+        </>
+      );
       loadImage();
       expect(screen.getByRole('button', { name: 'Print' })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Full screen' })).not.toBeInTheDocument();

@@ -35,7 +35,11 @@ describe('unstyled', () => {
     expect(buttons().length).toBeGreaterThan(0);
     buttons().forEach((button) => expect(button.className).toMatch(mantineClass));
 
-    rerender(<TestDocViewer src="/files/report.pdf" unstyled />);
+    rerender(
+      <>
+        <TestDocViewer src="/files/report.pdf" unstyled />
+      </>
+    );
     await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
     expect(buttons().length).toBeGreaterThan(0);
     buttons().forEach((button) => expect(button.className).not.toMatch(mantineClass));

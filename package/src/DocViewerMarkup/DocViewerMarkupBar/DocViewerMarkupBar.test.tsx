@@ -90,7 +90,9 @@ describe('mantine-doc-viewer/DocViewerMarkupBar', () => {
       expect(screen.queryByRole('button', { name: 'Highlight' })).toBeNull();
 
       rerender(
-        <MarkupViewer markup={{ defaultTool: 'pen' }} toolbarControls={{ markup: false }} />
+        <>
+          <MarkupViewer markup={{ defaultTool: 'pen' }} toolbarControls={{ markup: false }} />
+        </>
       );
       await waitFor(() => expect(screen.queryByRole('toolbar', { name: 'Markup' })).toBeNull());
     });

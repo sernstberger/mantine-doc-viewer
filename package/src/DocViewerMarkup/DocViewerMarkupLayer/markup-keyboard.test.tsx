@@ -241,7 +241,11 @@ describe('markup from the keyboard', () => {
       screen.getByRole('application', { name: `Rectangle on page ${page}` });
     await screen.findByRole('application', { name: 'Rectangle on page 3' });
 
-    view.rerender(<MarkupViewer markup={{ tool: 'rectangle' }} page={3} />);
+    view.rerender(
+      <>
+        <MarkupViewer markup={{ tool: 'rectangle' }} page={3} />
+      </>
+    );
     await waitFor(() => expect(layer(3)).toHaveAttribute('tabindex', '0'));
     expect(layer(1)).toHaveAttribute('tabindex', '-1');
   });

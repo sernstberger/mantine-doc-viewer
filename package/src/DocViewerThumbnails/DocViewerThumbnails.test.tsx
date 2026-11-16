@@ -51,18 +51,15 @@ describe('mantine-doc-viewer/DocViewerThumbnails', () => {
   });
 
   it('is not rendered until the thumbnails are opened', () => {
-    const { rerender } = render(
-      <ReadyRoot>
+    const [store] = createDocViewer();
+    render(
+      <ReadyRoot store={store}>
         <DocViewerThumbnails />
       </ReadyRoot>
     );
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-    rerender(
-      <ReadyRoot defaultThumbnailsOpened>
-        <DocViewerThumbnails />
-      </ReadyRoot>
-    );
+    act(() => updateDocViewerStateAction({ thumbnailsOpened: true }, store));
     expect(screen.getByRole('listbox', { name: 'Pages' })).toBeInTheDocument();
     expect(screen.getAllByRole('option')).toHaveLength(NUM_PAGES);
   });
@@ -96,7 +93,11 @@ describe('mantine-doc-viewer/DocViewerThumbnails', () => {
     );
     expect(store.getState().thumbnailsAvailable).toBe(true);
 
-    rerender(<ReadyRoot store={store}>{null}</ReadyRoot>);
+    rerender(
+      <>
+        <ReadyRoot store={store}>{null}</ReadyRoot>
+      </>
+    );
     expect(store.getState().thumbnailsAvailable).toBe(false);
   });
 
@@ -115,9 +116,11 @@ describe('mantine-doc-viewer/DocViewerThumbnails', () => {
     });
 
     rerender(
-      <ReadyRoot defaultThumbnailsOpened>
-        <DocViewerThumbnails />
-      </ReadyRoot>
+      <>
+        <ReadyRoot defaultThumbnailsOpened>
+          <DocViewerThumbnails />
+        </ReadyRoot>
+      </>
     );
     expect(
       screen.getByRole('listbox').style.getPropertyValue('--doc-viewer-thumbnails-width')

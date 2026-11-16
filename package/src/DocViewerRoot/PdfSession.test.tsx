@@ -483,7 +483,11 @@ describe('DocViewer PDF', () => {
       const { rerender } = render(<TestDocViewer src="/files/report.pdf" page={1} />);
       await screen.findAllByRole('group', { name: /^Page \d of 3$/ });
 
-      rerender(<TestDocViewer src="/files/report.pdf" page={2} />);
+      rerender(
+        <>
+          <TestDocViewer src="/files/report.pdf" page={2} />
+        </>
+      );
       expect(await screen.findByText('2 / 3')).toBeInTheDocument();
     });
 
