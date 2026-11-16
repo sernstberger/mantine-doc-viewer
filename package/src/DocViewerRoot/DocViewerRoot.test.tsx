@@ -289,6 +289,7 @@ describe('render counts', () => {
 
     act(() => actions.setZoom(2));
     expect(zoomRenders).toHaveBeenLastCalledWith(2);
+    await act(async () => {});
   });
 
   it('renders no page for a new markup extension object with equal options', async () => {

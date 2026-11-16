@@ -10,6 +10,7 @@ import { createDocViewerStore } from '../../doc-viewer.store';
 import { getDocument, mockPdf } from '../../../../test-utils/mock-pdf';
 import { installIntersectionObserver } from '../../../../test-utils/intersection-observer';
 import { PdfPage } from '../../DocViewerPages/PdfPage';
+import { createPageScaleStore } from './use-page-scale';
 import { PdfThumbnails } from '../../DocViewerThumbnails/PdfThumbnails';
 import { useAnnouncement } from '../../hooks/pdf/use-announcement';
 import { useCurrentPage } from '../../hooks/pdf/use-current-page';
@@ -743,6 +744,7 @@ function PdfPageForTest({
   linkService?: any;
 }) {
   const [root, setRoot] = React.useState<HTMLElement | null>(null);
+  const [scaleStore] = React.useState(() => createPageScaleStore(1));
   return (
     <div ref={setRoot}>
       <PdfPage
@@ -750,7 +752,7 @@ function PdfPageForTest({
         document={doc}
         pageNumber={1}
         numPages={2}
-        scale={1}
+        scaleStore={scaleStore}
         placeholderSize={{ width: 612, height: 792 }}
         scrollRoot={root}
         registerPage={() => {}}

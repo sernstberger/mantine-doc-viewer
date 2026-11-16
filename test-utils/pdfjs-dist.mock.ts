@@ -38,6 +38,8 @@ export class TextLayer {
   }
 
   cancel() {}
+
+  update() {}
 }
 
 export const AnnotationType = { LINK: 2, WIDGET: 20 };
@@ -88,4 +90,6 @@ export class AnnotationLayer {
 
     return Promise.resolve();
   }
+
+  update() {}
 }

@@ -1,4 +1,4 @@
-import type { PDFDocumentProxy } from 'pdfjs-dist';
+import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useDocViewerPageContext } from '../../doc-viewer.context';
 import type { PdfJsModule } from '../../DocViewerAdapterProvider/adapters/pdfjs-adapter';
@@ -66,6 +66,12 @@ export function useTextLayer({
   onTextLayer,
 }: TextLayerInput) {
   const textLayerRef = useRef<HTMLDivElement>(null);
+  const built = useRef<{
+    layer: InstanceType<PdfJsModule['TextLayer']>;
+    page: PDFPageProxy;
+  } | null>(null);
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
   const { pageHasNoTextLabel: pageHasNoText } = useDocViewerPageContext().labels;
 
   useEffect(() => {
@@ -86,11 +92,13 @@ export function useTextLayer({
         textLayer = new pdfjs.TextLayer({
           textContentSource: textContent,
           container,
-          viewport: getPageViewport(page, scale, rotation),
+          viewport: getPageViewport(page, scaleRef.current, rotation),
         });
         await textLayer.render();
 
         if (!cancelled) {
+          built.current = { layer: textLayer, page };
+          textLayer.update({ viewport: getPageViewport(page, scaleRef.current, rotation) });
           const endOfContent = window.document.createElement('div');
           endOfContent.className = 'endOfContent';
           container.append(endOfContent);
@@ -102,11 +110,18 @@ export function useTextLayer({
 
     return () => {
       cancelled = true;
+      built.current = null;
       textLayer?.cancel();
       container.replaceChildren();
       onTextLayer(pageNumber, null);
     };
-  }, [pdfjs, document, pageNumber, scale, near, onTextLayer, rotation, pageHasNoText]);
+  }, [pdfjs, document, pageNumber, near, onTextLayer, rotation, pageHasNoText]);
+
+  useEffect(() => {
+    built.current?.layer.update({
+      viewport: getPageViewport(built.current.page, scale, rotation),
+    });
+  }, [scale, rotation]);
 
   useSelectingClass(textLayerRef);
 

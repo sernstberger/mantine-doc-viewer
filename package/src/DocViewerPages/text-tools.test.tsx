@@ -211,12 +211,27 @@ describe('highlight', () => {
     await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
     const before = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
 
-    // Zooming draws every text layer again: the old spans go, so do their ranges
-    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
-    await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
+    // Rotating draws every text layer again: the old spans go, so do their ranges
+    await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
+    await waitFor(() =>
+      expect(Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? [])[0]).not.toBe(before[0])
+    );
     const after = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
-    expect(after[0]).not.toBe(before[0]);
+    expect(marked()).toEqual(['Costs@Costs fell']);
     expect(after[0].startContainer.isConnected).toBe(true);
+  });
+
+  it('keeps the painted passage when zooming, which only resizes the text layer', async () => {
+    const { controller, marked } = await setup();
+
+    act(() => controller.highlight({ text: 'costs' }));
+    await waitFor(() => expect(marked()).toEqual(['Costs@Costs fell']));
+    const before = Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? []);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    await act(async () => {});
+    expect(Array.from(registry.get(ACTIVE_MATCH_HIGHLIGHT) ?? [])).toEqual(before);
+    expect(before[0].startContainer.isConnected).toBe(true);
   });
 
   it('scrolls the window to the text when the viewer grows with its pages', async () => {

@@ -70,6 +70,7 @@ describe('fit-page zoom', () => {
     expect(onZoomChange).toHaveBeenLastCalledWith(2, { scale: 2 });
     act(() => actions.setZoom('fit-page'));
     expect(onZoomChange).toHaveBeenLastCalledWith('fit-page', { scale: 1 });
+    await act(async () => {});
   });
 
   it('fits a whole image for fit-page', async () => {

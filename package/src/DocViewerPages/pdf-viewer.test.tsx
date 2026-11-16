@@ -8,6 +8,7 @@ import { openPageEditor } from '../DocViewerPageEditor/page-editor-actions';
 import { createPageEditorExtension } from '../DocViewerPageEditor/page-editor-extension';
 
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
+import * as pdfjs from '../../../test-utils/pdfjs-dist.mock';
 
 const PAGES = /^Page \d of 3$/;
 
@@ -145,6 +146,19 @@ describe('navigation', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Previous page' }));
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
+  });
+
+  it('resizes the link layer when zooming instead of drawing it again', async () => {
+    const update = jest.spyOn(pdfjs.AnnotationLayer.prototype as any, 'update');
+    mockPdf({ links: [{ id: 'next', annotationType: 2, action: 'NextPage' }] });
+    render(<TestDocViewer src="/files/report.pdf" defaultZoom={1} />);
+    await waitFor(() => expect(document.querySelector('a[data-element-id="next"]')).not.toBeNull());
+    const link = document.querySelector('a[data-element-id="next"]');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    await waitFor(() => expect(update).toHaveBeenCalled());
+    expect(document.querySelector('a[data-element-id="next"]')).toBe(link);
+    update.mockRestore();
   });
 
   it('opens and closes search from its button, and ignores a wheel without Ctrl', async () => {

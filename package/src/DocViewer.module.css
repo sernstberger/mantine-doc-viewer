@@ -239,6 +239,8 @@
 }
 
 .page {
+  width: calc(var(--total-scale-factor) * var(--page-width));
+  height: calc(var(--total-scale-factor) * var(--page-height));
   background-color: var(--_page-background);
   box-shadow: var(--mantine-shadow-sm);
 }

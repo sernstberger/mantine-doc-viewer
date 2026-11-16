@@ -9,6 +9,7 @@ import { type DocViewerRenderPageOverlay, getOverlayStyle } from '../utils/page-
 import type { DocViewerPageRect } from '../utils/page-points';
 import { PdfHighlightLayer } from './PdfHighlightLayer';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
+import { type PageScaleStore, usePageScale } from '../hooks/pdf/use-page-scale';
 import { useLinkLayer } from '../hooks/pdf/use-link-layer';
 import { useNearViewport } from '../hooks/pdf/use-near-viewport';
 import { usePageCanvas } from '../hooks/pdf/use-page-canvas';
@@ -21,7 +22,8 @@ interface PdfPageProps {
   document: PDFDocumentProxy;
   pageNumber: number;
   numPages: number;
-  scale: number;
+  /** The scale of the page list; pages that draw nothing at it do not render again when it changes */
+  scaleStore: PageScaleStore;
 
   /** Rotation added to the page's own, in quarter turns */
   rotation?: PdfRotation;
@@ -71,13 +73,16 @@ function PdfPageView({
   highlightRects,
   maxCanvasPixels,
   renderPageOverlay,
+  scaleStore,
   ...props
 }: PdfPageProps) {
-  const { document, pageNumber, scale } = props;
+  const { document, pageNumber } = props;
   const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   const pageLayers = usePageLayers();
-  const page = { ...props, rotation, near };
+  const drawsAtScale = near || !!renderPageOverlay || !!highlightRects || pageLayers.length > 0;
+  const scale = usePageScale(scaleStore, drawsAtScale);
+  const page = { ...props, scale, rotation, near };
 
   useEffect(() => {
     registerPage(pageNumber, ref.current);
@@ -99,9 +104,8 @@ function PdfPageView({
       ref={ref}
       {...getStyles('page', {
         style: {
-          width: pageSize.width * scale,
-          height: pageSize.height * scale,
-          '--total-scale-factor': scale,
+          '--page-width': `${pageSize.width}px`,
+          '--page-height': `${pageSize.height}px`,
         } as React.CSSProperties,
       })}
       data-page-number={pageNumber}

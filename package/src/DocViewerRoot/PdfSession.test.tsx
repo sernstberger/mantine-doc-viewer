@@ -23,6 +23,12 @@ function renderControlled(props: TestDocViewerProps) {
   return { ...render(<Controlled />), handle };
 }
 
+/** Width and height of a page at scale 1, as the page's CSS reads them */
+const pageSize = (page: HTMLElement) => [
+  page.style.getPropertyValue('--page-width'),
+  page.style.getPropertyValue('--page-height'),
+];
+
 describe('DocViewer PDF', () => {
   beforeEach(() => {
     getDocument.mockReset();
@@ -73,7 +79,9 @@ describe('DocViewer PDF', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(screen.getByText('125%')).toBeInTheDocument();
     expect(fitWidth).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('group', { name: 'Page 1 of 3' })).toHaveStyle({ width: '765px' });
+    const first = screen.getByRole('group', { name: 'Page 1 of 3' });
+    expect(first.parentElement!.style.getPropertyValue('--total-scale-factor')).toBe('1.25');
+    expect(pageSize(first)).toEqual(['612px', '792px']);
 
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
     await userEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
@@ -455,6 +463,7 @@ describe('DocViewer PDF', () => {
         'aria-pressed',
         'true'
       );
+      await act(async () => {});
     });
 
     it('follows the page prop', async () => {
@@ -632,13 +641,13 @@ describe('DocViewer PDF', () => {
     const { handle } = renderControlled({ src: '/files/report.pdf', defaultZoom: 1 });
 
     const page1 = await screen.findByRole('group', { name: 'Page 1 of 3' });
-    expect(page1).toHaveStyle({ width: '612px', height: '792px' });
+    expect(pageSize(page1)).toEqual(['612px', '792px']);
 
     await userEvent.click(screen.getByRole('button', { name: 'Rotate' }));
-    await waitFor(() => expect(page1).toHaveStyle({ width: '792px', height: '612px' }));
+    await waitFor(() => expect(pageSize(page1)).toEqual(['792px', '612px']));
 
     act(() => handle.actions.rotate());
-    await waitFor(() => expect(page1).toHaveStyle({ width: '612px', height: '792px' }));
+    await waitFor(() => expect(pageSize(page1)).toEqual(['612px', '792px']));
   });
 
   it('scrolls to the page prop when the app changes it', async () => {

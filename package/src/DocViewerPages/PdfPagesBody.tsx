@@ -61,7 +61,7 @@ export function PdfPagesBody({
           pagesRef={view.setPagesNode}
           layout={view.layout}
           presenting={presenting}
-          currentPage={currentPage}
+          currentPage={presenting ? currentPage : 0}
           highlight={content.passage.rects}
           pdfjs={ready.pdfjs}
           document={ready.document}

@@ -1,4 +1,4 @@
-import type { PDFDocumentProxy } from 'pdfjs-dist';
+import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist';
 import { useEffect, useRef } from 'react';
 import type { DocViewerLabels } from '../../default-labels';
 import { type PdfLinkService, resolveDestination } from '../../utils/link-service';
@@ -69,6 +69,12 @@ export function useLinkLayer({
   const linkLayerRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef(labels);
   labelsRef.current = labels;
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+  const built = useRef<{
+    layer: InstanceType<PdfJsModule['AnnotationLayer']>;
+    page: PDFPageProxy;
+  } | null>(null);
 
   useEffect(() => {
     const container = linkLayerRef.current;
@@ -90,7 +96,9 @@ export function useLinkLayer({
           return;
         }
 
-        const viewport = getPageViewport(page, scale, rotation).clone({ dontFlip: true });
+        const viewport = getPageViewport(page, scaleRef.current, rotation).clone({
+          dontFlip: true,
+        });
         layer = new pdfjs.AnnotationLayer({
           div: container,
           accessibilityManager: null,
@@ -117,6 +125,7 @@ export function useLinkLayer({
         } as unknown as Parameters<NonNullable<typeof layer>['render']>[0]);
 
         if (!cancelled) {
+          built.current = { layer, page };
           await nameLinks(container, annotations, document, labelsRef.current);
         }
       })
@@ -124,9 +133,18 @@ export function useLinkLayer({
 
     return () => {
       cancelled = true;
+      built.current = null;
       container.replaceChildren();
     };
-  }, [pdfjs, document, pageNumber, scale, near, linkService, rotation]);
+  }, [pdfjs, document, pageNumber, near, linkService, rotation]);
+
+  useEffect(() => {
+    const viewport =
+      built.current &&
+      getPageViewport(built.current.page, scale, rotation).clone({ dontFlip: true });
+    // Workaround: pdf.js types `update` with the parameters of `render`
+    viewport && built.current!.layer.update({ viewport } as never);
+  }, [scale, rotation]);
 
   return linkLayerRef;
 }
