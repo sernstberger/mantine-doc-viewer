@@ -1,0 +1,40 @@
+import { resolveDistTag, wouldMoveLatestBackward } from './resolve-dist-tag';
+
+describe('resolveDistTag', () => {
+  it('returns latest for stable versions', () => {
+    expect(resolveDistTag('0.1.0')).toBe('latest');
+    expect(resolveDistTag('1.0.0')).toBe('latest');
+  });
+
+  it('returns next for prerelease versions', () => {
+    expect(resolveDistTag('0.2.0-alpha.0')).toBe('next');
+    expect(resolveDistTag('1.0.0-beta.3')).toBe('next');
+  });
+});
+
+describe('wouldMoveLatestBackward', () => {
+  it('is true when a stable version is older than the current latest', () => {
+    expect(wouldMoveLatestBackward('0.4.3', '0.5.0')).toBe(true);
+    expect(wouldMoveLatestBackward('0.4.3', '1.0.0')).toBe(true);
+    expect(wouldMoveLatestBackward('0.9.0', '0.10.0')).toBe(true);
+  });
+
+  it('is false when a stable version is newer than or equal to the current latest', () => {
+    expect(wouldMoveLatestBackward('0.5.0', '0.4.3')).toBe(false);
+    expect(wouldMoveLatestBackward('1.0.0', '0.5.0')).toBe(false);
+    expect(wouldMoveLatestBackward('0.10.0', '0.9.0')).toBe(false);
+    expect(wouldMoveLatestBackward('0.5.0', '0.5.0')).toBe(false);
+  });
+
+  it('is false for prereleases, which never take the latest tag', () => {
+    expect(wouldMoveLatestBackward('0.4.0-alpha.0', '0.5.0')).toBe(false);
+  });
+
+  it('is false when there is no current latest or a version does not parse', () => {
+    expect(wouldMoveLatestBackward('0.5.0', null)).toBe(false);
+    expect(wouldMoveLatestBackward('0.5.0', '')).toBe(false);
+    expect(wouldMoveLatestBackward('0.5.0', 'not-a-version')).toBe(false);
+    expect(wouldMoveLatestBackward('0.5', '0.4.0')).toBe(false);
+    expect(wouldMoveLatestBackward('0.5.x', '0.4.0')).toBe(false);
+  });
+});

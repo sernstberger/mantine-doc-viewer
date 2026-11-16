@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.1.0 (release date: fill in on release day)
+## Unreleased
+
+<!-- next: 0.1.0 -->
 
 First release. `DocViewer` shows PDFs, images, plain text, code, JSON and markdown, and is built the
 way Mantine builds its own compound components (`Lightbox`, `Pagination`).
