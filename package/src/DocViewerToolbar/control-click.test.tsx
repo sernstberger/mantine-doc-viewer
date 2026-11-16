@@ -58,7 +58,7 @@ describe('toolbar buttons compose onClick with their action', () => {
     [
       'Search',
       DocViewerSearchButton,
-      { state: pdf, actions: { openSearch: jest.fn() } },
+      { state: { ...pdf, searchAvailable: true }, actions: { openSearch: jest.fn() } },
       'openSearch',
     ],
   ] as const;

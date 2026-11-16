@@ -10,7 +10,7 @@ import {
   getMatchSegments,
   type SearchMatch,
 } from '../../utils/search';
-import { type SearchablePage, useSearchablePages } from './use-pdf-search';
+import { type SearchablePage, useSearchablePage, useSearchablePages } from './use-pdf-search';
 import { scrollRangeIntoView, type TextLayers } from './use-search-highlights';
 
 /** Space kept above boxes that are scrolled to, in px at 100% */
@@ -108,24 +108,31 @@ export function usePassageHighlight({
 }: PassageHighlightInput) {
   const [target, setTarget] = useState<DocViewerHighlightTarget | null>(null);
   const textTarget = target && 'text' in target ? target : null;
-  const pages = useSearchablePages(document, !!textTarget);
+  const targetPage = textTarget?.page ?? null;
+  const pages = useSearchablePages(document, !!textTarget && !targetPage);
+  const singlePage = useSearchablePage(document, targetPage);
+  const source = useMemo(
+    () => (targetPage ? singlePage && [singlePage] : pages),
+    [targetPage, singlePage, pages]
+  );
+  const firstPage = targetPage ?? 1;
   const match = useMemo(() => {
-    if (!pages || !textTarget) {
+    if (!textTarget || !source) {
       return undefined;
     }
-
-    return findMatches(
-      pages.map((page) => page.text),
+    const found = findMatches(
+      source.map((page) => page.text),
       textTarget.text,
       { matchCase: textTarget.matchCase }
-    ).find((found) => !textTarget.page || found.pageNumber === textTarget.page);
-  }, [pages, textTarget]);
+    )[0];
+    return found && { ...found, pageNumber: found.pageNumber + firstPage - 1 };
+  }, [source, textTarget, firstPage]);
 
   useEffect(() => setTarget(null), [document]);
 
   usePassagePaint({
     match,
-    page: match && pages![match.pageNumber - 1],
+    page: match && source![match.pageNumber - firstPage],
     textLayers,
     scrollRoot,
     viewport,

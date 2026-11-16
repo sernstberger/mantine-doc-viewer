@@ -98,7 +98,7 @@ export function PageEditorSetup({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useDocViewerStateValue(store, 'mode');
   const editing = mode === EDIT_PAGES_MODE;
   const ready = !!session.loaded.ready;
-  const editPagesRef = useReturnFocus(editing);
+  const editPagesRef = useReturnFocus(editing, ready ? session.view.scrollRoot : null);
 
   const save = useCallbackRef<SaveEdit>(async (bytes, reason, pages) => {
     await getSaveHandler(options, fileName)(bytes, { reason, pages });

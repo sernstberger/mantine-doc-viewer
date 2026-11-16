@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createContextContainer, render, screen, tests } from '@mantine-tests/core';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getDocument, mockPdf } from '../../../test-utils/mock-pdf';
 import { useDocViewerContext } from '../doc-viewer.context';
@@ -114,5 +114,31 @@ describe('mantine-doc-viewer/DocViewerPresentationControls', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Exit presentation' }));
     expect(store.getState().presenting).toBe(false);
     expect(screen.queryByRole('button', { name: 'Exit presentation' })).not.toBeInTheDocument();
+  });
+
+  it('goes back and forward with the previous and next page buttons', async () => {
+    getDocument.mockReset();
+    mockPdf({ numPages: 3 });
+    const [store, actions] = createDocViewer();
+    const { container } = render(
+      <LoadedPdfRoot store={store}>
+        <DocViewerPresentationControls />
+        <DocViewerPages />
+      </LoadedPdfRoot>
+    );
+    await pagesLoaded(container, 3);
+    act(() => actions.togglePresentation());
+    await act(async () => actions.goToPage(2));
+    expect(screen.getByText('2 / 3')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Previous page' }));
+    await waitFor(() => expect(screen.getByText('1 / 3')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Previous page' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    await waitFor(() => expect(screen.getByText('2 / 3')).toBeInTheDocument());
   });
 });

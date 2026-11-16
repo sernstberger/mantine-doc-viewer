@@ -11,6 +11,8 @@ interface BodyAttributesInput {
   swipeable: boolean;
   /** Page turning listens to the arrow and Page keys */
   turningKeys: boolean;
+  /** A search bar is mounted, so the find shortcut is listed */
+  searchAvailable: boolean;
 }
 
 /**
@@ -24,12 +26,17 @@ export function getBodyAttributes({
   scroll,
   swipeable,
   turningKeys,
+  searchAvailable,
 }: BodyAttributesInput) {
   const reading = !presenting;
   return {
-    keyShortcuts: turningKeys
-      ? 'Control+F Meta+F Plus Minus 0 ArrowLeft ArrowRight PageUp PageDown'
-      : 'Control+F Meta+F Plus Minus 0',
+    keyShortcuts: [
+      searchAvailable && 'Control+F Meta+F',
+      'Plus Minus 0',
+      turningKeys && 'ArrowLeft ArrowRight PageUp PageDown',
+    ]
+      .filter(Boolean)
+      .join(' '),
     'data-scroll-snap': reading && scrollSnap ? (layout === 'horizontal' ? 'x' : 'y') : undefined,
     'data-no-scroll': (reading && scroll === false) || undefined,
     'data-swipe': (reading && swipeable) || undefined,

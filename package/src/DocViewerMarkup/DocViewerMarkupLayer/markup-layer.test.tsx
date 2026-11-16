@@ -362,6 +362,7 @@ describe('markup', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Close markup' }));
     expect(onMarkupToolChange).toHaveBeenLastCalledWith(null);
     expect(screen.queryByRole('toolbar', { name: 'Markup' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Markup' })).toHaveFocus();
   });
 
   it('adds no layer to pages without marks while no tool is picked', async () => {

@@ -157,7 +157,7 @@ export function EditorBar(props: EditorBarProps) {
         <Text size="sm" {...getStyles('editorTitle')}>
           {labels.editPagesLabel}
         </Text>
-        <Text size="sm" aria-live="polite" {...getStyles('editorCount')}>
+        <Text size="sm" {...getStyles('editorCount')}>
           {labels.selectedCountLabel(props.selectedCount)}
         </Text>
       </Group>

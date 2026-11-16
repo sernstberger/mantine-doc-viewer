@@ -12,7 +12,9 @@ import {
   DocViewerToolbarStylesNames,
 } from './DocViewerToolbar';
 
-const pdf = { state: { type: 'pdf', numPages: 3, thumbnailsAvailable: true } } as const;
+const pdf = {
+  state: { type: 'pdf', numPages: 3, thumbnailsAvailable: true, searchAvailable: true },
+} as const;
 const { Harness } = createPartHarness(DocViewerToolbar, pdf);
 
 const quietExtension: DocViewerExtension = { name: 'quiet', options: {} };
@@ -274,7 +276,8 @@ describe('mantine-doc-viewer/DocViewerToolbar', () => {
       const zoomOut = screen.getByRole('button', { name: 'Zoom out' });
 
       expect(zoomOut).toHaveAttribute('aria-disabled', 'true');
-      expect(zoomOut.tabIndex).toBe(-1);
+      expect(zoomOut).toHaveAttribute('data-soft-disabled', 'true');
+      expect(zoomOut).not.toHaveAttribute('data-disabled');
       await waitFor(() =>
         expect(
           Array.from(toolbar.querySelectorAll<HTMLElement>('[data-toolbar-toggle]')).filter(

@@ -1,6 +1,12 @@
 import { getPdfKeyAction } from './pdf-keys';
 
-const reading = { ready: true, presenting: false, currentPage: 2, numPages: 5 };
+const reading = {
+  ready: true,
+  presenting: false,
+  currentPage: 2,
+  numPages: 5,
+  searchAvailable: true,
+};
 const presenting = { ...reading, presenting: true };
 
 describe('getPdfKeyAction', () => {
@@ -24,6 +30,11 @@ describe('getPdfKeyAction', () => {
     expect(getPdfKeyAction({ key: 'f', ctrlKey: true }, reading)).toEqual({ type: 'search' });
     expect(getPdfKeyAction({ key: 'F', metaKey: true }, reading)).toEqual({ type: 'search' });
     expect(getPdfKeyAction({ key: 'f' }, reading)).toBeNull();
+  });
+
+  it('leaves Ctrl+F to the browser without a search bar', () => {
+    const state = { ...reading, searchAvailable: false };
+    expect(getPdfKeyAction({ key: 'f', ctrlKey: true }, state)).toBeNull();
   });
 
   it('does nothing before the document is loaded', () => {

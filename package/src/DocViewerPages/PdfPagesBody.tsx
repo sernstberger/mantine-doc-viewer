@@ -4,6 +4,7 @@ import React from 'react';
 import { useDocumentTitle } from '../doc-viewer.context';
 import type { DocViewerPasswordInputProps } from '../doc-viewer.types';
 import type { PdfSession } from '../DocViewerRoot/pdf-session-context';
+import { useUnlockFocus } from '../hooks/pdf/use-unlock-focus';
 import { getRegionProps } from '../utils/a11y';
 import type { DocViewerRenderPageOverlay } from '../utils/page-overlay';
 import { PdfPageList } from './PdfPageList';
@@ -36,6 +37,7 @@ export function PdfPagesBody({
   const { currentPage, goToPage } = position;
   const { onKeyDown, onClick } = bodyProps;
   const ref = useMergedRef(bodyRef, turns.setBodyNode);
+  useUnlockFocus(state.status, view.scrollRoot);
 
   return (
     <Box
@@ -59,7 +61,7 @@ export function PdfPagesBody({
           pagesRef={view.setPagesNode}
           layout={view.layout}
           presenting={presenting}
-          currentPage={currentPage}
+          currentPage={presenting ? currentPage : 0}
           highlight={content.passage.rects}
           pdfjs={ready.pdfjs}
           document={ready.document}

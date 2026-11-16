@@ -8,7 +8,9 @@ import {
   DocViewerSearchButtonStylesNames,
 } from './DocViewerSearchButton';
 
-const { Harness } = createPartHarness(DocViewerSearchButton, { state: { type: 'pdf' } });
+const { Harness } = createPartHarness(DocViewerSearchButton, {
+  state: { type: 'pdf', searchAvailable: true },
+});
 
 describe('mantine-doc-viewer/DocViewerSearchButton', () => {
   tests.itSupportsSystemProps<DocViewerSearchButtonProps, DocViewerSearchButtonStylesNames>({
@@ -31,11 +33,11 @@ describe('mantine-doc-viewer/DocViewerSearchButton', () => {
     const openSearch = jest.fn();
     const closeSearch = jest.fn();
     const { Harness: Closed } = createPartHarness(DocViewerSearchButton, {
-      state: { type: 'pdf' },
+      state: { type: 'pdf', searchAvailable: true },
       actions: { openSearch },
     });
     const { Harness: Opened } = createPartHarness(DocViewerSearchButton, {
-      state: { type: 'pdf', searchOpened: true },
+      state: { type: 'pdf', searchOpened: true, searchAvailable: true },
       actions: { closeSearch },
     });
     render(
@@ -67,9 +69,17 @@ describe('mantine-doc-viewer/DocViewerSearchButton', () => {
     expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument();
   });
 
+  it('is hidden while no search bar is mounted', () => {
+    const { Harness: NoSearch } = createPartHarness(DocViewerSearchButton, {
+      state: { type: 'pdf' },
+    });
+    render(<NoSearch />);
+    expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument();
+  });
+
   it('is hidden by toolbarControls of DocViewer', () => {
     const { Harness: Hidden } = createPartHarness(DocViewerSearchButton, {
-      ...{ state: { type: 'pdf' } },
+      ...{ state: { type: 'pdf', searchAvailable: true } },
       viewerProps: { toolbarControls: { search: false } },
     });
     render(

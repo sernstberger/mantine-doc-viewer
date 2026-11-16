@@ -16,7 +16,7 @@ import { docViewerActions } from '../doc-viewer.store';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 import { PDF_ONLY, useReadyDocument } from '../DocViewerToolbar/use-ready-document';
-import { softDisabled } from '../utils/a11y';
+import { toolbarSoftDisabled } from '../utils/a11y';
 import { formatNumber } from '../utils/format';
 import { ChevronDownIcon, ChevronUpIcon } from '../utils/icons';
 import classes from '../DocViewer.module.css';
@@ -59,7 +59,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
           aria-label={labels.previousPageLabel}
-          {...softDisabled(page <= 1, () => goToPage(page - 1))}
+          {...toolbarSoftDisabled(page <= 1, () => goToPage(page - 1))}
         >
           <ChevronUpIcon />
         </ActionIcon>
@@ -78,7 +78,7 @@ export const DocViewerPageControls = factory<DocViewerPageControlsFactory>((_pro
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
           aria-label={labels.nextPageLabel}
-          {...softDisabled(page >= numPages, () => goToPage(page + 1))}
+          {...toolbarSoftDisabled(page >= numPages, () => goToPage(page + 1))}
         >
           <ChevronDownIcon />
         </ActionIcon>

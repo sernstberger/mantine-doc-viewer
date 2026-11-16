@@ -93,6 +93,22 @@ describe('getTurnKeyDirection', () => {
     const item = menu.appendChild(document.createElement('button'));
     expect(getTurnKeyDirection(key({ key: 'ArrowLeft' }, item))).toBeNull();
   });
+
+  it.each(['tree', 'grid', 'toolbar', 'spinbutton', 'combobox', 'application'])(
+    'leaves keys in a %s alone',
+    (role) => {
+      const widget = document.createElement('div');
+      widget.setAttribute('role', role);
+      const inner = widget.appendChild(document.createElement('span'));
+      expect(getTurnKeyDirection(key({ key: 'ArrowRight' }, inner))).toBeNull();
+    }
+  );
+
+  it('leaves keys in a video alone', () => {
+    expect(
+      getTurnKeyDirection(key({ key: 'ArrowRight' }, document.createElement('video')))
+    ).toBeNull();
+  });
 });
 
 describe('resolvePageTurning', () => {

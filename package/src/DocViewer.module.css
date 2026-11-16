@@ -81,7 +81,7 @@
 
 .subtitle {
   overflow: hidden;
-  color: var(--mantine-color-dimmed);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: calc(var(--_font-size) * 0.85);
@@ -190,7 +190,7 @@
   height: 100%;
   min-height: rem(160px);
   padding: var(--mantine-spacing-xl);
-  color: var(--mantine-color-dimmed);
+  color: var(--mantine-color-text);
   font-size: var(--_font-size);
   text-align: center;
 }
@@ -244,6 +244,8 @@
 }
 
 .page {
+  width: calc(var(--total-scale-factor) * var(--page-width));
+  height: calc(var(--total-scale-factor) * var(--page-height));
   background-color: var(--_page-background);
   box-shadow: var(--mantine-shadow-sm);
 }
@@ -269,7 +271,7 @@
 .searchCount {
   min-width: rem(72px);
   font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-dimmed);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -345,7 +347,7 @@
   border: 0;
   border-radius: var(--mantine-radius-sm);
   background: none;
-  color: var(--mantine-color-dimmed);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   font: inherit;
   cursor: pointer;
 
@@ -653,7 +655,7 @@
   padding: rem(6px);
   border: 2px solid transparent;
   border-radius: var(--mantine-radius-sm);
-  color: var(--mantine-color-dimmed);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   cursor: grab;
   user-select: none;
 
@@ -860,7 +862,7 @@
 }
 
 .editorCount {
-  color: var(--mantine-color-dimmed);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
 }
 
 .documentHeading {
@@ -870,4 +872,9 @@
 
 .markupSave {
   margin-inline-start: auto;
+}
+
+:where([data-soft-disabled]) {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

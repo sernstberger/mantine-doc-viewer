@@ -32,7 +32,7 @@ export function PdfPassword({ incorrect, onSubmit, inputProps }: PdfPasswordProp
         label={labels.passwordLabel}
         autoComplete="off"
         data-autofocus
-        autoFocus
+        autoFocus={incorrect}
         {...inputProps}
         size={size.input}
         value={password}

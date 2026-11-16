@@ -11,7 +11,7 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { formatPercent } from '../utils/format';
 import { MinusIcon, PlusIcon } from '../utils/icons';
 import { MAX_ZOOM, MIN_ZOOM, zoomIn, zoomOut } from '../utils/zoom';
-import { softDisabled } from '../utils/a11y';
+import { toolbarSoftDisabled } from '../utils/a11y';
 import { DocViewerTooltip, useControlProps } from '../DocViewerToolbar/DocViewerTooltip';
 
 const ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -114,7 +114,7 @@ export function ZoomControls({
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
           aria-label={labels.zoomOutLabel}
-          {...softDisabled(scale <= MIN_ZOOM + 0.001, () => onZoom(zoomOut(scale)))}
+          {...toolbarSoftDisabled(scale <= MIN_ZOOM + 0.001, () => onZoom(zoomOut(scale)))}
         >
           <MinusIcon />
         </ActionIcon>
@@ -128,7 +128,7 @@ export function ZoomControls({
         <ActionIcon
           {...controlProps(false, stylesApiProps)}
           aria-label={labels.zoomInLabel}
-          {...softDisabled(scale >= MAX_ZOOM - 0.001, () => onZoom(zoomIn(scale)))}
+          {...toolbarSoftDisabled(scale >= MAX_ZOOM - 0.001, () => onZoom(zoomIn(scale)))}
         >
           <PlusIcon />
         </ActionIcon>

@@ -33,7 +33,7 @@ export type DocViewerPresentationControlsFactory = Factory<{
   compound: true;
 }>;
 
-/** Page count and exit button shown while presenting */
+/** Page count, previous and next page buttons and exit button shown while presenting */
 export const DocViewerPresentationControls = factory<DocViewerPresentationControlsFactory>(
   (_props) => {
     const { classNames, className, style, styles, vars, ref, ...others } = useProps(
@@ -56,6 +56,7 @@ export const DocViewerPresentationControls = factory<DocViewerPresentationContro
         <PdfPresentationControls
           currentPage={page}
           numPages={numPages}
+          onGoToPage={(target) => docViewerActions.goToPage(target, undefined, store)}
           onExit={() => docViewerActions.togglePresentation(store)}
           stylesOptions={stylesOptions}
           elementProps={elementProps}

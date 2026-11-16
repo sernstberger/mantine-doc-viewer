@@ -35,10 +35,11 @@ export const DocViewerSearchButton = factory<DocViewerSearchButtonFactory>((_pro
   const mergedRef = useMergedRef(ref, returnFocusRef);
   const ready = useReadyDocument(PDF_ONLY);
   const opened = useDocViewerState(store, (state) => state.searchOpened);
+  const available = useDocViewerState(store, (state) => state.searchAvailable);
   const show = useShowControl();
   const controlProps = useControlProps();
 
-  if (!ready || !show('search')) {
+  if (!ready || !available || !show('search')) {
     return null;
   }
 
