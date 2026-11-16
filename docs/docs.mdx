@@ -388,6 +388,8 @@ scale, the rotation, the page layout and what is open: <code>type</code>, <code>
     [<code>getBytes()</code>, 'The bytes of the document as shown'],
     [<code>getPageCanvas(page)</code>, 'The canvas a PDF page is drawn on, to read from'],
     [<code>resetReadingProgress()</code>, 'Forgets how much of the PDF has been seen, for the next reader'],
+    [<code>setTextWrap(wrap)</code>, 'Wraps long lines of text files, or shows them on one line'],
+    [<code>setViewMode(mode)</code>, <>Shows rendered markdown or a JSON tree with <code>'preview'</code>, or the file with <code>'source'</code></>],
   ]}
 />
 
@@ -418,8 +420,27 @@ the same size limit, and `useDocViewerView` to report the outcome. `onLoad` of t
 `status` of the store to `'ready'` and calls `onDocumentLoad`, and `onError` sets `'error'` and
 calls `onDocumentError`. The built-in views do this themselves, a view you write has to call it.
 
-`useDocViewerContext` gives the view the `src`, `type` and `fileName` of the document, the labels
-and the Styles API. The demo shows a CSV file as a table:
+`useDocViewerContext` gives the view the `src`, `type`, `fileName` and `title` of the document, the
+labels, the Styles API, the `store` and its `actions`. Custom toolbar buttons use it too:
+`getControlProps(pressed)` gives an `ActionIcon` the size, colors and `control` Styles API selector
+of the built-in buttons, and `actions` drives the viewer it is in, also when the viewer created its
+own store:
+
+```tsx
+import { ActionIcon } from '@mantine/core';
+import { useDocViewerContext } from 'mantine-doc-viewer';
+
+function FirstPageButton() {
+  const { actions, getControlProps } = useDocViewerContext();
+  return (
+    <ActionIcon {...getControlProps()} aria-label="First page" onClick={() => actions.goToPage(1)}>
+      1
+    </ActionIcon>
+  );
+}
+```
+
+The demo shows a CSV file as a table, with a toolbar button that adds totals:
 
 <Demo data={demos.view} />
 
@@ -482,13 +503,18 @@ page. The tool can be controlled too, with `tool`, `defaultTool` and `onToolChan
 use its own buttons instead of the bar with `setMarkupTool(tool, store)`, and `saveMarkup(store)`
 saves. `DocViewerMarkupBar` and `DocViewerMarkupButton` are the parts for custom layouts.
 
+The extension reads its options on every render, so controlled options work like the value of a
+Mantine input: call `createMarkupExtension` in the component, pass `value` and `onChange`, and the
+marks follow your state. Pages do not render again when only the options change.
+
 Content that belongs to the app rather than the PDF, such as comment pins, goes in
-`renderPageOverlay` instead. Draw a mark in the demo:
+`renderPageOverlay` instead. Draw a mark in the demo, then clear the marks from outside the viewer:
 
 <Demo data={demos.markup} />
 
-Extensions are plain objects, so create them once, outside of the component or with `useState`,
-and pass the same array while the viewer is mounted. Passing both extensions at once works:
+Extensions are plain objects. Create them in render when they take controlled options, as in the
+demo, or once, outside of the component or with `useState`, when they do not; either way the
+viewer keeps its parts mounted. Passing both extensions at once works:
 `extensions={[pageEditor, markup]}`.
 
 ## Kiosk recipe
