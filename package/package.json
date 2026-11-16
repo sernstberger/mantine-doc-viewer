@@ -1,6 +1,6 @@
 {
   "name": "mantine-doc-viewer",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Document viewer for Mantine: PDF, images, text, code and markdown",
   "homepage": "https://sernstberger.github.io/mantine-doc-viewer/",
   "license": "MIT",
