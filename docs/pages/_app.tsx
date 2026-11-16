@@ -14,6 +14,7 @@ import {
   DocViewerAdapterProvider,
 } from 'mantine-doc-viewer';
 import favicon from '../assets/favicon.svg';
+import { asset } from '../demos/_assets';
 import { theme } from '../theme';
 
 async function loadShiki() {
@@ -29,7 +30,10 @@ async function loadShiki() {
 const shikiAdapter = createShikiAdapter(loadShiki);
 
 const workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc });
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), {
+  workerSrc,
+  options: { standardFontDataUrl: asset('standard_fonts/'), useSystemFonts: false },
+});
 const markdownAdapter = createReactMarkdownAdapter(() =>
   Promise.all([import('react-markdown'), import('remark-gfm')])
 );

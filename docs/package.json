@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "tsx ../scripts/copy-pdf-fonts.ts",
     "dev": "next dev --port 9281",
+    "prebuild": "tsx ../scripts/copy-pdf-fonts.ts",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"

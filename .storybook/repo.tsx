@@ -19,7 +19,10 @@ const shikiAdapter = createShikiAdapter(async () => {
   });
 });
 
-const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), { workerSrc: pdfWorkerSrc });
+const pdfAdapter = createPdfJsAdapter(() => import('pdfjs-dist'), {
+  workerSrc: pdfWorkerSrc,
+  options: { standardFontDataUrl: '/standard_fonts/', useSystemFonts: false },
+});
 const markdownAdapter = createReactMarkdownAdapter(() =>
   Promise.all([import('react-markdown'), import('remark-gfm')])
 );

@@ -74,7 +74,7 @@
     "@mantine/code-highlight": "^9.7.0",
     "@mantine/core": "^9.7.0",
     "@mantine/hooks": "^9.7.0",
-    "pdfjs-dist": "^6.5.0",
+    "pdfjs-dist": "^6.5.438",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
