@@ -12,9 +12,15 @@ import { getNextVersion, VersionIncrement, VersionStage } from 'version-next';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { $ } from 'zx';
-import { releaseUnreleased } from './publish/changelog-section';
+import { releaseChangelog } from './publish/changelog-section';
 import { getLatestPublisher, getPublishedVersions } from './publish/registry';
-import { githubRepo, isTrustedPublisher, listsTrustConfig, trustCommand } from './publish/trust';
+import {
+  githubRepo,
+  isTrustedPublisher,
+  revokeCommands,
+  trustCommand,
+  trustStatus,
+} from './publish/trust';
 import { run } from './run';
 import { updateVersion } from './update-version';
 import path from 'node:path';
@@ -34,7 +40,7 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-async function assertReleasable(headSha: string, nextVersion: string) {
+async function assertReleasable(headSha: string, nextVersion: string, branch: string) {
   const ciRuns = JSON.parse(
     (await $`gh run list --commit ${headSha} --workflow ${CI_WORKFLOW} --json status,conclusion`)
       .stdout
@@ -56,27 +62,36 @@ async function assertReleasable(headSha: string, nextVersion: string) {
     fail(`The tag ${nextVersion} already exists on origin`);
   }
 
+  if ((await git.branchLocal()).all.includes(branch)) {
+    fail(`The branch ${branch} exists locally from an earlier attempt: git branch -D ${branch}`);
+  }
+
+  if ((await git.listRemote(['--heads', 'origin', branch])).trim() !== '') {
+    fail(`The branch ${branch} exists on origin: close its pull request and delete the branch`);
+  }
+
   return publishedVersions !== null;
 }
 
-async function warnWithoutTrustedPublisher() {
+async function checkTrustedPublisher() {
   if (isTrustedPublisher(await getLatestPublisher(packageJson.name))) {
     return;
   }
 
-  signale.info('Checking the npm trusted publisher (npm may ask you to sign in)');
+  const repo = githubRepo(packageJson.repository.url);
+  signale.info('No version was published by CI yet: checking the npm trusted publisher');
   const list = await $({ stdio: ['inherit', 'pipe', 'inherit'] })`npm trust list ${
     packageJson.name
   } --json`.nothrow();
+  const status = trustStatus(list.stdout, new Date());
+  const messages = {
+    missing: `No trusted publisher: publish.yml cannot publish until you run\n  ${trustCommand(packageJson.name, repo)}\nthen approve the release within 2 days`,
+    expired: `The trusted publisher expired (it did not publish within 2 days of its creation). Replace it, then approve the release within 2 days:\n  ${revokeCommands(packageJson.name, repo).join('\n  ')}`,
+    unknown: `Could not read npm trust list (needs npm 11.15 or later and npm login). Check it before approving; a publisher that has not published expires 2 days after its creation:\n  ${revokeCommands(packageJson.name, repo).join('\n  ')}`,
+    configured: `A trusted publisher is configured. It expires if it does not publish within 2 days of its creation: approve the release in that window, or replace it:\n  ${revokeCommands(packageJson.name, repo).join('\n  ')}`,
+  };
 
-  if (!listsTrustConfig(list.stdout)) {
-    signale.warn(
-      `No trusted publisher found. publish.yml cannot publish until you run:\n  ${trustCommand(
-        packageJson.name,
-        githubRepo(packageJson.repository.url)
-      )}`
-    );
-  }
+  signale[status === 'configured' ? 'info' : 'warn'](messages[status]);
 }
 
 async function release() {
@@ -104,21 +119,15 @@ async function release() {
     `Releasing ${chalk.cyan(packageJson.name)}: ${chalk.cyan(packageJson.version)} → ${chalk.cyan(nextVersion)}`
   );
 
-  const isOnNpm = await assertReleasable(headSha, nextVersion);
-
-  if (isOnNpm) {
-    await warnWithoutTrustedPublisher();
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  const changelog = await fs.readFile(changelogPath, 'utf8');
-  await fs.writeFile(changelogPath, releaseUnreleased(changelog, nextVersion, today));
-  await updateVersion(nextVersion);
-
   const branch = `release/${nextVersion}`;
   const title = `[release] Version: ${nextVersion}`;
+  const isOnNpm = await assertReleasable(headSha, nextVersion, branch);
+  const today = new Date().toISOString().slice(0, 10);
+  const changelog = releaseChangelog(await fs.readFile(changelogPath, 'utf8'), nextVersion, today);
 
   await git.checkoutLocalBranch(branch);
+  await fs.writeFile(changelogPath, changelog);
+  await updateVersion(nextVersion);
   await git.add([packageJsonPath, changelogPath]);
   await git.commit(title);
   await git.push(['-u', 'origin', branch]);
@@ -133,6 +142,10 @@ async function release() {
   );
 
   await git.checkout('main');
+
+  if (isOnNpm) {
+    await checkTrustedPublisher();
+  }
 
   signale.success(
     `When the pull request merges, approve the "release" deployment in Actions → Publish package`

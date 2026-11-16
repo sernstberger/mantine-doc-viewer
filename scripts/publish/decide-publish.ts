@@ -43,3 +43,30 @@ export function planRun(
 
   return { publish, finish, docs: finish && !version.includes('-') };
 }
+
+/**
+ * The commit the tag, the GitHub release and the docs are built from: the commit of this run when
+ * it publishes, else the commit npm recorded for the version (`gitHead`), never whatever `main`
+ * is when a later run finishes the release. `null` before the first publish.
+ */
+export function releaseTarget(
+  decision: PublishDecision,
+  runSha: string,
+  publishedGitHead: string | null
+): string | null {
+  if (decision === 'publish') {
+    return runSha;
+  }
+
+  if (decision === 'skip-not-on-registry') {
+    return null;
+  }
+
+  if (!publishedGitHead) {
+    throw new Error(
+      'The published version has no gitHead on npm: create its tag and GitHub release by hand'
+    );
+  }
+
+  return publishedGitHead;
+}

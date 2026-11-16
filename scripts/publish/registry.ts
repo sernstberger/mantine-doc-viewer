@@ -43,8 +43,25 @@ export async function getLatestVersion(name: string): Promise<string | null> {
   return (await view([name, 'dist-tags.latest'])) || null;
 }
 
-/** The `_npmUser` record of the latest version: who (or which CI) published it */
+/**
+ * The `_npmUser` record of the latest version as the registry stores it (`npm view` prints it as
+ * a string): who, or which trusted publisher, published it. `null` when the package is not on npm
+ */
 export async function getLatestPublisher(name: string): Promise<unknown> {
-  const stdout = await view([name, '_npmUser', '--json']);
-  return stdout ? JSON.parse(stdout) : null;
+  const response = await fetch(`https://registry.npmjs.org/${name.replace('/', '%2f')}/latest`);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`npm registry answered ${response.status} for ${name}`);
+  }
+
+  return ((await response.json()) as { _npmUser?: unknown })._npmUser ?? null;
+}
+
+/** The commit npm recorded for a published version (`gitHead`), or `null` */
+export async function getGitHead(name: string, version: string): Promise<string | null> {
+  return (await view([`${name}@${version}`, 'gitHead'])) || null;
 }

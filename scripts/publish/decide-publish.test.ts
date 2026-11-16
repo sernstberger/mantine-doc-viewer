@@ -1,4 +1,4 @@
-import { decidePublish, planRun } from './decide-publish';
+import { decidePublish, planRun, releaseTarget } from './decide-publish';
 
 describe('decidePublish', () => {
   it('skips when the package is not on the registry', () => {
@@ -46,5 +46,27 @@ describe('planRun', () => {
       finish: true,
       docs: false,
     });
+  });
+});
+
+describe('releaseTarget', () => {
+  it('targets the commit of this run when it publishes', () => {
+    expect(releaseTarget('publish', 'run-sha', null)).toBe('run-sha');
+  });
+
+  it('targets the commit npm recorded for a version that is already published', () => {
+    expect(releaseTarget('skip-already-published', 'main-sha', 'published-sha')).toBe(
+      'published-sha'
+    );
+  });
+
+  it('refuses to guess when npm has no commit for the published version', () => {
+    expect(() => releaseTarget('skip-already-published', 'main-sha', null)).toThrow(
+      'has no gitHead'
+    );
+  });
+
+  it('has no target before the first publish', () => {
+    expect(releaseTarget('skip-not-on-registry', 'main-sha', null)).toBeNull();
   });
 });
