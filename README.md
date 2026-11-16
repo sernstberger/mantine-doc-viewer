@@ -22,7 +22,7 @@ and screen reader support.
   errors, page, zoom and links
 - **Customisable**: `size`, `color`, `variant="plain"`, dark pages, hideable toolbar controls,
   translatable labels, and renderers for other file types
-- **Small**: about 36 kB of JavaScript and 4 kB of CSS, gzipped and without Mantine; pdf.js, the markdown renderer and the code view load only when needed
+- **Small**: about 43 kB of JavaScript and 4 kB of CSS, gzipped and without Mantine; the page editor and markup add about 9 kB each when used; pdf.js, the markdown renderer and the code view load only when needed
 
 ## Installation
 

@@ -37,6 +37,19 @@ async function release() {
     process.exit(1);
   }
 
+  const headSha = (await git.revparse(['HEAD'])).trim();
+  const ciRuns = JSON.parse(
+    (await $`gh run list --commit ${headSha} --workflow "npm test" --json status,conclusion`).stdout
+  ) as { status: string; conclusion: string }[];
+
+  if (ciRuns.length === 0 || ciRuns.some((ciRun) => ciRun.conclusion !== 'success')) {
+    signale.error(
+      `CI is not green for ${headSha} (runs: ${JSON.stringify(ciRuns)}). Push main and wait for the "npm test" workflow to succeed, nothing was published.`
+    );
+
+    process.exit(1);
+  }
+
   const nextVersion = getNextVersion(packageJson.version, {
     type: versionIncrement,
     stage: versionStage,
