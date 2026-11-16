@@ -153,7 +153,7 @@ describe('store owner', () => {
   it('lets a store move to a new Root, and does not check outside development', () => {
     const [store] = createDocViewer();
     const { rerender, unmount } = render(twoRoots(store));
-    rerender(twoRoots(store, false));
+    rerender(<>{twoRoots(store, false)}</>);
     unmount();
 
     process.env.NODE_ENV = 'development';

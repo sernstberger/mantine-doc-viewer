@@ -318,12 +318,14 @@ describe('page layout', () => {
     expect(onPageLayoutChange).not.toHaveBeenCalled();
 
     rerender(
-      <TestDocViewer
-        src="/files/book.pdf"
-        store={store}
-        pageLayout="two-page"
-        onPageLayoutChange={onPageLayoutChange}
-      />
+      <>
+        <TestDocViewer
+          src="/files/book.pdf"
+          store={store}
+          pageLayout="two-page"
+          onPageLayoutChange={onPageLayoutChange}
+        />
+      </>
     );
     await pages();
     expect(layoutOf()).toBe('two-page');

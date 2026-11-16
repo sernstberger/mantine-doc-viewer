@@ -205,9 +205,11 @@ describe('mantine-doc-viewer/DocViewerToolbar', () => {
     expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();
 
     rerender(
-      <Harness title={false}>
-        <button type="button">Mine</button>
-      </Harness>
+      <>
+        <Harness title={false}>
+          <button type="button">Mine</button>
+        </Harness>
+      </>
     );
     expect(screen.queryByText('Contract')).not.toBeInTheDocument();
     expect(screen.queryByText('report.pdf')).not.toBeInTheDocument();

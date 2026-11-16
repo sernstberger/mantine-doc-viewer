@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import {
   Box,
   BoxProps,
@@ -216,7 +216,7 @@ export const DocViewerRoot = factory<DocViewerRootFactory>((_props) => {
           {withPdfSession ? (
             <PdfSession key={keepView ? 'pdf' : src}>{children}</PdfSession>
           ) : (
-            children
+            <Fragment key={keepView ? 'view' : src}>{children}</Fragment>
           )}
         </DocViewerExtensionsProvider>
       </Box>

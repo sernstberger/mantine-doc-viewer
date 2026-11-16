@@ -122,14 +122,20 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     const { rerender } = render(<Viewer alt="A red bicycle" />);
     expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'A red bicycle');
 
-    rerender(<Viewer />);
+    rerender(
+      <>
+        <Viewer />
+      </>
+    );
     expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'photo.png');
 
     rerender(
-      <DocViewerRoot src="data:image/png;base64,AAAA">
-        <DocViewerToolbar />
-        <DocViewerImage />
-      </DocViewerRoot>
+      <>
+        <DocViewerRoot src="data:image/png;base64,AAAA">
+          <DocViewerToolbar />
+          <DocViewerImage />
+        </DocViewerRoot>
+      </>
     );
     expect(screen.getByRole('img', { hidden: true })).toHaveAttribute('alt', 'Image');
   });
@@ -251,7 +257,11 @@ describe('@mantine/doc-viewer/DocViewerImage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(screen.getByText('125%')).toBeInTheDocument();
 
-    rerender(<App src="/files/two.png" />);
+    rerender(
+      <>
+        <App src="/files/two.png" />
+      </>
+    );
     expect(screen.getByText('Loading document')).toBeInTheDocument();
     loadImage();
     expect(screen.getByText('100%')).toBeInTheDocument();

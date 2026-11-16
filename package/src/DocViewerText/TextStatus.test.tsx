@@ -20,11 +20,11 @@ describe('TextStatus', () => {
     const { rerender } = render(view({ status: 'loading' }));
     expect(screen.getByText('Loading document')).toBeInTheDocument();
 
-    rerender(view(states[0]));
+    rerender(<>{view(states[0])}</>);
     expect(screen.getByText('This file is too large to preview (3.0 MB)')).toBeInTheDocument();
-    rerender(view(states[1]));
+    rerender(<>{view(states[1])}</>);
     expect(screen.getByText('This file could not be loaded')).toBeInTheDocument();
-    rerender(view(states[2]));
+    rerender(<>{view(states[2])}</>);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
