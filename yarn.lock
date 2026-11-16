@@ -8483,8 +8483,6 @@ __metadata:
     jest-axe: "npm:^10.0.0"
     jest-environment-jsdom: "npm:^29.7.0"
     mantine-docgen-script: "npm:^1.5.0"
-    new-github-release-url: "npm:^2.0.0"
-    open: "npm:^10.1.2"
     oxc-config-mantine: "npm:^1.0.0"
     oxfmt: "npm:^0.55.0"
     oxlint: "npm:^1.70.0"
@@ -9596,15 +9594,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"new-github-release-url@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "new-github-release-url@npm:2.0.0"
-  dependencies:
-    type-fest: "npm:^2.5.1"
-  checksum: 10c0/9faec009b8b403efbc407f45306d07de5cc58e09df5b00bdd55b01384cd18b0fd29a97aef6915428ba3b5abb0a5c132c3507468c0c3c101e8d737c1337386786
-  languageName: node
-  linkType: hard
-
 "next@npm:16.2.2":
   version: 16.2.2
   resolution: "next@npm:16.2.2"
@@ -9838,18 +9827,6 @@ __metadata:
     regex: "npm:^6.0.1"
     regex-recursion: "npm:^6.0.2"
   checksum: 10c0/bc034e84dfee4dbc061cf6364023e66e1667fb8dc3afcad3b7d6a2c77e2d4a4809396ee2fb8c1fd3d6f00f76f7ca14b773586bf862c5f0c0074c059e2a219252
-  languageName: node
-  linkType: hard
-
-"open@npm:^10.1.2":
-  version: 10.1.2
-  resolution: "open@npm:10.1.2"
-  dependencies:
-    default-browser: "npm:^5.2.1"
-    define-lazy-prop: "npm:^3.0.0"
-    is-inside-container: "npm:^1.0.0"
-    is-wsl: "npm:^3.1.0"
-  checksum: 10c0/1bee796f06e549ce764f693272100323fbc04da8fa3c5b0402d6c2d11b3d76fa0aac0be7535e710015ff035326638e3b9a563f3b0e7ac3266473ed5663caae6d
   languageName: node
   linkType: hard
 
@@ -12884,13 +12861,6 @@ __metadata:
   version: 0.21.3
   resolution: "type-fest@npm:0.21.3"
   checksum: 10c0/902bd57bfa30d51d4779b641c2bc403cdf1371fb9c91d3c058b0133694fcfdb817aef07a47f40faf79039eecbaa39ee9d3c532deff244f3a19ce68cea71a61e8
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^2.5.1":
-  version: 2.19.0
-  resolution: "type-fest@npm:2.19.0"
-  checksum: 10c0/a5a7ecf2e654251613218c215c7493574594951c08e52ab9881c9df6a6da0aeca7528c213c622bc374b4e0cb5c443aa3ab758da4e3c959783ce884c3194e12cb
   languageName: node
   linkType: hard
 

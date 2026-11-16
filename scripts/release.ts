@@ -1,18 +1,27 @@
+/**
+ * Opens the `[release] Version: X` pull request with auto-merge. It publishes nothing: once the
+ * pull request merges, `.github/workflows/publish.yml` publishes after the `release` approval.
+ *
+ *   npm run release:patch | release:minor | release:major   (add `-- --stage alpha` for a prerelease)
+ */
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import githubRelease from 'new-github-release-url';
-import open from 'open';
 import signale from 'signale';
 import SimpleGit from 'simple-git';
 import { getNextVersion, VersionIncrement, VersionStage } from 'version-next';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { $ } from 'zx';
+import { releaseUnreleased } from './publish/changelog-section';
+import { getLatestPublisher, getPublishedVersions } from './publish/registry';
+import { githubRepo, isTrustedPublisher, listsTrustConfig, trustCommand } from './publish/trust';
 import { run } from './run';
 import { updateVersion } from './update-version';
 import path from 'node:path';
 
+const CI_WORKFLOW = 'npm test';
 const packageJsonPath = path.join(process.cwd(), 'package/package.json');
+const changelogPath = path.join(process.cwd(), 'CHANGELOG.md');
 const packageJson = fs.readJsonSync(packageJsonPath);
 const { argv } = yargs(hideBin(process.argv)) as any;
 const git = SimpleGit();
@@ -20,119 +29,113 @@ const git = SimpleGit();
 const versionIncrement: VersionIncrement = argv._[0] || 'patch';
 const versionStage: VersionStage | undefined = argv.stage;
 
+function fail(message: string): never {
+  signale.error(message);
+  process.exit(1);
+}
+
+async function assertReleasable(headSha: string, nextVersion: string) {
+  const ciRuns = JSON.parse(
+    (await $`gh run list --commit ${headSha} --workflow ${CI_WORKFLOW} --json status,conclusion`)
+      .stdout
+  ) as { status: string; conclusion: string }[];
+
+  if (ciRuns.length === 0 || ciRuns.some((ciRun) => ciRun.conclusion !== 'success')) {
+    fail(
+      `CI is not green for ${headSha} (runs: ${JSON.stringify(ciRuns)}). Wait for the "${CI_WORKFLOW}" workflow on main to succeed.`
+    );
+  }
+
+  const publishedVersions = await getPublishedVersions(packageJson.name);
+
+  if (publishedVersions?.includes(nextVersion)) {
+    fail(`${packageJson.name}@${nextVersion} is already on npm`);
+  }
+
+  if ((await git.listRemote(['--tags', 'origin', nextVersion])).trim() !== '') {
+    fail(`The tag ${nextVersion} already exists on origin`);
+  }
+
+  return publishedVersions !== null;
+}
+
+async function warnWithoutTrustedPublisher() {
+  if (isTrustedPublisher(await getLatestPublisher(packageJson.name))) {
+    return;
+  }
+
+  signale.info('Checking the npm trusted publisher (npm may ask you to sign in)');
+  const list = await $({ stdio: ['inherit', 'pipe', 'inherit'] })`npm trust list ${
+    packageJson.name
+  } --json`.nothrow();
+
+  if (!listsTrustConfig(list.stdout)) {
+    signale.warn(
+      `No trusted publisher found. publish.yml cannot publish until you run:\n  ${trustCommand(
+        packageJson.name,
+        githubRepo(packageJson.repository.url)
+      )}`
+    );
+  }
+}
+
 async function release() {
+  if ((await git.branchLocal()).current !== 'main') {
+    fail('Run the release from main');
+  }
+
   await run(git.pull(), {
     info: 'Pulling the latest changes from the remote repository',
     success: 'The latest changes have been pulled from the remote repository',
     error: 'Failed to pull the latest changes from the remote repository',
   });
 
-  const gitStatus = await git.status();
-
-  if (gitStatus.files.length > 0) {
-    signale.error(
-      'Working directory is not clean, commit all changes before publishing the package.'
-    );
-
-    process.exit(1);
+  if (!(await git.status()).isClean()) {
+    fail('Working directory is not clean, commit all changes before releasing.');
   }
 
   const headSha = (await git.revparse(['HEAD'])).trim();
-  const ciRuns = JSON.parse(
-    (await $`gh run list --commit ${headSha} --workflow "npm test" --json status,conclusion`).stdout
-  ) as { status: string; conclusion: string }[];
-
-  if (ciRuns.length === 0 || ciRuns.some((ciRun) => ciRun.conclusion !== 'success')) {
-    signale.error(
-      `CI is not green for ${headSha} (runs: ${JSON.stringify(ciRuns)}). Push main and wait for the "npm test" workflow to succeed, nothing was published.`
-    );
-
-    process.exit(1);
-  }
-
   const nextVersion = getNextVersion(packageJson.version, {
     type: versionIncrement,
     stage: versionStage,
   });
 
   signale.info(
-    `Publishing next ${chalk.cyan(versionIncrement)} version of ${chalk.cyan(
-      packageJson.name
-    )} to npm.`
+    `Releasing ${chalk.cyan(packageJson.name)}: ${chalk.cyan(packageJson.version)} → ${chalk.cyan(nextVersion)}`
   );
 
-  signale.info(
-    `Current version: ${chalk.cyan(packageJson.version)}, next version: ${chalk.cyan(nextVersion)}`
-  );
+  const isOnNpm = await assertReleasable(headSha, nextVersion);
 
-  await run($`yarn`, {
-    info: 'Installing fresh dependencies',
-    success: 'Fresh dependencies have been installed',
-    error: 'Failed to install fresh dependencies',
-  });
+  if (isOnNpm) {
+    await warnWithoutTrustedPublisher();
+  }
 
-  await run($`yarn run clean`, {
-    info: 'Removing dist directory',
-    success: 'dist directory has been removed',
-    error: 'Failed to remove dist directory',
-  });
+  const today = new Date().toISOString().slice(0, 10);
+  const changelog = await fs.readFile(changelogPath, 'utf8');
+  await fs.writeFile(changelogPath, releaseUnreleased(changelog, nextVersion, today));
+  await updateVersion(nextVersion);
 
-  await run($`yarn run build`, {
-    info: 'Building the package',
-    success: 'The package has been built',
-    error: 'Failed to build the package',
-  });
+  const branch = `release/${nextVersion}`;
+  const title = `[release] Version: ${nextVersion}`;
 
-  await run($`yarn run check:exports`, {
-    info: 'Checking that the package types resolve for every module system',
-    success: 'The package exports check passed',
-    error: 'The package exports check failed, nothing was published',
-  });
-
-  await run($`yarn run docgen`, {
-    info: 'Generating the docs data the docs typecheck reads',
-    success: 'The docs data is ready',
-    error: 'The docs data failed, nothing was published',
-  });
-
-  await run($`yarn test`, {
-    info: 'Running the tests (syncpack, format, types, lint, coverage)',
-    success: 'The tests passed',
-    error: 'The tests failed, nothing was published',
-  });
-
-  await fs.copyFile(
-    path.join(process.cwd(), 'README.md'),
-    path.join(process.cwd(), 'package/README.md')
-  );
-
-  await fs.copyFile(
-    path.join(process.cwd(), 'LICENSE'),
-    path.join(process.cwd(), 'package/LICENSE')
-  );
-
-  const revertVersion = await updateVersion(nextVersion);
+  await git.checkoutLocalBranch(branch);
+  await git.add([packageJsonPath, changelogPath]);
+  await git.commit(title);
+  await git.push(['-u', 'origin', branch]);
 
   await run(
-    $`cd ./package && npm publish --access public --tag ${versionStage ? 'next' : 'latest'}`,
+    $`gh pr create --base main --head ${branch} --title ${title} --body ${`Bumps the version to ${nextVersion} and dates its CHANGELOG section. When this merges, publish.yml waits for the release approval, then publishes to npm, deploys the docs and creates the GitHub release.`} && gh pr merge ${branch} --auto --squash --delete-branch`,
     {
-      info: 'Publishing the package to npm',
-      success: 'The package has been published to npm',
-      error: 'Failed to publish the package to npm',
-    },
-    revertVersion
+      info: 'Opening the version pull request with auto-merge',
+      success: 'Version pull request opened; it merges once CI is green',
+      error: `Failed to open the version pull request: open it by hand from ${branch}`,
+    }
   );
 
-  await git.add([packageJsonPath]);
-  await git.commit(`Release ${nextVersion}`);
-  await git.push();
+  await git.checkout('main');
 
-  open(
-    githubRelease({
-      repoUrl: (packageJson.repository.url || packageJson.repository).replace('.git', ''),
-      tag: nextVersion,
-      title: nextVersion,
-    })
+  signale.success(
+    `When the pull request merges, approve the "release" deployment in Actions → Publish package`
   );
 }
 

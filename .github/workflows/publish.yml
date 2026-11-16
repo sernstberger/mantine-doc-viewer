@@ -1,0 +1,164 @@
+name: Publish package
+
+# The release pull request ("[release] Version: X", opened by `npm run release:*`) changes
+# package/package.json; when it merges, this publishes X to npm after the `release` approval,
+# then deploys the docs (not for prereleases) and creates the GitHub release. A manual run does
+# the same for the version on main, and finishes one that is already on npm (the first release,
+# published by hand with `npm run publish:bootstrap`). Every step checks npm or GitHub first, so
+# re-running a failed run is the recovery
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package/package.json
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      decision: ${{ steps.plan.outputs.decision }}
+      publish: ${{ steps.plan.outputs.publish }}
+      finish: ${{ steps.plan.outputs.finish }}
+      docs: ${{ steps.plan.outputs.docs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Compare the version with npm
+        id: plan
+        run: npx tsx scripts/publish --plan
+      - name: First release
+        if: steps.plan.outputs.decision == 'skip-not-on-registry'
+        run: echo "::warning title=First release::The package is not on npm yet. Publish it by hand from main with npm run publish:bootstrap, then run this workflow again."
+
+  test:
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build package
+        run: npm run build
+      - name: Check package exports
+        run: npm run check:exports
+      - name: Build docs
+        run: npm run docs:build
+      - name: Run tests
+        run: npm test
+
+  publish:
+    needs: [prepare, test]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Upgrade npm for trusted publishing (needs >= 11.5.1)
+        run: npm install -g npm@^11.15.0
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Publish
+        run: npx tsx scripts/publish
+
+  docs:
+    needs: [prepare, publish]
+    if: >-
+      !cancelled() && needs.prepare.outputs.docs == 'true' &&
+      (needs.publish.result == 'success' || needs.prepare.outputs.publish == 'false')
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml
+
+  release:
+    needs: [prepare, publish, docs]
+    if: >-
+      !cancelled() && needs.prepare.outputs.finish == 'true' &&
+      (needs.publish.result == 'success' || needs.prepare.outputs.publish == 'false') &&
+      (needs.docs.result == 'success' || needs.prepare.outputs.docs == 'false')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Release notes from the CHANGELOG
+        run: npx tsx scripts/publish --notes "$RUNNER_TEMP/release-notes.md"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            echo "Release $VERSION already exists"
+          else
+            FLAGS=(--title "$VERSION" --target "$GITHUB_SHA" --notes-file "$RUNNER_TEMP/release-notes.md")
+            if [[ "$VERSION" == *-* ]]; then
+              FLAGS+=(--prerelease)
+            fi
+            gh release create "$VERSION" "${FLAGS[@]}"
+          fi
