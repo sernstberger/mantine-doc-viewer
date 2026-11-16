@@ -66,7 +66,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sernstberger/mantine-doc-viewer.git",
+    "url": "git+https://github.com/sernstberger/mantine-doc-viewer.git",
     "directory": "package"
   },
   "peerDependencies": {
