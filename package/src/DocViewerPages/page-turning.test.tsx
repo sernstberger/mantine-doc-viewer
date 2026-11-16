@@ -136,6 +136,22 @@ describe('withPageTurning', () => {
       expect(fireEvent.keyDown(document.body, { key: 'ArrowDown' })).toBe(true);
     });
 
+    it('turns with Page up and Page down from a toolbar button, the arrows stay with the toolbar', async () => {
+      renderViewer({ pagesProps: { withPageTurning: true } });
+      await pages();
+      await act(async () => {});
+      const button = screen.getByRole('button', { name: 'Zoom in' });
+      expect(button.closest('[role="toolbar"]')).not.toBeNull();
+
+      fireEvent.keyDown(button, { key: 'ArrowRight' });
+      expect(screen.getByText(indicator(1))).toBeInTheDocument();
+      fireEvent.keyDown(button, { key: 'PageDown' });
+      expect(screen.getByText(indicator(2))).toBeInTheDocument();
+      fireEvent.keyDown(button, { key: 'PageUp' });
+      expect(screen.getByText(indicator(1))).toBeInTheDocument();
+      await act(async () => {});
+    });
+
     it('leaves keys alone when keys are turned off', async () => {
       renderViewer({ pagesProps: { withPageTurning: { keys: false } } });
       await pages();
@@ -151,6 +167,24 @@ describe('withPageTurning', () => {
       act(() => controller.togglePresentation());
       fireEvent.keyDown(document.body, { key: 'ArrowRight' });
       expect(screen.getByText('1 / 5')).toBeInTheDocument();
+    });
+
+    it('keeps the presentation keys working from the page buttons', async () => {
+      const { controller } = renderViewer();
+      await pages();
+      await act(async () => {});
+      act(() => controller.togglePresentation());
+
+      const next = screen.getByRole('button', { name: 'Next page' });
+      fireEvent.click(next);
+      expect(screen.getByText('2 / 5')).toBeInTheDocument();
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+      expect(screen.getByText('3 / 5')).toBeInTheDocument();
+      fireEvent.keyDown(next, { key: ' ' });
+      expect(screen.getByText('3 / 5')).toBeInTheDocument();
+      fireEvent.keyDown(next, { key: 'Escape' });
+      expect(document.querySelector('.mantine-DocViewer-presentationControls')).toBeNull();
+      await act(async () => {});
     });
   });
 

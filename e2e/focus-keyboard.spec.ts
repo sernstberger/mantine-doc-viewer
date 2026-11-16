@@ -64,3 +64,22 @@ test('a presentation can go back with its own previous page button', async ({ pa
   await controls.getByRole('button', { name: 'Previous page' }).click();
   await expect(controls).toContainText('1 / 3');
 });
+
+test('presentation keys still work after a click on the page buttons', async ({ page }) => {
+  await openPdf(page, USAGE);
+  await page.getByRole('button', { name: 'Presentation' }).first().click();
+  const controls = page.locator('.mantine-DocViewer-presentationControls');
+  await expect(controls).toContainText('1 / 3');
+
+  const next = controls.getByRole('button', { name: 'Next page' });
+  await next.focus();
+  await page.keyboard.press('Enter');
+  await expect(controls).toContainText('2 / 3');
+  await expect(next).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(controls).toContainText('3 / 3');
+  await page.keyboard.press('Home');
+  await expect(controls).toContainText('1 / 3');
+  await page.keyboard.press('Escape');
+  await expect(controls).toBeHidden();
+});

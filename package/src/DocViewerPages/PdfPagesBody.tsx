@@ -47,7 +47,9 @@ export function PdfPagesBody({
       {...turns.bodyAttributes}
       onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
         onKeyDown?.(event);
-        actions.handleKeyDown(event);
+        if (!presenting) {
+          actions.handleKeyDown(event);
+        }
       }}
       onClick={(event: MouseEvent<HTMLDivElement>) => {
         onClick?.(event);

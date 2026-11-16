@@ -251,7 +251,9 @@ web links by their address. `DocViewer.Pages` has the events for what readers do
 `renderPageOverlay` puts content of your app over each page, for example comment pins with their own
 status. It gets the page number, the page size at 100% and the `scale` of the page, and places
 content in page coordinates times `scale`, from the top left of the page. The overlay turns with the
-page when readers rotate it:
+page when readers rotate it. The function runs again for every page when it changes and when the
+zoom changes, so keep it cheap, and wrap it in `useCallback` if it does not depend on the render
+of your component:
 
 <Demo data={demos.overlay} />
 

@@ -5,9 +5,9 @@ import type { PdfLinkService } from '../utils/link-service';
 import type { PdfLayersState } from '../hooks/pdf/use-pdf-layers';
 import type { PdfJsModule } from '../DocViewerAdapterProvider/adapters/pdfjs-adapter';
 import { type PdfRotation, rotateSize } from '../utils/render-page';
-import { type DocViewerRenderPageOverlay, getOverlayStyle } from '../utils/page-overlay';
 import type { DocViewerPageRect } from '../utils/page-points';
-import { PdfHighlightLayer } from './PdfHighlightLayer';
+import { PageLayers } from './PageLayers';
+import { PageOverlay } from './PageOverlay';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
 import { type PageScaleStore, usePageScale } from '../hooks/pdf/use-page-scale';
 import { useLinkLayer } from '../hooks/pdf/use-link-layer';
@@ -50,9 +50,6 @@ interface PdfPageProps {
 
   /** Largest canvas drawn, in pixels */
   maxCanvasPixels?: number;
-
-  /** Content laid over the page */
-  renderPageOverlay?: DocViewerRenderPageOverlay;
 }
 
 /** The page layers of the extensions, the same array while the extensions are */
@@ -72,7 +69,6 @@ function PdfPageView({
   registerPage,
   highlightRects,
   maxCanvasPixels,
-  renderPageOverlay,
   scaleStore,
   ...props
 }: PdfPageProps) {
@@ -80,8 +76,7 @@ function PdfPageView({
   const { getStyles, labels } = useDocViewerPageContext();
   const { ref, near } = useNearViewport<HTMLDivElement>(scrollRoot);
   const pageLayers = usePageLayers();
-  const drawsAtScale = near || !!renderPageOverlay || !!highlightRects || pageLayers.length > 0;
-  const scale = usePageScale(scaleStore, drawsAtScale);
+  const scale = usePageScale(scaleStore, near);
   const page = { ...props, scale, rotation, near };
 
   useEffect(() => {
@@ -96,8 +91,6 @@ function PdfPageView({
 
   const pageSize = size ?? rotateSize(placeholderSize, rotation);
   const { width, height } = baseSize ?? placeholderSize;
-  const layerSize = { width, height, scale, rotation };
-  const overlay = renderPageOverlay?.({ page: pageNumber, ...layerSize });
 
   return (
     <div
@@ -116,19 +109,24 @@ function PdfPageView({
       {near && <canvas ref={canvasRef} {...getStyles('canvas')} aria-hidden />}
       <div ref={textLayerRef} {...getStyles('textLayer')} />
       <div ref={linkLayerRef} {...getStyles('linkLayer')} />
-      {highlightRects && <PdfHighlightLayer rects={highlightRects} {...layerSize} />}
-      {pageLayers.map((Layer, index) => (
-        <Layer key={index} page={pageNumber} numPages={numPages} near={near} {...layerSize} />
-      ))}
-      {overlay != null && overlay !== false && (
-        <div
-          {...getStyles('pageOverlay', {
-            style: getOverlayStyle(width * scale, height * scale, rotation),
-          })}
-        >
-          {overlay}
-        </div>
-      )}
+      <PageLayers
+        scaleStore={scaleStore}
+        page={pageNumber}
+        numPages={numPages}
+        near={near}
+        width={width}
+        height={height}
+        rotation={rotation}
+        highlightRects={highlightRects}
+        layers={pageLayers}
+      />
+      <PageOverlay
+        scaleStore={scaleStore}
+        page={pageNumber}
+        width={width}
+        height={height}
+        rotation={rotation}
+      />
     </div>
   );
 }

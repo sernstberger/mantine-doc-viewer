@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import {
   Box,
   BoxProps,
@@ -12,6 +12,7 @@ import { useDocViewerContext } from '../doc-viewer.context';
 import { DocViewerPages } from '../DocViewerPages/DocViewerPages';
 import { DocViewerPresentationControls } from '../DocViewerPresentationControls/DocViewerPresentationControls';
 import { useDocViewerExtensions } from '../DocViewerRoot/extensions-context';
+import { usePdfSession } from '../DocViewerRoot/pdf-session-context';
 import { DocViewerThumbnails } from '../DocViewerThumbnails/DocViewerThumbnails';
 import { useDocViewerState } from '../hooks/use-doc-viewer-state';
 import { getThumbnailsLayout } from '../utils/geometry';
@@ -50,11 +51,19 @@ export const DocViewerMain = factory<DocViewerMainFactory>((_props) => {
     null,
     _props
   );
+  const { onKeyDown, ...elementProps } = others;
   const { getStyles, store, type, pdfAdapter } = useDocViewerContext();
+  const session = usePdfSession();
   const position = useDocViewerState(store, (state) => state.thumbnailsPosition);
   const presenting = useDocViewerState(store, (state) => state.presenting);
   const ready = useDocViewerState(store, (state) => state.status === 'ready');
   const Screen = useExtensionScreen();
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(event);
+    if (presenting) {
+      session?.actions.handleKeyDown(event);
+    }
+  };
   if (type !== 'pdf' || !pdfAdapter) {
     return null;
   }
@@ -68,7 +77,8 @@ export const DocViewerMain = factory<DocViewerMainFactory>((_props) => {
       {...getStyles('main', { className, style, classNames, styles })}
       data-thumbnails-position={position}
       data-presenting={presenting || undefined}
-      {...others}
+      {...elementProps}
+      onKeyDown={handleKeyDown}
     >
       {children ?? (
         <>
