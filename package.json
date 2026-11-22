@@ -110,7 +110,7 @@
     "stylelint": "^16.20.0",
     "stylelint-config-standard-scss": "^15.0.1",
     "syncpack": "^13.0.4",
-    "tsx": "^4.19.4",
+    "tsx": "^4.23.15",
     "typescript": "6.0.2",
     "version-next": "^1.0.2",
     "vite": "^6.3.5",
