@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.11.1",
-    "@mantine/code-highlight": "9.8.0",
+    "@mantine/code-highlight": "9.8.1",
     "@mantine/core": "9.8.0",
     "@mantine/hooks": "9.8.0",
     "@mantinex/demo": "^2.0.0",
